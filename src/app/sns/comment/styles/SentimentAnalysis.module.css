@@ -1,0 +1,101 @@
+.sentimentSection {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 17px;
+}
+
+.title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1.5;
+  color: #594a3e;
+  margin-bottom: 24px;
+}
+
+.sentimentGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.sentimentCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.iconContainer {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.percentageContainer {
+  width: 100%;
+  text-align: center;
+}
+
+.percentage {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 1.5;
+}
+
+.labelContainer {
+  width: 100%;
+  text-align: center;
+}
+
+.label {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #4b5563;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sentimentSection {
+    padding: 12px;
+  }
+
+  .title {
+    font-size: 16px;
+    margin-bottom: 16px;
+  }
+
+  .sentimentGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .sentimentCard {
+    flex-direction: row;
+    text-align: left;
+    gap: 12px;
+  }
+
+  .iconContainer {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .percentage {
+    font-size: 20px;
+  }
+
+  .label {
+    font-size: 12px;
+  }
+}

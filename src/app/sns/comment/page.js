@@ -1,14 +1,14 @@
 import Head from "next/head";
-import MainPage from "./components/MainPage";
+import CommentManagement from "./components/CommentManagement";
 
 export default function Home() {
   return (
     <>
       <Head>
-        <title>PetFul - 반려동물 건강 관리 & 마케팅 통합 플랫폼</title>
+        <title>댓글 관리 - PetFul</title>
         <meta
           name="description"
-          content="예비·펫 인플루언서와 광고주를 연결하는 반려동물 건강 관리 & 마케팅 통합 플랫폼"
+          content="반려동물 SNS 댓글 관리 및 분석 대시보드"
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
@@ -19,11 +19,11 @@ export default function Home() {
           crossOrigin="true"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
       </Head>
-      <MainPage />
+      <CommentManagement />
     </>
   );
 }

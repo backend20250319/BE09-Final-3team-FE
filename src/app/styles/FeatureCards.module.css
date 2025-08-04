@@ -1,0 +1,127 @@
+.featureCardsSection {
+  padding: 64px 0;
+  background: #ffffff;
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 84px;
+}
+
+.sectionTitle {
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: #594a3e;
+  text-align: center;
+}
+
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 24px;
+  padding: 0 16px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-top: 4px solid;
+  border-radius: 12px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1), 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  height: 268px;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0px 8px 12px 0px rgba(0, 0, 0, 0.15), 0px 4px 8px 0px rgba(0, 0, 0, 0.1);
+}
+
+.cardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+}
+
+.cardTitle {
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.19;
+  color: #594a3e;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.cardDescription {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #4b5563;
+  text-align: center;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .cardsGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  
+  .card {
+    padding: 24px 20px;
+    height: auto;
+    min-height: 240px;
+  }
+}
+
+@media (max-width: 768px) {
+  .featureCardsSection {
+    padding: 40px 0;
+  }
+  
+  .sectionHeader {
+    margin-bottom: 40px;
+  }
+  
+  .sectionTitle {
+    font-size: 24px;
+  }
+  
+  .cardsGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 0;
+  }
+  
+  .card {
+    padding: 20px 16px;
+    min-height: 200px;
+  }
+  
+  .cardIcon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 12px;
+  }
+  
+  .cardTitle {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+  
+  .cardDescription {
+    font-size: 14px;
+  }
+}

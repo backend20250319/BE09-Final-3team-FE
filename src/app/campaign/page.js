@@ -1,14 +1,14 @@
 import Head from "next/head";
-import MainPage from "./components/MainPage";
+import CampaignListPage from "./components/CampaignListPage";
 
 export default function Home() {
   return (
     <>
       <Head>
-        <title>PetFul - 반려동물 건강 관리 & 마케팅 통합 플랫폼</title>
+        <title>체험단 상품 목록 - PetFul</title>
         <meta
           name="description"
-          content="예비·펫 인플루언서와 광고주를 연결하는 반려동물 건강 관리 & 마케팅 통합 플랫폼"
+          content="반려동물과 함께하는 특별한 상품 체험, 지금 바로 신청하고 경험해보세요."
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
@@ -23,7 +23,7 @@ export default function Home() {
           rel="stylesheet"
         />
       </Head>
-      <MainPage />
+      <CampaignListPage />
     </>
   );
 }

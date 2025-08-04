@@ -1,0 +1,101 @@
+.bannedWordsSection {
+  margin-bottom: 32px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1.56;
+  color: #594a3e;
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f5a623;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px 16px;
+  color: #ffffff;
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.addButton:hover {
+  background: #e6941f;
+}
+
+.addIcon {
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wordsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.wordTag {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 9999px;
+  padding: 5px 13px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #991b1b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.wordTag:hover {
+  background: #fecaca;
+  transform: scale(0.95);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  .addButton {
+    padding: 6px 12px;
+    font-size: 14px;
+    align-self: stretch;
+    justify-content: center;
+  }
+
+  .wordsContainer {
+    gap: 6px;
+  }
+
+  .wordTag {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+}

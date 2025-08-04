@@ -1,0 +1,59 @@
+.statCard {
+  padding: 17px;
+  border: 1px solid;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.statHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.iconContainer {
+  width: 20px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.statLabel {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.43;
+  flex: 1;
+}
+
+.statValue {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .statCard {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .statLabel {
+    font-size: 12px;
+  }
+
+  .statValue {
+    font-size: 20px;
+  }
+
+  .iconContainer {
+    width: 16px;
+    height: 14px;
+  }
+}

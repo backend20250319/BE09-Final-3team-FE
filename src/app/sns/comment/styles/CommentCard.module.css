@@ -1,0 +1,152 @@
+.commentCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 17px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.commentCard:hover {
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
+}
+
+.commentCard.deleted {
+  opacity: 0.7;
+}
+
+.commentContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.commentHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.avatar {
+  width: 18px;
+  height: 18px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.username {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #594a3e;
+}
+
+.sentimentTag,
+.statusTag {
+  padding: 3px 8px;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.commentText {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #374151;
+}
+
+.commentFooter {
+  display: flex;
+  align-items: center;
+}
+
+.timeAgo {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.deleteButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #ef4444;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 6px 16px;
+  color: #ffffff;
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.deleteButton:hover {
+  background: #dc2626;
+}
+
+.deleteIcon {
+  width: 12px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .commentCard {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .userInfo {
+    gap: 8px;
+  }
+
+  .username {
+    font-size: 14px;
+  }
+
+  .sentimentTag,
+  .statusTag {
+    padding: 2px 6px;
+    font-size: 10px;
+  }
+
+  .commentText {
+    font-size: 14px;
+  }
+
+  .timeAgo {
+    font-size: 12px;
+  }
+
+  .deleteButton {
+    padding: 4px 12px;
+    font-size: 12px;
+    align-self: flex-end;
+  }
+}

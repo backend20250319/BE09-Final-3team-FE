@@ -1,0 +1,112 @@
+.engagementCard {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  padding: 25px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 500;
+  color: #594a3e;
+  line-height: 1.2;
+  margin-bottom: 24px;
+}
+
+.chartContainer {
+  height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chartMockup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.pieChart {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: conic-gradient(
+    #f5a623 0deg 162deg,
+    #8bc34a 162deg 270deg,
+    #ff7675 270deg 360deg
+  );
+  position: relative;
+}
+
+.pieChart::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  background: #ffffff;
+  border-radius: 50%;
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.legendColor {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .engagementCard {
+    padding: 16px;
+  }
+
+  .title {
+    font-size: 16px;
+    margin-bottom: 16px;
+  }
+
+  .chartContainer {
+    height: 240px;
+  }
+
+  .pieChart {
+    width: 100px;
+    height: 100px;
+  }
+
+  .pieChart::before {
+    width: 50px;
+    height: 50px;
+  }
+
+  .legend {
+    gap: 6px;
+  }
+
+  .legendItem {
+    font-size: 12px;
+  }
+
+  .legendColor {
+    width: 10px;
+    height: 10px;
+  }
+}
