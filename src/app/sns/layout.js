@@ -3,7 +3,6 @@ import Head from "next/head";
 import Header from "./components/Header";
 import TabNavigation from "./components/TabNavigation";
 import { SnsProvider } from "./context/SnsContext";
-import "./styles/global.css";
 
 export default function SnsLayout({ children }) {
   return (
@@ -28,17 +27,12 @@ export default function SnsLayout({ children }) {
         />
       </Head>
 
-      {/* 전체 컨테이너 */}
-      <div className="snsContainer">
-        <div className="snsWrapper">
-          {/* Header */}
-          <Header />
-          <TabNavigation />
+      {/* Header */}
+      <Header />
+      <TabNavigation />
 
-          {/* 페이지 컨텐츠 */}
-          <main>{children}</main>
-        </div>
-      </div>
+      {/* 페이지 컨텐츠 */}
+      <main>{children}</main>
     </SnsProvider>
   );
 }
