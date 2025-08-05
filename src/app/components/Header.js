@@ -11,7 +11,7 @@ export default function Header() {
     { name: "체험단", href: "#campaigns" },
     { name: "펫 관리", href: "#pet-management" },
     { name: "건강 관리", href: "#health-management" },
-    { name: "SNS 관리", href: "#sns-management" },
+    { name: "SNS 관리", href: "/sns" },
     { name: "커뮤니티", href: "#community" },
   ];
 
@@ -25,8 +25,8 @@ export default function Header() {
               <Image
                 src="/logo.png"
                 alt="PetFul Logo"
-                width={128}
-                height={128}
+                width={200}
+                height={200}
               />
             </div>
 
