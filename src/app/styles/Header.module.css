@@ -29,29 +29,32 @@
 .headerActions {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 16px;
   height: 40px;
 }
 
-.cartButton {
+.notificationButton {
   position: relative;
   display: flex;
   align-items: center;
   background: transparent;
-  padding: 6px;
-  height: 28px;
-  width: 17.5px;
+  padding: 8px;
+  height: 40px;
+  width: 40px;
 }
 
-.cartIcon {
+.notificationIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 17.5px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
+  font-size: 24px;
+  color: #594a3e;
 }
 
-.cartCount {
+.notificationCount {
   position: absolute;
   top: -4px;
   right: -4px;
@@ -71,13 +74,14 @@
 .loginButton {
   background: transparent;
   color: #594a3e;
-  padding: 8px 0;
+  /* padding: 8px 0; */
   font-size: 16px;
   font-weight: 400;
   line-height: 1.19;
   text-align: center;
   min-width: 41px;
   height: 24px;
+  padding-right: 8px;
 }
 
 .signupButton {
