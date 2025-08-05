@@ -1,21 +1,31 @@
-import styles from "../styles/CommentCard.module.css";
+import styles from "../../styles/comment/CommentCard.module.css";
 
-export default function CommentCard({
-  username,
-  avatar,
-  sentiment,
-  sentimentColor,
-  status,
-  statusColor,
-  text,
-  timeAgo,
-  bgColor,
-  isDeleted = false,
-}) {
+export default function CommentCard({ comment }) {
+  const username = comment.username;
+  const avatar = comment.avatar;
+  const sentiment = comment.sentiment;
+  const status = comment.status;
+  const text = comment.content; // content를 text로 매핑
+  const timeAgo = comment.timestamp || comment.timeAgo; // timestamp를 timeAgo로 매핑
+  const isDeleted = comment.isDeleted || false; // 기본값 false
+
   const handleDelete = () => {
     if (window.confirm(`${username}의 댓글을 삭제하시겠습니까?`)) {
       // 실제 구현에서는 API 호출 등의 삭제 로직이 들어갑니다
       alert("댓글이 삭제되었습니다.");
+    }
+  };
+
+  const getSentimentBgColor = (sentiment) => {
+    switch (sentiment) {
+      case "긍정":
+        return "#D1FAE5"; // 연한 초록색
+      case "중립":
+        return "#F3F4F6"; // 연한 회색
+      case "부정":
+        return "#FEE2E2"; // 연한 빨간색
+      default:
+        return "#FFFFFF"; // 기본 흰색
     }
   };
 
@@ -32,11 +42,21 @@ export default function CommentCard({
     }
   };
 
+  const getStatusBgColor = (status) => {
+    switch (status) {
+      case "승인됨":
+        return "#E5E7EB"; // 연한 회색
+      case "삭제됨":
+        return "#FEE2E2"; // 연한 빨간색
+      default:
+        return "#F3F4F6"; // 기본 연한 회색
+    }
+  };
   const getStatusTextColor = (status) => {
     switch (status) {
-      case "Active":
+      case "승인됨":
         return "#4B5563";
-      case "Auto-deleted":
+      case "삭제됨":
         return "#991B1B";
       default:
         return "#4B5563";
@@ -46,17 +66,30 @@ export default function CommentCard({
   return (
     <div
       className={`${styles.commentCard} ${isDeleted ? styles.deleted : ""}`}
-      style={{ backgroundColor: bgColor }}
+      style={{
+        backgroundColor: isDeleted ? "#FECACA" : "#FFFFFF",
+        borderColor: isDeleted ? "#991B1B" : "#e5e7eb",
+      }}
     >
       <div className={styles.commentContent}>
         <div className={styles.commentHeader}>
           <div className={styles.userInfo}>
-            <div className={styles.avatar}>{avatar}</div>
+            <div className={styles.avatar}>
+              {avatar && avatar.startsWith("/") ? (
+                <img
+                  src={avatar}
+                  alt={username}
+                  style={{ width: "18px", height: "18px", borderRadius: "50%" }}
+                />
+              ) : (
+                avatar || username.charAt(0).toUpperCase()
+              )}
+            </div>
             <span className={styles.username}>{username}</span>
             <span
               className={styles.sentimentTag}
               style={{
-                backgroundColor: sentimentColor,
+                backgroundColor: getSentimentBgColor(sentiment),
                 color: getSentimentTextColor(sentiment),
               }}
             >
@@ -65,7 +98,7 @@ export default function CommentCard({
             <span
               className={styles.statusTag}
               style={{
-                backgroundColor: statusColor,
+                backgroundColor: getStatusBgColor(status),
                 color: getStatusTextColor(status),
               }}
             >
@@ -77,7 +110,10 @@ export default function CommentCard({
         <div className={styles.commentText}>{text}</div>
 
         <div className={styles.commentFooter}>
-          <span className={styles.timeAgo} style={{ color: isDeleted ? "#DC2626" : "#6B7280" }}>
+          <span
+            className={styles.timeAgo}
+            style={{ color: isDeleted ? "#DC2626" : "#6B7280" }}
+          >
             {timeAgo}
           </span>
         </div>

@@ -1,9 +1,12 @@
+"use client";
 import Head from "next/head";
-import SnsManagement from "./SnsManagement";
+import Header from "./components/Header";
+import TabNavigation from "./components/TabNavigation";
+import { SnsProvider } from "./context/SnsContext";
 
-export default function Home() {
+export default function SnsLayout({ children }) {
   return (
-    <>
+    <SnsProvider>
       <Head>
         <title>SNS 관리 - PetFul</title>
         <meta
@@ -23,7 +26,13 @@ export default function Home() {
           rel="stylesheet"
         />
       </Head>
-      <SnsManagement />
-    </>
+
+      {/* Header */}
+      <Header />
+      <TabNavigation />
+
+      {/* 페이지 컨텐츠 */}
+      <main>{children}</main>
+    </SnsProvider>
   );
 }

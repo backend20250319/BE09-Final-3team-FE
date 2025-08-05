@@ -1,4 +1,4 @@
-import styles from "../styles/StatsCard.module.css";
+import styles from "../../styles/comment/StatsCard.module.css";
 
 const StatIcon = ({ iconType, color }) => {
   const icons = {
@@ -39,7 +39,14 @@ const StatIcon = ({ iconType, color }) => {
   return icons[iconType] || null;
 };
 
-export default function StatsCard({ icon, label, value, color, bgColor, borderColor }) {
+export default function StatsCard({
+  icon,
+  label,
+  value,
+  color,
+  bgColor,
+  borderColor,
+}) {
   return (
     <div
       className={styles.statCard}

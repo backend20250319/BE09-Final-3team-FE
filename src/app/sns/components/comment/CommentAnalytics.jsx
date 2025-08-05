@@ -1,52 +1,35 @@
 "use client";
 
-import { useState } from "react";
-import styles from "../styles/CommentAnalytics.module.css";
+import { useState, useEffect } from "react";
+import { getCommentStats } from "../../lib/commentData";
+import styles from "../../styles/comment/CommentAnalytics.module.css";
 import StatsCard from "./StatsCard";
 import BannedWords from "./BannedWords";
 import SentimentAnalysis from "./SentimentAnalysis";
 
 export default function CommentAnalytics() {
   const [autoManageEnabled, setAutoManageEnabled] = useState(true);
+  const [statsData, setStatsData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const statsData = [
-    {
-      id: 1,
-      icon: "message",
-      label: "총 댓글 수",
-      value: "1,247",
-      color: "#3B82F6",
-      bgColor: "#EFF6FF",
-      borderColor: "#BFDBFE",
-    },
-    {
-      id: 2,
-      icon: "delete",
-      label: "자동 삭제",
-      value: "89",
-      color: "#EF4444",
-      bgColor: "#FEF2F2",
-      borderColor: "#FECACA",
-    },
-    {
-      id: 3,
-      icon: "percentage",
-      label: "삭제 비율",
-      value: "7.1%",
-      color: "#22C55E",
-      bgColor: "#F0FDF4",
-      borderColor: "#BBF7D0",
-    },
-    {
-      id: 4,
-      icon: "ban",
-      label: "금지어 개수",
-      value: "24",
-      color: "#A855F7",
-      bgColor: "#FAF5FF",
-      borderColor: "#E9D5FF",
-    },
-  ];
+  useEffect(() => {
+    const fetchStatsData = async () => {
+      try {
+        const data = await getCommentStats();
+        setStatsData(data);
+      } catch (error) {
+        console.error("Failed to fetch comment stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStatsData();
+  }, []);
+
+  if (loading) {
+    return <div className={styles.analyticsSection}>Loading...</div>;
+  }
 
   return (
     <div className={styles.analyticsSection}>
