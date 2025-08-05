@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetFul - 회원가입</title>
+    <link rel="stylesheet" href="signup.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="body-container">
+        <main class="main-content">
+            <div class="signup-card">
+                <div class="header-section">
+                    <h1 class="signup-title">회원가입</h1>
+                    <p class="signup-subtitle">펫풀 커뮤니티에 가입하여 반려동물의 영향력을 키워보세요</p>
+                </div>
+                
+                <form class="signup-form">
+                    <!-- 이메일 -->
+                    <div class="form-group">
+                        <label class="form-label">이메일</label>
+                        <div class="input-button-group">
+                            <input type="email" class="form-input" placeholder="이메일을 입력하세요">
+                            <button type="button" class="verify-button">인증번호 발송</button>
+                        </div>
+                    </div>
+
+                    <!-- 인증번호 -->
+                    <div class="form-group">
+                        <label class="form-label">인증번호</label>
+                        <div class="input-button-group">
+                            <input type="text" class="form-input" placeholder="인증번호를 입력하세요">
+                            <button type="button" class="verify-button">인증번호 확인</button>
+                        </div>
+                    </div>
+
+                    <!-- 비밀번호 -->
+                    <div class="form-group">
+                        <label class="form-label">비밀번호</label>
+                        <input type="password" class="form-input" placeholder="비밀번호를 입력하세요">
+                    </div>
+
+                    <!-- 비밀번호 확인 -->
+                    <div class="form-group">
+                        <label class="form-label">비밀번호 확인</label>
+                        <input type="password" class="form-input" placeholder="비밀번호를 다시 입력하세요">
+                    </div>
+
+                    <!-- 이름 -->
+                    <div class="form-group">
+                        <label class="form-label">이름</label>
+                        <input type="text" class="form-input" placeholder="이름을 입력하세요">
+                    </div>
+
+                    <!-- 닉네임 -->
+                    <div class="form-group">
+                        <label class="form-label">닉네임</label>
+                        <input type="text" class="form-input" placeholder="닉네임을 입력하세요">
+                    </div>
+
+                    <!-- 전화번호 -->
+                    <div class="form-group">
+                        <label class="form-label">전화번호</label>
+                        <input type="tel" class="form-input" placeholder="전화번호를 입력하세요">
+                    </div>
+
+                    <!-- 주소 -->
+                    <div class="form-group">
+                        <label class="form-label">주소</label>
+                        <input type="text" class="form-input" placeholder="도로명 주소를 입력하세요">
+                    </div>
+
+                    <!-- 상세주소 -->
+                    <div class="form-group">
+                        <label class="form-label">상세주소</label>
+                        <input type="text" class="form-input" placeholder="상세 주소를 입력하세요">
+                    </div>
+
+                    <!-- 생년월일 -->
+                    <div class="form-group">
+                        <label class="form-label">생년월일</label>
+                        <div class="date-inputs">
+                            <div class="date-input-group">
+                                <input type="text" class="date-input" placeholder="년">
+                                <img src="images/dropdown-arrow.png" alt="dropdown" class="dropdown-icon">
+                            </div>
+                            <div class="date-input-group">
+                                <input type="text" class="date-input" placeholder="월">
+                                <img src="images/dropdown-arrow.png" alt="dropdown" class="dropdown-icon">
+                            </div>
+                            <div class="date-input-group">
+                                <input type="text" class="date-input" placeholder="일">
+                                <img src="images/dropdown-arrow.png" alt="dropdown" class="dropdown-icon">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="login-link">
+                    <span>이미 계정이 있으신가요? <a href="#" class="login-text">로그인</a></span>
+                </div>
+
+                <button type="submit" class="submit-button">확인</button>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
