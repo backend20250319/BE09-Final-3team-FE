@@ -1,34 +1,36 @@
+"use client";
 import Image from "next/image";
-import styles from "../styles/TopPerformingPosts.module.css";
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import styles from "../../styles/feed/TopPerformingPosts.module.css";
+import { getTopPerformingPosts } from "../../lib/feedData";
 
 export default function TopPerformingPosts() {
-  const posts = [
-    {
-      id: 1,
-      image: "/images/post-1.jpg",
-      title: "Beach day adventures! 🏖️",
-      likes: "15.2K",
-      comments: "847",
-    },
-    {
-      id: 2,
-      image: "/images/post-2.jpg",
-      title: "New toy unboxing! 🎾",
-      likes: "12.8K",
-      comments: "623",
-    },
-    {
-      id: 3,
-      image: "/images/post-3.jpg",
-      title: "Sunday nap vibes 😴",
-      likes: "11.4K",
-      comments: "445",
-    },
-  ];
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPostsData = async () => {
+      try {
+        const data = await getTopPerformingPosts();
+        setPosts(data);
+      } catch (error) {
+        console.error("Failed to fetch posts data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPostsData();
+  }, []);
+
+  if (loading) {
+    return <div className={styles.topPostsCard}>Loading...</div>;
+  }
 
   return (
     <div className={styles.topPostsCard}>
-      <h3 className={styles.title}>Top Performing Posts</h3>
+      <h3 className={styles.title}>최다 좋아요 수 게시물</h3>
       <div className={styles.postsContainer}>
         {posts.map((post) => (
           <div key={post.id} className={styles.postCard}>

@@ -1,4 +1,4 @@
-import styles from "../styles/StatCard.module.css";
+import styles from "../../styles/feed/StatCard.module.css";
 
 const StatIcon = ({ iconType, color }) => {
   const icons = {

@@ -58,6 +58,14 @@
   margin-bottom: 32px;
 }
 
+.emptyState {
+  text-align: center;
+  padding: 48px 16px;
+  color: #6b7280;
+  font-family: "Poppins", sans-serif;
+  font-size: 16px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .commentListSection {
