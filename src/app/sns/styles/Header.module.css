@@ -1,5 +1,5 @@
 .header {
-  margin-bottom: 32px;
+  margin-bottom: 0;
 }
 
 .title {
@@ -20,7 +20,7 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .header {
-    margin-bottom: 24px;
+    margin-bottom: 0;
   }
 
   .title {

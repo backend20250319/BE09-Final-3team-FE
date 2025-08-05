@@ -25,6 +25,37 @@ button {
   font-family: inherit;
 }
 
+/* SNS 페이지 전체 컨테이너 */
+.snsContainer {
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(90deg, #f0f5ec 0%, #fcfbf8 100%);
+  padding: 0;
+}
+
+.snsWrapper {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .snsWrapper {
+    padding: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .snsWrapper {
+    padding: 20px;
+    gap: 16px;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
