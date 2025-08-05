@@ -1,3 +1,5 @@
+"use client";
+
 import styles from "../styles/MainPage.module.css";
 import Header from "./Header";
 import HeroIntro from "./HeroIntro";
