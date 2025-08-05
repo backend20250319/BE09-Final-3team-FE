@@ -203,7 +203,7 @@ export default function ActivityManagementPage() {
                       </div>
                     </div>
 
-                    {/* 메모 */}
+                    {/* 메모  */}
                     <div className={`${styles.activityCard} ${styles.notes}`}>
                       <div className={styles.activityHeader}>
                         <div className={styles.activityIcon}>
