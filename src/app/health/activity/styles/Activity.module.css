@@ -1,0 +1,541 @@
+/* Container and Layout */
+.container {
+  width: 1440px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid #ced4da;
+  border-radius: 8px;
+  opacity: 0.8;
+}
+
+.body {
+  width: 1440px;
+  min-height: 100vh;
+  background: linear-gradient(90deg, #f0f5ec 0%, #fcfbf8 100%);
+  border: 1px solid #e5e7eb;
+}
+
+.main {
+  width: 1440px;
+  min-height: 100vh;
+  background: transparent;
+  border: 1px solid #e5e7eb;
+}
+
+.content {
+  width: 1280px;
+  min-height: 100vh;
+  margin: 32px 80px;
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  padding-bottom: 40px;
+}
+
+/* Header Section */
+.header {
+  width: 1280px;
+  min-height: 72px;
+  margin: 24px 0 40px 0;
+  background: transparent;
+  border: 1px solid #e5e7eb;
+}
+
+.title {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 1.2em;
+  color: #594a3e;
+  margin: 0 0 16px 0;
+}
+
+.subtitle {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1.56em;
+  color: #4b5563;
+  margin: 0;
+  max-width: 569px;
+}
+
+/* Pet Profile Section */
+.petProfileSection {
+  width: 1280px;
+  min-height: 259px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  margin-bottom: 40px;
+  overflow: hidden;
+}
+
+.sectionTitle {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 1.19em;
+  color: #594a3e;
+  margin: 0;
+  padding: 69px 25px 20px;
+}
+
+.petProfiles {
+  display: flex;
+  gap: 16px;
+  padding: 0 25px 20px;
+}
+
+.petCard {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 18px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 206px;
+  height: 95px;
+}
+
+.petCard.active {
+  background: #f0f5ec;
+  border: 2px solid #8bc34a;
+}
+
+.petInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.petAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.petDetails h3 {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5em;
+  color: #594a3e;
+  margin: 0 0 4px 0;
+}
+
+.petDetails p {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.43em;
+  color: #4b5563;
+  margin: 0;
+}
+
+/* Tab Navigation */
+.tabNavigation {
+  display: flex;
+  border-top: 1px solid #e5e7eb;
+}
+
+.tab {
+  padding: 13px 24px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.19em;
+  color: #4b5563;
+  cursor: pointer;
+  border-bottom: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+  min-width: 150px;
+  text-align: center;
+}
+
+.tab.active {
+  background: #f5a623;
+  color: #ffffff;
+  border-bottom: 2px solid #f5a623;
+}
+
+.tab:not(.active):hover {
+  background: #f9fafb;
+}
+
+/* Activity Section */
+.activitySection {
+  width: 1280px;
+  min-height: 883px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+/* Navigation Tabs */
+.navTabs {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+  position: relative;
+  height: 59px;
+}
+
+.navTab {
+  background: none;
+  border: none;
+  padding: 18px 24px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.19em;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+  text-align: center;
+}
+
+.navTab.active {
+  color: #f5a623;
+  border-bottom: 2px solid #f5a623;
+}
+
+.navTab:hover:not(.active) {
+  background: #f9fafb;
+}
+
+.navIcon {
+  margin-left: auto;
+  margin-right: 24px;
+  cursor: pointer;
+}
+
+/* Activity Content */
+.activityContent {
+  padding: 24px;
+  min-height: 822px;
+}
+
+.activityGrid {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 32px;
+  min-height: 694px;
+}
+
+/* Left and Right Columns */
+.leftColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.rightColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Activity Cards */
+.activityCard {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 21px;
+  min-height: 100px;
+  transition: all 0.3s ease;
+}
+
+.activityCard.walking {
+  background: #f0f5ec;
+}
+
+.activityCard.feeding {
+  background: #fff3e0;
+}
+
+.activityCard.sleep {
+  background: #e8f5e8;
+}
+
+.activityCard.weight {
+  background: #e8f5e8;
+}
+
+.activityCard.bathroom {
+  background: #fff0f5;
+}
+
+.activityCard.notes {
+  background: #f0f8ff;
+}
+
+.activityHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.activityIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 18px;
+}
+
+.activityHeader h3 {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1.19em;
+  color: #594a3e;
+  margin: 0;
+}
+
+/* Form Styles */
+.activityForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formGroup label {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.19em;
+  color: #374151;
+}
+
+.formGroup input,
+.formGroup textarea {
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5em;
+  background: #ffffff;
+  color: #adaebc;
+  transition: all 0.3s ease;
+}
+
+.formGroup input:focus,
+.formGroup textarea:focus {
+  outline: none;
+  border-color: #8bc34a;
+  color: #374151;
+  box-shadow: 0 0 0 3px rgba(139, 195, 74, 0.1);
+}
+
+.formGroup textarea {
+  resize: vertical;
+  min-height: 104px;
+}
+
+/* Calorie Info */
+.calorieInfo {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.calorieItem {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  flex: 1;
+  text-align: center;
+}
+
+.calorieItem p:first-child {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.19em;
+  color: #4b5563;
+  margin: 0 0 8px 0;
+}
+
+.calorieValue {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1.19em;
+  color: #8bc34a;
+  margin: 0;
+}
+
+.feeding .calorieValue {
+  color: #f5a623;
+}
+
+/* Bathroom Inputs */
+.bathroomInputs {
+  display: flex;
+  gap: 16px;
+}
+
+.bathroomInputs .formGroup {
+  flex: 1;
+}
+
+/* Weight Card Special Styling */
+.activityCard.weight .activityForm {
+  margin-top: 23px;
+}
+
+.activityCard.weight .formGroup {
+  margin-top: 23px;
+}
+
+/* Save Section */
+.saveSection {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+  min-height: 48px;
+}
+
+.saveButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #8bc34a;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 27px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.19em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 127px;
+  height: 48px;
+  justify-content: center;
+}
+
+.saveButton:hover {
+  background: #7cb342;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 195, 74, 0.3);
+}
+
+.saveButton svg {
+  width: 14px;
+  height: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 1440px) {
+  .container,
+  .body,
+  .main {
+    width: 100%;
+    max-width: 1440px;
+    min-height: auto;
+  }
+
+  .content {
+    width: 100%;
+    max-width: 1280px;
+    margin: 32px auto;
+    min-height: auto;
+  }
+
+  .header,
+  .petProfileSection,
+  .activitySection {
+    width: 100%;
+    min-height: auto;
+  }
+}
+
+@media (max-width: 1200px) {
+  .activityGrid {
+    flex-direction: column;
+    max-width: 800px;
+    margin: 0 auto 32px auto;
+  }
+
+  .content {
+    margin: 32px 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .content {
+    margin: 32px 20px;
+  }
+
+  .petProfiles {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .petCard {
+    min-width: auto;
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .calorieInfo {
+    flex-direction: column;
+  }
+
+  .bathroomInputs {
+    flex-direction: column;
+  }
+
+  .tabNavigation {
+    flex-direction: column;
+  }
+
+  .tab {
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+  }
+
+  .activityCard {
+    padding: 16px;
+  }
+
+  .navTab {
+    padding: 14px 16px;
+    font-size: 14px;
+    min-width: auto;
+  }
+
+  .content {
+    margin: 32px 10px;
+  }
+}
