@@ -10,7 +10,6 @@ import Footer from "./Footer";
 export default function MainPage() {
   return (
     <div className={styles.mainPage}>
-      <Header />
       <main className={styles.mainContent}>
         <HeroSection />
         <FeatureCards />
@@ -18,7 +17,6 @@ export default function MainPage() {
         <InfluencerSection />
         <CTASection />
       </main>
-      <Footer />
     </div>
   );
 }
