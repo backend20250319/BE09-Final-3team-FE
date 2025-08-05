@@ -322,6 +322,8 @@
   background: #ffffff;
   color: #adaebc;
   transition: all 0.3s ease;
+  resize: none;
+  overflow-y: auto;
 }
 
 .formGroup input:focus,
@@ -333,8 +335,12 @@
 }
 
 .formGroup textarea {
-  resize: vertical;
+  resize: none;
   min-height: 104px;
+}
+
+.noResize {
+  resize: none !important;
 }
 
 /* Calorie Info */
@@ -385,18 +391,18 @@
 
 /* Weight Card Special Styling */
 .activityCard.weight .activityForm {
-  margin-top: 23px;
+  margin-top: 22px;
 }
 
 .activityCard.weight .formGroup {
-  margin-top: 23px;
+  margin-top: 0px;
 }
 
 /* Save Section */
 .saveSection {
   display: flex;
   justify-content: flex-end;
-  padding-top: 10px;
+  padding-bottom: 6px;
   min-height: 48px;
 }
 
@@ -425,9 +431,9 @@
   box-shadow: 0 4px 12px rgba(139, 195, 74, 0.3);
 }
 
-.saveButton svg {
-  width: 14px;
-  height: 16px;
+.saveButton img {
+  width: 25px;
+  height: 25px;
 }
 
 /* Responsive Design */

@@ -137,10 +137,11 @@ export default function ActivityManagementPage() {
                         <div className={styles.activityIcon}>
                           <img src="/health/weight.png" alt="무게 아이콘" />
                         </div>
-                        <h3>무게(KG)</h3>
+                        <h3>무게</h3>
                       </div>
                       <div className={styles.activityForm}>
                         <div className={styles.formGroup}>
+                          <label htmlFor="sleep-time">몸무게 (kg)</label>
                           <input type="number" defaultValue={0.0} step={0.1} />
                         </div>
                       </div>
@@ -212,6 +213,7 @@ export default function ActivityManagementPage() {
                       </div>
                       <div className={styles.activityForm}>
                         <textarea
+                          className={styles.noResize}
                           placeholder="추가 사항을 작성하세요."
                           rows={5}
                         />
@@ -223,9 +225,7 @@ export default function ActivityManagementPage() {
                 {/* 저장버튼 */}
                 <div className={styles.saveSection}>
                   <button className={styles.saveButton}>
-                    <svg width="14" height="16" viewBox="0 0 14 16" fill="none">
-                      <path d="M7 0L13.5 8L7 16L0.5 8L7 0Z" fill="white" />
-                    </svg>
+                    <img src="/health/save.png" alt="저장 아이콘" />
                     저장
                   </button>
                 </div>
