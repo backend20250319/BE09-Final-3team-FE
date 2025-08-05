@@ -13,13 +13,11 @@ export default function MainPage() {
     <div className={styles.mainPage}>
       <main className={styles.mainContent}>
         <HeroIntro />
-        <HeroSection />
         <FeatureCards />
+        <HeroSection />
         <CampaignSection />
         <InfluencerSection />
         <CTASection />
-
-        {/* Main CTA Section */}
       </main>
     </div>
   );

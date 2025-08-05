@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import styles from "../styles/Header.module.css";
 
 export default function Header() {
@@ -21,14 +22,14 @@ export default function Header() {
       <header className={styles.topHeader}>
         <div className="container">
           <div className={styles.topHeaderContent}>
-            <div className={styles.logo}>
+            <Link href="/" className={styles.logo}>
               <Image
                 src="/logo.png"
                 alt="PetFul Logo"
                 width={200}
                 height={200}
               />
-            </div>
+            </Link>
 
             <div className={styles.headerActions}>
               <button className={styles.cartButton}>
