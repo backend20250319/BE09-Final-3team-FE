@@ -4,7 +4,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
 * {
   box-sizing: border-box;
   padding: 0;
@@ -18,7 +17,9 @@ body {
   font-family: "Pretendard Variable", sans-serif;
   line-height: 1.5;
   color: #594a3e;
-  background: linear-gradient(180deg, #f0f5ec 0%, #fcfbf8 100%);
+  /* background: linear-gradient(180deg, #f0f5ec 0%, #fcfbf8 100%); */
+  background: linear-gradient(180deg, #f0f5ec 0%, #ffffff 100%);
+
   min-height: 100vh;
 }
 

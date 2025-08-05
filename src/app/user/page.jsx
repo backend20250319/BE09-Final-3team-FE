@@ -1,7 +1,8 @@
 // user/signup/page.js
 
-import Signup from "./signup/signup";
+import SignupForm from "./signup/page";
+
 
 export default function SignupPage() {
-  return <Signup />;
+  return <SignupForm />;
 }

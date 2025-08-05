@@ -10,6 +10,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    background: linear-gradient(90deg, #f0f5ec 0%, #fcfbf8 100%);
     font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, sans-serif;
 }
