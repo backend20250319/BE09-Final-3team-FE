@@ -1,6 +1,11 @@
 .mainPage {
   min-height: 100vh;
   background: linear-gradient(180deg, #f0f5ec 0%, #fcfbf8 100%);
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  margin-top: -80px;
+  margin-bottom: -80px;
+  padding: 0;
 }
 
 .mainContent {

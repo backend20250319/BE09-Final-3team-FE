@@ -1,5 +1,8 @@
+"use client";
+
 import styles from "../styles/MainPage.module.css";
 import Header from "./Header";
+import HeroIntro from "./HeroIntro";
 import HeroSection from "./HeroSection";
 import FeatureCards from "./FeatureCards";
 import CampaignSection from "./CampaignSection";
@@ -11,8 +14,9 @@ export default function MainPage() {
   return (
     <div className={styles.mainPage}>
       <main className={styles.mainContent}>
-        <HeroSection />
+        <HeroIntro />
         <FeatureCards />
+        <HeroSection />
         <CampaignSection />
         <InfluencerSection />
         <CTASection />

@@ -15,7 +15,7 @@ export default function Footer() {
             d="M9 4.38C6.5 4.38 4.5 6.38 4.5 8.88C4.5 11.38 6.5 13.38 9 13.38C11.5 13.38 13.5 11.38 13.5 8.88C13.5 6.38 11.5 4.38 9 4.38ZM9 11.88C7.3 11.88 6 10.58 6 8.88C6 7.18 7.3 5.88 9 5.88C10.7 5.88 12 7.18 12 8.88C12 10.58 10.7 11.88 9 11.88Z"
             fill="#594A3E"
           />
-          <circle cx="13.88" cy="4.13" r="1.125" fill="#594A3E"/>
+          <circle cx="13.88" cy="4.13" r="1.125" fill="#594A3E" />
         </svg>
       ),
     },
@@ -60,15 +60,16 @@ export default function Footer() {
         <div className={styles.footerContent}>
           <div className={styles.footerLeft}>
             <div className={styles.logoSection}>
-              <Image 
-                src="/logo.png" 
-                alt="PetFul Logo" 
-                width={108} 
+              <Image
+                src="/logo.png"
+                alt="PetFul Logo"
+                width={108}
                 height={108}
                 className={styles.footerLogo}
               />
               <p className={styles.description}>
-                예비·펫 인플루언서와 광고주를 연결하는 반려동물 건강 관리 & 마케팅 통합 플랫폼
+                예비·펫 인플루언서와 광고주를 연결하는 반려동물 건강 관리 &
+                마케팅 통합 플랫폼
               </p>
             </div>
             <div className={styles.divider}></div>
@@ -77,9 +78,9 @@ export default function Footer() {
           <div className={styles.footerRight}>
             <div className={styles.socialLinks}>
               {socialLinks.map((link) => (
-                <a 
-                  key={link.name} 
-                  href="#" 
+                <a
+                  key={link.name}
+                  href="#"
                   className={styles.socialLink}
                   aria-label={link.name}
                 >
