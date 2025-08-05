@@ -1,6 +1,9 @@
 import styles from "../styles/TabNavigation.module.css";
+import { useSns } from "../context/SnsContext";
 
-export default function TabNavigation({ activeTab, setActiveTab }) {
+export default function TabNavigation() {
+  const { activeTab, setActiveTab } = useSns();
+
   return (
     <div className={styles.tabContainer}>
       <div className={styles.tabGroup}>
@@ -14,9 +17,9 @@ export default function TabNavigation({ activeTab, setActiveTab }) {
         </button>
         <button
           className={`${styles.tab} ${
-            activeTab === "comments" ? styles.active : ""
+            activeTab === "comment" ? styles.active : ""
           }`}
-          onClick={() => setActiveTab("comments")}
+          onClick={() => setActiveTab("comment")}
         >
           댓글 관리
         </button>

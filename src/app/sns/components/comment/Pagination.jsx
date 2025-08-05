@@ -1,6 +1,11 @@
-import styles from "../styles/Pagination.module.css";
+import styles from "../../styles/comment/Pagination.module.css";
 
-export default function Pagination({ currentPage, totalComments, commentsPerPage, onPageChange }) {
+export default function Pagination({
+  currentPage,
+  totalComments,
+  commentsPerPage,
+  onPageChange,
+}) {
   const totalPages = Math.ceil(totalComments / commentsPerPage);
   const startItem = (currentPage - 1) * commentsPerPage + 1;
   const endItem = Math.min(currentPage * commentsPerPage, totalComments);
@@ -25,14 +30,17 @@ export default function Pagination({ currentPage, totalComments, commentsPerPage
     <div className={styles.paginationContainer}>
       <div className={styles.info}>
         <span className={styles.infoText}>
-          Showing {startItem}-{endItem} of {totalComments.toLocaleString()} comments
+          Showing {startItem}-{endItem} of {totalComments.toLocaleString()}{" "}
+          comments
         </span>
       </div>
 
       <div className={styles.pagination}>
         {/* Previous Button */}
         <button
-          className={`${styles.pageButton} ${currentPage === 1 ? styles.disabled : ""}`}
+          className={`${styles.pageButton} ${
+            currentPage === 1 ? styles.disabled : ""
+          }`}
           onClick={handlePrevious}
           disabled={currentPage === 1}
         >
@@ -52,7 +60,9 @@ export default function Pagination({ currentPage, totalComments, commentsPerPage
         {[1, 2, 3].map((page) => (
           <button
             key={page}
-            className={`${styles.pageButton} ${currentPage === page ? styles.active : ""}`}
+            className={`${styles.pageButton} ${
+              currentPage === page ? styles.active : ""
+            }`}
             onClick={() => handlePageClick(page)}
           >
             {page}
@@ -61,7 +71,9 @@ export default function Pagination({ currentPage, totalComments, commentsPerPage
 
         {/* Next Button */}
         <button
-          className={`${styles.pageButton} ${currentPage === totalPages ? styles.disabled : ""}`}
+          className={`${styles.pageButton} ${
+            currentPage === totalPages ? styles.disabled : ""
+          }`}
           onClick={handleNext}
           disabled={currentPage === totalPages}
         >

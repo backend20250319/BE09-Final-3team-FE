@@ -1,0 +1,147 @@
+.sentimentSection {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 17px;
+}
+
+.title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1.5;
+  color: #594a3e;
+  margin-bottom: 24px;
+}
+
+.sentimentCards {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.sentimentCard {
+  flex: 1;
+  background: #ffffff;
+  /* border: 1px solid #e5e7eb; */
+  /* border-radius: 12px; */
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+}
+
+.cardHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.iconContainer {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0; 
+  margin-bottom: 16px;
+}
+
+.cardInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.sentimentType {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+}
+
+.sentimentCount {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #6b7280;
+  margin: 0;
+}
+
+.progressContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.progressBar {
+  display: none;
+}
+
+.progress {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.percentage {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.2;
+  min-width: auto;
+  text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sentimentSection {
+    padding: 12px;
+  }
+
+  .title {
+    font-size: 16px;
+    margin-bottom: 16px;
+  }
+
+  .sentimentCards {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .sentimentCard {
+    padding: 12px;
+  }
+
+  .cardHeader {
+    gap: 8px;
+  }
+
+  .iconContainer {
+    width: 32px;
+    height: 32px;
+  }
+
+  .sentimentType {
+    font-size: 14px;
+  }
+
+  .sentimentCount {
+    font-size: 12px;
+  }
+
+  .percentage {
+    font-size: 12px;
+    min-width: 35px;
+  }
+}
