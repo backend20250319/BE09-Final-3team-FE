@@ -1,5 +1,6 @@
 import React from "react";
 import styles from "./styles/Activity.module.css";
+import PetProfileSelector from "../components/PetProfileSelector";
 
 export default function ActivityManagementPage() {
   return (
@@ -15,58 +16,8 @@ export default function ActivityManagementPage() {
               </p>
             </div>
 
-            {/* Pet Profile Section */}
-            <div className={styles.petProfileSection}>
-              {/* Tab Navigation */}
-              <div className={styles.tabNavigation}>
-                <div className={`${styles.tab} ${styles.active}`}>
-                  활동 관리
-                </div>
-                <div className={styles.tab}>진료ㆍ처방 관리</div>
-              </div>
-              <h2 className={styles.sectionTitle}>반려동물 프로필</h2>
-              <div className={styles.petProfiles}>
-                <div className={`${styles.petCard} ${styles.active}`}>
-                  <div className={styles.petInfo}>
-                    <img
-                      src="/images/buddy-profile.png"
-                      alt="Buddy"
-                      className={styles.petAvatar}
-                    />
-                    <div className={styles.petDetails}>
-                      <h3>Buddy</h3>
-                      <p>안녕하세요</p>
-                    </div>
-                  </div>
-                </div>
-                <div className={styles.petCard}>
-                  <div className={styles.petInfo}>
-                    <img
-                      src="/images/luna-profile.png"
-                      alt="Luna"
-                      className={styles.petAvatar}
-                    />
-                    <div className={styles.petDetails}>
-                      <h3>Luna</h3>
-                      <p>반갑습니다</p>
-                    </div>
-                  </div>
-                </div>
-                <div className={styles.petCard}>
-                  <div className={styles.petInfo}>
-                    <img
-                      src="/images/max-profile.png"
-                      alt="Max"
-                      className={styles.petAvatar}
-                    />
-                    <div className={styles.petDetails}>
-                      <h3>Max</h3>
-                      <p>환영해요</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* 펫 프로필 컴포넌트 */}
+            <PetProfileSelector />
 
             {/* Activity Management Section */}
             <div className={styles.activitySection}>
@@ -316,7 +267,7 @@ export default function ActivityManagementPage() {
                       </div>
                       <div className={styles.activityForm}>
                         <textarea
-                          placeholder="Any additional observations or notes..."
+                          placeholder="추가 사항을 작성하세요."
                           rows={5}
                         />
                       </div>

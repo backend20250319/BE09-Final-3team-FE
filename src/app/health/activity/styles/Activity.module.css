@@ -3,8 +3,6 @@
   width: 1440px;
   min-height: 100vh;
   margin: 0 auto;
-  background: rgba(255, 255, 255, 0.8);
-  border: 2px solid #ced4da;
   border-radius: 8px;
   opacity: 0.8;
 }
@@ -12,15 +10,12 @@
 .body {
   width: 1440px;
   min-height: 100vh;
-  background: linear-gradient(90deg, #f0f5ec 0%, #fcfbf8 100%);
-  border: 1px solid #e5e7eb;
 }
 
 .main {
   width: 1440px;
   min-height: 100vh;
   background: transparent;
-  border: 1px solid #e5e7eb;
 }
 
 .content {
@@ -28,7 +23,6 @@
   min-height: 100vh;
   margin: 32px 80px;
   background: transparent;
-  border: 1px solid #e5e7eb;
   padding-bottom: 40px;
 }
 
@@ -36,13 +30,11 @@
 .header {
   width: 1280px;
   min-height: 72px;
-  margin: 24px 0 40px 0;
+  margin: 24px 0 30px 0;
   background: transparent;
-  border: 1px solid #e5e7eb;
 }
 
 .title {
-  font-family: "Pretendard Variable", sans-serif;
   font-weight: 400;
   font-size: 30px;
   line-height: 1.2em;
@@ -51,7 +43,6 @@
 }
 
 .subtitle {
-  font-family: "Pretendard Variable", sans-serif;
   font-weight: 400;
   font-size: 18px;
   line-height: 1.56em;
@@ -73,13 +64,12 @@
 }
 
 .sectionTitle {
-  font-family: "Pretendard Variable", sans-serif;
   font-weight: 400;
   font-size: 20px;
   line-height: 1.19em;
   color: #594a3e;
   margin: 0;
-  padding: 69px 25px 20px;
+  padding: 30px 25px 20px;
 }
 
 .petProfiles {
@@ -118,7 +108,6 @@
 }
 
 .petDetails h3 {
-  font-family: "Pretendard Variable", sans-serif;
   font-weight: 400;
   font-size: 16px;
   line-height: 1.5em;
@@ -127,7 +116,6 @@
 }
 
 .petDetails p {
-  font-family: "Pretendard Variable", sans-serif;
   font-weight: 400;
   font-size: 14px;
   line-height: 1.43em;
@@ -143,7 +131,6 @@
 
 .tab {
   padding: 13px 24px;
-  font-family: "Pretendard Variable", sans-serif;
   font-weight: 400;
   font-size: 16px;
   line-height: 1.19em;
@@ -189,7 +176,6 @@
   background: none;
   border: none;
   padding: 18px 24px;
-  font-family: "Pretendard Variable", sans-serif;
   font-weight: 400;
   font-size: 16px;
   line-height: 1.19em;
@@ -293,7 +279,6 @@
 }
 
 .activityHeader h3 {
-  font-family: "Pretendard Variable", sans-serif;
   font-weight: 400;
   font-size: 18px;
   line-height: 1.19em;
@@ -315,7 +300,6 @@
 }
 
 .formGroup label {
-  font-family: "Pretendard Variable", sans-serif;
   font-weight: 400;
   font-size: 14px;
   line-height: 1.19em;
@@ -327,7 +311,6 @@
   padding: 12px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
-  font-family: "Pretendard Variable", sans-serif;
   font-weight: 400;
   font-size: 16px;
   line-height: 1.5em;
@@ -366,7 +349,6 @@
 }
 
 .calorieItem p:first-child {
-  font-family: "Pretendard Variable", sans-serif;
   font-weight: 400;
   font-size: 14px;
   line-height: 1.19em;
@@ -375,7 +357,6 @@
 }
 
 .calorieValue {
-  font-family: "Pretendard Variable", sans-serif;
   font-weight: 400;
   font-size: 18px;
   line-height: 1.19em;
@@ -410,8 +391,7 @@
 .saveSection {
   display: flex;
   justify-content: flex-end;
-  padding-top: 24px;
-  border-top: 1px solid #e5e7eb;
+  padding-top: 10px;
   min-height: 48px;
 }
 
@@ -424,7 +404,6 @@
   border: none;
   border-radius: 8px;
   padding: 14px 27px;
-  font-family: "Pretendard Variable", sans-serif;
   font-weight: 400;
   font-size: 16px;
   line-height: 1.19em;
