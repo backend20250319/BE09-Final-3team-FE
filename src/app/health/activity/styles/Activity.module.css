@@ -248,7 +248,7 @@
 }
 
 .activityCard.sleep {
-  background: #e8f5e8;
+  background: #e8def8;
 }
 
 .activityCard.weight {
@@ -274,8 +274,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
+  width: 25px;
   height: 18px;
+}
+
+.smallIcon {
+  width: 20px;
+  height: 20px;
 }
 
 .activityHeader h3 {

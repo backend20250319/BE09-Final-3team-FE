@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import styles from "../styles/Header.module.css";
+import Link from "next/link";
 
 export default function Header() {
   const [cartCount, setCartCount] = useState(0);
@@ -10,7 +11,7 @@ export default function Header() {
   const navigation = [
     { name: "체험단", href: "#campaigns" },
     { name: "펫 관리", href: "#pet-management" },
-    { name: "건강 관리", href: "#health-management" },
+    { name: "건강 관리", href: "/health/activity" },
     { name: "SNS 관리", href: "#sns-management" },
     { name: "커뮤니티", href: "#community" },
   ];

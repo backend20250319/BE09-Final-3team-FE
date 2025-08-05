@@ -8,7 +8,7 @@ export default function ActivityManagementPage() {
       <div className={styles.body}>
         <div className={styles.main}>
           <div className={styles.content}>
-            {/* Header Section */}
+            {/* 헤더 */}
             <div className={styles.header}>
               <h1 className={styles.title}>건강 관리</h1>
               <p className={styles.subtitle}>
@@ -19,7 +19,7 @@ export default function ActivityManagementPage() {
             {/* 펫 프로필 컴포넌트 */}
             <PetProfileSelector />
 
-            {/* Activity Management Section */}
+            {/* 활동 관리 섹션 */}
             <div className={styles.activitySection}>
               <div className={styles.navTabs}>
                 <button className={`${styles.navTab} ${styles.active}`}>
@@ -27,35 +27,29 @@ export default function ActivityManagementPage() {
                 </button>
                 <button className={styles.navTab}>리포트</button>
                 <div className={styles.navIcon}>
-                  <svg width="37" height="40" viewBox="0 0 37 40" fill="none">
-                    <path
-                      d="M18.5 0L36.5 10V30L18.5 40L0.5 30V10L18.5 0Z"
-                      stroke="black"
-                      strokeWidth="1.5"
-                    />
-                  </svg>
+                  <img
+                    src="/health/calendar.png"
+                    alt="캘린더 아이콘"
+                    width={37}
+                    height={40}
+                    style={{ marginTop: "5px" }}
+                  />
                 </div>
               </div>
 
               <div className={styles.activityContent}>
                 <div className={styles.activityGrid}>
-                  {/* Left Column */}
+                  {/* 왼쪽 박스 */}
                   <div className={styles.leftColumn}>
-                    {/* Walking Activity */}
+                    {/* 산책 활동 */}
                     <div className={`${styles.activityCard} ${styles.walking}`}>
                       <div className={styles.activityHeader}>
                         <div className={styles.activityIcon}>
-                          <svg
-                            width="16"
-                            height="18"
-                            viewBox="0 0 16 18"
-                            fill="none"
-                          >
-                            <path
-                              d="M8 0L15.5 9L8 18L0.5 9L8 0Z"
-                              fill="#8BC34A"
-                            />
-                          </svg>
+                          <img
+                            src="/health/footprint.png"
+                            alt="발자국 아이콘"
+                            className={styles.smallIcon}
+                          />
                         </div>
                         <h3>산책</h3>
                       </div>
@@ -96,29 +90,17 @@ export default function ActivityManagementPage() {
                       </div>
                     </div>
 
-                    {/* Feeding Activity */}
+                    {/* 식사 활동 */}
                     <div className={`${styles.activityCard} ${styles.feeding}`}>
                       <div className={styles.activityHeader}>
                         <div className={styles.activityIcon}>
-                          <svg
-                            width="16"
-                            height="18"
-                            viewBox="0 0 16 18"
-                            fill="none"
-                          >
-                            <path
-                              d="M8 0L15.5 9L8 18L0.5 9L8 0Z"
-                              fill="#F5A623"
-                            />
-                          </svg>
+                          <img src="/health/meal.png" alt="식사 아이콘" />
                         </div>
                         <h3>식사</h3>
                       </div>
                       <div className={styles.activityForm}>
                         <div className={styles.formGroup}>
-                          <label htmlFor="calorie-per-gram">
-                            칼로리(kcal/g)
-                          </label>
+                          <label htmlFor="calorie-per-gram">칼로리(kcal)</label>
                           <input
                             type="number"
                             id="calorie-per-gram"
@@ -147,23 +129,13 @@ export default function ActivityManagementPage() {
                     </div>
                   </div>
 
-                  {/* Right Column */}
+                  {/* 오른쪽 박스*/}
                   <div className={styles.rightColumn}>
-                    {/* Weight Activity */}
+                    {/* 무게 */}
                     <div className={`${styles.activityCard} ${styles.weight}`}>
                       <div className={styles.activityHeader}>
                         <div className={styles.activityIcon}>
-                          <svg
-                            width="23"
-                            height="19"
-                            viewBox="0 0 23 19"
-                            fill="none"
-                          >
-                            <path
-                              d="M11.5 0L22.5 9.5L11.5 19L0.5 9.5L11.5 0Z"
-                              fill="#4CAF50"
-                            />
-                          </svg>
+                          <img src="/health/weight.png" alt="무게 아이콘" />
                         </div>
                         <h3>무게(KG)</h3>
                       </div>
@@ -174,21 +146,11 @@ export default function ActivityManagementPage() {
                       </div>
                     </div>
 
-                    {/* Sleep Activity */}
+                    {/* 수면시간 */}
                     <div className={`${styles.activityCard} ${styles.sleep}`}>
                       <div className={styles.activityHeader}>
                         <div className={styles.activityIcon}>
-                          <svg
-                            width="23"
-                            height="19"
-                            viewBox="0 0 23 19"
-                            fill="none"
-                          >
-                            <path
-                              d="M11.5 0L22.5 9.5L11.5 19L0.5 9.5L11.5 0Z"
-                              fill="#4CAF50"
-                            />
-                          </svg>
+                          <img src="/health/sleep.png" alt="수면 아이콘" />
                         </div>
                         <h3>수면 시간</h3>
                       </div>
@@ -205,25 +167,18 @@ export default function ActivityManagementPage() {
                       </div>
                     </div>
 
-                    {/* Bathroom Activity */}
+                    {/* 배소변 횟수 */}
                     <div
                       className={`${styles.activityCard} ${styles.bathroom}`}
                     >
                       <div className={styles.activityHeader}>
                         <div className={styles.activityIcon}>
-                          <svg
-                            width="16"
-                            height="18"
-                            viewBox="0 0 16 18"
-                            fill="none"
-                          >
-                            <path
-                              d="M8 0L15.5 9L8 18L0.5 9L8 0Z"
-                              fill="#FF7675"
-                            />
-                          </svg>
+                          <img
+                            src="/health/bathroom.png"
+                            alt="배변 활동 아이콘"
+                          />
                         </div>
-                        <h3>배소변 횟수</h3>
+                        <h3>배변 활동</h3>
                       </div>
                       <div className={styles.activityForm}>
                         <div className={styles.bathroomInputs}>
@@ -247,21 +202,11 @@ export default function ActivityManagementPage() {
                       </div>
                     </div>
 
-                    {/* Notes Activity */}
+                    {/* 메모 */}
                     <div className={`${styles.activityCard} ${styles.notes}`}>
                       <div className={styles.activityHeader}>
                         <div className={styles.activityIcon}>
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 18 18"
-                            fill="none"
-                          >
-                            <path
-                              d="M9 0L16.88 9L9 18L1.12 9L9 0Z"
-                              fill="#3B82F6"
-                            />
-                          </svg>
+                          <img src="/health/pencil.png" alt="메모 아이콘" />
                         </div>
                         <h3>메모</h3>
                       </div>
@@ -275,7 +220,7 @@ export default function ActivityManagementPage() {
                   </div>
                 </div>
 
-                {/* Save Button */}
+                {/* 저장버튼 */}
                 <div className={styles.saveSection}>
                   <button className={styles.saveButton}>
                     <svg width="14" height="16" viewBox="0 0 14 16" fill="none">
