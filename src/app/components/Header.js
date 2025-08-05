@@ -11,8 +11,8 @@ export default function Header() {
   const navigation = [
     { name: "체험단", href: "#campaigns" },
     { name: "펫 관리", href: "#pet-management" },
+    { name: "SNS 관리", href: "/sns" },
     { name: "건강 관리", href: "/health/activity" },
-    { name: "SNS 관리", href: "#sns-management" },
     { name: "커뮤니티", href: "#community" },
   ];
 
@@ -22,14 +22,14 @@ export default function Header() {
       <header className={styles.topHeader}>
         <div className="container">
           <div className={styles.topHeaderContent}>
-            <div className={styles.logo}>
+            <Link href="/" className={styles.logo}>
               <Image
                 src="/logo.png"
                 alt="PetFul Logo"
-                width={128}
-                height={128}
+                width={200}
+                height={200}
               />
-            </div>
+            </Link>
 
             <div className={styles.headerActions}>
               <button className={styles.cartButton}>
