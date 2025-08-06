@@ -15,7 +15,7 @@ export default function ActivityManagementPage() {
   const [isSubmittedToday, setIsSubmittedToday] = useState(false);
   const [formData, setFormData] = useState({
     walkingDistance: "",
-    activityFactor: "",
+    activityLevel: "1.2", // enum 기본값
     caloriePerGram: "",
     feedingAmount: "",
     weight: "",
@@ -24,6 +24,8 @@ export default function ActivityManagementPage() {
     fecesCount: "",
     memo: "",
   });
+
+  const validActivityLevels = ["1.2", "1.5", "1.7", "1.9"];
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -34,20 +36,21 @@ export default function ActivityManagementPage() {
   };
 
   const handleSave = () => {
+    // 타입 변환
     const walkingDistanceNum = parseFloat(formData.walkingDistance);
-    const activityFactorNum = parseFloat(formData.activityFactor);
-    const caloriePerGramNum = parseFloat(formData.caloriePerGram);
-    const feedingAmountNum = parseFloat(formData.feedingAmount);
+    const activityLevelVal = formData.activityLevel;
+    const caloriePerGramNum = parseInt(formData.caloriePerGram, 10);
+    const feedingAmountNum = parseInt(formData.feedingAmount, 10);
     const weightNum = parseFloat(formData.weight);
-    const sleepTimeNum = parseFloat(formData.sleepTime);
-    const urineCountNum = parseFloat(formData.urineCount);
-    const fecesCountNum = parseFloat(formData.fecesCount);
+    const sleepTimeNum = parseInt(formData.sleepTime, 10);
+    const urineCountNum = parseInt(formData.urineCount, 10);
+    const fecesCountNum = parseInt(formData.fecesCount, 10);
 
+    // 유효성 검사
     if (
       isNaN(walkingDistanceNum) ||
       walkingDistanceNum < 0 ||
-      isNaN(activityFactorNum) ||
-      activityFactorNum < 0 ||
+      !validActivityLevels.includes(activityLevelVal) ||
       isNaN(caloriePerGramNum) ||
       caloriePerGramNum < 0 ||
       isNaN(feedingAmountNum) ||
@@ -61,13 +64,15 @@ export default function ActivityManagementPage() {
       isNaN(fecesCountNum) ||
       fecesCountNum < 0
     ) {
-      alert("모든 숫자 필드는 0 이상 올바른 값을 입력해주세요.");
+      alert(
+        "모든 숫자 필드는 0 이상의 올바른 값을 입력해주세요.\n활동계수는 1.2, 1.5, 1.7, 1.9 중 선택해야 합니다."
+      );
       return;
     }
 
     if (
       formData.walkingDistance.trim() === "" ||
-      formData.activityFactor.trim() === "" ||
+      formData.activityLevel.trim() === "" ||
       formData.caloriePerGram.trim() === "" ||
       formData.feedingAmount.trim() === "" ||
       formData.weight.trim() === "" ||
@@ -79,6 +84,29 @@ export default function ActivityManagementPage() {
       return;
     }
 
+    // 산책 소모 칼로리 계산 (예시: 거리 * 활동계수 * 5)
+    const walkingCalorie = (
+      walkingDistanceNum *
+      parseFloat(activityLevelVal) *
+      5
+    ).toFixed(1);
+    // 섭취 칼로리 계산
+    const feedingCalorie = (caloriePerGramNum * feedingAmountNum).toFixed(1);
+
+    const dataToSave = {
+      weight: weightNum,
+      walk_calories: parseInt(walkingCalorie, 10),
+      eat_calories: parseInt(feedingCalorie, 10),
+      sleep_time: sleepTimeNum,
+      urine_count: urineCountNum,
+      feces_count: fecesCountNum,
+      activity_level: parseFloat(activityLevelVal),
+      memo: formData.memo,
+    };
+
+    console.log("저장할 데이터:", dataToSave);
+
+    // 저장 완료 처리
     setIsSubmittedToday(true);
   };
 
@@ -120,7 +148,7 @@ export default function ActivityManagementPage() {
                 </div>
               </div>
 
-              {/* 폼은 항상 렌더링 */}
+              {/* 폼 */}
               <div className={styles.activityContent}>
                 <div className={styles.activityGrid}>
                   {/* 왼쪽 박스 */}
@@ -152,17 +180,19 @@ export default function ActivityManagementPage() {
                           />
                         </div>
                         <div className={styles.formGroup}>
-                          <label htmlFor="activityFactor">
-                            활동 계수 (1-10)
-                          </label>
-                          <input
-                            type="number"
+                          <label htmlFor="activityFactor">활동 계수</label>
+                          <select
                             id="activityFactor"
                             value={formData.activityFactor}
                             onChange={handleChange}
-                            min={1}
-                            max={10}
-                          />
+                            className={styles.customSelect}
+                          >
+                            <option value="">선택하세요</option>
+                            <option value="1.2">1.2</option>
+                            <option value="1.5">1.5</option>
+                            <option value="1.7">1.7</option>
+                            <option value="1.9">1.9</option>
+                          </select>
                         </div>
                         <div className={styles.calorieInfo}>
                           <div className={styles.calorieItem}>
@@ -220,7 +250,7 @@ export default function ActivityManagementPage() {
                     </div>
                   </div>
 
-                  {/* 오른쪽 박스*/}
+                  {/* 오른쪽 박스 */}
                   <div className={styles.rightColumn}>
                     {/* 무게 */}
                     <div className={`${styles.activityCard} ${styles.weight}`}>
@@ -261,7 +291,7 @@ export default function ActivityManagementPage() {
                             id="sleepTime"
                             value={formData.sleepTime}
                             onChange={handleChange}
-                            step={0.1}
+                            step={1}
                             min={0}
                           />
                         </div>
@@ -291,6 +321,7 @@ export default function ActivityManagementPage() {
                               value={formData.urineCount}
                               onChange={handleChange}
                               min={0}
+                              step={1}
                             />
                           </div>
                           <div className={styles.formGroup}>
@@ -301,6 +332,7 @@ export default function ActivityManagementPage() {
                               value={formData.fecesCount}
                               onChange={handleChange}
                               min={0}
+                              step={1}
                             />
                           </div>
                         </div>
