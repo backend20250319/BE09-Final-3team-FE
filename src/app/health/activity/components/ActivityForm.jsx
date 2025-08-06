@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Select from "./ClientOnlySelect";
 import styles from "../styles/ActivityForm.module.css";
 import { useSelectedPet } from "../../context/SelectedPetContext";
@@ -20,6 +20,15 @@ function formatNumber(num) {
   }
 }
 
+// 오늘 날짜 yyyy-mm-dd 형식으로 리턴
+function getTodayKey() {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 export default function ActivityForm() {
   const { selectedPetName } = useSelectedPet();
 
@@ -36,7 +45,7 @@ export default function ActivityForm() {
     memo: "",
   });
 
-  // 펫 이름별로 저장했는지 상태 관리
+  // 펫 이름별로 저장했는지 상태 관리 (오늘 날짜 key 사용)
   const [submittedPets, setSubmittedPets] = useState({});
 
   const [calculated, setCalculated] = useState({
@@ -46,24 +55,53 @@ export default function ActivityForm() {
     actualIntake: 0,
   });
 
-  // 현재 선택된 펫이 오늘 저장했는지 여부
-  const isSubmittedToday = submittedPets[selectedPetName] || false;
+  // 저장 여부 판단용 키
+  const todayKey = useMemo(() => getTodayKey(), []);
+  const storageKey = useMemo(
+    () => `${selectedPetName}_${todayKey}`,
+    [selectedPetName, todayKey]
+  );
 
-  // selectedPetName 바뀌면 폼 초기화 (저장 여부는 유지) 
+  // 현재 선택된 펫이 오늘 저장했는지 여부 (localStorage 기준)
+  const isSubmittedToday = !!submittedPets[storageKey];
+
+  // 선택된 펫 혹은 오늘 날짜 바뀌면 저장된 데이터 불러오기
   useEffect(() => {
-    setFormData({
-      walkingDistance: "",
-      activityLevel: "",
-      totalFoodWeight: "",
-      totalCaloriesInFood: "",
-      feedingAmount: "",
-      weight: "",
-      sleepTime: "",
-      urineCount: "",
-      fecesCount: "",
-      memo: "",
-    });
-  }, [selectedPetName]);
+    if (!selectedPetName) return;
+
+    const savedDataJson = localStorage.getItem(storageKey);
+    if (savedDataJson) {
+      const savedData = JSON.parse(savedDataJson);
+      setFormData({
+        walkingDistance: savedData.walkingDistance || "",
+        activityLevel: savedData.activityLevel || "",
+        totalFoodWeight: savedData.totalFoodWeight || "",
+        totalCaloriesInFood: savedData.totalCaloriesInFood || "",
+        feedingAmount: savedData.feedingAmount || "",
+        weight: savedData.weight || "",
+        sleepTime: savedData.sleepTime || "",
+        urineCount: savedData.urineCount || "",
+        fecesCount: savedData.fecesCount || "",
+        memo: savedData.memo || "",
+      });
+      setSubmittedPets((prev) => ({ ...prev, [storageKey]: true }));
+    } else {
+      // 저장된 데이터 없으면 초기화
+      setFormData({
+        walkingDistance: "",
+        activityLevel: "",
+        totalFoodWeight: "",
+        totalCaloriesInFood: "",
+        feedingAmount: "",
+        weight: "",
+        sleepTime: "",
+        urineCount: "",
+        fecesCount: "",
+        memo: "",
+      });
+      setSubmittedPets((prev) => ({ ...prev, [storageKey]: false }));
+    }
+  }, [selectedPetName, storageKey]);
 
   useEffect(() => {
     const weight = parseFloat(formData.weight);
@@ -110,9 +148,6 @@ export default function ActivityForm() {
   };
 
   const handleSave = () => {
-    console.log("[ActivityForm] 저장 시도 - 현재 formData:", formData);
-    console.log("[ActivityForm] 저장 시도 - 선택된 펫:", selectedPetName);
-
     const walkingDistanceNum = parseFloat(formData.walkingDistance);
     const activityLevelVal = formData.activityLevel;
     const totalFoodWeightNum = parseFloat(formData.totalFoodWeight);
@@ -176,31 +211,38 @@ export default function ActivityForm() {
     const caloriePerGram = totalCaloriesInFoodNum / totalFoodWeightNum;
     const feedingCalorie = (feedingAmountNum * caloriePerGram).toFixed(1);
 
+    // 저장할 데이터에 formData 원본 값도 같이 저장 (불러올 때 사용)
     const dataToSave = {
       petName: selectedPetName,
-      weight: weightNum,
+      walkingDistance: formData.walkingDistance,
+      activityLevel: formData.activityLevel,
+      totalFoodWeight: formData.totalFoodWeight,
+      totalCaloriesInFood: formData.totalCaloriesInFood,
+      feedingAmount: formData.feedingAmount,
+      weight: formData.weight,
+      sleepTime: formData.sleepTime,
+      urineCount: formData.urineCount,
+      fecesCount: formData.fecesCount,
+      memo: formData.memo,
+      // 아래는 계산값 (필요 시)
+      weightNum,
       walk_calories: parseInt(walkingCalorie, 10),
       eat_calories: parseInt(feedingCalorie, 10),
       sleep_time: sleepTimeNum,
       urine_count: urineCountNum,
       feces_count: fecesCountNum,
       activity_level: parseFloat(activityLevelVal),
-      memo: formData.memo,
     };
 
-    console.log("[ActivityForm] 저장 성공 - 저장할 데이터:", dataToSave);
-
-    setSubmittedPets((prev) => {
-      const newState = {
-        ...prev,
-        [selectedPetName]: true,
-      };
-      console.log("[ActivityForm] submittedPets 업데이트:", newState);
-      return newState;
-    });
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+      setSubmittedPets((prev) => ({ ...prev, [storageKey]: true }));
+      alert("저장이 완료되었습니다!");
+    } catch (error) {
+      alert("저장 중 오류가 발생했습니다.");
+      console.error(error);
+    }
   };
-
-  console.log("isSubmittedToday:", isSubmittedToday);
 
   return (
     <div className={styles.activitySection}>
@@ -526,12 +568,25 @@ export default function ActivityForm() {
               ✅ {selectedPetName}의 오늘 기록이 저장되었습니다.
               <button
                 className={styles.closeButton}
-                onClick={() =>
+                onClick={() => {
+                  localStorage.removeItem(storageKey);
                   setSubmittedPets((prev) => ({
                     ...prev,
-                    [selectedPetName]: false,
-                  }))
-                }
+                    [storageKey]: false,
+                  }));
+                  setFormData({
+                    walkingDistance: "",
+                    activityLevel: "",
+                    totalFoodWeight: "",
+                    totalCaloriesInFood: "",
+                    feedingAmount: "",
+                    weight: "",
+                    sleepTime: "",
+                    urineCount: "",
+                    fecesCount: "",
+                    memo: "",
+                  });
+                }}
                 aria-label="닫기"
               >
                 <img
