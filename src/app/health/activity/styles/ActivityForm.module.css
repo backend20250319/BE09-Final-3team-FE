@@ -1,4 +1,3 @@
-/* Container and Layout */
 .container {
   width: 1440px;
   min-height: 100vh;
@@ -24,103 +23,6 @@
   margin: 32px 80px;
   background: transparent;
   padding-bottom: 40px;
-}
-
-/* Header Section */
-.header {
-  width: 1280px;
-  min-height: 72px;
-  margin: 24px 0 30px 0;
-  background: transparent;
-}
-
-.title {
-  font-weight: 400;
-  font-size: 30px;
-  line-height: 1.2em;
-  color: #594a3e;
-  margin: 0 0 16px 0;
-}
-
-.subtitle {
-  font-weight: 400;
-  font-size: 18px;
-  line-height: 1.56em;
-  color: #4b5563;
-  margin: 0;
-  max-width: 569px;
-}
-
-/* Pet Profile Section */
-.petProfileSection {
-  width: 1280px;
-  min-height: 259px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
-  margin-bottom: 40px;
-  overflow: hidden;
-}
-
-.sectionTitle {
-  font-weight: 400;
-  font-size: 20px;
-  line-height: 1.19em;
-  color: #594a3e;
-  margin: 0;
-  padding: 30px 25px 20px;
-}
-
-.petProfiles {
-  display: flex;
-  gap: 16px;
-  padding: 0 25px 20px;
-}
-
-.petCard {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 18px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 206px;
-  height: 95px;
-}
-
-.petCard.active {
-  background: #f0f5ec;
-  border: 2px solid #8bc34a;
-}
-
-.petInfo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.petAvatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.petDetails h3 {
-  font-weight: 400;
-  font-size: 16px;
-  line-height: 1.5em;
-  color: #594a3e;
-  margin: 0 0 4px 0;
-}
-
-.petDetails p {
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 1.43em;
-  color: #4b5563;
-  margin: 0;
 }
 
 /* Tab Navigation */
@@ -454,11 +356,11 @@
 
 .horizontalInputs {
   display: flex;
-  gap: 20px; /* 칸 사이 간격 */
+  gap: 20px;
 }
 
 .horizontalInputs .formGroup {
-  flex: 1; /* 균등하게 공간 나누기 */
+  flex: 1;
 }
 
 /* Save Section */
@@ -559,7 +461,6 @@
   }
 
   .header,
-  .petProfileSection,
   .activitySection {
     width: 100%;
     min-height: auto;
@@ -581,17 +482,6 @@
 @media (max-width: 768px) {
   .content {
     margin: 32px 20px;
-  }
-
-  .petProfiles {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .petCard {
-    min-width: auto;
-    width: 100%;
-    max-width: 300px;
   }
 
   .calorieInfo {
