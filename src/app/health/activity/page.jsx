@@ -168,7 +168,7 @@ export default function ActivityManagementPage() {
                       </div>
                     </div>
 
-                    {/* 배소변 횟수 */}
+                    {/* 배변 활동 */}
                     <div
                       className={`${styles.activityCard} ${styles.bathroom}`}
                     >
@@ -203,7 +203,7 @@ export default function ActivityManagementPage() {
                       </div>
                     </div>
 
-                    {/* 메모  */}
+                    {/* 메모 */}
                     <div className={`${styles.activityCard} ${styles.notes}`}>
                       <div className={styles.activityHeader}>
                         <div className={styles.activityIcon}>
