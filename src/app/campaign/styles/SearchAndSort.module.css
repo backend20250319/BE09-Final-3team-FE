@@ -1,13 +1,13 @@
 .searchAndSort {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   gap: 16px;
   margin-bottom: 32px;
 }
 
 .searchContainer {
-  flex: 1;
+  flex: 1;  
   max-width: 292px;
 }
 
@@ -81,7 +81,7 @@
 .selectIcon {
   position: absolute;
   right: 12px;
-  top: 50%;
+  top: 40%;
   transform: translateY(-50%);
   width: 16px;
   height: 10px;

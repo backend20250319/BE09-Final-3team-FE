@@ -1,29 +1,45 @@
-import Head from "next/head";
-import CampaignListPage from "./components/CampaignListPage";
+"use client";
+import React, { useState, useEffect } from "react";
+import SearchAndSort from "./components/SearchAndSort";
+import CampaignGrid from "./components/CampaignGrid";
+import { useCampaign } from "./context/CampaignContext";
 
-export default function Home() {
+export default function CampaignPage() {
+  const {activeTab} = useCampaign();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("");
+
+  useEffect(() => {
+    const SORT_OPTIONS = {
+      recruiting: [
+        { value: "recent" },
+        { value: "deadline" },
+        { value: "popular" }
+      ],
+      ended: [
+        { value: "endedRecent" },
+        { value: "endedOld" },
+        { value: "popular" }
+      ],
+      applied: [
+        { value: "recent" },
+        { value: "popular" }
+      ]
+    };
+
+    setSortBy(SORT_OPTIONS[activeTab][0].value);
+    setSearchQuery("");
+  }, [activeTab]);
+
   return (
     <>
-      <Head>
-        <title>체험단 상품 목록 - PetFul</title>
-        <meta
-          name="description"
-          content="반려동물과 함께하는 특별한 상품 체험, 지금 바로 신청하고 경험해보세요."
-        />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="true"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap"
-          rel="stylesheet"
-        />
-      </Head>
-      <CampaignListPage />
+      <SearchAndSort
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+      />
+      <CampaignGrid searchQuery={searchQuery} sortBy={sortBy} />
     </>
   );
 }
