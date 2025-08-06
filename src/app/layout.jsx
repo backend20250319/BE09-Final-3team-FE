@@ -1,8 +1,12 @@
-import "./styles/globals.css";
+'use client';
 import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
+import "./styles/globals.css";
+import {usePathname} from "next/navigation";
 
 export default function RootLayout({ children }) {
+    const pathname = usePathname();
+    const isAdmin = pathname.startsWith("/admin");
   return (
     <html lang="en">
       <head>
@@ -25,9 +29,15 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
-        <Header />
-        <div className="pageWrapper">{children}</div>
-        <Footer />
+        {!isAdmin && <Header />}
+        {isAdmin ? (
+            children
+        ) : (
+            <div className="max-w-7xl mx-auto px-4">
+                {children}
+            </div>
+        )}
+        {!isAdmin && <Footer />}
       </body>
     </html>
   );
