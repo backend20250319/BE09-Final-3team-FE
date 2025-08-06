@@ -495,9 +495,9 @@ export default function ActivityManagementPage() {
                       </div>
                       <div className={styles.activityForm}>
                         <textarea
-                          className={styles.noResize}
+                          className={`${styles.noResize} ${styles.notesTextarea}`}
                           placeholder="추가 사항을 작성하세요."
-                          rows={5}
+                          rows={2}
                           id="memo"
                           value={formData.memo}
                           onChange={handleChange}

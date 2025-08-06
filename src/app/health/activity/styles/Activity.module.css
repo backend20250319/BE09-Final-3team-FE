@@ -256,7 +256,7 @@
 }
 
 .activityCard.weight {
-  background: #e8f5e8;
+  background: #fffadd;
 }
 
 .activityCard.bathroom {
@@ -265,6 +265,8 @@
 
 .activityCard.notes {
   background: #f0f8ff;
+  min-height: 165px;
+  padding: 16px 20px;
 }
 
 .activityHeader {
@@ -333,9 +335,7 @@
 .formGroup input:focus,
 .formGroup textarea:focus {
   outline: none;
-  border-color: #8bc34a;
   color: #374151;
-  box-shadow: 0 0 0 3px rgba(139, 195, 74, 0.1);
 }
 
 .formGroup textarea {
@@ -343,8 +343,58 @@
   min-height: 104px;
 }
 
-.noResize {
-  resize: none !important;
+.walking input:focus,
+.walking textarea:focus {
+  border-color: #8bc34a;
+  box-shadow: 0 0 0 3px rgba(139, 195, 74, 0.1);
+}
+
+.weight input:focus,
+.weight textarea:focus {
+  border-color: #ffe96b;
+  box-shadow: 0 0 0 3px rgba(255, 233, 107, 0.3);
+}
+
+.notesTextarea {
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  min-height: 83px;
+  border-radius: 8px;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5em;
+  background: #ffffff;
+  color: #374151;
+  resize: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.notesTextarea::placeholder {
+  color: #94a3b8;
+}
+
+.notesTextarea:focus {
+  border-color: #4eadff;
+  box-shadow: 0 0 0 2px rgba(78, 173, 255, 0.2);
+  outline: none;
+}
+
+.bathroom input:focus,
+.bathroom textarea:focus {
+  border-color: #ff8cb2;
+  box-shadow: 0 0 0 3px rgba(255, 240, 245, 0.4);
+}
+
+.sleep input:focus,
+.sleep textarea:focus {
+  border-color: #b282ff;
+  box-shadow: 0 0 0 3px rgba(232, 222, 248, 0.3);
+}
+
+.feeding input:focus,
+.feeding textarea:focus {
+  border-color: #fad291;
+  box-shadow: 0 0 0 3px rgba(255, 243, 224, 0.3);
 }
 
 /* Calorie Info */
