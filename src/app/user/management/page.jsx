@@ -2,8 +2,6 @@
 
 import PetProfileManagement from "./PetProfile";
 
-
-
 export default function SignupPage() {
   return <PetProfileManagement />;
 }
