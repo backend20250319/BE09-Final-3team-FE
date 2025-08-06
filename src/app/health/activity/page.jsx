@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import styles from "./styles/Activity.module.css";
 import PetProfileSelector from "../components/PetProfileSelector";
+import Select from "../components/ClientOnlySelect";
 
 export default function ActivityManagementPage() {
   const [selectedPet, setSelectedPet] = useState("몽글이");
@@ -12,12 +13,19 @@ export default function ActivityManagementPage() {
     { name: "차차", msg: "환영해요", src: "/images/max-profile.png" },
   ];
 
+  const activityOptions = [
+    { value: "1.2", label: "거의 안 움직여요" },
+    { value: "1.5", label: "가끔 산책해요" },
+    { value: "1.7", label: "자주 뛰어놀아요" },
+    { value: "1.9", label: "매우 활동적이에요" },
+  ];
+
   const [isSubmittedToday, setIsSubmittedToday] = useState(false);
   const [formData, setFormData] = useState({
     walkingDistance: "",
-    activityLevel: "1.2", // 기본값
-    totalFoodWeight: "", // 총 음식량 (g)
-    totalCaloriesInFood: "", // 총 칼로리 (kcal)
+    activityLevel: "",
+    totalFoodWeight: "",
+    totalCaloriesInFood: "",
     feedingAmount: "",
     weight: "",
     sleepTime: "",
@@ -28,7 +36,6 @@ export default function ActivityManagementPage() {
 
   const validActivityLevels = ["1.2", "1.5", "1.7", "1.9"];
 
-  // 숫자 포맷 함수: 정수면 정수로, 아니면 소수점 1자리까지
   function formatNumber(num) {
     if (Number.isInteger(num)) {
       return num.toString();
@@ -234,21 +241,66 @@ export default function ActivityManagementPage() {
                           />
                         </div>
                         <div className={styles.formGroup}>
-                          <label htmlFor="activityLevel">활동 계수</label>
-                          <select
+                          <label htmlFor="activityLevel">활동량</label>
+                          <Select
                             id="activityLevel"
-                            value={formData.activityLevel}
-                            onChange={handleChange}
-                            className={styles.customSelect}
-                          >
-                            <option value="" disabled hidden>
-                              선택하세요
-                            </option>
-                            <option value="1.2">1.2</option>
-                            <option value="1.5">1.5</option>
-                            <option value="1.7">1.7</option>
-                            <option value="1.9">1.9</option>
-                          </select>
+                            options={activityOptions}
+                            value={activityOptions.find(
+                              (option) =>
+                                option.value === formData.activityLevel
+                            )}
+                            onChange={(selectedOption) => {
+                              setFormData((prev) => ({
+                                ...prev,
+                                activityLevel: selectedOption?.value || "",
+                              }));
+                            }}
+                            placeholder="선택하세요"
+                            classNamePrefix="react-select"
+                            styles={{
+                              option: (provided, state) => ({
+                                ...provided,
+                                backgroundColor: state.isSelected
+                                  ? "#e6f4ea" // 선택된 옵션 배경 (연한 초록)
+                                  : state.isFocused
+                                  ? "#f0fdf4" // hover / focus 배경 (더 연한 초록)
+                                  : "white",
+                                color: state.isSelected ? "#4caf50" : "#374151",
+                                cursor: "pointer",
+                                // active 상태 커스텀
+                                ":active": {
+                                  backgroundColor: "#c8e6c9", // 클릭하는 순간 더 진한 연두색
+                                  color: "#388e3c",
+                                },
+                              }),
+                              control: (provided, state) => ({
+                                ...provided,
+                                borderColor: state.isFocused
+                                  ? "#8bc34a"
+                                  : "#d1d5db",
+                                boxShadow: state.isFocused
+                                  ? "0 0 0 3px rgba(139,195,74,0.3)"
+                                  : "none",
+                                "&:hover": {
+                                  borderColor: "#8bc34a",
+                                },
+                              }),
+                              placeholder: (provided) => ({
+                                ...provided,
+                                color: "#adaebc",
+                              }),
+                              singleValue: (provided) => ({
+                                ...provided,
+                                color: "#374151",
+                              }),
+                              menu: (provided) => ({
+                                ...provided,
+                                borderRadius: 8,
+                                boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                                zIndex: 10,
+                              }),
+                            }}
+                          />
                         </div>
                         <div className={styles.calorieInfo}>
                           <div className={styles.calorieItem}>

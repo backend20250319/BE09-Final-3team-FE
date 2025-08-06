@@ -347,41 +347,6 @@
   resize: none !important;
 }
 
-.customSelect {
-  width: 100%;
-  height: 44px;
-  padding: 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-weight: 400;
-  font-size: 16px;
-  line-height: 1.5em;
-  font-family: inherit;
-  background-color: #ffffff;
-  color: #adaebc;
-  box-sizing: border-box;
-
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-
-  background-image: url("/health/arrow.png");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px 16px;
-  cursor: pointer;
-
-  transition: all 0.3s ease;
-}
-
-.customSelect:focus {
-  outline: none;
-  border-color: #8bc34a;
-  color: #374151;
-  box-shadow: 0 0 0 3px rgba(139, 195, 74, 0.1);
-  background-color: #ffffff;
-}
-
 /* Calorie Info */
 .calorieInfo {
   display: flex;
