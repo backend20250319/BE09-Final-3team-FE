@@ -1,6 +1,10 @@
 import styles from "../activity/styles/Activity.module.css";
 
-export default function PetProfileSelector() {
+export default function PetProfileSelector({
+  pets,
+  selectedPetName,
+  onSelectPet,
+}) {
   return (
     <div className={styles.petProfileSection}>
       <div className={styles.tabNavigation}>
@@ -9,29 +13,29 @@ export default function PetProfileSelector() {
       </div>
       <h2 className={styles.sectionTitle}>반려동물 프로필</h2>
       <div className={styles.petProfiles}>
-        {[
-          {
-            name: "Buddy",
-            msg: "안녕하세요",
-            src: "/images/buddy-profile.png",
-            active: true,
-          },
-          { name: "Luna", msg: "반갑습니다", src: "/images/luna-profile.png" },
-          { name: "Max", msg: "환영해요", src: "/images/max-profile.png" },
-        ].map((pet, i) => (
-          <div
-            key={i}
-            className={`${styles.petCard} ${pet.active ? styles.active : ""}`}
-          >
-            <div className={styles.petInfo}>
-              <img src={pet.src} alt={pet.name} className={styles.petAvatar} />
-              <div className={styles.petDetails}>
-                <h3>{pet.name}</h3>
-                <p>{pet.msg}</p>
+        {pets.map((pet, i) => {
+          const isActive = pet.name === selectedPetName;
+          return (
+            <div
+              key={i}
+              className={`${styles.petCard} ${isActive ? styles.active : ""}`}
+              onClick={() => onSelectPet(pet.name)}
+              style={{ cursor: "pointer" }}
+            >
+              <div className={styles.petInfo}>
+                <img
+                  src={pet.src}
+                  alt={pet.name}
+                  className={styles.petAvatar}
+                />
+                <div className={styles.petDetails}>
+                  <h3>{pet.name}</h3>
+                  <p>{pet.msg}</p>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

@@ -1,8 +1,17 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import styles from "./styles/Activity.module.css";
 import PetProfileSelector from "../components/PetProfileSelector";
 
 export default function ActivityManagementPage() {
+  const [selectedPet, setSelectedPet] = useState("몽글이");
+  const pets = [
+    { name: "몽글이", msg: "안녕하세요", src: "/images/buddy-profile.png" },
+    { name: "초코", msg: "반갑습니다", src: "/images/luna-profile.png" },
+    { name: "차차", msg: "환영해요", src: "/images/max-profile.png" },
+  ];
+
   return (
     <div className={styles.container}>
       <div className={styles.body}>
@@ -17,7 +26,11 @@ export default function ActivityManagementPage() {
             </div>
 
             {/* 펫 프로필 컴포넌트 */}
-            <PetProfileSelector />
+            <PetProfileSelector
+              pets={pets}
+              selectedPetName={selectedPet}
+              onSelectPet={setSelectedPet}
+            />
 
             {/* 활동 관리 섹션 */}
             <div className={styles.activitySection}>
