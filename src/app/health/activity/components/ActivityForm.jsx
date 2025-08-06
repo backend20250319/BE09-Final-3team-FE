@@ -49,7 +49,7 @@ export default function ActivityForm() {
   // 현재 선택된 펫이 오늘 저장했는지 여부
   const isSubmittedToday = submittedPets[selectedPetName] || false;
 
-  // selectedPetName 바뀌면 폼 초기화 (저장 여부는 유지)
+  // selectedPetName 바뀌면 폼 초기화 (저장 여부는 유지) 
   useEffect(() => {
     setFormData({
       walkingDistance: "",
