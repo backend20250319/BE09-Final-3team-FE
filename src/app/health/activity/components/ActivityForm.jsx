@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Select from "./ClientOnlySelect";
 import styles from "../styles/ActivityForm.module.css";
+import { useSelectedPet } from "../../context/SelectedPetContext";
 
 const activityOptions = [
   { value: "1.2", label: "거의 안 움직여요" },
@@ -20,6 +21,8 @@ function formatNumber(num) {
 }
 
 export default function ActivityForm() {
+  const { selectedPetName } = useSelectedPet();
+
   const [formData, setFormData] = useState({
     walkingDistance: "",
     activityLevel: "",
@@ -33,6 +36,9 @@ export default function ActivityForm() {
     memo: "",
   });
 
+  // 펫 이름별로 저장했는지 상태 관리
+  const [submittedPets, setSubmittedPets] = useState({});
+
   const [calculated, setCalculated] = useState({
     recommendedBurn: 0,
     actualBurn: 0,
@@ -40,7 +46,24 @@ export default function ActivityForm() {
     actualIntake: 0,
   });
 
-  const [isSubmittedToday, setIsSubmittedToday] = useState(false);
+  // 현재 선택된 펫이 오늘 저장했는지 여부
+  const isSubmittedToday = submittedPets[selectedPetName] || false;
+
+  // selectedPetName 바뀌면 폼 초기화 (저장 여부는 유지)
+  useEffect(() => {
+    setFormData({
+      walkingDistance: "",
+      activityLevel: "",
+      totalFoodWeight: "",
+      totalCaloriesInFood: "",
+      feedingAmount: "",
+      weight: "",
+      sleepTime: "",
+      urineCount: "",
+      fecesCount: "",
+      memo: "",
+    });
+  }, [selectedPetName]);
 
   useEffect(() => {
     const weight = parseFloat(formData.weight);
@@ -87,7 +110,9 @@ export default function ActivityForm() {
   };
 
   const handleSave = () => {
-    // 입력값 검증
+    console.log("[ActivityForm] 저장 시도 - 현재 formData:", formData);
+    console.log("[ActivityForm] 저장 시도 - 선택된 펫:", selectedPetName);
+
     const walkingDistanceNum = parseFloat(formData.walkingDistance);
     const activityLevelVal = formData.activityLevel;
     const totalFoodWeightNum = parseFloat(formData.totalFoodWeight);
@@ -138,6 +163,11 @@ export default function ActivityForm() {
       return;
     }
 
+    if (isSubmittedToday) {
+      alert(`${selectedPetName}은(는) 이미 오늘 기록이 저장되었습니다.`);
+      return;
+    }
+
     const walkingCalorie = (
       walkingDistanceNum *
       parseFloat(activityLevelVal) *
@@ -147,6 +177,7 @@ export default function ActivityForm() {
     const feedingCalorie = (feedingAmountNum * caloriePerGram).toFixed(1);
 
     const dataToSave = {
+      petName: selectedPetName,
       weight: weightNum,
       walk_calories: parseInt(walkingCalorie, 10),
       eat_calories: parseInt(feedingCalorie, 10),
@@ -157,9 +188,19 @@ export default function ActivityForm() {
       memo: formData.memo,
     };
 
-    console.log("저장할 데이터:", dataToSave);
-    setIsSubmittedToday(true);
+    console.log("[ActivityForm] 저장 성공 - 저장할 데이터:", dataToSave);
+
+    setSubmittedPets((prev) => {
+      const newState = {
+        ...prev,
+        [selectedPetName]: true,
+      };
+      console.log("[ActivityForm] submittedPets 업데이트:", newState);
+      return newState;
+    });
   };
+
+  console.log("isSubmittedToday:", isSubmittedToday);
 
   return (
     <div className={styles.activitySection}>
@@ -206,6 +247,7 @@ export default function ActivityForm() {
                     onChange={handleChange}
                     step={0.1}
                     min={0}
+                    disabled={isSubmittedToday}
                   />
                 </div>
                 <div className={styles.formGroup}>
@@ -264,6 +306,7 @@ export default function ActivityForm() {
                         zIndex: 10,
                       }),
                     }}
+                    isDisabled={isSubmittedToday}
                   />
                 </div>
                 <div className={styles.calorieInfo}>
@@ -305,6 +348,7 @@ export default function ActivityForm() {
                       value={formData.totalFoodWeight}
                       onChange={handleChange}
                       min={0}
+                      disabled={isSubmittedToday}
                     />
                   </div>
                   <div className={styles.formGroup}>
@@ -317,6 +361,7 @@ export default function ActivityForm() {
                       value={formData.totalCaloriesInFood}
                       onChange={handleChange}
                       min={0}
+                      disabled={isSubmittedToday}
                     />
                   </div>
                 </div>
@@ -328,6 +373,7 @@ export default function ActivityForm() {
                     value={formData.feedingAmount}
                     onChange={handleChange}
                     min={0}
+                    disabled={isSubmittedToday}
                   />
                 </div>
                 <div className={styles.calorieInfo}>
@@ -372,6 +418,7 @@ export default function ActivityForm() {
                     onChange={handleChange}
                     step={0.1}
                     min={0}
+                    disabled={isSubmittedToday}
                   />
                 </div>
               </div>
@@ -395,6 +442,7 @@ export default function ActivityForm() {
                     onChange={handleChange}
                     step={1}
                     min={0}
+                    disabled={isSubmittedToday}
                   />
                 </div>
               </div>
@@ -419,6 +467,7 @@ export default function ActivityForm() {
                       onChange={handleChange}
                       min={0}
                       step={1}
+                      disabled={isSubmittedToday}
                     />
                   </div>
                   <div className={styles.formGroup}>
@@ -430,6 +479,7 @@ export default function ActivityForm() {
                       onChange={handleChange}
                       min={0}
                       step={1}
+                      disabled={isSubmittedToday}
                     />
                   </div>
                 </div>
@@ -452,6 +502,7 @@ export default function ActivityForm() {
                   id="memo"
                   value={formData.memo}
                   onChange={handleChange}
+                  disabled={isSubmittedToday}
                 />
               </div>
             </div>
@@ -459,21 +510,28 @@ export default function ActivityForm() {
         </div>
 
         {/* 저장버튼 */}
-        <div className={styles.saveSection}>
-          <button className={styles.saveButton} onClick={handleSave}>
-            <img src="/health/save.png" alt="저장 아이콘" />
-            저장
-          </button>
-        </div>
+        {!isSubmittedToday && (
+          <div className={styles.saveSection}>
+            <button className={styles.saveButton} onClick={handleSave}>
+              <img src="/health/save.png" alt="저장 아이콘" />
+              저장
+            </button>
+          </div>
+        )}
 
         {/* 기록 완료 메시지 오버레이 */}
         {isSubmittedToday && (
           <div className={styles.overlay}>
             <div className={styles.overlayMessage}>
-              ✅ 오늘의 기록이 저장되었습니다.
+              ✅ {selectedPetName}의 오늘 기록이 저장되었습니다.
               <button
                 className={styles.closeButton}
-                onClick={() => setIsSubmittedToday(false)}
+                onClick={() =>
+                  setSubmittedPets((prev) => ({
+                    ...prev,
+                    [selectedPetName]: false,
+                  }))
+                }
                 aria-label="닫기"
               >
                 <img

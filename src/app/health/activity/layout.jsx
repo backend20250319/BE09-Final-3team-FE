@@ -3,7 +3,7 @@
 import { SelectedPetProvider } from "../context/SelectedPetContext";
 import Header from "../activity/components/ActivityHeader";
 
-export default function SnsLayout({ children }) {
+export default function HealthLayout({ children }) {
   return (
     <SelectedPetProvider>
       <Header />
