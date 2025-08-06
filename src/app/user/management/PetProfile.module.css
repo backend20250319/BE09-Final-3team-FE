@@ -1,0 +1,503 @@
+/* Container */
+.container {
+  min-height: 100vh;
+  font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, sans-serif;
+}
+
+/* Header Section */
+.headerSection {
+  padding: 64px 80px 96px;
+}
+
+.headerContent {
+  max-width: 1280px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.mainTitle {
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: #594a3e;
+  margin-bottom: 24px;
+}
+
+.pageTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #594a3e;
+  margin-bottom: 8px;
+  text-align: left;
+  font-family: "Pretendard Variable", sans-serif;
+}
+
+
+.mainDescription {
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: rgba(89, 74, 62, 0.8);
+  margin-bottom: 40px;
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.createButton {
+  background: #8bc34a;
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 19px 34px;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.19;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.createButton:hover {
+  background: #7cb342;
+}
+
+/* Main Section */
+.mainSection {
+  padding: 0 80px 64px;
+}
+
+.contentWrapper {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* Header with Search and Filter */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 64px;
+  padding-top: 15px;
+}
+
+.titleSection {
+  flex: 1;
+}
+
+.sectionTitle {
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: #594a3e;
+  margin-bottom: 8px;
+}
+
+.sectionDescription {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #4b5563;
+}
+
+.searchFilterSection {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.searchContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none; /* 클릭 방지 */
+}
+
+.searchInput {
+  width: 100%;
+  padding: 8px 12px 8px 36px; /* ← 왼쪽 아이콘 공간 확보 */
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.filterContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.filterSelect {
+  width: 114px;
+  height: 38px;
+  padding: 0 30px 0 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.19;
+  color: #000000;
+  background: #ffffff;
+  appearance: none;
+  cursor: pointer;
+}
+
+.dropdownIcon {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  pointer-events: none;
+}
+
+/* Pet Grid */
+.petGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 24px;
+}
+
+/* Add Pet Card */
+.addPetCard {
+  background: #ffffff;
+  border: 2px dashed #8bc34a;
+  border-radius: 12px;
+  padding: 113px 20px 20px;
+  text-align: center;
+  position: relative;
+  height: 354px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addPetCard:hover {
+  border-color: #7cb342;
+  background: #fafffa;
+}
+
+.addPetIcon {
+  position: absolute;
+  top: 113px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 64px;
+  background: rgba(139, 195, 74, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.addPetTitle {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.19;
+  color: #594a3e;
+  margin-bottom: 8px;
+}
+
+.addPetDescription {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.19;
+  color: #4b5563;
+  text-align: center;
+  max-width: 272px;
+}
+
+/* Pet Cards */
+.petCard {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.petCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.1);
+}
+
+.petImageContainer {
+  position: relative;
+  width: 100%;
+  height: 192px;
+  overflow: hidden;
+}
+
+.petImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.healthBadge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 4px 8px;
+  border-radius: 9999px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.19;
+  min-width: 40px;
+  text-align: center;
+}
+
+.petInfo {
+  padding: 16px;
+  background: #ffffff;
+}
+
+.petHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.petDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.ageInfo,
+.healthInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ageIcon,
+.healthIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 16px;
+}
+
+.ageText{
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.43;
+  color: #4b5563;
+  justify-content: center;
+  margin-top: -10px;
+}
+
+.healthText {
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.43;
+  color: #4b5563;
+  justify-content: center;
+}
+
+.breedText {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.43;
+  color: #000000;
+  margin-top: 4px;
+}
+
+.petActions {
+  display: flex;
+  gap: 8px;
+}
+
+.actionButton {
+  width: 28px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.actionButton:hover {
+  background: #f3f4f6;
+}
+
+.petDescription {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.43;
+  color: #4b5563;
+  margin-bottom: 16px;
+  min-height: 40px;
+  margin-top: 10px;
+}
+
+.petFooter {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.petName {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.56;
+  color: #000000;
+}
+
+.medalIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .header {
+    flex-direction: column;
+    gap: 24px;
+    align-items: flex-start;
+  }
+
+  .searchFilterSection {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .petGrid {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .headerSection,
+  .mainSection {
+    padding: 40px 20px;
+  }
+
+  .mainTitle {
+    font-size: 32px;
+  }
+
+  .mainDescription {
+    font-size: 18px;
+  }
+
+  .searchFilterSection {
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .searchInput,
+  .filterSelect {
+    width: 100%;
+  }
+
+  .petGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .addPetCard {
+    height: 300px;
+    padding: 80px 20px 20px;
+  }
+
+  .addPetIcon {
+    top: 80px;
+    width: 56px;
+    height: 56px;
+  }
+}
+
+@media (max-width: 480px) {
+  .headerSection,
+  .mainSection {
+    padding: 20px 16px;
+  }
+
+  .mainTitle {
+    font-size: 28px;
+  }
+
+  .mainDescription {
+    font-size: 16px;
+  }
+
+  .sectionTitle {
+    font-size: 24px;
+  }
+
+  .petCard {
+    margin-bottom: 16px;
+  }
+}
+
+.petNameBreedRow {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.petName {
+  font-weight: 600;
+}
+
+.breedText {
+  font-weight: 400;
+  font-size: 16px;
+  color: #666;
+}
+
+.petMetaRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 4px;
+  font-size: 14px;
+  color: #555;
+}
+
+.healthInfo {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.healthIcon {
+  display: inline-block;
+}
