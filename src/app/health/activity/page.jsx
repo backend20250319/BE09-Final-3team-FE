@@ -15,7 +15,7 @@ export default function ActivityManagementPage() {
 
   return (
     <>
-      {/* 펫 프로필 */}
+      {/* 반려동물 프로필 */}
       <PetProfileSelector
         pets={pets}
         selectedPetName={selectedPetName}
