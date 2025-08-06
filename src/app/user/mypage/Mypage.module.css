@@ -1,0 +1,560 @@
+/* 전체 컨테이너 */
+.container {
+  width: 100%;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 전체 바디 */
+.body {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.pageTitle {
+  font-size: 32px;
+  font-weight: 600;
+  color: #594a3e;
+  margin-bottom: 20px;
+  font-family: "Pretendard Variable", sans-serif;
+  text-align: left;
+  align-self: flex-start;  /* 이 줄 추가 */
+  margin-left: 130px;       /* 섹션 여백과 맞추기 위해 추가 */
+}
+
+/* 메인 콘텐츠 */
+.main {
+  width: 100%;
+  max-width: 1280px;
+  min-height: calc(100vh - 100px);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+/* 수정하기 버튼 섹션 */
+.editSection {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  padding: 0 80px;
+  margin-top: -50px;
+}
+
+.editToggleButton {
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  font-family: "Pretendard Variable", sans-serif;
+}
+
+.editToggleButton:hover {
+  background-color: #f5f5f5;
+}
+
+/* 프로필 섹션 */
+.profileSection {
+  width: 1020px;
+  height: 543px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1);
+  margin: 55px 80px 0 80px;
+  padding: 32px;
+  box-sizing: border-box;
+}
+
+.profileContent {
+  display: flex;
+  gap: 32px;
+  height: 100%;
+}
+
+/* 프로필 이미지 컨테이너 */
+.profileImageContainer {
+  width: 128px;
+  height: 128px;
+  position: relative;
+}
+
+.profileImage {
+  width: 128px;
+  height: 128px;
+  background: #f3f4f6;
+  border: 4px solid #e5e7eb;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.cameraIcon {
+  position: absolute;
+  bottom: -40px;
+  right: 57px;
+  transform: translate(50%, 50%);
+}
+
+/* 프로필 정보 */
+.profileInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* 이름 컨테이너 */
+.nameContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+  width: 100%;
+}
+
+.nameLabel {
+  display: block;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #594a3e;
+}
+
+.nameInputWrapper {
+  width: 100%;
+}
+
+.nameInput {
+  width: 100%;
+  height: 50px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 16px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #adaebc;
+  box-sizing: border-box;
+}
+
+.nameInput:focus {
+  outline: none;
+  border-color: #6be6bd;
+}
+
+.editButton {
+  width: 35px;
+  height: 35px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 100px;
+  right: 180px;
+}
+.editButton svg {
+  fill: #f5a623;
+}
+
+/* 자기소개 */
+.bioContainer {
+  margin-top: 20px;
+}
+
+.bioLabel {
+  display: block;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #594a3e;
+  margin-bottom: 8px;
+}
+
+.bioTextarea {
+  width: 100%;
+  height: 107px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 13px 10px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #adaebc;
+  resize: none;
+  box-sizing: border-box;
+}
+
+.bioTextarea:focus {
+  outline: none;
+  border-color: #6be6bd;
+}
+
+/* 주소 컨테이너 */
+.addressContainer {
+  position: relative;
+  margin-top: 20px;
+}
+
+.addressRow {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.addressInput {
+  flex: 1;
+  height: 50px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 16px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #adaebc;
+  box-sizing: border-box;
+}
+
+.detailAddressInput {
+  flex: 1;
+  height: 50px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 16px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #adaebc;
+  box-sizing: border-box;
+}
+
+.locationLabel {
+  position: absolute;
+  top: -25px;
+  left: 1px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #594a3e;
+}
+
+/* 생년월일 */
+.birthContainer {
+  margin-top: 5px;
+}
+
+.birthLabel {
+  display: block;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #594a3e;
+  margin-bottom: 8px;
+}
+
+.birthInput {
+  width: 100%;
+  height: 50px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 16px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #adaebc;
+  box-sizing: border-box;
+}
+
+/* 추가 정보 섹션 */
+.additionalInfoSection {
+  width: 1020px;
+  height: 194px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1);
+  margin: 20px 80px 0 80px;
+  padding: 32px;
+  box-sizing: border-box;
+}
+
+.sectionTitle {
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: #594a3e;
+  margin: 0 0 24px 0;
+  line-height: 1.193;
+}
+
+.formRow {
+  display: flex;
+  gap: 24px;
+}
+
+.formGroup {
+  flex: 1;
+}
+
+.label {
+  display: block;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #594a3e;
+  margin-bottom: 8px;
+}
+
+.input {
+  width: 100%;
+  height: 50px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 16px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #adaebc;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #6be6bd;
+}
+
+/* 소셜 미디어 섹션 */
+.socialMediaSection {
+  width: 1020px;
+  height: 284px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1);
+  margin: 20px 80px 0 80px;
+  padding: 32px;
+  box-sizing: border-box;
+}
+
+.socialMediaRow {
+  margin-top: 85px;
+}
+
+.instagramContainer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 50px;
+}
+
+.instagramIcon {
+  width: 35px;
+  height: 31px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.instagramInput {
+  flex: 1;
+  height: 37px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 16px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #adaebc;
+  box-sizing: border-box;
+}
+
+.instagramInput:focus {
+  outline: none;
+  border-color: #6be6bd;
+}
+
+.connectButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  background: #6be6bd;
+  border: none;
+  border-radius: 8px;
+  padding: 0 32px;
+  cursor: pointer;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 17px;
+  font-weight: 400;
+  color: #ffffff;
+  line-height: 1.193;
+}
+
+.connectButton:hover {
+  background: #5dd4a8;
+}
+
+.connectIcon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 버튼 섹션 */
+.buttonSection {
+  display: flex;
+  gap: 36px;
+  justify-content: center;
+  margin-top: 20px;
+  padding: 0 80px;
+}
+
+.saveButton {
+  width: 107px;
+  height: 48px;
+  background: #f5a623;
+  border: none;
+  border-radius: 8px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #ffffff;
+  cursor: pointer;
+  line-height: 1.193;
+}
+
+.saveButton:hover {
+  background: #e0941a;
+}
+
+.cancelButton {
+  width: 96px;
+  height: 48px;
+  background: #e5e7eb;
+  border: none;
+  border-radius: 8px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #594a3e;
+  cursor: pointer;
+  line-height: 1.193;
+}
+
+.cancelButton:hover {
+  background: #d1d5db;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1440px) {
+  .body {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .profileSection,
+  .additionalInfoSection,
+  .socialMediaSection {
+    width: calc(100% - 160px);
+    margin-left: 80px;
+    margin-right: 80px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+
+  .body {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .main {
+    height: auto;
+  }
+
+  .profileSection,
+  .additionalInfoSection,
+  .socialMediaSection {
+    width: calc(100% - 40px);
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+
+  .profileContent {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .formRow {
+    flex-direction: column;
+  }
+
+  .addressRow {
+    flex-direction: column;
+  }
+
+  .instagramContainer {
+    flex-direction: column;
+    height: auto;
+    gap: 12px;
+  }
+
+  .buttonSection {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+}
+.profileImageContainer {
+  width: 128px;
+  height: 128px;
+  position: relative;
+  border: 2px dashed #ccc;
+  border-radius: 50%;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+
+.profileImageContainer:hover {
+  border-color: #f5a623;
+}
+
+.profileImage {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
