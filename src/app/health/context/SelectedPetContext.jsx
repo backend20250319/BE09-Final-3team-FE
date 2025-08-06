@@ -1,11 +1,22 @@
-"use client";
-
-import React, { createContext, useState, useContext } from "react";
+import React, { createContext, useState, useContext, useEffect } from "react";
 
 const SelectedPetContext = createContext();
 
 export function SelectedPetProvider({ children }) {
-  const [selectedPetName, setSelectedPetName] = useState("몽글이");
+  const [selectedPetName, setSelectedPetName] = useState("");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("selectedPetName");
+    if (saved) {
+      setSelectedPetName(saved);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedPetName) {
+      localStorage.setItem("selectedPetName", selectedPetName);
+    }
+  }, [selectedPetName]);
 
   return (
     <SelectedPetContext.Provider
