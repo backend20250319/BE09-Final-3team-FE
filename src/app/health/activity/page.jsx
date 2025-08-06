@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./styles/Activity.module.css";
 import PetProfileSelector from "../components/PetProfileSelector";
 
@@ -15,8 +15,9 @@ export default function ActivityManagementPage() {
   const [isSubmittedToday, setIsSubmittedToday] = useState(false);
   const [formData, setFormData] = useState({
     walkingDistance: "",
-    activityLevel: "1.2", // enum 기본값
-    caloriePerGram: "",
+    activityLevel: "1.2", // 기본값
+    totalFoodWeight: "", // 총 음식량 (g)
+    totalCaloriesInFood: "", // 총 칼로리 (kcal)
     feedingAmount: "",
     weight: "",
     sleepTime: "",
@@ -27,6 +28,60 @@ export default function ActivityManagementPage() {
 
   const validActivityLevels = ["1.2", "1.5", "1.7", "1.9"];
 
+  // 숫자 포맷 함수: 정수면 정수로, 아니면 소수점 1자리까지
+  function formatNumber(num) {
+    if (Number.isInteger(num)) {
+      return num.toString();
+    } else {
+      return num.toFixed(1);
+    }
+  }
+
+  // 실시간 계산 결과 상태
+  const [calculated, setCalculated] = useState({
+    recommendedBurn: 0,
+    actualBurn: 0,
+    recommendedIntake: 0,
+    actualIntake: 0,
+  });
+
+  // formData가 바뀔 때마다 계산
+  useEffect(() => {
+    const weight = parseFloat(formData.weight);
+    const walkingDistance = parseFloat(formData.walkingDistance);
+    const totalFoodWeight = parseFloat(formData.totalFoodWeight);
+    const totalCaloriesInFood = parseFloat(formData.totalCaloriesInFood);
+    const feedingAmount = parseFloat(formData.feedingAmount);
+    const activityLevel = parseFloat(formData.activityLevel);
+    const validWeight = !isNaN(weight) ? weight : 0;
+
+    const caloriePerGram =
+      !isNaN(totalCaloriesInFood) &&
+      !isNaN(totalFoodWeight) &&
+      totalFoodWeight > 0
+        ? totalCaloriesInFood / totalFoodWeight
+        : 0;
+
+    setCalculated({
+      recommendedBurn:
+        validWeight && !isNaN(activityLevel)
+          ? validWeight * activityLevel * 70
+          : 0,
+      actualBurn:
+        !isNaN(walkingDistance) && !isNaN(activityLevel)
+          ? walkingDistance * activityLevel * 5
+          : 0,
+      recommendedIntake:
+        validWeight && !isNaN(activityLevel)
+          ? validWeight * activityLevel * 100
+          : 0,
+      actualIntake:
+        !isNaN(feedingAmount) && caloriePerGram > 0
+          ? feedingAmount * caloriePerGram
+          : 0,
+    });
+  }, [formData]);
+
   const handleChange = (e) => {
     const { id, value } = e.target;
     setFormData((prev) => ({
@@ -36,23 +91,24 @@ export default function ActivityManagementPage() {
   };
 
   const handleSave = () => {
-    // 타입 변환
     const walkingDistanceNum = parseFloat(formData.walkingDistance);
     const activityLevelVal = formData.activityLevel;
-    const caloriePerGramNum = parseInt(formData.caloriePerGram, 10);
-    const feedingAmountNum = parseInt(formData.feedingAmount, 10);
+    const totalFoodWeightNum = parseFloat(formData.totalFoodWeight);
+    const totalCaloriesInFoodNum = parseFloat(formData.totalCaloriesInFood);
+    const feedingAmountNum = parseFloat(formData.feedingAmount);
     const weightNum = parseFloat(formData.weight);
     const sleepTimeNum = parseInt(formData.sleepTime, 10);
     const urineCountNum = parseInt(formData.urineCount, 10);
     const fecesCountNum = parseInt(formData.fecesCount, 10);
 
-    // 유효성 검사
     if (
       isNaN(walkingDistanceNum) ||
       walkingDistanceNum < 0 ||
       !validActivityLevels.includes(activityLevelVal) ||
-      isNaN(caloriePerGramNum) ||
-      caloriePerGramNum < 0 ||
+      isNaN(totalFoodWeightNum) ||
+      totalFoodWeightNum <= 0 ||
+      isNaN(totalCaloriesInFoodNum) ||
+      totalCaloriesInFoodNum <= 0 ||
       isNaN(feedingAmountNum) ||
       feedingAmountNum < 0 ||
       isNaN(weightNum) ||
@@ -73,7 +129,8 @@ export default function ActivityManagementPage() {
     if (
       formData.walkingDistance.trim() === "" ||
       formData.activityLevel.trim() === "" ||
-      formData.caloriePerGram.trim() === "" ||
+      formData.totalFoodWeight.trim() === "" ||
+      formData.totalCaloriesInFood.trim() === "" ||
       formData.feedingAmount.trim() === "" ||
       formData.weight.trim() === "" ||
       formData.sleepTime.trim() === "" ||
@@ -84,14 +141,13 @@ export default function ActivityManagementPage() {
       return;
     }
 
-    // 산책 소모 칼로리 계산 (예시: 거리 * 활동계수 * 5)
     const walkingCalorie = (
       walkingDistanceNum *
       parseFloat(activityLevelVal) *
       5
     ).toFixed(1);
-    // 섭취 칼로리 계산
-    const feedingCalorie = (caloriePerGramNum * feedingAmountNum).toFixed(1);
+    const caloriePerGram = totalCaloriesInFoodNum / totalFoodWeightNum;
+    const feedingCalorie = (feedingAmountNum * caloriePerGram).toFixed(1);
 
     const dataToSave = {
       weight: weightNum,
@@ -105,8 +161,6 @@ export default function ActivityManagementPage() {
     };
 
     console.log("저장할 데이터:", dataToSave);
-
-    // 저장 완료 처리
     setIsSubmittedToday(true);
   };
 
@@ -180,14 +234,16 @@ export default function ActivityManagementPage() {
                           />
                         </div>
                         <div className={styles.formGroup}>
-                          <label htmlFor="activityFactor">활동 계수</label>
+                          <label htmlFor="activityLevel">활동 계수</label>
                           <select
-                            id="activityFactor"
-                            value={formData.activityFactor}
+                            id="activityLevel"
+                            value={formData.activityLevel}
                             onChange={handleChange}
                             className={styles.customSelect}
                           >
-                            <option value="">선택하세요</option>
+                            <option value="" disabled hidden>
+                              선택하세요
+                            </option>
                             <option value="1.2">1.2</option>
                             <option value="1.5">1.5</option>
                             <option value="1.7">1.7</option>
@@ -197,11 +253,21 @@ export default function ActivityManagementPage() {
                         <div className={styles.calorieInfo}>
                           <div className={styles.calorieItem}>
                             <p>권장 소모 칼로리</p>
-                            <p className={styles.calorieValue}>-- kcal</p>
+                            <p className={styles.calorieValue}>
+                              {calculated.recommendedBurn > 0
+                                ? `${formatNumber(
+                                    calculated.recommendedBurn
+                                  )} kcal`
+                                : "--"}
+                            </p>
                           </div>
                           <div className={styles.calorieItem}>
                             <p>소모 칼로리</p>
-                            <p className={styles.calorieValue}>-- kcal</p>
+                            <p className={styles.calorieValue}>
+                              {calculated.actualBurn > 0
+                                ? `${formatNumber(calculated.actualBurn)} kcal`
+                                : "--"}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -216,15 +282,31 @@ export default function ActivityManagementPage() {
                         <h3>식사</h3>
                       </div>
                       <div className={styles.activityForm}>
-                        <div className={styles.formGroup}>
-                          <label htmlFor="caloriePerGram">칼로리(kcal)</label>
-                          <input
-                            type="number"
-                            id="caloriePerGram"
-                            value={formData.caloriePerGram}
-                            onChange={handleChange}
-                            min={0}
-                          />
+                        <div className={styles.horizontalInputs}>
+                          <div className={styles.formGroup}>
+                            <label htmlFor="totalFoodWeight">
+                              총 그람수 (g)
+                            </label>
+                            <input
+                              type="number"
+                              id="totalFoodWeight"
+                              value={formData.totalFoodWeight}
+                              onChange={handleChange}
+                              min={0}
+                            />
+                          </div>
+                          <div className={styles.formGroup}>
+                            <label htmlFor="totalCaloriesInFood">
+                              총 칼로리 (kcal)
+                            </label>
+                            <input
+                              type="number"
+                              id="totalCaloriesInFood"
+                              value={formData.totalCaloriesInFood}
+                              onChange={handleChange}
+                              min={0}
+                            />
+                          </div>
                         </div>
                         <div className={styles.formGroup}>
                           <label htmlFor="feedingAmount">섭취량 (g)</label>
@@ -239,11 +321,23 @@ export default function ActivityManagementPage() {
                         <div className={styles.calorieInfo}>
                           <div className={styles.calorieItem}>
                             <p>섭취 칼로리</p>
-                            <p className={styles.calorieValue}>-- kcal</p>
+                            <p className={styles.calorieValue}>
+                              {calculated.actualIntake > 0
+                                ? `${formatNumber(
+                                    calculated.actualIntake
+                                  )} kcal`
+                                : "--"}
+                            </p>
                           </div>
                           <div className={styles.calorieItem}>
                             <p>권장 섭취 칼로리</p>
-                            <p className={styles.calorieValue}>-- kcal</p>
+                            <p className={styles.calorieValue}>
+                              {calculated.recommendedIntake > 0
+                                ? `${formatNumber(
+                                    calculated.recommendedIntake
+                                  )} kcal`
+                                : "--"}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -281,7 +375,7 @@ export default function ActivityManagementPage() {
                         <div className={styles.activityIcon}>
                           <img src="/health/sleep.png" alt="수면 아이콘" />
                         </div>
-                        <h3>수면 시간</h3>
+                        <h3>수면</h3>
                       </div>
                       <div className={styles.activityForm}>
                         <div className={styles.formGroup}>
