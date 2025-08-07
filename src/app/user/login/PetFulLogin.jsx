@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import styles from './PetFulLogin.module.css';
-import Image from 'next/image';
+import { useState } from "react";
+import styles from "./PetFulLogin.module.css";
+import Image from "next/image";
 
 export default function PetFulLogin() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     // Handle login logic here
-    console.log('Login attempt:', { email, password });
+    console.log("Login attempt:", { email, password });
   };
 
   const togglePasswordVisibility = () => {
@@ -33,9 +33,7 @@ export default function PetFulLogin() {
               className={styles.logo}
             />
           </div>
-          <h1 className={styles.title}>
-            반려동물과 함께하는 디지털 여정
-          </h1>
+          <h1 className={styles.title}>반려동물과 함께하는 디지털 여정</h1>
         </div>
 
         {/* Login Form */}
@@ -58,7 +56,7 @@ export default function PetFulLogin() {
             <label className={styles.label}>비밀번호</label>
             <div className={styles.passwordContainer}>
               <input
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 className={styles.input}
                 placeholder="비밀번호를 입력하세요"
                 value={password}
@@ -71,7 +69,7 @@ export default function PetFulLogin() {
                 onClick={togglePasswordVisibility}
               >
                 <Image
-                  src="/eye.png"
+                  src="/user/eye.svg"
                   alt="비밀번호 보기/숨기기"
                   width={18}
                   height={14}
@@ -89,8 +87,14 @@ export default function PetFulLogin() {
 
         {/* Footer Links */}
         <div className={styles.footer}>
-          <a href="#" className={styles.link}>회원가입</a>
-          <a href="#" className={styles.link}>비밀번호 찾기</a>
+          <div className={styles.linkGroup}>
+            <a href="#" className={styles.link}>
+              회원가입
+            </a>
+            <a href="#" className={styles.link}>
+              비밀번호 찾기
+            </a>
+          </div>
         </div>
 
         {/* Terms */}

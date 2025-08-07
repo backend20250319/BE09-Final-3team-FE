@@ -161,12 +161,18 @@
   background-color: #d08a1d;
 }
 
-/* Footer Links */
 .footer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
+  justify-content: center; /* 가운데 정렬 */
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.linkGroup {
+  display: flex;
+  gap: 10px; /* 회원가입 - 비밀번호 찾기 사이 간격 */
+  margin-left: auto; /* 가능한 가장 오른쪽으로 밀기 */
+  margin-right: 110px; /* 🔧 여기서 px 단위로 조정 가능 */
 }
 
 .link {

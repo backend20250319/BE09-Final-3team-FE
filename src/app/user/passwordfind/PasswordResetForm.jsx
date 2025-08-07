@@ -33,7 +33,7 @@ export default function PasswordResetForm() {
         <div className={styles.iconContainer}>
           <i className={styles.icon}>
             <Image
-              src="/key.png"
+              src="/user/key.png"
               alt="비밀번호 찾기"
               width={128}
               height={128}
