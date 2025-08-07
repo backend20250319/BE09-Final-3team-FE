@@ -114,40 +114,34 @@ export default function MedicationManagement() {
                   className={styles.actionButton}
                   onClick={() => handleEditMedication(medication.id)}
                 >
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path
-                      d="M8 1V15M1 8H15"
-                      stroke="#6B7280"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                    />
-                  </svg>
+                  <img
+                    src="/health/note.png"
+                    alt="수정"
+                    width={22}
+                    height={22}
+                  />
                 </button>
                 <button
                   className={styles.actionButton}
                   onClick={() => handleEditMedication(medication.id)}
                 >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <path
-                      d="M1 7H13M7 1V13"
-                      stroke="#6B7280"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                    />
-                  </svg>
+                  <img
+                    src="/health/trash.png"
+                    alt="휴지통"
+                    width={24}
+                    height={24}
+                  />
                 </button>
                 <button
                   className={styles.actionButton}
                   onClick={() => handleDeleteMedication(medication.id)}
                 >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <path
-                      d="M1 7H13M7 1V13"
-                      stroke="#6B7280"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                    />
-                  </svg>
+                  <img
+                    src="/health/notifi.png"
+                    alt="알림"
+                    width={24}
+                    height={24}
+                  />
                 </button>
               </div>
             </div>
