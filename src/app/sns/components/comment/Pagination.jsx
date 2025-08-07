@@ -1,15 +1,6 @@
 import styles from "../../styles/comment/Pagination.module.css";
 
-export default function Pagination({
-  currentPage,
-  totalComments,
-  commentsPerPage,
-  onPageChange,
-}) {
-  const totalPages = Math.ceil(totalComments / commentsPerPage);
-  const startItem = (currentPage - 1) * commentsPerPage + 1;
-  const endItem = Math.min(currentPage * commentsPerPage, totalComments);
-
+export default function Pagination({ currentPage, totalPages, onPageChange }) {
   const handlePrevious = () => {
     if (currentPage > 1) {
       onPageChange(currentPage - 1);
@@ -26,38 +17,42 @@ export default function Pagination({
     onPageChange(page);
   };
 
+  // Spring Pagination과 호환되는 페이지 번호 생성 (1부터 시작)
+  const getVisiblePages = () => {
+    const maxVisible = 5;
+    let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(totalPages, start + maxVisible - 1);
+
+    // 끝 페이지가 부족하면 시작 페이지를 앞으로 이동
+    if (end - start + 1 < maxVisible && start > 1) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+
+    const pages = [];
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
+
+  const visiblePages = getVisiblePages();
+
   return (
     <div className={styles.paginationContainer}>
-      <div className={styles.info}>
-        <span className={styles.infoText}>
-          Showing {startItem}-{endItem} of {totalComments.toLocaleString()}{" "}
-          comments
-        </span>
-      </div>
-
       <div className={styles.pagination}>
-        {/* Previous Button */}
+        {/* 이전 버튼 */}
         <button
-          className={`${styles.pageButton} ${
+          className={`${styles.pageButton} ${styles.navButton} ${
             currentPage === 1 ? styles.disabled : ""
           }`}
           onClick={handlePrevious}
           disabled={currentPage === 1}
         >
-          <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
-            <path
-              d="M8 1L1 8L8 15"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              fill="none"
-            />
-          </svg>
+          &lt;
         </button>
 
-        {/* Page Numbers */}
-        {[1, 2, 3].map((page) => (
+        {/* 페이지 번호들 (Spring Pagination 방식: 1부터 시작) */}
+        {visiblePages.map((page) => (
           <button
             key={page}
             className={`${styles.pageButton} ${
@@ -69,25 +64,22 @@ export default function Pagination({
           </button>
         ))}
 
-        {/* Next Button */}
+        {/* 다음 버튼 */}
         <button
-          className={`${styles.pageButton} ${
-            currentPage === totalPages ? styles.disabled : ""
+          className={`${styles.pageButton} ${styles.navButton} ${
+            currentPage >= totalPages ? styles.disabled : ""
           }`}
           onClick={handleNext}
-          disabled={currentPage === totalPages}
+          disabled={currentPage >= totalPages}
         >
-          <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
-            <path
-              d="M2 1L9 8L2 15"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              fill="none"
-            />
-          </svg>
+          &gt;
         </button>
+      </div>
+
+      <div className={styles.info}>
+        <span className={styles.infoText}>
+          페이지 {currentPage} / {totalPages}
+        </span>
       </div>
     </div>
   );
