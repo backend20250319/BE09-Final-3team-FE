@@ -11,6 +11,8 @@ import {
   Legend,
   LineChart,
   Line,
+  AreaChart,
+  Area,
 } from "recharts";
 import styles from "../styles/ActivityReport.module.css";
 
@@ -198,7 +200,11 @@ export default function ActivityReport() {
                 <span className={styles.metricTitle}>{metric.title}</span>
               </div>
 
-              <div className={styles.metricChart}>
+              <div
+                className={`${styles.metricChart} ${
+                  metric.title === "배변 횟수" ? styles.shiftChartLeft : ""
+                }`}
+              >
                 {metric.type === "bar" && (
                   <ResponsiveContainer width="100%" height={150}>
                     <BarChart data={data}>
@@ -231,7 +237,7 @@ export default function ActivityReport() {
                           name="권장 값"
                         />
                       )}
-                      <Legend verticalAlign="top" height={36} />
+                      <Legend verticalAlign="bottom" height={36} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
@@ -244,7 +250,7 @@ export default function ActivityReport() {
                       <Tooltip
                         formatter={(value, name) => [`${value}`, name]}
                       />
-                      <Legend verticalAlign="top" height={36} />
+                      <Legend verticalAlign="bottom" height={36} />
                       <Line
                         type="monotone"
                         dataKey="소변"
@@ -265,19 +271,20 @@ export default function ActivityReport() {
 
                 {metric.type === "area" && (
                   <ResponsiveContainer width="100%" height={150}>
-                    {/* 수면 시간만 area로 남김 */}
-                    <BarChart data={data}>
+                    <AreaChart data={data}>
                       <XAxis dataKey={xKey} tick={{ fontSize: 10 }} />
                       <YAxis hide />
                       <Tooltip formatter={(value) => [`${value} 시간`, ""]} />
-                      <Bar
+                      <Area
+                        type="monotone"
                         dataKey="actualValue"
+                        stroke={metric.colorActual}
                         fill={metric.colorActual}
-                        radius={[4, 4, 0, 0]}
-                        barSize={15}
                         name="수면 시간"
+                        fillOpacity={0.3}
                       />
-                    </BarChart>
+                      <Legend verticalAlign="bottom" height={36} />
+                    </AreaChart>
                   </ResponsiveContainer>
                 )}
               </div>
