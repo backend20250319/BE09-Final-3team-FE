@@ -1,6 +1,7 @@
 import React from "react";
 import styles from "../styles/AlarmDropdown.module.css";
 import notifications from "@/app/alarm/data/notifications";
+import {useRouter} from "next/navigation";
 
 const iconBasePath = "/icons/";
 
@@ -9,12 +10,16 @@ export default function NavbarDropdown({
   onViewAll,
 }) {
   if (!open) return null;
+  const router = useRouter();
+  const handleAlarm =  () => {
+      router.push('/alarm');
+    }
   return (
     <div className={styles.dropdown}>
       <div className={styles.header}>
         <span className={styles.title}>알림</span>
       </div>
-      <div className={styles.list}>
+      <div className={styles.list} onClick={handleAlarm}>
         {notifications.length === 0 ? (
           <div className={styles.empty}>알림이 없습니다.</div>
         ) : (
@@ -22,7 +27,7 @@ export default function NavbarDropdown({
             <div className={styles.item} key={idx}>
               <div
                 className={
-                  styles.iconContainer + " " + (styles[item.color] || "")
+                  styles.iconContainer + " " + (styles[item.iconColor] || "")
                 }
               >
                 {item.icon && (

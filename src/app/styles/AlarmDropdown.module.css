@@ -32,7 +32,7 @@
   color: #594a3e;
 }
 .list {
-  max-height: 475px;
+  max-height: 530px;
   overflow-y: auto;
   background: #fff;
 }
@@ -53,28 +53,29 @@
   background: #f9fafb;
 }
 .iconContainer {
-  width: 40px;
-  height: 50px;
+  width: 55px;
+  height: 55px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  margin-top: 6px;
 }
 .iconContainer.orange {
   background: #f5a623;
 }
 .iconContainer.green {
-  background: #34c759;
+  background: #8bc34a;
 }
 .iconContainer.red {
-  background: #ff3b30;
+  background: #ff7675;
 }
 .iconContainer.blue {
-  background: #007aff;
+  background: #60a5fa;
 }
 .iconContainer.purple {
-  background: #af52de;
+  background: #c084fc;
 }
 .icon {
   width: 24px;
