@@ -59,7 +59,7 @@ export default function ProductManagement(){
                             <div className={styles.searchContainer}>
                                 <input
                                     type="text"
-                                    placeholder="Search products..."
+                                    placeholder="검색어를 입력하세요."
                                     className={styles.searchInput}
                                 />
                                 <div className={styles.searchIcon}>
@@ -81,9 +81,8 @@ export default function ProductManagement(){
                                 </div>
                             </div>
                             <select className={styles.sortSelect}>
-                                <option>Sort by Date</option>
-                                <option>Sort by Name</option>
-                                <option>Sort by Status</option>
+                                <option>최신순</option>
+                                <option>오래된순</option>
                             </select>
                         </div>
                     </div>
