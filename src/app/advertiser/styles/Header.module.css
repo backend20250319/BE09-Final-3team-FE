@@ -18,12 +18,38 @@
   position: relative;
 }
 
+.leftSection {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
 .logo {
   display: flex;
   align-items: center;
   height: 150px;
   width: 150px;
   position: relative;
+}
+
+.homeButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  color: #10b981;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.homeButton:hover {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
 }
 
 .headerActions {
