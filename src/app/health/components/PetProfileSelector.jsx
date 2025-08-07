@@ -1,4 +1,4 @@
-import styles from "../activity/styles/PetProfileSelector.module.css";
+import styles from "../styles/PetProfileSelector.module.css";
 
 export default function PetProfileSelector({
   pets,

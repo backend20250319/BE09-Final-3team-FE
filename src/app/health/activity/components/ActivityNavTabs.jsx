@@ -3,7 +3,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import styles from "../styles/ActivityNavTabs.module.css";
-import activityFormStyles from "../styles/ActivityForm.module.css"; // 추가
 import Calendar from "./MyCalendar";
 
 export default function ActivityNavTabs({
