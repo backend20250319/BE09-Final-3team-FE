@@ -1,137 +1,76 @@
-import Image from "next/image";
+import React from "react";
 import styles from "../styles/CampaignGrid.module.css";
 import CampaignCard from "./CampaignCard";
+import { useCampaign } from "../context/CampaignContext";
+import campaigns from "../data/campaigns";
 
-export default function CampaignGrid() {
-  const campaigns = [
-    {
-      id: 1,
-      image: "/campaign-1.jpg",
-      title: "유기농 반려동물 사료",
-      description: "새롭게 선보일 프리미엄 유기농 사료를 직접 체험해 볼 반려견과 반려묘를 모집합니다.",
-      brand: "PawsomeNutrition",
-      applicants: "45 / 100",
-      period: "2025.08.01 - 2025.08.31",
-      status: "recruiting",
-      statusText: "모집중",
-      borderColor: "#FF8484",
-    },
-    {
-      id: 2,
-      image: "/campaign-2.jpg",
-      title: "Interactive Toy Launch",
-      description: "Seeking playful cats to feature with our new interactive toys. Video content preferred.",
-      brand: "PawsomeNutrition",
-      applicants: "45 / 100",
-      period: "2025.08.01 - 2025.08.31",
-      status: "actions",
-      statusText: "수정",
-      statusText2: "삭제",
-      borderColor: "#8BC34A",
-    },
-    {
-      id: 3,
-      image: "/campaign-3.jpg",
-      title: "Interactive Toy Launch",
-      description: "Seeking playful cats to feature with our new interactive toys. Video content preferred.",
-      brand: "PawsomeNutrition",
-      applicants: "45 / 100",
-      period: "2025.07.01 - 2025.07.31",
-      status: "verification",
-      statusText: "확인 절차중",
-      borderColor: "#8BC34A",
-    },
-    {
-      id: 4,
-      image: "/campaign-4.jpg",
-      title: "Interactive Toy Launch",
-      description: "Seeking playful cats to feature with our new interactive toys. Video content preferred.",
-      brand: "PawsomeNutrition",
-      applicants: "45 / 100",
-      period: "2025.07.01 - 2025.07.31",
-      status: "selection_failed",
-      statusText: "선발 완료(X)",
-      borderColor: "#6B7280",
-    },
-    {
-      id: 5,
-      image: "/campaign-5.jpg",
-      title: "Interactive Toy Launch",
-      description: "Seeking playful cats to feature with our new interactive toys. Video content preferred.",
-      brand: "PawsomeNutrition",
-      applicants: "45 / 100",
-      period: "2025.07.01 - 2025.07.31",
-      status: "url_submit",
-      statusText: "게시물 url 등록",
-      borderColor: "#8BC34A",
-    },
-    {
-      id: 6,
-      image: "/campaign-6.jpg",
-      title: "Interactive Toy Launch",
-      description: "Seeking playful cats to feature with our new interactive toys. Video content preferred.",
-      brand: "PawsomeNutrition",
-      applicants: "45 / 100",
-      period: "2025.07.01 - 2025.07.31",
-      status: "completed",
-      statusText: "광고 완료",
-      borderColor: "#6B7280",
-    },
-    {
-      id: 7,
-      image: "/campaign-7.jpg",
-      title: "Interactive Toy Launch",
-      description: "Seeking playful cats to feature with our new interactive toys. Video content preferred.",
-      brand: "PawsomeNutrition",
-      applicants: "45 / 100",
-      period: "2025.07.01 - 2025.07.31",
-      status: "ended",
-      statusText: "모집 종료",
-      borderColor: "#6B7280",
-    },
-    {
-      id: 8,
-      image: "/campaign-8.jpg",
-      title: "Interactive Toy Launch",
-      description: "Seeking playful cats to feature with our new interactive toys. Video content preferred.",
-      brand: "PawsomeNutrition",
-      applicants: "45 / 100",
-      period: "2025.07.01 - 2025.07.31",
-      status: "ended",
-      statusText: "모집 종료",
-      borderColor: "#6B7280",
-    },
-    {
-      id: 9,
-      image: "/campaign-9.jpg",
-      title: "Interactive Toy Launch",
-      description: "Seeking playful cats to feature with our new interactive toys. Video content preferred.",
-      brand: "PawsomeNutrition",
-      applicants: "45 / 100",
-      period: "2025.07.01 - 2025.07.31",
-      status: "ended",
-      statusText: "모집 종료",
-      borderColor: "#6B7280",
-    },
-    {
-      id: 10,
-      image: "/campaign-10.jpg",
-      title: "Interactive Toy Launch",
-      description: "Seeking playful cats to feature with our new interactive toys. Video content preferred.",
-      brand: "PawsomeNutrition",
-      applicants: "45 / 100",
-      period: "2025.07.01 - 2025.07.31",
-      status: "ended",
-      statusText: "모집 종료",
-      borderColor: "#6B7280",
-    },
-  ];
+const APPLIED_STATUSES = ["applied", "pending", "selected", "rejected", "completed"];
+
+function isTodayInAnnouncePeriod(announce_start, announce_end) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const startDate = new Date(announce_start);
+  const endDate = new Date(announce_end);
+
+  // period 경계 포함 범위 검사
+  return startDate <= today && today <= endDate;
+}
+
+function sortCampaigns(campaigns, sortBy, activeTab) {
+  switch (sortBy) {
+    case "recent":
+      // 최신순
+      return activeTab === "recruiting" ? 
+        [...campaigns].sort((a, b) => new Date(a.announce_start) - new Date(b.announce_start)) :
+        [...campaigns].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) ;
+    case "deadline":
+      // 마감 임박순 (공고 종료일 오름차순)
+      return [...campaigns].sort((a, b) => new Date(a.announce_end) - new Date(b.announce_end));
+    case "popular":
+      // 인기순 (신청자 수 내림차순)
+      return [...campaigns].sort((a, b) => {
+        const getApplicantsNum = (str) => Number((str || "0").split("/")[0].trim()) || 0;
+        return getApplicantsNum(b.applicants) - getApplicantsNum(a.applicants);
+      });
+    case "endedRecent":
+      // 종료일 최신순 (공고 종료일 내림차순)
+      return [...campaigns].sort((a, b) => new Date(b.announce_end) - new Date(a.announce_end));
+    case "endedOld":
+      // 종료일 오래된 순 (공고 종료일 오름차순)
+      return [...campaigns].sort((a, b) => new Date(a.announce_end) - new Date(b.announce_end));
+    default:
+      return campaigns;
+  }
+}
+
+export default function CampaignGrid({searchQuery, sortBy}) {
+
+  const { activeTab } = useCampaign();
+
+  let filteredCampaigns = [];
+
+  switch (activeTab) {
+    case "recruiting":
+      filteredCampaigns = campaigns.filter(c => isTodayInAnnouncePeriod(c.announce_start, c.announce_end) && c.ad_status === "approved");
+      break;
+    case "ended":
+      filteredCampaigns = campaigns.filter(c => c.ad_status === "ended");
+      break;
+    case "applied":
+      filteredCampaigns = campaigns.filter(c => APPLIED_STATUSES.includes(c.applicant_status));
+      break;
+    default:
+      filteredCampaigns = campaigns;
+  }
+
+  const sortedCampaigns = sortCampaigns(filteredCampaigns, sortBy, activeTab);
 
   return (
     <section className={styles.campaignGrid}>
       <div className={styles.grid}>
-        {campaigns.map((campaign) => (
-          <CampaignCard key={campaign.id} campaign={campaign} />
+        {sortedCampaigns.map((campaign) => (
+          <CampaignCard key={campaign.ad_no} campaign={campaign} />
         ))}
       </div>
     </section>

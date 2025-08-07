@@ -1,5 +1,4 @@
 "use client";
-import Head from "next/head";
 import Header from "./components/Header";
 import TabNavigation from "./components/TabNavigation";
 import { SnsProvider } from "./context/SnsContext";
