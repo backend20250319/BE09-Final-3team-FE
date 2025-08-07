@@ -1,12 +1,12 @@
 "use client";
 import React, { useState } from "react";
 import "../styles/AlarmPage.css";
-import notifications   from "@/app/alarm/data/notifications";
+import initialNotifications from "../data/notifications";
 
 const iconBasePath = "/icons/";
 
 const PetFulNotification = () => {
-
+    const [notifications, setNotifications] = useState(initialNotifications);
 
     const handleCloseNotification = (id) => {
         setNotifications((prev) =>
