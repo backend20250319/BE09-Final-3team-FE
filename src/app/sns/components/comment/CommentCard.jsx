@@ -27,7 +27,6 @@ export default function CommentCard({ comment }) {
 
   const confirmDelete = () => {
     // 실제 구현에서는 API 호출 등의 삭제 로직이 들어갑니다
-    alert("댓글이 삭제되었습니다.");
     setIsDeleted(true); // 삭제 상태로 변경
     setIsDeleteModalOpen(false);
   };
