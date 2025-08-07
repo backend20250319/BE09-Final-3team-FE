@@ -1,0 +1,98 @@
+/* Campaign Header Styles */
+.campaignHeader {
+  position: relative;
+}
+
+.headerImage {
+  position: relative;
+  width: 100%;
+  height: 300px;
+}
+
+.heroImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.headerOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 112px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 100%);
+  display: flex;
+  align-items: flex-end;
+}
+
+.headerContent {
+  padding: 24px;
+  width: 100%;
+}
+
+.brandInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brandLogo {
+  border-radius: 50%;
+}
+
+.brandDetails {
+  flex: 1;
+}
+
+.campaignTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin-bottom: 8px;
+  line-height: 1.33;
+}
+
+.brandName {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 400;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #594A3E;
+  font-size: 16px;
+  font-weight: 400;
+  transition: color 0.2s ease;
+}
+
+.backButton:hover {
+  color: #F5A623;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .headerImage {
+    height: 200px;
+  }
+  
+  .headerOverlay {
+    height: 80px;
+  }
+  
+  .headerContent {
+    padding: 16px;
+  }
+  
+  .campaignTitle {
+    font-size: 20px;
+  }
+  
+  .brandLogo {
+    width: 40px;
+    height: 40px;
+  }
+} 

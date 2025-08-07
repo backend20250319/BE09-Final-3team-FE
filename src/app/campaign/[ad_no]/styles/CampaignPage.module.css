@@ -1,0 +1,86 @@
+/* Campaign Page Styles */
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #594A3E;
+  background-color: transparent;
+  font-size: 16px;
+  font-weight: 400;
+  transition: color 0.2s ease;
+}
+
+.backButton:hover {
+  color: #F5A623;
+}
+
+.backIcon {
+  margin-right: 20px;
+}
+
+.campaignContainer {
+  max-width: 1440px;
+  margin: 32px auto;
+  background-color: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0px 10px 15px 0px rgba(0, 0, 0, 0.1), 0px 4px 6px 0px rgba(0, 0, 0, 0.1);
+  border: 1px solid #E5E7EB;
+}
+
+.campaignContent {
+  display: flex;
+  gap: 32px;
+  padding: 32px;
+}
+
+.campaignMain {
+  flex: 1;
+  max-width: 777px;
+}
+
+.campaignSidebar {
+  width: 373px;
+  flex-shrink: 0;
+}
+
+/* Loading and Error States */
+.loading, .error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  font-size: 18px;
+  color: #4B5563;
+}
+
+.error {
+  color: #EF4444;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .campaignContainer {
+    padding: 40px 20px;
+  }
+  
+  .campaignContent {
+    flex-direction: column;
+    gap: 24px;
+  }
+  
+  .campaignSidebar {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .campaignContainer {
+    padding: 20px 16px;
+  }
+  
+  .campaignContent {
+    margin-top: 40px;
+  }
+} 
