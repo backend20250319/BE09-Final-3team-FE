@@ -1,0 +1,54 @@
+.navTabs {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+  position: relative;
+  height: 59px;
+}
+
+.navTab {
+  background: none;
+  border: none;
+  padding: 18px 24px;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.19em;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+  text-align: center;
+}
+
+.navTab.active {
+  color: #f5a623;
+  border-bottom: 2px solid #f5a623;
+}
+
+.navTab:hover:not(.active) {
+  background: #f9fafb;
+}
+
+.navIcon {
+  margin-left: auto;
+  margin-right: 24px;
+  cursor: pointer;
+  position: relative;
+}
+
+.navIcon img {
+  margin-top: 5px;
+  width: 30px;
+  height: 30px;
+}
+
+.calendarPopup {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-top: 8px;
+}

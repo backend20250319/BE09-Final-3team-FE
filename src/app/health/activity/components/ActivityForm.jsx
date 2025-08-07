@@ -1,6 +1,9 @@
+"use client";
+
 import React, { useState, useEffect, useMemo } from "react";
 import Select from "./ClientOnlySelect";
 import styles from "../styles/ActivityForm.module.css";
+import ActivityNavTabs from "./ActivityNavTabs";
 import { useSelectedPet } from "../../context/SelectedPetContext";
 
 const activityOptions = [
@@ -30,6 +33,9 @@ function getTodayKey() {
 }
 
 export default function ActivityForm() {
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const toggleCalendar = () => setIsCalendarOpen((prev) => !prev);
+
   const { selectedPetName } = useSelectedPet();
 
   const [formData, setFormData] = useState({
@@ -246,21 +252,11 @@ export default function ActivityForm() {
 
   return (
     <div className={styles.activitySection}>
-      <div className={styles.navTabs}>
-        <button className={`${styles.navTab} ${styles.active}`}>
-          활동 관리
-        </button>
-        <button className={styles.navTab}>리포트</button>
-        <div className={styles.navIcon}>
-          <img
-            src="/health/calendar.png"
-            alt="캘린더 아이콘"
-            width={37}
-            height={40}
-            style={{ marginTop: "5px" }}
-          />
-        </div>
-      </div>
+      {/* 메뉴 탭 분리 컴포넌트 */}
+      <ActivityNavTabs
+        isCalendarOpen={isCalendarOpen}
+        toggleCalendar={toggleCalendar}
+      />
 
       {/* 폼 */}
       <div className={styles.activityContent}>
