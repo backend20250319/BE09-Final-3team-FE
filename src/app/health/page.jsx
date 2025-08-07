@@ -6,6 +6,9 @@ import { useSelectedPet } from "./context/SelectedPetContext";
 import ActivityForm from "./activity/components/ActivityForm";
 import ActivityNavTabs from "./activity/components/ActivityNavTabs";
 import ActivityReport from "./activity/components/ActivityReport";
+import MedicalNavTabs from "./medical/components/MedicalNavTabs";
+import MedicationManagement from "./medical/components/MedicationManagement";
+import CareSchedule from "./medical/components/CareSchedule";
 
 export default function HealthPage() {
   const { selectedPetName, setSelectedPetName } = useSelectedPet();
@@ -18,6 +21,7 @@ export default function HealthPage() {
 
   const [activeMainTab, setActiveMainTab] = useState("활동 관리");
   const [activeSubTab, setActiveSubTab] = useState("활동 관리");
+  const [medicalSubTab, setMedicalSubTab] = useState("투약");
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const toggleCalendar = () => setIsCalendarOpen((prev) => !prev);
@@ -50,7 +54,19 @@ export default function HealthPage() {
         </>
       )}
 
-      {activeMainTab === "진료ㆍ처방 관리" && <MedicalManagementPage />}
+      {activeMainTab === "진료ㆍ처방 관리" && (
+        <>
+          {/* 진료/처방 관리 서브 탭 (MedicalNavTabs 컴포넌트로 구현되어 있으면 그대로 쓰면 됩니다) */}
+          <MedicalNavTabs
+            activeTab={medicalSubTab}
+            setActiveTab={setMedicalSubTab}
+          />
+
+          {/* 진료/처방 관리 하위 탭 렌더링 */}
+          {medicalSubTab === "투약" && <MedicationManagement />}
+          {medicalSubTab === "돌봄 일정" && <CareSchedule />}
+        </>
+      )}
     </div>
   );
 }

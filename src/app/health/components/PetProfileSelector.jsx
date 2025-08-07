@@ -4,13 +4,30 @@ export default function PetProfileSelector({
   pets,
   selectedPetName,
   onSelectPet,
+  activeTab,
+  onTabChange,
 }) {
   return (
     <div className={styles.petProfileSection}>
       <div className={styles.tabNavigation}>
-        <div className={`${styles.tab} ${styles.active}`}>활동 관리</div>
-        <div className={styles.tab}>진료ㆍ처방 관리</div>
+        <div
+          className={`${styles.tab} ${
+            activeTab === "활동 관리" ? styles.active : ""
+          }`}
+          onClick={() => onTabChange && onTabChange("활동 관리")}
+        >
+          활동 관리
+        </div>
+        <div
+          className={`${styles.tab} ${
+            activeTab === "진료ㆍ처방 관리" ? styles.active : ""
+          }`}
+          onClick={() => onTabChange && onTabChange("진료ㆍ처방 관리")}
+        >
+          진료ㆍ처방 관리
+        </div>
       </div>
+
       <h2 className={styles.sectionTitle}>반려동물 프로필</h2>
       <div className={styles.petProfiles}>
         {pets.map((pet, i) => {
