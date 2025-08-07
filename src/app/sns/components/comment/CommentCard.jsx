@@ -6,10 +6,11 @@ export default function CommentCard({ comment }) {
   const username = comment.username;
   const avatar = comment.avatar;
   const sentiment = comment.sentiment;
-  const status = comment.status;
   const text = comment.content; // content를 text로 매핑
   const timeAgo = comment.timestamp || comment.timeAgo; // timestamp를 timeAgo로 매핑
-  const isDeleted = comment.isDeleted || false; // 기본값 false
+
+  // 삭제 상태 관리
+  const [isDeleted, setIsDeleted] = useState(comment.isDeleted || false);
 
   // 부정댓글 내용 표시 상태 관리
   const [isNegativeContentVisible, setIsNegativeContentVisible] =
@@ -27,6 +28,7 @@ export default function CommentCard({ comment }) {
   const confirmDelete = () => {
     // 실제 구현에서는 API 호출 등의 삭제 로직이 들어갑니다
     alert("댓글이 삭제되었습니다.");
+    setIsDeleted(true); // 삭제 상태로 변경
     setIsDeleteModalOpen(false);
   };
 
@@ -60,25 +62,18 @@ export default function CommentCard({ comment }) {
     }
   };
 
-  const getStatusBgColor = (status) => {
-    switch (status) {
-      case "승인됨":
-        return "#E5E7EB"; // 연한 회색
-      case "삭제됨":
-        return "#FEE2E2"; // 연한 빨간색
-      default:
-        return "#F3F4F6"; // 기본 연한 회색
+  const getStatusBgColor = (isDeleted) => {
+    if (isDeleted) {
+      return "#FEE2E2"; // 연한 빨간색
     }
+    return "#E5E7EB"; // 연한 회색
+    return "#F3F4F6"; // 기본 연한 회색
   };
-  const getStatusTextColor = (status) => {
-    switch (status) {
-      case "승인됨":
-        return "#4B5563";
-      case "삭제됨":
-        return "#991B1B";
-      default:
-        return "#4B5563";
+  const getStatusTextColor = (isDeleted) => {
+    if (isDeleted) {
+      return "#991B1B";
     }
+    return "#4B5563";
   };
 
   return (
@@ -116,11 +111,11 @@ export default function CommentCard({ comment }) {
             <span
               className={styles.statusTag}
               style={{
-                backgroundColor: getStatusBgColor(status),
-                color: getStatusTextColor(status),
+                backgroundColor: getStatusBgColor(isDeleted),
+                color: getStatusTextColor(isDeleted),
               }}
             >
-              {status}
+              {isDeleted ? "삭제됨" : "승인됨"}
             </span>
           </div>
         </div>

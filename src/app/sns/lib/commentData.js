@@ -130,7 +130,6 @@ export const commentsData = [
     content: "훈련용으로도 좋은 장난감이네요. 추천합니다!",
     timestamp: "2024-01-15 11:15",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -140,7 +139,6 @@ export const commentsData = [
     content: "광고) 더 좋은 제품 여기서 판매해요! 링크 클릭하세요",
     timestamp: "2024-01-15 10:30",
     sentiment: "중립",
-    status: "삭제됨",
     isDeleted: true,
   },
   {
@@ -150,7 +148,6 @@ export const commentsData = [
     content: "우리 강아지가 정말 좋아할 것 같아요! 주문해볼게요",
     timestamp: "2024-01-15 09:45",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -160,7 +157,6 @@ export const commentsData = [
     content: "가격이 너무 비싸네요. 다른 곳에서 더 싸게 팔아요",
     timestamp: "2024-01-15 08:30",
     sentiment: "부정",
-    status: "삭제됨",
     isDeleted: true,
   },
   {
@@ -170,7 +166,6 @@ export const commentsData = [
     content: "무료 샘플 받으세요! 여기 클릭 -> 악성링크.com",
     timestamp: "2024-01-15 07:15",
     sentiment: "중립",
-    status: "삭제됨",
     isDeleted: true,
   },
   {
@@ -180,7 +175,6 @@ export const commentsData = [
     content: "이런 재질의 장난감은 강아지 치아에 좋습니다",
     timestamp: "2024-01-15 06:00",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -190,7 +184,6 @@ export const commentsData = [
     content: "최악이네요. 품질이 형편없어요. 완전 쓰레기!",
     timestamp: "2024-01-15 05:30",
     sentiment: "부정",
-    status: "삭제됨",
     isDeleted: true,
   },
   // 추가 더미데이터 (11-60번)
@@ -201,7 +194,6 @@ export const commentsData = [
     content: "우리 고양이도 이런 장난감 좋아할까요?",
     timestamp: "2024-01-14 23:45",
     sentiment: "중립",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -211,7 +203,6 @@ export const commentsData = [
     content: "정말 좋은 상품이네요! 강추합니다 👍",
     timestamp: "2024-01-14 22:30",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -221,7 +212,6 @@ export const commentsData = [
     content: "돈벌이 기회! 클릭만 하면 100만원!",
     timestamp: "2024-01-14 21:15",
     sentiment: "중립",
-    status: "삭제됨",
     isDeleted: true,
   },
   {
@@ -231,7 +221,6 @@ export const commentsData = [
     content: "훈련에 도움되는 좋은 장난감입니다",
     timestamp: "2024-01-14 20:00",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -241,7 +230,6 @@ export const commentsData = [
     content: "배송이 너무 늦어요. 별로입니다.",
     timestamp: "2024-01-14 19:30",
     sentiment: "부정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -251,7 +239,6 @@ export const commentsData = [
     content: "우리 강아지가 하루종일 가지고 놀아요 😊",
     timestamp: "2024-01-14 18:45",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -261,7 +248,6 @@ export const commentsData = [
     content: "개바보같은 상품이네 돈낭비 ㅋㅋ",
     timestamp: "2024-01-14 17:20",
     sentiment: "부정",
-    status: "삭제됨",
     isDeleted: true,
   },
   {
@@ -271,7 +257,6 @@ export const commentsData = [
     content: "보통입니다. 그냥 평범한 장난감이에요",
     timestamp: "2024-01-14 16:10",
     sentiment: "중립",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -281,7 +266,6 @@ export const commentsData = [
     content: "우와! 강아지가 엄청 좋아해요!! 💕",
     timestamp: "2024-01-14 15:30",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -291,7 +275,6 @@ export const commentsData = [
     content: "사기업체입니다! 절대 구매하지 마세요!",
     timestamp: "2024-01-14 14:45",
     sentiment: "부정",
-    status: "삭제됨",
     isDeleted: true,
   },
   {
@@ -301,7 +284,6 @@ export const commentsData = [
     content: "품질 좋고 가격도 합리적이에요",
     timestamp: "2024-01-14 13:20",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -311,7 +293,6 @@ export const commentsData = [
     content: "사이즈가 어떻게 되나요?",
     timestamp: "2024-01-14 12:15",
     sentiment: "중립",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -321,7 +302,6 @@ export const commentsData = [
     content: "완전 쓰레기 상품! 환불해주세요!",
     timestamp: "2024-01-14 11:30",
     sentiment: "부정",
-    status: "삭제됨",
     isDeleted: true,
   },
   {
@@ -331,7 +311,6 @@ export const commentsData = [
     content: "감사합니다. 빠른 배송에 만족해요",
     timestamp: "2024-01-14 10:45",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -341,7 +320,6 @@ export const commentsData = [
     content: "고양이용도 있나요?",
     timestamp: "2024-01-14 09:30",
     sentiment: "중립",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -351,7 +329,6 @@ export const commentsData = [
     content: "두 번째 구매입니다. 역시 좋아요!",
     timestamp: "2024-01-14 08:20",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -361,7 +338,6 @@ export const commentsData = [
     content: "바이러스 감염! 클릭 금지! 악성코드!",
     timestamp: "2024-01-14 07:15",
     sentiment: "부정",
-    status: "삭제됨",
     isDeleted: true,
   },
   {
@@ -371,7 +347,6 @@ export const commentsData = [
     content: "수의사로서 추천합니다. 안전한 소재예요",
     timestamp: "2024-01-14 06:45",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -381,7 +356,6 @@ export const commentsData = [
     content: "기대했는데 별로네요...",
     timestamp: "2024-01-14 05:30",
     sentiment: "부정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -391,7 +365,6 @@ export const commentsData = [
     content: "가격 대비 괜찮은 것 같아요",
     timestamp: "2024-01-14 04:20",
     sentiment: "중립",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -401,7 +374,6 @@ export const commentsData = [
     content: "최고예요! 모든 반려동물 가족들께 추천!",
     timestamp: "2024-01-13 23:45",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -411,7 +383,6 @@ export const commentsData = [
     content: "돈만 버리는 사기 상품 경고!!!",
     timestamp: "2024-01-13 22:30",
     sentiment: "부정",
-    status: "삭제됨",
     isDeleted: true,
   },
   {
@@ -421,7 +392,6 @@ export const commentsData = [
     content: "실용적이고 내구성이 좋네요",
     timestamp: "2024-01-13 21:15",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -431,7 +401,6 @@ export const commentsData = [
     content: "처음 구매해보는데 어떤가요?",
     timestamp: "2024-01-13 20:00",
     sentiment: "중립",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -441,7 +410,6 @@ export const commentsData = [
     content: "환불 처리 왜 이렇게 늦어요? 짜증나네",
     timestamp: "2024-01-13 19:30",
     sentiment: "부정",
-    status: "삭제됨",
     isDeleted: true,
   },
   {
@@ -451,7 +419,6 @@ export const commentsData = [
     content: "항상 이 브랜드 제품 사용해요. 신뢰해요",
     timestamp: "2024-01-13 18:45",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -461,7 +428,6 @@ export const commentsData = [
     content: "대형견용 사이즈도 있나요?",
     timestamp: "2024-01-13 17:20",
     sentiment: "중립",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -471,7 +437,6 @@ export const commentsData = [
     content: "품질이 예상보다 좋네요!",
     timestamp: "2024-01-13 16:10",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -481,7 +446,6 @@ export const commentsData = [
     content: "ㅋㅋㅋ 이딴걸 왜 사냐 ㅂㅅ들아",
     timestamp: "2024-01-13 15:30",
     sentiment: "부정",
-    status: "삭제됨",
     isDeleted: true,
   },
   {
@@ -491,7 +455,6 @@ export const commentsData = [
     content: "친구 강아지 선물로 샀어요. 좋아할 것 같아요",
     timestamp: "2024-01-13 14:45",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -501,7 +464,6 @@ export const commentsData = [
     content: "다른 색상도 있나요?",
     timestamp: "2024-01-13 13:20",
     sentiment: "중립",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -511,7 +473,6 @@ export const commentsData = [
     content: "아이들이 정말 좋아해요! 감사합니다",
     timestamp: "2024-01-13 12:15",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -521,7 +482,6 @@ export const commentsData = [
     content: "배송 포장이 엉망이었어요. 개선 필요",
     timestamp: "2024-01-13 11:30",
     sentiment: "부정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -531,7 +491,6 @@ export const commentsData = [
     content: "사용법: 처음엔 천천히 적응시키세요",
     timestamp: "2024-01-13 10:45",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -541,7 +500,6 @@ export const commentsData = [
     content: "배송 얼마나 걸리나요?",
     timestamp: "2024-01-13 09:30",
     sentiment: "중립",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -551,7 +509,6 @@ export const commentsData = [
     content: "이 브랜드 제품은 항상 만족스러워요",
     timestamp: "2024-01-13 08:20",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -561,7 +518,6 @@ export const commentsData = [
     content: "광고) 더 저렴한 대체품 판매합니다!",
     timestamp: "2024-01-13 07:15",
     sentiment: "중립",
-    status: "삭제됨",
     isDeleted: true,
   },
   {
@@ -571,7 +527,6 @@ export const commentsData = [
     content: "내구성 테스트 결과: 매우 우수",
     timestamp: "2024-01-13 06:45",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -581,7 +536,6 @@ export const commentsData = [
     content: "너무 비싸요. 가격 인하 좀 해주세요",
     timestamp: "2024-01-13 05:30",
     sentiment: "부정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -591,7 +545,6 @@ export const commentsData = [
     content: "평범한 제품입니다",
     timestamp: "2024-01-13 04:20",
     sentiment: "중립",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -601,7 +554,6 @@ export const commentsData = [
     content: "드디어 주문했어요! 너무 기대돼요 🎉",
     timestamp: "2024-01-12 23:45",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -611,7 +563,6 @@ export const commentsData = [
     content: "가짜 리뷰 의심됩니다. 조심하세요",
     timestamp: "2024-01-12 22:30",
     sentiment: "부정",
-    status: "삭제됨",
     isDeleted: true,
   },
   {
@@ -621,7 +572,6 @@ export const commentsData = [
     content: "펫샵 운영자로서 추천하는 제품입니다",
     timestamp: "2024-01-12 21:15",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -631,7 +581,6 @@ export const commentsData = [
     content: "품질보증 기간이 어떻게 되나요?",
     timestamp: "2024-01-12 20:00",
     sentiment: "중립",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -641,7 +590,6 @@ export const commentsData = [
     content: "기대 이하예요. 다시는 안 사겠어요",
     timestamp: "2024-01-12 19:30",
     sentiment: "부정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -651,7 +599,6 @@ export const commentsData = [
     content: "손주 강아지가 너무 좋아해요. 고마워요",
     timestamp: "2024-01-12 18:45",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -661,7 +608,6 @@ export const commentsData = [
     content: "소재가 안전한가요? 성분 알려주세요",
     timestamp: "2024-01-12 17:20",
     sentiment: "중립",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -671,7 +617,6 @@ export const commentsData = [
     content: "비슷한 다른 제품도 추천해주세요",
     timestamp: "2024-01-12 16:10",
     sentiment: "중립",
-    status: "승인됨",
     isDeleted: false,
   },
   {
@@ -681,7 +626,6 @@ export const commentsData = [
     content: "개같은 서비스! 망해버려라!",
     timestamp: "2024-01-12 15:30",
     sentiment: "부정",
-    status: "삭제됨",
     isDeleted: true,
   },
   {
@@ -691,7 +635,6 @@ export const commentsData = [
     content: "정말 감사합니다. 훌륭한 제품이에요! ⭐⭐⭐⭐⭐",
     timestamp: "2024-01-12 14:45",
     sentiment: "긍정",
-    status: "승인됨",
     isDeleted: false,
   },
 ];
