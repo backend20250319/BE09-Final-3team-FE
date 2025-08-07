@@ -11,9 +11,9 @@ export default function HealthPage() {
   const { selectedPetName, setSelectedPetName } = useSelectedPet();
 
   const pets = [
-    { name: "몽글이", msg: "안녕하세요", src: "/images/mong-profile.png" },
-    { name: "초코", msg: "반갑습니다", src: "/images/choco-profile.png" },
-    { name: "차차", msg: "환영해요", src: "/images/chacha-profile.png" },
+    { name: "몽글이", msg: "안녕하세요", src: "/user/dog.png" },
+    { name: "초코", msg: "반갑습니다", src: "/user/cat.png" },
+    { name: "차차", msg: "환영해요", src: "/user/bird.png" },
   ];
 
   const [activeMainTab, setActiveMainTab] = useState("활동 관리");
