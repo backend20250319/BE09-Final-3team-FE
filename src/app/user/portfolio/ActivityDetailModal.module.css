@@ -1,0 +1,395 @@
+/* 모달 오버레이 */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* 모달 컨테이너 */
+.modalContainer {
+  width: 500px;
+  height: 700px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 헤더 */
+.modalHeader {
+  width: 100%;
+  height: 80px;
+  background: #f0f5ec;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.headerIcon {
+  width: 40px;
+  height: 40px;
+  background: #8bc34a;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.modalTitle {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 1.5em;
+  color: #594a3e;
+  margin: 0;
+}
+
+.modalSubtitle {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5em;
+  color: #4b5563;
+  margin: 0;
+}
+
+.closeButton {
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.closeButton:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* 이미지 섹션 */
+.imageSection {
+  width: 100%;
+  height: 300px;
+  background: #f3f4f6;
+  position: relative;
+}
+
+.imageContainer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.imageContainer img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 이미지 네비게이션 */
+.imageNavigation {
+  position: absolute;
+  bottom: 50%;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 9px;
+  transform: translateY(50%);
+}
+
+.navButton {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.8);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1),
+    0px 2px 4px 0px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.navButton img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.navButton:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: scale(1.05);
+}
+
+/* 이미지 인디케이터 */
+.imageIndicators {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+}
+
+.indicator {
+  width: 8px;
+  height: 8px;
+  background: #ffffff;
+  border-radius: 50%;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.indicator.active {
+  opacity: 1;
+}
+
+/* 폼 섹션 */
+.formSection {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formLabel {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.5em;
+  color: #594a3e;
+  margin: 0;
+}
+
+.formInput {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5em;
+  color: #594a3e;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: #8bc34a;
+}
+
+.formInput::placeholder {
+  color: #adaebc;
+}
+
+.formTextarea {
+  width: 100%;
+  height: 100px;
+  padding: 12px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5em;
+  color: #594a3e;
+  background: #ffffff;
+  resize: none;
+  box-sizing: border-box;
+}
+
+.formTextarea:focus {
+  outline: none;
+  border-color: #8bc34a;
+}
+
+.formTextarea::placeholder {
+  color: #adaebc;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .modalContainer {
+    width: 90%;
+    height: 90%;
+    max-width: 672px;
+    max-height: 1043px;
+  }
+
+  .modalHeader {
+    width: 100%;
+    padding: 20px 24px;
+  }
+
+  .imageSection {
+    width: 100%;
+    height: 300px;
+  }
+
+  .formSection {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modalContainer {
+    width: 95%;
+    height: 95%;
+  }
+
+  .modalHeader {
+    padding: 16px 20px;
+  }
+
+  .imageSection {
+    height: 250px;
+  }
+
+  .formSection {
+    padding: 20px;
+  }
+
+  .navButton {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* 풀스크린 이미지 모달 */
+.fullscreenOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  cursor: pointer;
+}
+
+.fullscreenContainer {
+  position: relative;
+  width: 80%;
+  height: 80%;
+  max-width: 800px;
+  max-height: 600px;
+  cursor: default;
+}
+
+.fullscreenCloseButton {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2001;
+  transition: background-color 0.2s ease;
+}
+
+.fullscreenCloseButton:hover {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.fullscreenContainer img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+/* 풀스크린 네비게이션 */
+.fullscreenNavigation {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+  transform: translateY(-50%);
+  z-index: 2002;
+}
+
+.fullscreenNavButton {
+  width: 50px;
+  height: 50px;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.fullscreenNavButton:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+}
+
+.fullscreenNavButton img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
