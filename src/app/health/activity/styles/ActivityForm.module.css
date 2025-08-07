@@ -1,4 +1,3 @@
-/* Container and Layout */
 .container {
   width: 1440px;
   min-height: 100vh;
@@ -24,103 +23,6 @@
   margin: 32px 80px;
   background: transparent;
   padding-bottom: 40px;
-}
-
-/* Header Section */
-.header {
-  width: 1280px;
-  min-height: 72px;
-  margin: 24px 0 30px 0;
-  background: transparent;
-}
-
-.title {
-  font-weight: 400;
-  font-size: 30px;
-  line-height: 1.2em;
-  color: #594a3e;
-  margin: 0 0 16px 0;
-}
-
-.subtitle {
-  font-weight: 400;
-  font-size: 18px;
-  line-height: 1.56em;
-  color: #4b5563;
-  margin: 0;
-  max-width: 569px;
-}
-
-/* Pet Profile Section */
-.petProfileSection {
-  width: 1280px;
-  min-height: 259px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
-  margin-bottom: 40px;
-  overflow: hidden;
-}
-
-.sectionTitle {
-  font-weight: 400;
-  font-size: 20px;
-  line-height: 1.19em;
-  color: #594a3e;
-  margin: 0;
-  padding: 30px 25px 20px;
-}
-
-.petProfiles {
-  display: flex;
-  gap: 16px;
-  padding: 0 25px 20px;
-}
-
-.petCard {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 18px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 206px;
-  height: 95px;
-}
-
-.petCard.active {
-  background: #f0f5ec;
-  border: 2px solid #8bc34a;
-}
-
-.petInfo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.petAvatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.petDetails h3 {
-  font-weight: 400;
-  font-size: 16px;
-  line-height: 1.5em;
-  color: #594a3e;
-  margin: 0 0 4px 0;
-}
-
-.petDetails p {
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 1.43em;
-  color: #4b5563;
-  margin: 0;
 }
 
 /* Tab Navigation */
@@ -211,7 +113,6 @@
   display: flex;
   gap: 24px;
   margin-bottom: 32px;
-  min-height: 694px;
 }
 
 /* Left and Right Columns */
@@ -220,6 +121,10 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.leftColumn .activityCard {
+  min-height: 346px;
 }
 
 .rightColumn {
@@ -245,6 +150,7 @@
 
 .activityCard.feeding {
   background: #fff3e0;
+  min-height: 347px;
 }
 
 .activityCard.sleep {
@@ -252,7 +158,7 @@
 }
 
 .activityCard.weight {
-  background: #e8f5e8;
+  background: #fffadd;
 }
 
 .activityCard.bathroom {
@@ -261,6 +167,8 @@
 
 .activityCard.notes {
   background: #f0f8ff;
+  min-height: 165px;
+  padding: 16px 20px;
 }
 
 .activityHeader {
@@ -329,9 +237,7 @@
 .formGroup input:focus,
 .formGroup textarea:focus {
   outline: none;
-  border-color: #8bc34a;
   color: #374151;
-  box-shadow: 0 0 0 3px rgba(139, 195, 74, 0.1);
 }
 
 .formGroup textarea {
@@ -339,8 +245,58 @@
   min-height: 104px;
 }
 
-.noResize {
-  resize: none !important;
+.walking input:focus,
+.walking textarea:focus {
+  border-color: #8bc34a;
+  box-shadow: 0 0 0 3px rgba(139, 195, 74, 0.1);
+}
+
+.weight input:focus,
+.weight textarea:focus {
+  border-color: #ffe96b;
+  box-shadow: 0 0 0 3px rgba(255, 233, 107, 0.3);
+}
+
+.notesTextarea {
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  min-height: 83px;
+  border-radius: 8px;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5em;
+  background: #ffffff;
+  color: #374151;
+  resize: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.notesTextarea::placeholder {
+  color: #94a3b8;
+}
+
+.notesTextarea:focus {
+  border-color: #4eadff;
+  box-shadow: 0 0 0 2px rgba(78, 173, 255, 0.2);
+  outline: none;
+}
+
+.bathroom input:focus,
+.bathroom textarea:focus {
+  border-color: #ff8cb2;
+  box-shadow: 0 0 0 3px rgba(255, 240, 245, 0.4);
+}
+
+.sleep input:focus,
+.sleep textarea:focus {
+  border-color: #b282ff;
+  box-shadow: 0 0 0 3px rgba(232, 222, 248, 0.3);
+}
+
+.feeding input:focus,
+.feeding textarea:focus {
+  border-color: #fad291;
+  box-shadow: 0 0 0 3px rgba(255, 243, 224, 0.3);
 }
 
 /* Calorie Info */
@@ -398,6 +354,15 @@
   margin-top: 0px;
 }
 
+.horizontalInputs {
+  display: flex;
+  gap: 20px;
+}
+
+.horizontalInputs .formGroup {
+  flex: 1;
+}
+
 /* Save Section */
 .saveSection {
   display: flex;
@@ -436,6 +401,48 @@
   height: 25px;
 }
 
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.overlayMessage {
+  position: relative;
+  background-color: #d4edda;
+  color: #155724;
+  padding: 30px 50px;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  font-weight: 700;
+  font-size: 20px;
+  text-align: center;
+  user-select: none;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  padding: 0;
+}
+
+.closeButton img {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
 /* Responsive Design */
 @media (max-width: 1440px) {
   .container,
@@ -454,7 +461,6 @@
   }
 
   .header,
-  .petProfileSection,
   .activitySection {
     width: 100%;
     min-height: auto;
@@ -476,17 +482,6 @@
 @media (max-width: 768px) {
   .content {
     margin: 32px 20px;
-  }
-
-  .petProfiles {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .petCard {
-    min-width: auto;
-    width: 100%;
-    max-width: 300px;
   }
 
   .calorieInfo {
