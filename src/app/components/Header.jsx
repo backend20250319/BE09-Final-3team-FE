@@ -10,7 +10,7 @@ export default function Header() {
   const [notificationCount, setNotificationCount] = useState(0);
 
   const navigation = [
-    { name: "체험단", href: "#campaigns" },
+    { name: "체험단", href: "/campaign" },
     { name: "펫 관리", href: "#pet-management" },
     { name: "SNS 관리", href: "/sns" },
     { name: "건강 관리", href: "/health/activity" },

@@ -1,0 +1,170 @@
+/* Campaign Detail Styles */
+.campaignDetail {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.detailSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sectionTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #594A3E;
+  margin: 0;
+}
+
+.sectionContent {
+  background: #F9FAFB;
+  border-radius: 8px;
+  padding: 24px;
+  white-space: pre-wrap;
+}
+
+/* Product Description */
+.productDescription {
+  font-size: 16px;
+  line-height: 1.5;
+  color: #374151;
+  margin: 0;
+}
+
+/* Mission List */
+.missionList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.missionItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.missionIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8BC34A;
+  flex-shrink: 0;
+}
+
+.missionText {
+  font-size: 16px;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.missionGoal {
+  display: flex;
+  gap: 12px;
+  padding-bottom: 16px;
+}
+
+.goalIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #F5A623;
+  flex-shrink: 0;
+  padding-bottom: 32px;
+}
+
+.goalContent {
+  flex: 1;
+}
+
+.goalTitle {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1F2937;
+  margin-bottom: 8px;
+}
+
+.goalDescription {
+  font-size: 16px;
+  line-height: 1.5;
+  color: #374151;
+  margin: 0;
+}
+
+/* Keyword Tags */
+.keywordDescription {
+  font-size: 14px;
+  color: #4B5563;
+  margin-bottom: 16px;
+}
+
+.keywordTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.keywordTag {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 9px 13px;
+  font-size: 14px;
+  color: #374151;
+  font-weight: 400;
+  transition: all 0.2s ease;
+}
+
+.keywordTag:hover {
+  background: #F9FAFB;
+  border-color: #D1D5DB;
+}
+
+/* Requirements List */
+.requirementsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.requirementItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.requirementIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #F5A623;
+  flex-shrink: 0;
+}
+
+.requirementText {
+  font-size: 16px;
+  color: #374151;
+  line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .campaignDetail {
+    gap: 24px;
+  }
+  
+  .sectionContent {
+    padding: 16px;
+  }
+  
+  .keywordTags {
+    gap: 6px;
+  }
+  
+  .keywordTag {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+} 
