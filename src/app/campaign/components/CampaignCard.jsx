@@ -1,10 +1,17 @@
+"use client"
+
+import React, { useState } from 'react';
 import Image from "next/image";
+import Link from "next/link";
 import styles from "../styles/CampaignCard.module.css";
 import { useCampaign } from "../context/CampaignContext";
 
-export default function CampaignCard({ campaign }) {
+export default function CampaignCard({ campaign, openModal }) {
 
   const { activeTab } = useCampaign();
+
+  const showRecruitingButton = activeTab === "recruiting" && campaign.ad_status === "approved";
+  const showEndedButton = activeTab === "ended" && campaign.ad_status === "ended";
 
   const COLORS = {
     recruiting: "#FF8484",  
@@ -22,10 +29,7 @@ export default function CampaignCard({ campaign }) {
     ended: "모집 종료"
   };
 
-  const showRecruitingButton = activeTab === "recruiting" && campaign.ad_status === "approved";
-  const showEndedButton = activeTab === "ended" && campaign.ad_status === "ended";
-
-  const getStatusButtonStyle = (status) => {
+  const getStatusStyle = (status) => {
     const baseStyle = { 
       padding: "4px 16px",
       borderRadius: "9999px",
@@ -33,29 +37,27 @@ export default function CampaignCard({ campaign }) {
       fontWeight: "400",
       lineHeight: "1.19",
       textAlign: "center",
-      border: "none",
-      cursor: "pointer",
+      border: "none"
     };
 
     switch (status) {
       case "approved":
         return { ...baseStyle, backgroundColor: "#FF8484", color: "#FFFFFF" };
-      case "ended":
-        return { ...baseStyle, backgroundColor: "#6B7280", color: "#FFFFFF" };
       case "rejected":
         return { ...baseStyle, backgroundColor: "#9CA3AF", color: "#FFFFFF" };
       case "completed":
         return { ...baseStyle, backgroundColor: "#9CA3AF", color: "#FFFFFF" };
+      case "ended":
+        return { ...baseStyle, backgroundColor: "#6B7280", color: "#FFFFFF" };
       default:
         return { ...baseStyle, backgroundColor: "#8BC34A", color: "#FFFFFF" };
     }
   };
-
-  return (
+  
+  const cardContent = (
     <div
       className={styles.campaignCard}
-      style={{ borderTopColor: COLORS[activeTab] || COLORS.default }}
-    >
+      style={{ borderTopColor: COLORS[activeTab] || COLORS.default }}>
       <div className={styles.imageContainer}>
         <Image  
           src={campaign.image}
@@ -89,36 +91,43 @@ export default function CampaignCard({ campaign }) {
             <span className={styles.brandName}>{campaign.brand}</span>
           </div>
           {showRecruitingButton ? (
-            <button
-              style={getStatusButtonStyle("approved")}
-              className={styles.statusButton}
+            <span
+              style={getStatusStyle("approved")}
+              className={styles.statusSpan}
             >
               {STATUSTEXT["approved"]}
-            </button>
+            </span>
           ) : showEndedButton ? (
-            <button
-              style={getStatusButtonStyle("ended")}
-              className={styles.statusButton}
+            <span
+              style={getStatusStyle("ended")}
+              className={styles.statusSpan}
             >
               {STATUSTEXT["ended"]}
-            </button>
+            </span>
           ) : campaign.applicant_status === "applied" ? (
             <div className={styles.actionButtons}>
-              <button style={getStatusButtonStyle("applied")} className={styles.actionBtn}>
+              <button style={getStatusStyle("applied")} className={styles.actionBtn}>
                 수정
               </button>
-              <button style={getStatusButtonStyle("applied")} className={styles.actionBtn}>
+              <button style={getStatusStyle("applied")} className={styles.actionBtn}>
                 삭제
               </button>
             </div>
-          ) : (
+          ) : campaign.applicant_status === "selected" ? (
             <button
-              style={getStatusButtonStyle(campaign.applicant_status)}
+              onClick={() => openModal(campaign)}
+              style={getStatusStyle(campaign.applicant_status)}
               className={styles.statusButton}
             >
               {STATUSTEXT[campaign.applicant_status]}
             </button>
-          )} 
+          ) : (
+            <span 
+              style={getStatusStyle(campaign.applicant_status)}
+              className={styles.statusSpan}>
+              {STATUSTEXT[campaign.applicant_status]}
+            </span>
+          )}
         </div>
         <div className={styles.cardFooter}>
           <div className={styles.periodInfo}>
@@ -135,4 +144,14 @@ export default function CampaignCard({ campaign }) {
       </div>
     </div>
   );
+
+  if (campaign.ad_no === 1) {
+    return (
+      <Link href={`/campaign/${campaign.ad_no}`} className={styles.campaignCardLink}>
+        {cardContent}
+      </Link>
+    );
+  }
+
+  return <div className={styles.campaignCardLink}>{cardContent}</div>;
 }

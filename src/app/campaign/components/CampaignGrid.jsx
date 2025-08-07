@@ -44,7 +44,7 @@ function sortCampaigns(campaigns, sortBy, activeTab) {
   }
 }
 
-export default function CampaignGrid({searchQuery, sortBy}) {
+export default function CampaignGrid({searchQuery, sortBy, openModal}) {
 
   const { activeTab } = useCampaign();
 
@@ -70,7 +70,7 @@ export default function CampaignGrid({searchQuery, sortBy}) {
     <section className={styles.campaignGrid}>
       <div className={styles.grid}>
         {sortedCampaigns.map((campaign) => (
-          <CampaignCard key={campaign.ad_no} campaign={campaign} />
+          <CampaignCard key={campaign.ad_no} campaign={campaign} openModal={openModal} />
         ))}
       </div>
     </section>

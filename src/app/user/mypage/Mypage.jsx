@@ -35,19 +35,11 @@ const MyPage = () => {
   const handleCancel = () => setIsEditable(false);
   const handleConnect = () => console.log("연결하기");
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    previewImage(file);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-  };
-
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    previewImage(file);
+    if (file) {
+      previewImage(file);
+    }
   };
 
   const previewImage = (file) => {
@@ -59,9 +51,7 @@ const MyPage = () => {
   };
 
   const triggerFileSelect = () => {
-    if (isEditable) {
-      fileInputRef.current.click();
-    }
+    fileInputRef.current.click();
   };
 
   return (
@@ -80,14 +70,11 @@ const MyPage = () => {
 
           <section className={styles.profileSection}>
             <div className={styles.profileContent}>
-              <div
-                className={styles.profileImageContainer}
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onClick={triggerFileSelect}
-                style={{ cursor: isEditable ? "pointer" : "default" }}
-              >
-                <div className={styles.profileImage}>
+              <div className={styles.profileImageContainer}>
+                <div
+                  className={styles.profileImage}
+                  onClick={triggerFileSelect}
+                >
                   {profileImage ? (
                     <Image
                       src={profileImage}
@@ -106,13 +93,6 @@ const MyPage = () => {
                     />
                   )}
                 </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  style={{ display: "none" }}
-                />
               </div>
 
               <div className={styles.profileInfo}>
@@ -176,6 +156,14 @@ const MyPage = () => {
                 </div>
               </div>
             </div>
+
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              style={{ display: "none" }}
+            />
           </section>
 
           <section className={styles.additionalInfoSection}>
@@ -211,7 +199,12 @@ const MyPage = () => {
             <div className={styles.socialMediaRow}>
               <div className={styles.instagramContainer}>
                 <div className={styles.instagramIcon}>
-                  <Image src="/user/instagram.svg" alt="Instagram" width={35} height={31} />
+                  <Image
+                    src="/user/instagram.svg"
+                    alt="Instagram"
+                    width={35}
+                    height={31}
+                  />
                 </div>
                 <input
                   type="text"
@@ -221,9 +214,17 @@ const MyPage = () => {
                   className={styles.instagramInput}
                   readOnly={!isEditable}
                 />
-                <button className={styles.connectButton} onClick={handleConnect}>
+                <button
+                  className={styles.connectButton}
+                  onClick={handleConnect}
+                >
                   <div className={styles.connectIcon}>
-                    <Image src="/user/instagram.svg" alt="연결" width={23} height={21} />
+                    <Image
+                      src="/user/instagram.svg"
+                      alt="연결"
+                      width={23}
+                      height={21}
+                    />
                   </div>
                   <span>연결 하기</span>
                 </button>
@@ -233,8 +234,12 @@ const MyPage = () => {
 
           {isEditable && (
             <div className={styles.buttonSection}>
-              <button className={styles.saveButton} onClick={handleSave}>저장하기</button>
-              <button className={styles.cancelButton} onClick={handleCancel}>취소</button>
+              <button className={styles.saveButton} onClick={handleSave}>
+                저장하기
+              </button>
+              <button className={styles.cancelButton} onClick={handleCancel}>
+                취소
+              </button>
             </div>
           )}
         </main>

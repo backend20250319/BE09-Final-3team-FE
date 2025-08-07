@@ -1,9 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import SubHeader from "../components/SubHeader";
+import TabNavigation from "./components/TabNavigation";
 import SearchAndSort from "./components/SearchAndSort";
 import CampaignGrid from "./components/CampaignGrid";
 import Pagination from "./components/Pagination";
 import { useCampaign } from "./context/CampaignContext";
+import PostUrlModal from "./components/PostUrlModal";
 
 export default function CampaignPage() {
   const {activeTab} = useCampaign();
@@ -32,15 +35,31 @@ export default function CampaignPage() {
     setSearchQuery("");
   }, [activeTab]);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalCampaign, setModalCampaign] = useState(null);
+
+  const openModal = (campaign) => {
+    setModalCampaign(campaign);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setModalCampaign(null);
+  };
+
   return (
     <>
+      <SubHeader title="체험단" subtitle="반려동물과 함께하는 특별한 상품 체험, 지금 바로 신청하고 경험해보세요" />
+      <TabNavigation />
       <SearchAndSort
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         sortBy={sortBy}
         setSortBy={setSortBy}
       />
-      <CampaignGrid searchQuery={searchQuery} sortBy={sortBy} />
+      <CampaignGrid searchQuery={searchQuery} sortBy={sortBy} openModal={openModal} />
+      {isModalOpen && <PostUrlModal isOpen={isModalOpen} onClose={closeModal} campaignData={modalCampaign} />}
       <Pagination />
     </>
   );

@@ -128,10 +128,16 @@
   height: 14px;
   opacity: 0.6;
   transition: opacity 0.2s ease;
+  filter: brightness(0.7);
 }
 
 .passwordToggle:hover .eyeIcon {
   opacity: 1;
+  filter: brightness(1);
+}
+
+.passwordToggle:active .eyeIcon {
+  transform: scale(0.95);
 }
 
 /* Login Button */

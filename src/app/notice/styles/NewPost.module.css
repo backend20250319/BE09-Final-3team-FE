@@ -1,0 +1,109 @@
+.wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container{
+    display: flex;
+    background-color: white;
+    padding: 64px 16px;
+    width:640px;
+    height: 1060px;
+    border-radius: 12px;
+    border:1px solid #E5E7EB;
+    justify-content: center;
+    flex-direction: column;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.container ul{
+    list-style: none;
+}
+
+.label {
+    font-size: 16px;
+    color: #4b5563; /* Gray-600 */
+   margin-left: 5px;
+    margin-top: 30px;
+}
+
+.inputBox {
+    width: 100%;
+    height: 50px;
+    padding: 12px 16px;
+    border: 1px solid #d1d5db; /* Gray-300 */
+    border-radius: 8px;
+    font-size: 16px;
+    color: #111827; /* Gray-900 */
+    background-color: #ffffff;
+    outline: none;
+    appearance: none;
+    transition: border-color 0.2s ease;
+    text-align: left;
+    direction: ltr;
+}
+
+.inputBox::placeholder {
+    color: #9ca3af; /* Gray-400 */
+}
+
+.inputBox:focus {
+    border-color: #ADAEBC; /* Optional: blue border on focus */
+}
+
+.contentBox {
+    width: 100%;
+    height:300px;
+    padding: 12px 16px;
+    border: 1px solid #d1d5db; /* Gray-300 */
+    border-radius: 8px;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #111827; /* Gray-900 */
+    background-color: #ffffff;
+    outline: none;
+    appearance: none;
+    transition: border-color 0.2s ease;
+    text-align: left;
+    direction: ltr;
+}
+
+.contentBox::placeholder {
+    color: #9ca3af; /* Gray-400 */
+}
+
+.contentBox:focus {
+    border-color: #ADAEBC; /* Optional: blue border on focus */
+}
+
+.btnarea {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: auto;
+}
+
+.cancelButton, .submitButton {
+    flex: 1; /* 버튼이 같은 크기로 균등 분할 */
+    height: 48px;
+    border-radius: 8px;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    width: 279px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* 취소 버튼 스타일 */
+.cancelButton {
+    color:#374151;
+    background-color: #D1D5DB; /* 회색 계열 */
+}
+
+/* 게시글 등록 버튼 스타일 */
+.submitButton {
+    background-color: #F59E0B; /* 주황 계열 */
+}

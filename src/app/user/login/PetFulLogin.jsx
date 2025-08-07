@@ -69,7 +69,7 @@ export default function PetFulLogin() {
                 onClick={togglePasswordVisibility}
               >
                 <Image
-                  src="/user/eye.svg"
+                  src={showPassword ? "/user/eye.svg" : "/user/eye-closed.svg"}
                   alt="비밀번호 보기/숨기기"
                   width={18}
                   height={14}
