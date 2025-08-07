@@ -237,7 +237,7 @@ const ActivityModal = ({ isOpen, onClose, onSave, isEditMode }) => {
               width={14}
               height={16}
             />
-          취소
+            취소
           </button>
         </div>
 

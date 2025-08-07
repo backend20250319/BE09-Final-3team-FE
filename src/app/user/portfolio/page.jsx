@@ -235,7 +235,7 @@ const PortfolioPage = () => {
                 className={styles.addCardButton}
                 onClick={addActivityCard}
               >
-                활동 이력 추가
+                +
               </button>
             </div>
             <div className={styles.cardsWrapper}>
