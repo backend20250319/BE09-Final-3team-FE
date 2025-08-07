@@ -1,0 +1,274 @@
+/* Activity Report Section */
+.activityReportSection {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0 0 12px 12px;
+  margin-top: -2px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  padding: 20px 24px 24px 24px;
+}
+
+/* Date Range Selector */
+.dateRangeContainer {
+  margin-bottom: 24px;
+}
+
+.dateRangeHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.dateRangeLabel {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.19em;
+  color: #594a3e;
+  white-space: nowrap;
+}
+
+.periodButtons {
+  display: flex;
+  gap: 16px;
+}
+
+.periodButton {
+  background: #e5e7eb;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 6px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.19em;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 52px;
+  text-align: center;
+}
+
+.periodButton.active {
+  background: #f5a623;
+  color: #ffffff;
+}
+
+/* Metrics Grid */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.metricCard {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 25px;
+  height: 370px;
+}
+
+.metricHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.metricIcon {
+  font-size: 18px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.metricTitle {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.19em;
+  color: #594a3e;
+}
+
+.metricChart {
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chartPlaceholder {
+  width: 100%;
+  height: 100%;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px dashed #dee2e6;
+}
+
+/* Bar Chart */
+.barChartContainer {
+  grid-column: 1 / -1;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 25px;
+  height: 354px;
+}
+
+.barChart {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chartBars {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  width: 100%;
+  height: 280px;
+  gap: 8px;
+  padding: 0 20px;
+}
+
+.barGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.bar {
+  width: 25px;
+  min-height: 20px;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.barLabel {
+  font-size: 12px;
+  color: #828898;
+  text-align: center;
+}
+
+/* Bottom Navigation */
+.bottomNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 55px;
+  height: 53px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 24px;
+}
+
+.navButton {
+  display: flex;
+  align-items: center;
+}
+
+.reportButton {
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.19em;
+  color: #f5a623;
+  cursor: pointer;
+  padding: 18px 0;
+  text-align: center;
+  min-width: 86px;
+}
+
+.navSpacer {
+  width: 100px;
+  height: 100px;
+}
+
+.navLabel {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.19em;
+  color: #4b5563;
+  text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 1440px) {
+  .body {
+    width: 100%;
+    max-width: 1440px;
+  }
+
+  .main {
+    width: 100%;
+  }
+
+  .content {
+    width: calc(100% - 160px);
+    margin: 32px 80px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .content {
+    width: calc(100% - 40px);
+    margin: 32px 20px;
+  }
+
+  .metricsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .petProfiles {
+    flex-wrap: wrap;
+  }
+
+  .petCard {
+    width: calc(50% - 8px);
+  }
+}
+
+@media (max-width: 768px) {
+  .body {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .main {
+    height: auto;
+  }
+
+  .content {
+    width: calc(100% - 20px);
+    margin: 16px 10px;
+    height: auto;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+    width: 100%;
+  }
+
+  .petCard {
+    width: 100%;
+  }
+
+  .periodButtons {
+    flex-wrap: wrap;
+  }
+
+  .periodButton {
+    min-width: 40px;
+    padding: 6px 4px;
+    font-size: 12px;
+  }
+}

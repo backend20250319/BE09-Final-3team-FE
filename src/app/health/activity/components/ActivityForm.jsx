@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Select from "./ClientOnlySelect";
 import styles from "../styles/ActivityForm.module.css";
-import ActivityNavTabs from "./ActivityNavTabs";
 import { useSelectedPet } from "../../context/SelectedPetContext";
 
 const activityOptions = [
@@ -252,11 +251,6 @@ export default function ActivityForm() {
 
   return (
     <div className={styles.activitySection}>
-      {/* 메뉴 탭 분리 컴포넌트 */}
-      <ActivityNavTabs
-        isCalendarOpen={isCalendarOpen}
-        toggleCalendar={toggleCalendar}
-      />
 
       {/* 폼 */}
       <div className={styles.activityContent}>

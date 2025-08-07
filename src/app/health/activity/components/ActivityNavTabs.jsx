@@ -2,55 +2,78 @@
 
 import React, { useRef, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import Calendar from "./MyCalendar";
 import styles from "../styles/ActivityNavTabs.module.css";
+import activityFormStyles from "../styles/ActivityForm.module.css"; // 추가
+import Calendar from "./MyCalendar";
 
-export default function ActivityNavTabs({ isCalendarOpen, toggleCalendar }) {
+export default function ActivityNavTabs({
+  activeTab,
+  setActiveTab,
+  isCalendarOpen,
+  toggleCalendar,
+}) {
   const iconRef = useRef(null);
   const [iconPosition, setIconPosition] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
-    if (isCalendarOpen && iconRef.current) {
+    if (iconRef.current) {
       const rect = iconRef.current.getBoundingClientRect();
       setIconPosition({
-        top: rect.bottom + window.scrollY,
-        left: rect.left + window.scrollX - 250 + rect.width, // 캘린더를 아이콘 오른쪽 끝에 맞춤
+        top: rect.bottom + window.scrollY + 8,
+        left: rect.left + window.scrollX,
       });
     }
-  }, [isCalendarOpen]);
+  }, [iconRef, isCalendarOpen]);
 
   return (
     <>
-      <div className={styles.navTabs}>
-        <button className={`${styles.navTab} ${styles.active}`}>
-          활동 관리
-        </button>
-        <button className={styles.navTab}>리포트</button>
-
-        <div ref={iconRef} className={styles.navIcon} onClick={toggleCalendar}>
-          <img
-            src="/health/calendar.png"
-            alt="캘린더 아이콘"
-            className={styles.calendarIcon}
-          />
-        </div>
-      </div>
-
-      {/* 토글 드롭다운 Portal */}
-      {isCalendarOpen &&
-        typeof window !== "undefined" &&
-        createPortal(
-          <div
-            className={styles.calendarDropdown}
-            style={{
-              top: `${iconPosition.top}px`,
-              left: `${iconPosition.left}px`,
-            }}
+      <div className={styles.navSection}>
+        <div className={styles.navTabs}>
+          <button
+            className={`${styles.navTab} ${
+              activeTab === "활동 관리" ? styles.active : ""
+            }`}
+            onClick={() => setActiveTab("활동 관리")}
           >
-            <Calendar />
-          </div>,
-          document.body
-        )}
+            활동 관리
+          </button>
+          <button
+            className={`${styles.navTab} ${
+              activeTab === "리포트" ? styles.active : ""
+            }`}
+            onClick={() => setActiveTab("리포트")}
+          >
+            리포트
+          </button>
+
+          <div
+            ref={iconRef}
+            className={styles.navIcon}
+            onClick={toggleCalendar}
+            role="button"
+            tabIndex={0}
+            aria-label="캘린더 토글"
+          >
+            <img
+              src="/health/calendar.png"
+              alt="캘린더 아이콘"
+              className={styles.calendarIcon}
+            />
+          </div>
+        </div>
+
+        {isCalendarOpen &&
+          typeof window !== "undefined" &&
+          createPortal(
+            <div
+              className={styles.calendarDropdown}
+              style={{ top: iconPosition.top, left: iconPosition.left }}
+            >
+              <Calendar />
+            </div>,
+            document.body
+          )}
+      </div>
     </>
   );
 }
