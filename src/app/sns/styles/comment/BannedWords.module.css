@@ -1,4 +1,9 @@
 .bannedWordsSection {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  padding: 25px;
   margin-bottom: 32px;
 }
 
@@ -7,6 +12,12 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .title {
@@ -46,10 +57,69 @@
   justify-content: center;
 }
 
+.searchContainer {
+  position: relative;
+  width: 200px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 8px 35px 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #000000;
+  font-family: "Poppins", sans-serif;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.searchInput:focus {
+  border-color: #f5a623;
+}
+
+.searchInput::placeholder {
+  color: #9ca3af;
+}
+
+.searchIcon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+}
+
 .wordsContainer {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #f5a623 #f3f4f6;
+}
+
+.wordsContainer::-webkit-scrollbar {
+  height: 6px;
+}
+
+.wordsContainer::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 3px;
+}
+
+.wordsContainer::-webkit-scrollbar-thumb {
+  background: #f5a623;
+  border-radius: 3px;
+}
+
+.wordsContainer::-webkit-scrollbar-thumb:hover {
+  background: #e6941c;
 }
 
 .wordTag {
@@ -62,13 +132,156 @@
   font-size: 14px;
   line-height: 1.5;
   color: #991b1b;
-  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   transition: all 0.2s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.wordText {
+  flex: 1;
+}
+
+.deleteButton {
+  background: none;
+  border: none;
+  color: #991b1b;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.deleteButton:hover {
+  background: #991b1b;
+  color: #ffffff;
 }
 
 .wordTag:hover {
   background: #fecaca;
-  transform: scale(0.95);
+}
+
+/* 모달 스타일 */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  width: 400px;
+  max-width: 90vw;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.modalTitle {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  color: #594a3e;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.modalInput {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #000000;
+  font-family: "Poppins", sans-serif;
+  font-size: 14px;
+  margin-bottom: 20px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.modalInput:focus {
+  border-color: #f5a623;
+}
+
+.confirmMessage {
+  font-family: "Poppins", sans-serif;
+  font-size: 14px;
+  color: #4b5563;
+  text-align: center;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.confirmDeleteButton {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #ef4444;
+  color: #ffffff;
+  font-family: "Poppins", sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.confirmDeleteButton:hover {
+  background: #dc2626;
+}
+
+.modalButtons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.cancelButton {
+  padding: 10px 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #6b7280;
+  font-family: "Poppins", sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.confirmButton {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #f5a623;
+  color: #ffffff;
+  font-family: "Poppins", sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.confirmButton:hover {
+  background: #e6941f;
 }
 
 /* Responsive Design */
@@ -79,23 +292,64 @@
     gap: 12px;
   }
 
+  .headerActions {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+  }
+
   .title {
     font-size: 16px;
+  }
+
+  .searchContainer {
+    width: 100%;
   }
 
   .addButton {
     padding: 6px 12px;
     font-size: 14px;
-    align-self: stretch;
+    width: 100%;
     justify-content: center;
   }
 
   .wordsContainer {
     gap: 6px;
+    padding-bottom: 6px;
+  }
+
+  .wordsContainer::-webkit-scrollbar {
+    height: 4px;
   }
 
   .wordTag {
     padding: 4px 10px;
     font-size: 12px;
+  }
+
+  .deleteButton {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+
+  .modalContent {
+    width: 320px;
+    padding: 20px;
+  }
+
+  .modalTitle {
+    font-size: 16px;
+  }
+
+  .modalButtons {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .cancelButton,
+  .confirmButton {
+    padding: 12px;
+    font-size: 14px;
   }
 }

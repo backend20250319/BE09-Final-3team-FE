@@ -1,0 +1,185 @@
+/* Campaign Sidebar Styles */
+.campaignSidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sidebarSection {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Details Section */
+.detailsSection {
+  border: 1px solid #E5E7EB;
+  background: #FFFFFF;
+}
+
+.detailsContent {
+  padding: 25px;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.detailRow:last-child {
+  margin-bottom: 0;
+}
+
+.detailLabel {
+  font-size: 14px;
+  color: #4B5563;
+  font-weight: 400;
+}
+
+.detailValue {
+  font-size: 14px;
+  color: #1F2937;
+  font-weight: 400;
+  text-align: right;
+}
+
+/* Link Section */
+.linkSection {
+  background: #F9FAFB;
+}
+
+.linkContent {
+  padding: 24px;
+}
+
+.storeLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #F5A623;
+  font-size: 14px;
+  font-weight: 400;
+  transition: color 0.2s ease;
+}
+
+.storeLink:hover {
+  color: #E0941A;
+}
+
+/* Company Section */
+.companySection {
+  background: #F9FAFB;
+}
+
+.companyContent {
+  padding: 24px;
+}
+
+.companyProfile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.companyLogo {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.logoImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.companyDetails {
+  flex: 1;
+}
+
+.companyName {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1F2937;
+  margin-bottom: 4px;
+}
+
+.companyDescription {
+  font-size: 14px;
+  color: #4B5563;
+  margin: 0;
+}
+
+.companyIntro {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #374151;
+  margin: 0;
+}
+
+/* Apply Section */
+.applySection {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.applyButton {
+  width: 100%;
+  height: 56px;
+  background: #F5A623;
+  color: #FFFFFF;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.applyButton:hover {
+  background: #E0941A;
+}
+
+.applyButton:active {
+  transform: translateY(1px);
+}
+
+/* Section Title */
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #594A3E;
+  margin: 0;
+  padding: 24px 24px 0 24px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .campaignSidebar {
+    gap: 16px;
+  }
+  
+  .detailsContent,
+  .linkContent,
+  .companycontent {
+    padding: 16px;
+  }
+  
+  .sectionTitle {
+    padding: 16px 16px 0 16px;
+  }
+  
+  .applyButton {
+    height: 48px;
+    font-size: 15px;
+  }
+} 

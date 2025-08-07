@@ -68,6 +68,7 @@
 .dashboardButton {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
   background: #ffffff;
   color: #618724;

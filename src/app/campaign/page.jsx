@@ -1,5 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import SubHeader from "../components/SubHeader";
+import TabNavigation from "./components/TabNavigation";
 import SearchAndSort from "./components/SearchAndSort";
 import CampaignGrid from "./components/CampaignGrid";
 import Pagination from "./components/Pagination";
@@ -34,6 +36,8 @@ export default function CampaignPage() {
 
   return (
     <>
+      <SubHeader title="체험단" subtitle="반려동물과 함께하는 특별한 상품 체험, 지금 바로 신청하고 경험해보세요" />
+      <TabNavigation />
       <SearchAndSort
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}

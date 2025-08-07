@@ -18,12 +18,38 @@
   position: relative;
 }
 
+.leftSection {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
 .logo {
   display: flex;
   align-items: center;
   height: 150px;
   width: 150px;
   position: relative;
+}
+
+.advertiserButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  color: #3b82f6;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.advertiserButton:hover {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
 }
 
 .headerActions {

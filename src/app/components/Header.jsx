@@ -4,13 +4,13 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import styles from "../styles/Header.module.css";
-import { IoIosNotifications } from "react-icons/io";
+import { IoIosNotifications, IoMdBusiness } from "react-icons/io";
 
 export default function Header() {
   const [notificationCount, setNotificationCount] = useState(0);
 
   const navigation = [
-    { name: "체험단", href: "#campaigns" },
+    { name: "체험단", href: "/campaign" },
     { name: "펫 관리", href: "#pet-management" },
     { name: "SNS 관리", href: "/sns" },
     { name: "건강 관리", href: "/health/activity" },
@@ -23,14 +23,20 @@ export default function Header() {
       <header className={styles.topHeader}>
         <div className="container">
           <div className={styles.topHeaderContent}>
-            <Link href="/" className={styles.logo}>
-              <Image
-                src="/logo.png"
-                alt="PetFul Logo"
-                width={200}
-                height={200}
-              />
-            </Link>
+            <div className={styles.leftSection}>
+              <Link href="/" className={styles.logo}>
+                <Image
+                  src="/logo.png"
+                  alt="PetFul Logo"
+                  width={200}
+                  height={200}
+                />
+              </Link>
+              <Link href="/advertiser" className={styles.advertiserButton}>
+                <IoMdBusiness size={20} />
+                <span>광고주</span>
+              </Link>
+            </div>
 
             <div className={styles.headerActions}>
               <button className={styles.loginButton}>로그인</button>

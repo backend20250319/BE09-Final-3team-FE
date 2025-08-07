@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 export default function RootLayout({ children }) {
   const pathname = usePathname();
   const isAdmin = pathname.startsWith("/admin");
+  const isAdvertiser = pathname.startsWith("/advertiser");
   return (
     <html lang="en">
       <head>
@@ -29,12 +30,8 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
-        {!isAdmin && <Header />}
-        {isAdmin ? (
-          children
-        ) : (
-          <div className="pageWrapper max-w-7xl mx-auto px-4">{children}</div>
-        )}
+        {!isAdmin && !isAdvertiser && <Header />}
+        {isAdmin ? children : <div className="pageWrapper">{children}</div>}
         {!isAdmin && <Footer />}
       </body>
     </html>
