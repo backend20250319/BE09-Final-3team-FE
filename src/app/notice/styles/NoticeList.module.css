@@ -1,0 +1,19 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    gap: 8px;
+  }
+}
