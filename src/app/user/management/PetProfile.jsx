@@ -25,6 +25,7 @@ const PetProfile = () => {
       image: "/user/dog.png",
       healthPercentage: 100,
       healthColor: "#8BC34A",
+      isPetStar: true, // 펫스타 상태 추가
     },
     {
       id: 2,
@@ -36,6 +37,7 @@ const PetProfile = () => {
       image: "/user/cat.png",
       healthPercentage: 85,
       healthColor: "#F5A623",
+      isPetStar: false, // 펫스타가 아닌 경우
     },
     {
       id: 3,
@@ -47,6 +49,7 @@ const PetProfile = () => {
       image: "/user/bird.png",
       healthPercentage: 60,
       healthColor: "#FF7675",
+      isPetStar: false, // 펫스타가 아닌 경우
     },
   ];
 
@@ -170,6 +173,15 @@ const PetProfile = () => {
                           <span className={styles.breedText}>
                             ({pet.breed})
                           </span>
+                          {pet.isPetStar && (
+                            <Image
+                              src="/user/medal.svg"
+                              alt="PetStar"
+                              width={20}
+                              height={18}
+                              className={styles.petStarBadge}
+                            />
+                          )}
                         </div>
 
                         <div className={styles.petMetaRow}>
@@ -195,17 +207,19 @@ const PetProfile = () => {
 
                       <div className={styles.petFooter}>
                         <div className={styles.petActions}>
-                          <button
-                            className={styles.actionButton}
-                            onClick={() => setIsPetstarModalOpen(true)}
-                          >
-                            <Image
-                              src={`/user/medal.png`}
-                              alt="Medal"
-                              width={18}
-                              height={18}
-                            />
-                          </button>
+                          {!pet.isPetStar && (
+                            <button
+                              className={styles.actionButton}
+                              onClick={() => setIsPetstarModalOpen(true)}
+                            >
+                              <Image
+                                src={`/user/medal.png`}
+                                alt="Medal"
+                                width={18}
+                                height={18}
+                              />
+                            </button>
+                          )}
                           <button
                             className={styles.actionButton}
                             onClick={() => setIsModalOpen(true)}
@@ -266,22 +280,37 @@ const PetProfile = () => {
 
       {/* 삭제 확인 모달 */}
       {isDeleteModalOpen && (
-        <div className={styles.modalOverlay} onClick={() => setIsDeleteModalOpen(false)}>
+        <div
+          className={styles.modalOverlay}
+          onClick={() => setIsDeleteModalOpen(false)}
+        >
           <div
             className={styles.modalContainer}
             onClick={(e) => e.stopPropagation()}
           >
             <div className={styles.modalHeader}>
               <h1 className={styles.title}>삭제하시겠습니까?</h1>
-              <button className={styles.closeButton} onClick={() => setIsDeleteModalOpen(false)}>
+              <button
+                className={styles.closeButton}
+                onClick={() => setIsDeleteModalOpen(false)}
+              >
                 ×
               </button>
             </div>
-            <div className={styles.modalFooter} style={{ display: "flex", justifyContent: "center", gap: "16px" }}>
-              <button className={styles.deleteButton} onClick={() => setIsDeleteModalOpen(false)}>
+            <div
+              className={styles.modalFooter}
+              style={{ display: "flex", justifyContent: "center", gap: "16px" }}
+            >
+              <button
+                className={styles.deleteButton}
+                onClick={() => setIsDeleteModalOpen(false)}
+              >
                 삭제
               </button>
-              <button className={styles.cancelButton} onClick={() => setIsDeleteModalOpen(false)}>
+              <button
+                className={styles.cancelButton}
+                onClick={() => setIsDeleteModalOpen(false)}
+              >
                 취소
               </button>
             </div>
