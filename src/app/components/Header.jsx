@@ -7,13 +7,12 @@ import styles from "../styles/Header.module.css";
 import { IoIosNotifications, IoMdBusiness } from "react-icons/io";
 import NavbarDropdown from "@/app/components/AlarmDropdown";
 
-
 export default function Header() {
   const [notificationCount, setNotificationCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleDropdown = () => {
-    setIsOpen(prev => !prev);
+    setIsOpen((prev) => !prev);
   };
   const navigation = [
     { name: "체험단", href: "/campaign" },
@@ -48,14 +47,17 @@ export default function Header() {
               <button className={styles.loginButton}>로그인</button>
               <button className={styles.signupButton}>회원가입</button>
               <button className={styles.notificationButton}>
-                <div className={styles.notificationIcon} onClick={toggleDropdown}>
+                <div
+                  className={styles.notificationIcon}
+                  onClick={toggleDropdown}
+                >
                   <IoIosNotifications size={24} />
                 </div>
                 <span className={styles.notificationCount}>
                   {notificationCount}
                 </span>
               </button>
-              {isOpen && <NavbarDropdown open={isOpen}/>}
+              {isOpen && <NavbarDropdown open={isOpen} />}
             </div>
           </div>
         </div>
