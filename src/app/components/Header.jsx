@@ -12,7 +12,6 @@ export default function Header() {
   const navigation = [
     { name: "체험단", href: "#campaigns" },
     { name: "펫 관리", href: "#pet-management" },
-    { name: "건강 관리", href: "#health-management" },
     { name: "SNS 관리", href: "/sns" },
     { name: "건강 관리", href: "/health/activity" },
     { name: "커뮤니티", href: "#community" },
