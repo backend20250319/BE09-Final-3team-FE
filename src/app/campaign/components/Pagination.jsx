@@ -5,7 +5,7 @@ import styles from "../styles/Pagination.module.css";
 
 export default function Pagination() {
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = 10;
+  const totalPages = 1;
 
   const handlePrevious = () => {
     if (currentPage > 1) {
@@ -48,8 +48,7 @@ export default function Pagination() {
       </button>
     );
 
-    // Page numbers (showing 1, 2, 3, ..., 10)
-    const visiblePages = [1, 2, 3];
+    const visiblePages = [1];
 
     visiblePages.forEach((page) => {
       pages.push(

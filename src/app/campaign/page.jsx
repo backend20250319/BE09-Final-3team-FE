@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import SearchAndSort from "./components/SearchAndSort";
 import CampaignGrid from "./components/CampaignGrid";
+import Pagination from "./components/Pagination";
 import { useCampaign } from "./context/CampaignContext";
 
 export default function CampaignPage() {
@@ -40,6 +41,7 @@ export default function CampaignPage() {
         setSortBy={setSortBy}
       />
       <CampaignGrid searchQuery={searchQuery} sortBy={sortBy} />
+      <Pagination />
     </>
   );
 }
