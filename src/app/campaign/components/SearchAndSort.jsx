@@ -1,11 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useCampaign } from "../context/CampaignContext";
 import styles from "../styles/SearchAndSort.module.css";
 
-export default function SearchAndSort() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("deadline");
+const SORT_OPTIONS = {
+  recruiting: [
+    { value: "recent", label: "최신순" },
+    { value: "deadline", label: "마감 임박순" },
+    { value: "popular", label: "인기순" }
+  ],
+  ended: [
+    { value: "endedRecent", label: "종료일 최신순" },
+    { value: "endedOld", label: "종료일 오래된 순" },
+    { value: "popular", label: "인기순" }
+  ],
+  applied: [
+    { value: "recent", label: "최신순" },
+    { value: "popular", label: "인기순" }
+  ]
+};
+
+export default function SearchAndSort({ searchQuery, setSearchQuery, sortBy, setSortBy }) {
+  const { activeTab } = useCampaign();
 
   return (
     <div className={styles.searchAndSort}>
@@ -35,10 +51,11 @@ export default function SearchAndSort() {
           onChange={(e) => setSortBy(e.target.value)}
           className={styles.sortSelect}
         >
-          <option value="deadline">마감 날짜순</option>
-          <option value="newest">최신순</option>
-          <option value="popular">인기순</option>
-          <option value="price">가격순</option>
+           {SORT_OPTIONS[activeTab].map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
         </select>
         <div className={styles.selectIcon}>
           <svg width="16" height="10" viewBox="0 0 16 10" fill="none">

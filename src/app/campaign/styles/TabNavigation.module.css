@@ -1,0 +1,44 @@
+.tabContainer {
+  margin-bottom: 0;
+}
+
+.tabGroup {
+  display: flex;
+  gap: 8px;
+  width: fit-content;
+}
+
+.tab {
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #594a3e;
+  font-size: 16px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1.2;
+}
+
+.tab:hover {
+  background: #f9fafb;
+}
+
+.tab.active {
+  background: #f5a623;
+  color: #ffffff;
+  border-color: #f5a623;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .tabContainer {
+    margin-bottom: 0;
+  }
+
+  .tab {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+}

@@ -1,12 +1,12 @@
-'use client';
+"use client";
 import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
 import "./styles/globals.css";
-import {usePathname} from "next/navigation";
+import { usePathname } from "next/navigation";
 
 export default function RootLayout({ children }) {
-    const pathname = usePathname();
-    const isAdmin = pathname.startsWith("/admin");
+  const pathname = usePathname();
+  const isAdmin = pathname.startsWith("/admin");
   return (
     <html lang="en">
       <head>
@@ -31,11 +31,9 @@ export default function RootLayout({ children }) {
       <body>
         {!isAdmin && <Header />}
         {isAdmin ? (
-            children
+          children
         ) : (
-            <div className="max-w-7xl mx-auto px-4">
-                {children}
-            </div>
+          <div className="pageWrapper max-w-7xl mx-auto px-4">{children}</div>
         )}
         {!isAdmin && <Footer />}
       </body>
