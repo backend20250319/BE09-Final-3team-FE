@@ -19,39 +19,37 @@ import styles from "../styles/ActivityReport.module.css";
 export default function ActivityReport() {
   const [selectedPeriod, setSelectedPeriod] = useState("일");
 
-  // 차트 타입 추가 & 각 차트에 맞는 color
   const activityMetrics = [
     {
       id: 1,
       title: "산책 소모 칼로리",
-      icon: "🏃‍♂️",
+      icon: "/health/footprint.png",
       color: "#8BC34A",
       type: "bar",
     },
     {
       id: 2,
       title: "섭취 칼로리",
-      icon: "🍽️",
+      icon: "/health/meal.png",
       color: "#F5A623",
       type: "area",
     },
     {
       id: 3,
       title: "배변 횟수",
-      icon: "💩",
+      icon: "/health/bathroom.png",
       color: "#FF7675",
       type: "line",
     },
     {
       id: 4,
       title: "수면 시간",
-      icon: "😴",
-      color: "#8BC34A",
+      icon: "/health/sleep.png",
+      color: "#de74ffff",
       type: "area",
     },
   ];
 
-  // 산책 소모 칼로리, 섭취 칼로리, 수면 시간 공통 데이터
   const commonData = [
     { day: "월", value: 85 },
     { day: "화", value: 65 },
@@ -62,7 +60,6 @@ export default function ActivityReport() {
     { day: "일", value: 30 },
   ];
 
-  // 배변 횟수 데이터 (소변, 대변 분리)
   const poopData = [
     { day: "월", 소변: 3, 대변: 1 },
     { day: "화", 소변: 2, 대변: 1 },
@@ -75,7 +72,6 @@ export default function ActivityReport() {
 
   return (
     <section className={styles.activityReportSection}>
-      {/* 날짜 필터 */}
       <div className={styles.dateRangeContainer}>
         <div className={styles.dateRangeHeader}>
           <span className={styles.dateRangeLabel}>Date Range:</span>
@@ -95,16 +91,17 @@ export default function ActivityReport() {
         </div>
       </div>
 
-      {/* 리포트 카드 */}
       <div className={styles.metricsGrid}>
         {activityMetrics.map((metric) => (
           <div key={metric.id} className={styles.metricCard}>
             <div className={styles.metricHeader}>
-              <div
-                className={styles.metricIcon}
-                style={{ color: metric.color }}
-              >
-                {metric.icon}
+              <div className={styles.metricIcon}>
+                <img
+                  src={metric.icon}
+                  alt={metric.title}
+                  width={24}
+                  height={24}
+                />
               </div>
               <span className={styles.metricTitle}>{metric.title}</span>
             </div>
@@ -115,7 +112,7 @@ export default function ActivityReport() {
                   <BarChart data={commonData}>
                     <XAxis dataKey="day" tick={{ fontSize: 10 }} />
                     <YAxis hide />
-                    <Tooltip />
+                    <Tooltip formatter={(value) => [`${value} kcal`, ""]} />
                     <Bar
                       dataKey="value"
                       fill={metric.color}
@@ -130,7 +127,13 @@ export default function ActivityReport() {
                   <AreaChart data={commonData}>
                     <XAxis dataKey="day" tick={{ fontSize: 10 }} />
                     <YAxis hide />
-                    <Tooltip />
+                    <Tooltip
+                      formatter={(value) =>
+                        metric.id === 4
+                          ? [`${value} 시간`, ""]
+                          : [`${value} kcal`, ""]
+                      }
+                    />
                     <Area
                       type="monotone"
                       dataKey="value"
@@ -147,7 +150,7 @@ export default function ActivityReport() {
                   <LineChart data={poopData}>
                     <XAxis dataKey="day" tick={{ fontSize: 10 }} />
                     <YAxis />
-                    <Tooltip />
+                    <Tooltip formatter={(value, name) => [`${value}`, name]} />
                     <Legend />
                     <Line
                       type="monotone"
