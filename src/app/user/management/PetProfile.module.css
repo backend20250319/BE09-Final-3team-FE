@@ -435,6 +435,27 @@
   .petGrid {
     grid-template-columns: 1fr;
     gap: 16px;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding-right: 8px;
+  }
+
+  .petGrid::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .petGrid::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+
+  .petGrid::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+  }
+
+  .petGrid::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
   }
 
   .addPetCard {
@@ -470,6 +491,30 @@
   .petCard {
     margin-bottom: 16px;
   }
+
+  .petGrid {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 6px;
+  }
+
+  .petGrid::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .petGrid::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 2px;
+  }
+
+  .petGrid::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 2px;
+  }
+
+  .petGrid::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
 }
 
 .petNameBreedRow {
@@ -489,6 +534,11 @@
   font-weight: 400;
   font-size: 16px;
   color: #666;
+}
+
+.petStarBadge {
+  margin-left: 4px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
 }
 
 .petMetaRow {
