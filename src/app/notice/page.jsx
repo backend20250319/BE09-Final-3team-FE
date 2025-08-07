@@ -6,7 +6,7 @@ import Pagination from "./components/Pagination";
 import styles from "./styles/page.module.css";
 
 export default function NoticePage() {
-  const [activeTab,setActiveTab] = useState("정보");
+  const [activeTab,setActiveTab] = useState("정보 공유");
   return (
     <div className={styles.container}>
       <main className={styles.main}>
