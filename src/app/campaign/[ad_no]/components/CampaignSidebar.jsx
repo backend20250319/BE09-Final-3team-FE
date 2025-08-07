@@ -25,12 +25,20 @@ export default function CampaignSidebar({ campaignData }) {
         <h3 className={styles.sectionTitle}>게시물 세부 정보</h3>
         <div className={styles.detailsContent}>
           <div className={styles.detailRow}>
+            <span className={styles.detailLabel}>신청자 수</span>
+            <span className={styles.detailValue}>{campaignData.applicants}</span>
+          </div>
+          <div className={styles.detailRow}>
             <span className={styles.detailLabel}>모집 종료일</span>
             <span className={styles.detailValue}>{calculateDaysLeft()}</span>
           </div>
           <div className={styles.detailRow}>
-            <span className={styles.detailLabel}>신청자 수</span>
-            <span className={styles.detailValue}>{campaignData.applicants}</span>
+            <span className={styles.detailLabel}>체험단 선정일</span>
+            <span className={styles.detailValue}>{campaignData.campaign_select}</span>
+          </div>
+          <div className={styles.detailRow}>
+            <span className={styles.detailLabel}>체험단 활동 기간</span>
+            <span className={styles.detailValue}>{campaignData.campaign_start}~{campaignData.campaign_end}</span>
           </div>
         </div>
       </div>
