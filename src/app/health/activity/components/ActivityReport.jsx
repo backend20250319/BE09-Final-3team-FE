@@ -25,7 +25,7 @@ export default function ActivityReport() {
       title: "산책 소모 칼로리",
       icon: "/health/footprint.png",
       colorActual: "#8BC34A",
-      colorRecommended: "#AED581", // 연한 초록
+      colorRecommended: "#AED581",
       type: "bar",
       hasRecommended: true,
     },
@@ -34,7 +34,7 @@ export default function ActivityReport() {
       title: "섭취 칼로리",
       icon: "/health/meal.png",
       colorActual: "#F5A623",
-      colorRecommended: "#F8C471", // 연한 주황
+      colorRecommended: "#F8C471",
       type: "bar",
       hasRecommended: true,
     },
@@ -58,14 +58,15 @@ export default function ActivityReport() {
     },
   ];
 
-  // 일별 데이터 예시
+  // actualValue Bar의 이름 매핑
+  const actualNameMap = {
+    "산책 소모 칼로리": "소모량",
+    "섭취 칼로리": "식사량",
+  };
+
   const dailyData = {
     common: [
-      {
-        day: "월",
-        actualValue: 85,
-        recommendedValue: 100,
-      },
+      { day: "월", actualValue: 85, recommendedValue: 100 },
       { day: "화", actualValue: 65, recommendedValue: 100 },
       { day: "수", actualValue: 45, recommendedValue: 100 },
       { day: "목", actualValue: 25, recommendedValue: 100 },
@@ -84,7 +85,6 @@ export default function ActivityReport() {
     ],
   };
 
-  // 주별 데이터 예시
   const weeklyData = {
     common: [
       { week: "1주", actualValue: 450, recommendedValue: 500 },
@@ -100,7 +100,6 @@ export default function ActivityReport() {
     ],
   };
 
-  // 월별 데이터 예시
   const monthlyData = {
     common: [
       { month: "1월", actualValue: 2000, recommendedValue: 2100 },
@@ -116,7 +115,6 @@ export default function ActivityReport() {
     ],
   };
 
-  // 년별 데이터 예시
   const yearlyData = {
     common: [
       { year: "2022", actualValue: 24000, recommendedValue: 25000 },
@@ -130,7 +128,6 @@ export default function ActivityReport() {
     ],
   };
 
-  // 선택된 기간에 따른 데이터와 x축 key 가져오기
   function getDataAndKey(metric) {
     switch (selectedPeriod) {
       case "일":
@@ -160,6 +157,39 @@ export default function ActivityReport() {
         };
     }
   }
+
+  // ✅ Tooltip 포맷 함수
+  const customTooltipFormatter = (metricTitle) => (value, name) => {
+    const labelMap = {
+      "섭취 칼로리": {
+        actualValue: "식사량",
+        recommendedValue: "권장량",
+      },
+      "산책 소모 칼로리": {
+        actualValue: "소모량",
+        recommendedValue: "권장량",
+      },
+      "수면 시간": {
+        actualValue: "수면",
+      },
+      "배변 횟수": {
+        소변: "소변",
+        대변: "대변",
+      },
+    };
+
+    const unitMap = {
+      "섭취 칼로리": "kcal",
+      "산책 소모 칼로리": "kcal",
+      "수면 시간": "시간",
+      "배변 횟수": "회",
+    };
+
+    const label = labelMap[metricTitle]?.[name] || name;
+    const unit = unitMap[metricTitle] || "";
+
+    return [`${value} ${unit}`, label];
+  };
 
   return (
     <section className={styles.activityReportSection}>
@@ -207,48 +237,47 @@ export default function ActivityReport() {
               >
                 {metric.type === "bar" && (
                   <ResponsiveContainer width="100%" height={150}>
-                    <BarChart data={data}>
+                    <BarChart data={data} barCategoryGap="20%" barGap={4}>
                       <XAxis dataKey={xKey} tick={{ fontSize: 10 }} />
                       <YAxis hide />
                       <Tooltip
-                        formatter={(value) =>
-                          metric.title.includes("칼로리")
-                            ? [`${value} kcal`, ""]
-                            : metric.title === "수면 시간"
-                            ? [`${value} 시간`, ""]
-                            : [`${value}`, ""]
-                        }
+                        formatter={customTooltipFormatter(metric.title)}
                       />
-                      {/* 실제값 막대 */}
+                      {/* 실제값 막대 - 앞쪽 */}
                       <Bar
                         dataKey="actualValue"
                         fill={metric.colorActual}
                         radius={[4, 4, 0, 0]}
                         barSize={15}
-                        name="실제 값"
+                        name={
+                          metric.title === "산책 소모 칼로리"
+                            ? "소모량"
+                            : metric.title === "섭취 칼로리"
+                            ? "식사량"
+                            : "실제값"
+                        }
                       />
-                      {/* 권장값 막대 */}
+                      {/* 권장량 막대 - 뒤쪽 */}
                       {metric.hasRecommended && (
                         <Bar
                           dataKey="recommendedValue"
                           fill={metric.colorRecommended}
                           radius={[4, 4, 0, 0]}
                           barSize={15}
-                          name="권장 값"
+                          name="권장량"
                         />
                       )}
                       <Legend verticalAlign="bottom" height={36} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
-
                 {metric.type === "line" && (
                   <ResponsiveContainer width="100%" height={150}>
                     <LineChart data={data}>
                       <XAxis dataKey={xKey} tick={{ fontSize: 10 }} />
                       <YAxis />
                       <Tooltip
-                        formatter={(value, name) => [`${value}`, name]}
+                        formatter={customTooltipFormatter(metric.title)}
                       />
                       <Legend verticalAlign="bottom" height={36} />
                       <Line
@@ -268,13 +297,14 @@ export default function ActivityReport() {
                     </LineChart>
                   </ResponsiveContainer>
                 )}
-
                 {metric.type === "area" && (
                   <ResponsiveContainer width="100%" height={150}>
                     <AreaChart data={data}>
                       <XAxis dataKey={xKey} tick={{ fontSize: 10 }} />
                       <YAxis hide />
-                      <Tooltip formatter={(value) => [`${value} 시간`, ""]} />
+                      <Tooltip
+                        formatter={customTooltipFormatter(metric.title)}
+                      />
                       <Area
                         type="monotone"
                         dataKey="actualValue"
