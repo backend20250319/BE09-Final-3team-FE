@@ -1,0 +1,781 @@
+/* 전체 컨테이너 */
+.container {
+  width: 1200px;
+  padding: 0;
+  box-sizing: border-box;
+  min-height: 100vh;
+  margin: 0 auto;
+}
+
+/* 전체 바디 */
+.body {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* 메인 콘텐츠 */
+.main {
+  width: 1100px;
+  margin: 0 auto;
+  padding: 44px 50px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+}
+
+/* 페이지 제목 */
+.pageTitle {
+  font-family: "Pretendard", sans-serif;
+  font-size: 40px;
+  font-weight: 400;
+  color: #594a3e;
+  text-align: center;
+  margin: 0 0 40px 0;
+  line-height: 0.72em;
+  width: 100%;
+}
+
+/* 프로필 이미지 섹션 */
+.profileImageSection {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+  width: 100%;
+}
+
+.profileImageContainer {
+  width: 160px;
+  height: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.profileImage {
+  width: 160px;
+  height: 160px;
+  background: #f3f4f6;
+  border: 4px solid #8bc34a;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.profileImage:hover {
+  border-color: #7cb342;
+  transform: scale(1.02);
+}
+
+.uploadIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.profileUploadButton {
+  width: 140px;
+  height: 36px;
+  background: #8bc34a;
+  border: none;
+  border-radius: 18px;
+  color: #ffffff;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.profileUploadButton:hover {
+  background: #7cb342;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(139, 195, 74, 0.3);
+}
+
+.profileUploadButton:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(139, 195, 74, 0.3);
+}
+
+/* 섹션 공통 스타일 */
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 25px;
+  position: relative;
+}
+
+.sectionNumber {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: #ffffff;
+  line-height: 1.193;
+}
+
+.sectionTitle {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  color: #594a3e;
+  margin: 0;
+  line-height: 1.4em;
+  flex: 1;
+}
+
+.sectionContent {
+  background: #ffffff;
+  border: 1px solid #f3f4f6;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+}
+
+/* 활동이력 카드 섹션 */
+.activitySection {
+  width: 1000px;
+  height: 500px;
+  background: #ffffff;
+  border: 1px solid #f3f4f6;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  margin: 0 auto;
+}
+
+.activitySection .sectionNumber {
+  background: #8bc34a;
+}
+
+.cardsWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 400px;
+  margin-top: 20px;
+}
+
+.navButton {
+  width: 44px;
+  height: 44px;
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.navButton:hover {
+  border-color: #8bc34a;
+  background: #f0f5ec;
+  transform: scale(1.05);
+}
+
+.navButton:active {
+  transform: scale(0.95);
+}
+
+.activityCardsContainer {
+  flex: 1;
+  height: 400px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  position: relative;
+  cursor: grab;
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f1f1f1;
+}
+
+.activityCardsContainer::-webkit-scrollbar {
+  height: 8px;
+}
+
+.activityCardsContainer::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.activityCardsContainer::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.activityCardsContainer::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.activityCardsContainer:active {
+  cursor: grabbing;
+}
+
+.activityCards {
+  display: flex;
+  gap: 20px;
+  transition: transform 0.3s ease;
+  width: max-content;
+  padding: 10px 0;
+  user-select: none;
+}
+
+.activityCard {
+  width: 350px;
+  height: 480px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.activityCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.1);
+  border-color: #8bc34a;
+}
+
+.cardImage {
+  width: 100%;
+  height: 180px;
+  position: relative;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.imagePlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: #f3f4f6;
+}
+
+.progressBadge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #ff7675;
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.cardContent {
+  padding: 16px;
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  min-height: 20px;
+}
+
+.cardTags {
+  display: flex;
+  gap: 8px;
+}
+
+.tag {
+  background: #f3f4f6;
+  color: #4b5563;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.cardActions {
+  display: flex;
+  gap: 8px;
+}
+
+.actionButton {
+  width: 28px;
+  height: 36px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.actionButton:hover {
+  background: #f3f4f6;
+}
+
+.cardForm {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  overflow: visible;
+}
+
+.formRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.formRow:last-child {
+  flex: 3;
+}
+
+.formRow label {
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4b5563;
+  margin-bottom: 2px;
+}
+
+.labelWithEdit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.labelWithEdit label {
+  margin-bottom: 0;
+}
+
+.labelWithEdit .editButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 10;
+}
+
+.labelWithEdit .editButton:hover {
+  background-color: rgba(139, 195, 74, 0.1);
+}
+
+.formRow input,
+.formRow textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #adaebc;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.formRow input:focus,
+.formRow textarea:focus {
+  outline: none;
+  border-color: #6be6bd;
+}
+
+.formRow textarea {
+  resize: vertical;
+  min-height: 60px;
+  max-height: 80px;
+}
+
+.readOnlyText {
+  padding: 6px 10px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: #374151;
+  line-height: 1.4;
+  min-height: 32px;
+  display: block;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  max-height: none;
+  overflow: visible;
+}
+
+.titleWithEdit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.titleWithEdit .readOnlyText {
+  flex: 1;
+  margin-right: 8px;
+}
+
+.editButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.editButton:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.addCardButton {
+  width: 180px;
+  height: 56px;
+  background: #8bc34a;
+  border: none;
+  border-radius: 28px;
+  color: #ffffff;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.addCardButton:hover {
+  background: #7cb342;
+}
+
+/* 성격 섹션 */
+.personalitySection {
+  width: 1000px;
+  background: #ffffff;
+  border: 1px solid #f3f4f6;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  margin: 0 auto;
+}
+
+.personalitySection .sectionNumber {
+  background: #ff7675;
+}
+
+.personalityTextarea {
+  width: 100%;
+  height: 140px;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #adaebc;
+  background: #ffffff;
+  resize: none;
+  box-sizing: border-box;
+}
+
+.personalityTextarea:focus {
+  outline: none;
+  border-color: #6be6bd;
+}
+
+.characterCount {
+  text-align: right;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #6b7280;
+  margin-top: 8px;
+}
+
+/* 간단한 소개 섹션 */
+.introductionSection {
+  width: 1000px;
+  background: #ffffff;
+  border: 1px solid #f3f4f6;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  margin: 0 auto;
+}
+
+.introductionSection .sectionNumber {
+  background: #60a5fa;
+}
+
+.introductionInput {
+  width: 100%;
+  height: 34px;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #adaebc;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.introductionInput:focus {
+  outline: none;
+  border-color: #6be6bd;
+}
+
+/* 반려동물 정보 섹션 */
+.petInfoSection {
+  width: 1000px;
+  background: #ffffff;
+  border: 1px solid #f3f4f6;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  margin: 0 auto;
+}
+
+.petInfoSection .sectionNumber {
+  background: #c084fc;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formGroup label {
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.formGroup input,
+.formGroup select {
+  width: 100%;
+  height: 50px;
+  padding: 0 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #adaebc;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.formGroup input:focus,
+.formGroup select:focus {
+  outline: none;
+  border-color: #6be6bd;
+}
+
+.genderSelect {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+/* 연락 수단 섹션 */
+.contactSection {
+  width: 1000px;
+  background: #ffffff;
+  border: 1px solid #f3f4f6;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  margin: 0 auto;
+}
+
+.contactSection .sectionNumber {
+  background: #8d7b75;
+}
+
+.contactForm {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.contactForm .formGroup {
+  width: 100%;
+}
+
+.contactForm .formGroup input {
+  width: 100%;
+  height: 50px;
+  padding: 0 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #adaebc;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.contactForm .formGroup input:focus {
+  outline: none;
+  border-color: #6be6bd;
+}
+
+/* 버튼 섹션 */
+.buttonSection {
+  display: flex;
+  justify-content: center;
+  gap: 70px;
+  margin-top: 40px;
+  width: 100%;
+}
+
+.saveDraftButton {
+  width: 180px;
+  height: 56px;
+  background: #fff3e0;
+  border: none;
+  border-radius: 28px;
+  color: #594a3e;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.saveDraftButton:hover {
+  background: #ffe0b2;
+}
+
+.submitButton {
+  width: 180px;
+  height: 56px;
+  background: #f5a623;
+  border: none;
+  border-radius: 28px;
+  color: #ffffff;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.submitButton:hover {
+  background: #e0941a;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1200px) {
+  .container {
+    width: 100%;
+    max-width: 1200px;
+  }
+
+  .main {
+    width: 100%;
+    max-width: 1100px;
+    padding: 44px 40px;
+  }
+
+  .activitySection,
+  .personalitySection,
+  .introductionSection,
+  .petInfoSection,
+  .contactSection {
+    width: 100%;
+    max-width: 1000px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding: 20px;
+  }
+
+  .pageTitle {
+    font-size: 32px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .buttonSection {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .saveDraftButton,
+  .submitButton {
+    width: 100%;
+    max-width: 180px;
+  }
+}
