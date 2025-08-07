@@ -30,11 +30,7 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         {!isAdmin && <Header />}
-        {isAdmin ? (
-          children
-        ) : (
-          <div className="pageWrapper max-w-7xl mx-auto px-4">{children}</div>
-        )}
+        {isAdmin ? children : <div className="pageWrapper">{children}</div>}
         {!isAdmin && <Footer />}
       </body>
     </html>
