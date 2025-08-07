@@ -52,3 +52,25 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   margin-top: 8px;
 }
+
+.calendarDropdown {
+  position: absolute;
+  z-index: 9999;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 300px;
+}
+
+.calendarDropdown::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  right: 20px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid white;
+}
