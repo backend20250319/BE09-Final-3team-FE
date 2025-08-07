@@ -18,7 +18,7 @@ export default function Header() {
     { name: "체험단", href: "/campaign" },
     { name: "펫 관리", href: "#pet-management" },
     { name: "SNS 관리", href: "/sns" },
-    { name: "건강 관리", href: "/health/activity" },
+    { name: "건강 관리", href: "/health" },
     { name: "커뮤니티", href: "/notice" },
   ];
 
