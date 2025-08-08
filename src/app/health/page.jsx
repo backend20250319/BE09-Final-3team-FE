@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import PetProfileSelector from "./components/PetProfileSelector";
 import { useSelectedPet } from "./context/SelectedPetContext";
-import { AnimatePresence, motion } from "framer-motion";
 import ActivityForm from "./activity/components/ActivityManagement";
 import ActivityNavTabs from "./activity/components/ActivityNavTabs";
 import ActivityReport from "./activity/components/ActivityReport";
