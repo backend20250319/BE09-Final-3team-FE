@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import styles from "../styles/MedicationManagement.module.css";
 import ConfirmModal from "../components/ConfirmModal";
+import Toast from "../components/Toast";
 
 export default function MedicationManagement() {
   const LOCAL_STORAGE_KEY = "medication_notifications";
@@ -32,6 +33,11 @@ export default function MedicationManagement() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [toDeleteId, setToDeleteId] = useState(null);
 
+  // 토스트 메시지 상태
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState("inactive"); // "active" or "inactive"
+  const [showToast, setShowToast] = useState(false);
+
   useEffect(() => {
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (saved) {
@@ -59,6 +65,15 @@ export default function MedicationManagement() {
       return acc;
     }, {});
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedStatus));
+
+    const updatedMed = updated.find((med) => med.id === id);
+    setToastMessage(
+      `${updatedMed.name} 일정 알림이 ${
+        updatedMed.isNotified ? "활성화" : "비활성화"
+      } 되었습니다.`
+    );
+    setToastType(updatedMed.isNotified ? "active" : "inactive");
+    setShowToast(true);
   };
 
   const handleFileUpload = (event) => {
@@ -107,7 +122,7 @@ export default function MedicationManagement() {
 
   return (
     <div className={styles.container}>
-      {/* 처방전 사진 업로드 섹션 */}
+      {/* 처방전 사진 업로드 */}
       <div className={styles.prescriptionSection}>
         <div className={styles.uploadArea}>
           <div className={styles.uploadIcon}>
@@ -136,7 +151,7 @@ export default function MedicationManagement() {
         </div>
       </div>
 
-      {/* 복용약 및 영양제 섹션 */}
+      {/* 복용약 및 영양제 */}
       <div className={styles.medicationSection}>
         <div className={styles.sectionHeader}>
           <h3>복용약 및 영양제</h3>
@@ -223,8 +238,15 @@ export default function MedicationManagement() {
         />
       )}
 
-      {/* 스케줄 캘린더 섹션 */}
-      {/* <CalendarSchedule /> */}
+      {/* 토스트 메시지 */}
+      {showToast && (
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          duration={1000}
+          onClose={() => setShowToast(false)}
+        />
+      )}
     </div>
   );
 }

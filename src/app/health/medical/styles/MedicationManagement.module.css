@@ -170,36 +170,3 @@
   width: 16px;
   height: 16px;
 }
-
-/* 스케줄 캘린더 섹션 */
-.calendarSection {
-  background: #f8f9fa;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 25px;
-}
-
-.calendarSection h3 {
-  font-size: 20px;
-  font-weight: 400;
-  color: #594a3e;
-  margin: 0 0 16px 0;
-}
-
-.calendarPlaceholder {
-  background: #ffffff;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 87px 0;
-  text-align: center;
-}
-
-.calendarIcon {
-  margin-bottom: 16px;
-}
-
-.calendarPlaceholder p {
-  font-size: 16px;
-  color: #6b7280;
-  margin: 0;
-}
