@@ -132,7 +132,7 @@ export default function MemberManagement(){
 
                             {activeTab === "신고당한 회원" &&
                                 reportLogs.map((reportLogs) => (
-                                    <div key={reportLogs.id} className={styles.productCard}>
+                                    <div key={reportLogs.no} className={styles.productCard}>
                                         <div className={styles.productContent}>
                                             <div className={styles.productImage}>
                                                 <img src={reportLogs.profileImage} alt={reportLogs.target} />

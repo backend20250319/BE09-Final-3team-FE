@@ -6,6 +6,7 @@ import ConfirmModal from "../components/ConfirmModal";
 import Toast from "../components/Toast";
 import AddMedicationModal from "./AddMedicationModal";
 import EditScheduleModal from "./EditScheduleModal";
+import PrescriptionResultModal from "./PrescriptionResultModal";
 import { defaultMedications, STORAGE_KEYS } from "../../data/mockData";
 
 export default function MedicationManagement() {
