@@ -12,6 +12,7 @@ export default function MedicationManagement() {
       frequency: "하루에 두 번",
       icon: "💊",
       color: "#E3F2FD",
+      isNotified: false,
     },
     {
       id: 2,
@@ -20,6 +21,7 @@ export default function MedicationManagement() {
       frequency: "하루에 한 번",
       icon: "💊",
       color: "#FFF3E0",
+      isNotified: true,
     },
   ]);
 
@@ -32,7 +34,6 @@ export default function MedicationManagement() {
   };
 
   const handleAddMedication = () => {
-    // Add new medication logic
     console.log("Add medication clicked");
   };
 
@@ -42,6 +43,14 @@ export default function MedicationManagement() {
 
   const handleDeleteMedication = (id) => {
     setMedications(medications.filter((med) => med.id !== id));
+  };
+
+  const handleToggleNotification = (id) => {
+    setMedications((prev) =>
+      prev.map((med) =>
+        med.id === id ? { ...med, isNotified: !med.isNotified } : med
+      )
+    );
   };
 
   return (
@@ -123,21 +132,25 @@ export default function MedicationManagement() {
                 </button>
                 <button
                   className={styles.actionButton}
-                  onClick={() => handleEditMedication(medication.id)}
+                  onClick={() => handleDeleteMedication(medication.id)}
                 >
                   <img
                     src="/health/trash.png"
-                    alt="휴지통"
+                    alt="삭제"
                     width={24}
                     height={24}
                   />
                 </button>
                 <button
                   className={styles.actionButton}
-                  onClick={() => handleDeleteMedication(medication.id)}
+                  onClick={() => handleToggleNotification(medication.id)}
                 >
                   <img
-                    src="/health/notifi.png"
+                    src={
+                      medication.isNotified
+                        ? "/health/notifi.png"
+                        : "/health/notifi2.png"
+                    }
                     alt="알림"
                     width={24}
                     height={24}
@@ -150,40 +163,7 @@ export default function MedicationManagement() {
       </div>
 
       {/* 스케줄 캘린더 섹션 */}
-      <div className={styles.calendarSection}>
-        <h3>스케줄 캘린더</h3>
-        <div className={styles.calendarPlaceholder}>
-          <div className={styles.calendarIcon}>
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <rect
-                x="4"
-                y="8"
-                width="24"
-                height="20"
-                rx="2"
-                stroke="#9CA3AF"
-                strokeWidth="2"
-              />
-              <path d="M4 12H28" stroke="#9CA3AF" strokeWidth="2" />
-              <path
-                d="M10 4V8"
-                stroke="#9CA3AF"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-              <path
-                d="M22 4V8"
-                stroke="#9CA3AF"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
-          <p>
-            Calendar view showing all scheduled medications and appointments
-          </p>
-        </div>
-      </div>
+      {/* <CalendarSchedule /> */}
     </div>
   );
 }
