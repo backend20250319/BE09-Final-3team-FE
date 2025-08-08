@@ -4,32 +4,15 @@ import React, { useState, useEffect, useMemo } from "react";
 import Select from "./ClientOnlySelect";
 import styles from "../styles/ActivityForm.module.css";
 import { useSelectedPet } from "../../context/SelectedPetContext";
-
-const activityOptions = [
-  { value: "1.2", label: "거의 안 움직여요" },
-  { value: "1.5", label: "가끔 산책해요" },
-  { value: "1.7", label: "자주 뛰어놀아요" },
-  { value: "1.9", label: "매우 활동적이에요" },
-];
-
-const validActivityLevels = ["1.2", "1.5", "1.7", "1.9"];
-
-function formatNumber(num) {
-  if (Number.isInteger(num)) {
-    return num.toString();
-  } else {
-    return num.toFixed(1);
-  }
-}
-
-// 오늘 날짜 yyyy-mm-dd 형식으로 리턴
-function getTodayKey() {
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, "0");
-  const dd = String(today.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
-}
+import {
+  activityOptions,
+  validActivityLevels,
+  initialFormData,
+  initialCalculated,
+  formatNumber,
+  getTodayKey,
+  STORAGE_KEYS,
+} from "../../data/mockData";
 
 export default function ActivityManagement() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -37,33 +20,17 @@ export default function ActivityManagement() {
 
   const { selectedPetName } = useSelectedPet();
 
-  const [formData, setFormData] = useState({
-    walkingDistance: "",
-    activityLevel: "",
-    totalFoodWeight: "",
-    totalCaloriesInFood: "",
-    feedingAmount: "",
-    weight: "",
-    sleepTime: "",
-    urineCount: "",
-    fecesCount: "",
-    memo: "",
-  });
+  const [formData, setFormData] = useState(initialFormData);
 
   // 펫 이름별로 저장했는지 상태 관리 (오늘 날짜 key 사용)
   const [submittedPets, setSubmittedPets] = useState({});
 
-  const [calculated, setCalculated] = useState({
-    recommendedBurn: 0,
-    actualBurn: 0,
-    recommendedIntake: 0,
-    actualIntake: 0,
-  });
+  const [calculated, setCalculated] = useState(initialCalculated);
 
   // 저장 여부 판단용 키
   const todayKey = useMemo(() => getTodayKey(), []);
   const storageKey = useMemo(
-    () => `${selectedPetName}_${todayKey}`,
+    () => STORAGE_KEYS.ACTIVITY_DATA(selectedPetName, todayKey),
     [selectedPetName, todayKey]
   );
 

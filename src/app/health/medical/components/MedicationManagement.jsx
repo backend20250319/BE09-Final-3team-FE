@@ -6,30 +6,10 @@ import ConfirmModal from "../components/ConfirmModal";
 import Toast from "../components/Toast";
 import AddMedicationModal from "./AddMedicationModal";
 import EditScheduleModal from "./EditScheduleModal";
+import { defaultMedications, STORAGE_KEYS } from "../../data/mockData";
 
 export default function MedicationManagement() {
-  const LOCAL_STORAGE_KEY = "medication_notifications";
-
-  const defaultMedications = [
-    {
-      id: 1,
-      name: "오메가 1.5mg",
-      type: "항생제",
-      frequency: "하루에 두 번",
-      icon: "💊",
-      color: "#E3F2FD",
-      isNotified: false,
-    },
-    {
-      id: 2,
-      name: "오메가-3",
-      type: "영양제",
-      frequency: "하루에 한 번",
-      icon: "💊",
-      color: "#FFF3E0",
-      isNotified: true,
-    },
-  ];
+  const LOCAL_STORAGE_KEY = STORAGE_KEYS.MEDICATION_NOTIFICATIONS;
 
   const [medications, setMedications] = useState(defaultMedications);
   const [showConfirm, setShowConfirm] = useState(false);

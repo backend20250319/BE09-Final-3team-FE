@@ -7,78 +7,12 @@ import AddVaccinationScheduleModal from "./AddVaccinationScheduleModal"; // 접�
 import ConfirmModal from "./ConfirmModal";
 import Toast from "./Toast";
 import EditScheduleModal from "./EditScheduleModal";
+import {
+  defaultCareSchedules,
+  defaultVaccinationSchedules,
+} from "../../data/mockData";
 
 export default function CareSchedule() {
-  const defaultCareSchedules = [
-    {
-      id: 1,
-      name: "산책",
-      type: "돌봄",
-      date: "2025-08-10",
-      time: "15:00",
-      frequency: "매일 오후 3시",
-      icon: "🐕",
-      color: "#E8F5E8",
-      isNotified: true,
-    },
-    {
-      id: 2,
-      name: "미용",
-      type: "돌봄",
-      date: "2025-08-15",
-      time: "13:00",
-      frequency: "월 1회",
-      icon: "✂️",
-      color: "#FFF3E0",
-      isNotified: false,
-    },
-    {
-      id: 3,
-      name: "생일",
-      type: "돌봄",
-      date: "2025-08-15",
-      time: "00:00",
-      frequency: "연 1회",
-      icon: "🎂",
-      color: "#FCE4EC",
-      isNotified: true,
-    },
-  ];
-
-  const defaultVaccinationSchedules = [
-    {
-      id: 4,
-      name: "종합백신",
-      type: "접종",
-      date: "2025-09-01",
-      time: "10:00",
-      frequency: "연 1회",
-      icon: "💉",
-      color: "#E3F2FD",
-      isNotified: true,
-    },
-    {
-      id: 5,
-      name: "광견병백신",
-      type: "접종",
-      date: "2025-09-02",
-      time: "10:00",
-      frequency: "연 1회",
-      icon: "💉",
-      color: "#E3F2FD",
-      isNotified: false,
-    },
-    {
-      id: 6,
-      name: "건강검진",
-      type: "접종",
-      frequency: "반년 1회",
-      icon: "🏥",
-      color: "#F3E5F5",
-      isNotified: true,
-    },
-  ];
-
   const [careSchedules, setCareSchedules] = useState(defaultCareSchedules);
   const [vaccinationSchedules, setVaccinationSchedules] = useState(
     defaultVaccinationSchedules

@@ -2,6 +2,12 @@
 
 import React, { useState } from "react";
 import styles from "../styles/AddScheduleModal.module.css";
+import {
+  careSubTypeOptions,
+  careFrequencyOptions,
+  ICON_MAP,
+  COLOR_MAP,
+} from "../../data/mockData";
 
 export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
   const [formData, setFormData] = useState({
@@ -16,18 +22,8 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
 
   const mainType = "돌봄";
 
-  const subTypeOptions = ["산책", "미용", "생일"];
-
-  const frequencyOptions = [
-    "매일",
-    "매주",
-    "매월",
-    "연 1회",
-    "반년 1회",
-    "월 1회",
-    "주 1회",
-    "기타",
-  ];
+  const subTypeOptions = careSubTypeOptions;
+  const frequencyOptions = careFrequencyOptions;
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -56,21 +52,11 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
   };
 
   const getIconForSubType = (subType) => {
-    const iconMap = {
-      산책: "🐕",
-      미용: "✂️",
-      생일: "🎂",
-      기타: "📅",
-    };
-    return iconMap[subType] || iconMap["기타"];
+    return ICON_MAP[subType] || ICON_MAP["기타"];
   };
 
   const getColorForType = (type) => {
-    const colorMap = {
-      돌봄: "#E8F5E8",
-      접종: "#E3F2FD",
-    };
-    return colorMap[type] || "#F5F5F5";
+    return COLOR_MAP[type] || "#F5F5F5";
   };
 
   const handleSubmit = () => {

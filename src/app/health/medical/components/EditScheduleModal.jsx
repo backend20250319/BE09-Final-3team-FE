@@ -2,6 +2,16 @@
 
 import React, { useState, useEffect } from "react";
 import styles from "../styles/AddScheduleModal.module.css";
+import {
+  medicationTypeOptions,
+  medicationFrequencyOptions,
+  careSubTypeOptions,
+  careFrequencyOptions,
+  vaccinationSubTypeOptions,
+  vaccinationFrequencyOptions,
+  ICON_MAP,
+  COLOR_MAP,
+} from "../../data/mockData";
 
 export default function EditScheduleModal({
   isOpen,
@@ -20,39 +30,6 @@ export default function EditScheduleModal({
   });
 
   const [errors, setErrors] = useState({});
-
-  // 투약용 옵션들
-  const medicationTypeOptions = ["복용약", "영양제"];
-  const medicationFrequencyOptions = [
-    "하루에 한 번",
-    "하루에 두 번",
-    "하루에 세 번",
-    "주에 한 번",
-    "월에 한 번",
-  ];
-
-  // 돌봄 일정용 옵션들
-  const careSubTypeOptions = ["산책", "미용", "생일"];
-  const careFrequencyOptions = [
-    "매일",
-    "매주",
-    "매월",
-    "연 1회",
-    "반년 1회",
-    "월 1회",
-    "주 1회",
-    "기타",
-  ];
-
-  // 접종 일정용 옵션들
-  const vaccinationSubTypeOptions = ["종합백신", "광견병백신", "건강검진"];
-  const vaccinationFrequencyOptions = [
-    "연 1회",
-    "반년 1회",
-    "월 1회",
-    "주 1회",
-    "기타",
-  ];
 
   // 기존 데이터로 폼 초기화
   useEffect(() => {
@@ -116,31 +93,11 @@ export default function EditScheduleModal({
   };
 
   const getIconForSubType = (subType) => {
-    const iconMap = {
-      // 돌봄
-      산책: "🐕",
-      미용: "✂️",
-      생일: "🎂",
-      // 접종
-      종합백신: "💉",
-      광견병백신: "💉",
-      건강검진: "🏥",
-      // 투약
-      복용약: "💊",
-      영양제: "💊",
-      기타: "📅",
-    };
-    return iconMap[subType] || iconMap["기타"];
+    return ICON_MAP[subType] || ICON_MAP["기타"];
   };
 
   const getColorForType = (mainType) => {
-    const colorMap = {
-      돌봄: "#E8F5E8",
-      접종: "#E3F2FD",
-      복용약: "#E3F2FD",
-      영양제: "#FFF3E0",
-    };
-    return colorMap[mainType] || "#F5F5F5";
+    return COLOR_MAP[mainType] || "#F5F5F5";
   };
 
   const handleSubmit = () => {
