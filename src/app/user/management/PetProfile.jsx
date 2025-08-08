@@ -5,6 +5,7 @@ import styles from "./PetProfile.module.css";
 import Image from "next/image";
 import PetProfileRegistration from "./PetProfileRegistration";
 import PetstarModal from "./PetstarModal";
+import Link from "next/link";
 
 const PetProfile = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -149,15 +150,20 @@ const PetProfile = () => {
                 {pets.map((pet) => (
                   <div key={pet.id} className={styles.petCard}>
                     <div className={styles.petImageContainer}>
-                      <div className={styles.petImage}>
-                        <Image
-                          src={pet.image}
-                          alt={pet.name}
-                          width={409}
-                          height={192}
-                          className={styles.petImage}
-                        />
-                      </div>
+                      <Link
+                        href={`/user/portfolio`} // 포트폴리오 페이지 경로 ${pet.id} 나중에 pet.id 추가
+                        aria-label={`${pet.name} 포트폴리오로 이동`}
+                      >
+                        <div className={styles.petImage}>
+                          <Image
+                            src={pet.image}
+                            alt={pet.name}
+                            width={409}
+                            height={192}
+                            className={styles.petImage}
+                          />
+                        </div>
+                      </Link>
                       <div
                         className={styles.healthBadge}
                         style={{ backgroundColor: pet.healthColor }}

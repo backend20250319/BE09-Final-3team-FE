@@ -179,30 +179,30 @@ export default function SignupPage() {
               <div className={styles.formGroup}>
                 <label className={styles.label}>주소</label>
                 <div className={styles.inputGroup}>
-                <input
-                  type="text"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  placeholder="도로명 주소를 입력하세요"
-                  className={styles.input}
+                  <input
+                    type="text"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    placeholder="도로명 주소를 입력하세요"
+                    className={styles.input}
                   />
-                  </div>
+                </div>
               </div>
 
               {/* Detail Address */}
               <div className={styles.formGroup}>
                 <label className={styles.label}>상세 주소</label>
                 <div className={styles.inputGroup}>
-                <input
-                  type="text"
-                  name="detailAddress"
-                  value={formData.detailAddress}
-                  onChange={handleInputChange}
-                  placeholder="상세 주소를 입력하세요"
-                  className={styles.input}
+                  <input
+                    type="text"
+                    name="detailAddress"
+                    value={formData.detailAddress}
+                    onChange={handleInputChange}
+                    placeholder="상세 주소를 입력하세요"
+                    className={styles.input}
                   />
-                  </div>
+                </div>
               </div>
 
               {/* Birth Date */}
@@ -211,37 +211,60 @@ export default function SignupPage() {
                   <label className={styles.label}>생년월일</label>
                 </div>
                 <div className={styles.birthInputs}>
+                  {/* 년 */}
                   <div className={styles.birthInputGroup}>
-                    <input
-                      type="text"
+                    <select
                       name="birthYear"
                       value={formData.birthYear}
                       onChange={handleInputChange}
-                      placeholder="년"
                       className={styles.birthInput}
-                    />
+                    >
+                      <option value="">년</option>
+                      {Array.from({ length: 50 }, (_, i) => {
+                        const year = new Date().getFullYear() - i;
+                        return (
+                          <option key={year} value={year}>
+                            {year}
+                          </option>
+                        );
+                      })}
+                    </select>
                     <div className={styles.dropdownIcon}></div>
                   </div>
+
+                  {/* 월 */}
                   <div className={styles.birthInputGroup}>
-                    <input
-                      type="text"
+                    <select
                       name="birthMonth"
                       value={formData.birthMonth}
                       onChange={handleInputChange}
-                      placeholder="월"
                       className={styles.birthInput}
-                    />
+                    >
+                      <option value="">월</option>
+                      {Array.from({ length: 12 }, (_, i) => (
+                        <option key={i + 1} value={i + 1}>
+                          {i + 1}
+                        </option>
+                      ))}
+                    </select>
                     <div className={styles.dropdownIcon}></div>
                   </div>
+
+                  {/* 일 */}
                   <div className={styles.birthInputGroup}>
-                    <input
-                      type="text"
+                    <select
                       name="birthDay"
                       value={formData.birthDay}
                       onChange={handleInputChange}
-                      placeholder="일"
                       className={styles.birthInput}
-                    />
+                    >
+                      <option value="">일</option>
+                      {Array.from({ length: 31 }, (_, i) => (
+                        <option key={i + 1} value={i + 1}>
+                          {i + 1}
+                        </option>
+                      ))}
+                    </select>
                     <div className={styles.dropdownIcon}></div>
                   </div>
                 </div>
@@ -263,6 +286,5 @@ export default function SignupPage() {
         </main>
       </div>
     </div>
-    
   );
 }

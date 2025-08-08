@@ -4,6 +4,7 @@ import styles from "./Portfolio.module.css";
 import ActivityModal from "./ActivityModal";
 import ActivityDetailModal from "./ActivityDetailModal";
 import Image from "next/image";
+import ActivityCardCarousel from "./ActivityCardCarousel"; // ✅ 추가
 
 const PortfolioPage = () => {
   const [formData, setFormData] = useState({
@@ -92,11 +93,8 @@ const PortfolioPage = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState(null);
+
   const fileInputRef = useRef(null);
-  const cardsContainerRef = useRef(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -108,16 +106,12 @@ const PortfolioPage = () => {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      previewImage(file);
-    }
+    if (file) previewImage(file);
   };
 
   const previewImage = (file) => {
     const reader = new FileReader();
-    reader.onload = () => {
-      setProfileImage(reader.result);
-    };
+    reader.onload = () => setProfileImage(reader.result);
     reader.readAsDataURL(file);
   };
 
@@ -153,38 +147,7 @@ const PortfolioPage = () => {
       detailedContent: activityData.detailedContent,
       progress: 100,
     };
-
     setActivityCards((prev) => [...prev, newCard]);
-  };
-
-  // 슬라이드 드래그 기능
-  const onMouseDown = (e) => {
-    setIsDragging(true);
-    setStartX(e.pageX - cardsContainerRef.current.offsetLeft);
-    setScrollLeft(cardsContainerRef.current.scrollLeft);
-  };
-
-  const onMouseLeave = () => {
-    setIsDragging(false);
-  };
-
-  const onMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const onMouseMove = (e) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    const x = e.pageX - cardsContainerRef.current.offsetLeft;
-    const walk = (x - startX) * 1.5; // Adjust scroll speed
-    cardsContainerRef.current.scrollLeft = scrollLeft - walk;
-  };
-
-  const onWheel = (e) => {
-    if (cardsContainerRef.current) {
-      cardsContainerRef.current.scrollLeft += e.deltaY;
-      e.preventDefault(); // Prevent vertical page scroll
-    }
   };
 
   return (
@@ -207,7 +170,6 @@ const PortfolioPage = () => {
                   />
                 ) : null}
               </div>
-              {/* 프로필 이미지가 없을 때만 업로드 버튼 표시 */}
               {!profileImage && (
                 <button
                   className={styles.profileUploadButton}
@@ -238,118 +200,13 @@ const PortfolioPage = () => {
                 +
               </button>
             </div>
-            <div className={styles.cardsWrapper}>
-              <button
-                className={styles.navButton}
-                onClick={() => {
-                  if (cardsContainerRef.current) {
-                    cardsContainerRef.current.scrollLeft -= 450;
-                  }
-                }}
-              >
-                <Image
-                  src="/user/down.png" // Assuming this is a left arrow icon
-                  alt="이전"
-                  width={24}
-                  height={24}
-                  style={{ transform: "rotate(90deg)" }}
-                />
-              </button>
-              <div
-                className={styles.activityCardsContainer}
-                ref={cardsContainerRef}
-                onMouseDown={onMouseDown}
-                onMouseLeave={onMouseLeave}
-                onMouseUp={onMouseUp}
-                onMouseMove={onMouseMove}
-                onWheel={onWheel}
-              >
-                <div className={styles.activityCards}>
-                  {activityCards.map((card, index) => (
-                    <div
-                      key={card.id}
-                      className={styles.activityCard}
-                      onClick={() => handleCardClick(card)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <div className={styles.cardImage}>
-                        {card.image ? (
-                          <Image
-                            src={card.image}
-                            alt={`활동 이미지 ${card.id}`}
-                            layout="fill"
-                            objectFit="cover"
-                          />
-                        ) : (
-                          <div className={styles.imagePlaceholder}>
-                            <Image
-                              src="/user/upload.svg"
-                              alt="이미지 업로드"
-                              width={43}
-                              height={31}
-                            />
-                          </div>
-                        )}
-                      </div>
-                      <div className={styles.cardContent}>
-                        <div className={styles.cardForm}>
-                          <div className={styles.formRow}>
-                            <div className={styles.labelWithEdit}>
-                              <label>활동 제목</label>
-                              <button
-                                className={styles.editButton}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditActivity();
-                                }}
-                              >
-                                <Image
-                                  src="/user/edit.png"
-                                  alt="편집"
-                                  width={16}
-                                  height={16}
-                                />
-                              </button>
-                            </div>
-                            <div className={styles.readOnlyText}>
-                              {card.title}
-                            </div>
-                          </div>
-                          <div className={styles.formRow}>
-                            <label>활동 시기</label>
-                            <div className={styles.readOnlyText}>
-                              {card.period}
-                            </div>
-                          </div>
-                          <div className={styles.formRow}>
-                            <label>활동 내용</label>
-                            <div className={styles.readOnlyText}>
-                              {card.content}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <button
-                className={styles.navButton}
-                onClick={() => {
-                  if (cardsContainerRef.current) {
-                    cardsContainerRef.current.scrollLeft += 450;
-                  }
-                }}
-              >
-                <Image
-                  src="/user/down.png" // Assuming this is a right arrow icon
-                  alt="다음"
-                  width={24}
-                  height={24}
-                  style={{ transform: "rotate(-90deg)" }}
-                />
-              </button>
-            </div>
+
+            {/* ✅ 분리한 캐러셀 컴포넌트 사용 */}
+            <ActivityCardCarousel
+              activityCards={activityCards}
+              onCardClick={handleCardClick}
+              onEditActivity={handleEditActivity}
+            />
           </section>
 
           {/* 성격 섹션 */}

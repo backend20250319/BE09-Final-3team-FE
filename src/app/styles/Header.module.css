@@ -99,7 +99,7 @@
 
 .loginButton {
   background: transparent;
-  color: #594a3e;
+  color: #F5A623; /* 변경: 글자색 */
   /* padding: 8px 0; */
   font-size: 16px;
   font-weight: 400;
@@ -126,6 +126,30 @@
 
 .signupButton:hover {
   background: #e6941f;
+}
+
+/* 마이페이지 아이콘 버튼 (추가) */
+.mypageButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.mypageButton:hover {
+  background: rgba(245, 166, 35, 0.08);
+  border-color: #f5a623;
+}
+
+.mypageIcon {
+  width: 24px;
+  height: 24px;
+  display: block;
 }
 
 /* Navigation Header */

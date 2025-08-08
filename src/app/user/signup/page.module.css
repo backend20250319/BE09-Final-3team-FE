@@ -123,8 +123,8 @@
 
 .verifyButton {
   width: 148.17px;
-  height: 50px; /* ✅ 고정 */
-  box-sizing: border-box; /* ✅ 중요 */
+  height: 50px;
+  box-sizing: border-box;
   background: #f5a623;
   border: none;
   border-radius: 8px;
@@ -163,9 +163,9 @@
 
 .birthInput {
   width: 100%;
-  height: 50px; /* ✅ 고정 */
-  padding: 0 16px;
-  box-sizing: border-box; /* ✅ 중요 */
+  height: 50px;
+  padding: 0 44px 0 16px; /* 오른쪽 아이콘 자리 확보 */
+  box-sizing: border-box;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-family: "Pretendard Variable";
@@ -176,6 +176,16 @@
   background: #ffffff;
   outline: none;
   transition: border-color 0.2s ease;
+
+  /* 기본 드롭다운 화살표 제거 */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+/* 구형 IE/Edge 기본 화살표 제거 */
+select.birthInput::-ms-expand {
+  display: none;
 }
 
 .birthInput::placeholder {
