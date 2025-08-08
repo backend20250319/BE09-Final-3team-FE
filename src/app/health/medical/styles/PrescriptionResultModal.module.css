@@ -264,14 +264,14 @@
   gap: 12px;
   padding: 16px;
   background: #e3f2fd;
-  border: 1px solid #2196f3;
+  border: 1px solid #68bbff;
   border-radius: 8px;
 }
 
 .infoIcon {
   width: 24px;
   height: 24px;
-  background: #2196f3;
+  background: #68bbff;
   border-radius: 4px;
   display: flex;
   align-items: center;
@@ -283,6 +283,7 @@
 
 .infoText {
   flex: 1;
+  padding-top: 3px;
 }
 
 .infoText p {
@@ -290,7 +291,7 @@
   font-size: 14px;
   font-weight: 400;
   color: #1565c0;
-  margin: 0 0 4px 0;
+  margin: 0 0 10px 0;
   line-height: 1.4;
 }
 

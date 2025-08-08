@@ -7,10 +7,14 @@ import Toast from "../components/Toast";
 import AddMedicationModal from "./AddMedicationModal";
 import EditScheduleModal from "./EditScheduleModal";
 import PrescriptionResultModal from "./PrescriptionResultModal";
+import ScheduleDetailModal from "./ScheduleDetailModal";
+import HealthCalendar from "../../components/HealthCalendar";
 import {
   defaultMedications,
   STORAGE_KEYS,
   mockPrescriptionData,
+  defaultCareSchedules,
+  defaultVaccinationSchedules,
 } from "../../data/mockData";
 
 export default function MedicationManagement() {
@@ -25,12 +29,16 @@ export default function MedicationManagement() {
 
   // 토스트 메시지 상태
   const [toastMessage, setToastMessage] = useState("");
-  const [toastType, setToastType] = useState("inactive"); // "active" or "inactive"
+  const [toastType, setToastType] = useState("inactive");
   const [showToast, setShowToast] = useState(false);
 
   // OCR 결과 모달 상태
   const [showResultModal, setShowResultModal] = useState(false);
   const [ocrResult, setOcrResult] = useState(null);
+
+  // 일정 상세 모달 상태
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedSchedule, setSelectedSchedule] = useState(null);
 
   useEffect(() => {
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -70,21 +78,15 @@ export default function MedicationManagement() {
     setShowToast(true);
   };
 
-  // 파일 업로드 핸들러 수정
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
-      console.log("Uploaded file:", file.name);
-
-      // 모의 OCR 데이터 세팅 및 모달 열기
       setOcrResult(mockPrescriptionData);
       setShowResultModal(true);
     }
   };
 
-  const handleAddMedication = () => {
-    setShowAddModal(true);
-  };
+  const handleAddMedication = () => setShowAddModal(true);
 
   const handleAddNewMedication = (newMedication) => {
     setMedications((prev) => [...prev, newMedication]);
@@ -138,6 +140,119 @@ export default function MedicationManagement() {
     setToDeleteId(null);
   };
 
+  // 특정 날짜와 "HH:MM" 문자열로 Date 만들기
+  const dateAtTime = (baseDate, hm) => {
+    const [hh = 9, mm = 0] = (hm || "09:00")
+      .split(":")
+      .map((n) => parseInt(n.trim(), 10));
+    return new Date(
+      baseDate.getFullYear(),
+      baseDate.getMonth(),
+      baseDate.getDate(),
+      hh,
+      mm,
+      0
+    );
+  };
+
+  // 캘린더 이벤트 구성 (투약 + 돌봄 + 접종 모두 포함)
+  const buildCalendarEvents = () => {
+    const events = [];
+
+    // 1) 투약: 기간 동안 매일, scheduleTime(콤마 구분) 각각 이벤트 생성
+    medications.forEach((med) => {
+      if (med.startDate && med.endDate) {
+        const start = new Date(med.startDate);
+        const end = new Date(med.endDate);
+        const times = (med.scheduleTime || "09:00")
+          .split(",")
+          .map((t) => t.trim());
+        const current = new Date(start);
+        while (current <= end) {
+          times.forEach((hm) => {
+            const s = dateAtTime(current, hm);
+            const e = new Date(s.getTime() + 60 * 60 * 1000);
+            events.push({
+              id: `med-${med.id}-${current.toISOString().slice(0, 10)}-${hm}`,
+              title: `${med.icon || "💊"} ${med.name}`,
+              start: s,
+              end: e,
+              allDay: false,
+              type: "medication",
+              schedule: { ...med, category: "medication" },
+            });
+          });
+          current.setDate(current.getDate() + 1);
+        }
+      }
+    });
+
+    // 2) 돌봄 일정
+    defaultCareSchedules.forEach((s) => {
+      if (!s.date) return;
+      const base = new Date(s.date);
+      const sTime = dateAtTime(base, s.scheduleTime || "09:00");
+      const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+      events.push({
+        id: `care-${s.id}`,
+        title: `${s.icon || "🐕"} ${s.name}`,
+        start: sTime,
+        end: eTime,
+        allDay: false,
+        type: "care",
+        schedule: { ...s, category: "care" },
+      });
+    });
+
+    // 3) 접종 일정
+    defaultVaccinationSchedules.forEach((s) => {
+      const dateStr = s.date || new Date().toISOString().slice(0, 10);
+      const base = new Date(dateStr);
+      const sTime = dateAtTime(base, s.scheduleTime || "10:00");
+      const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+      events.push({
+        id: `vac-${s.id}`,
+        title: `${s.icon || "💉"} ${s.name}`,
+        start: sTime,
+        end: eTime,
+        allDay: false,
+        type: s.subType === "건강검진" ? "checkup" : "vaccination",
+        schedule: {
+          ...s,
+          category: s.subType === "건강검진" ? "checkup" : "vaccination",
+        },
+      });
+    });
+
+    return events;
+  };
+
+  // 캘린더 이벤트 클릭 핸들러
+  const handleCalendarEventClick = (event) => {
+    if (event.schedule) {
+      setSelectedSchedule(event.schedule);
+      setShowDetailModal(true);
+    }
+  };
+
+  // 일정 상세 모달 핸들러
+  const handleDetailModalEdit = () => {
+    if (selectedSchedule && selectedSchedule.category === "medication") {
+      setEditingMedication(selectedSchedule);
+      setShowDetailModal(false);
+      setShowEditModal(true);
+    } else {
+      setShowDetailModal(false);
+    }
+  };
+
+  const handleDetailModalDelete = () => {
+    if (selectedSchedule && selectedSchedule.category === "medication") {
+      requestDeleteMedication(selectedSchedule.id);
+    }
+    setShowDetailModal(false);
+  };
+
   return (
     <div className={styles.container}>
       {/* 처방전 사진 업로드 */}
@@ -175,14 +290,13 @@ export default function MedicationManagement() {
           <h3>복용약 및 영양제</h3>
           <button className={styles.addButton} onClick={handleAddMedication}>
             <span>추가</span>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path
-                d="M7 1V13M1 7H13"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
+            <img
+              src="health/pill.png"
+              alt="복용약 추가 아이콘"
+              width="17"
+              height="17"
+              className={styles.icon}
+            />
           </button>
         </div>
 
@@ -200,6 +314,9 @@ export default function MedicationManagement() {
                   <h4>{medication.name}</h4>
                   <p>
                     {medication.type} • {medication.frequency}
+                  </p>
+                  <p className={styles.scheduleTime}>
+                    일정: {medication.scheduleTime}
                   </p>
                 </div>
               </div>
@@ -247,6 +364,12 @@ export default function MedicationManagement() {
         </div>
       </div>
 
+      {/* 캘린더 */}
+      <HealthCalendar
+        events={buildCalendarEvents()}
+        onEventClick={handleCalendarEventClick}
+      />
+
       {/* 삭제 확인 모달 */}
       {showConfirm && (
         <ConfirmModal
@@ -280,6 +403,15 @@ export default function MedicationManagement() {
         isOpen={showResultModal}
         onClose={() => setShowResultModal(false)}
         prescriptionData={ocrResult}
+      />
+
+      {/* 일정 상세 모달 */}
+      <ScheduleDetailModal
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        schedule={selectedSchedule}
+        onEdit={handleDetailModalEdit}
+        onDelete={handleDetailModalDelete}
       />
 
       {/* 토스트 메시지 */}

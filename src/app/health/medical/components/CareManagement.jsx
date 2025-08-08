@@ -1,18 +1,22 @@
 "use client";
 
 import React, { useState } from "react";
-import styles from "../styles/CareSchedule.module.css";
+import styles from "../styles/CareManagement.module.css";
 import AddCareScheduleModal from "./AddCareScheduleModal";
-import AddVaccinationScheduleModal from "./AddVaccinationScheduleModal"; // 접종용 모달 따로 만드셨다면
+import AddVaccinationScheduleModal from "./AddVaccinationScheduleModal";
 import ConfirmModal from "./ConfirmModal";
 import Toast from "./Toast";
 import EditScheduleModal from "./EditScheduleModal";
+import ScheduleDetailModal from "./ScheduleDetailModal";
+import HealthCalendar from "../../components/HealthCalendar";
 import {
   defaultCareSchedules,
   defaultVaccinationSchedules,
+  careSubTypeOptions,
+  vaccinationSubTypeOptions,
 } from "../../data/mockData";
 
-export default function CareSchedule() {
+export default function CareManagement() {
   const [careSchedules, setCareSchedules] = useState(defaultCareSchedules);
   const [vaccinationSchedules, setVaccinationSchedules] = useState(
     defaultVaccinationSchedules
@@ -30,6 +34,19 @@ export default function CareSchedule() {
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState("inactive");
   const [showToast, setShowToast] = useState(false);
+
+  // 일정 상세 모달 상태
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedSchedule, setSelectedSchedule] = useState(null);
+
+  // 필터링 상태
+  const [careFilter, setCareFilter] = useState("전체");
+  const [vaccinationFilter, setVaccinationFilter] = useState("전체");
+
+  // 페이징 상태
+  const [carePage, setCarePage] = useState(1);
+  const [vaccinationPage, setVaccinationPage] = useState(1);
+  const itemsPerPage = 3;
 
   // 돌봄 일정 추가 버튼 클릭
   const handleAddCareSchedule = () => {
@@ -151,6 +168,101 @@ export default function CareSchedule() {
     setDeleteType("");
   };
 
+  // 필터링된 일정들
+  const filteredCareSchedules = careSchedules.filter(
+    (schedule) => careFilter === "전체" || schedule.subType === careFilter
+  );
+  const filteredVaccinationSchedules = vaccinationSchedules.filter(
+    (schedule) =>
+      vaccinationFilter === "전체" || schedule.subType === vaccinationFilter
+  );
+
+  // 페이징된 일정들
+  const paginatedCareSchedules = filteredCareSchedules.slice(
+    (carePage - 1) * itemsPerPage,
+    carePage * itemsPerPage
+  );
+  const paginatedVaccinationSchedules = filteredVaccinationSchedules.slice(
+    (vaccinationPage - 1) * itemsPerPage,
+    vaccinationPage * itemsPerPage
+  );
+
+  // 페이징 핸들러
+  const handleCarePageChange = (page) => {
+    setCarePage(page);
+  };
+
+  const handleVaccinationPageChange = (page) => {
+    setVaccinationPage(page);
+  };
+
+  // 캘린더 이벤트 구성 (돌봄/접종)
+  const buildCalendarEvents = () => {
+    const parseDateTime = (d, t) => {
+      const [y, m, day] = d.split("-").map(Number);
+      const [hh = 9, mm = 0] = (t || "09:00").split(":").map(Number);
+      return new Date(y, m - 1, day, hh, mm, 0);
+    };
+
+    const careEvents = careSchedules.map((s) => ({
+      id: `care-${s.id}`,
+      title: `${s.icon} ${s.name}`,
+      start: parseDateTime(s.date, s.scheduleTime),
+      end: new Date(
+        parseDateTime(s.date, s.scheduleTime).getTime() + 60 * 60 * 1000
+      ),
+      allDay: false,
+      type: "care",
+      schedule: s,
+    }));
+
+    const vacEvents = vaccinationSchedules.map((s) => ({
+      id: `vac-${s.id}`,
+      title: `${s.icon} ${s.name}`,
+      start: parseDateTime(
+        s.date || new Date().toISOString().slice(0, 10),
+        s.scheduleTime
+      ),
+      end: new Date(
+        parseDateTime(
+          s.date || new Date().toISOString().slice(0, 10),
+          s.scheduleTime
+        ).getTime() +
+          60 * 60 * 1000
+      ),
+      allDay: false,
+      type: s.name === "건강검진" ? "checkup" : "vaccination",
+      schedule: s,
+    }));
+
+    return [...careEvents, ...vacEvents];
+  };
+
+  // 캘린더 이벤트 클릭 핸들러
+  const handleCalendarEventClick = (event) => {
+    if (event.schedule) {
+      setSelectedSchedule(event.schedule);
+      setShowDetailModal(true);
+    }
+  };
+
+  // 일정 상세 모달 핸들러
+  const handleDetailModalEdit = () => {
+    if (selectedSchedule) {
+      setEditingSchedule(selectedSchedule);
+      setEditingType(selectedSchedule.type === "돌봄" ? "care" : "vaccination");
+      setShowDetailModal(false);
+      setShowEditModal(true);
+    }
+  };
+
+  const handleDetailModalDelete = () => {
+    if (selectedSchedule) {
+      requestDeleteSchedule(selectedSchedule.id, selectedSchedule.type);
+      setShowDetailModal(false);
+    }
+  };
+
   const renderScheduleCard = (schedule, type) => (
     <div key={schedule.id} className={styles.scheduleCard}>
       <div className={styles.scheduleInfo}>
@@ -163,6 +275,7 @@ export default function CareSchedule() {
         <div className={styles.scheduleDetails}>
           <h4>{schedule.name}</h4>
           <p>{schedule.frequency}</p>
+          <p className={styles.scheduleTime}>{schedule.scheduleTime}</p>
         </div>
       </div>
       <div className={styles.scheduleActions}>
@@ -195,58 +308,165 @@ export default function CareSchedule() {
     </div>
   );
 
+  const renderPagination = (currentPage, totalPages, onPageChange) => {
+    const pages = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push("...");
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push("...");
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push("...");
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i);
+        }
+        pages.push("...");
+        pages.push(totalPages);
+      }
+    }
+
+    return (
+      <div className={styles.pagination}>
+        {pages.map((page, index) => (
+          <button
+            key={index}
+            className={`${styles.pageButton} ${
+              page === currentPage ? styles.activePage : ""
+            }`}
+            onClick={() => page !== "..." && onPageChange(page)}
+            disabled={page === "..."}
+          >
+            {page === "..." ? "ㆍㆍㆍ" : page}
+          </button>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className={styles.container}>
       {/* 돌봄 일정 섹션 */}
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
           <h3>돌봄</h3>
-          <button className={styles.addButton} onClick={handleAddCareSchedule}>
-            <span>추가</span>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path
-                d="M7 1V13M1 7H13"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
+          <div className={styles.headerControls}>
+            <select
+              value={careFilter}
+              onChange={(e) => {
+                setCareFilter(e.target.value);
+                setCarePage(1);
+              }}
+              className={styles.filterSelect}
+            >
+              <option value="전체">전체</option>
+              {careSubTypeOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <button
+              className={styles.addButton}
+              onClick={handleAddCareSchedule}
+            >
+              <span>추가</span>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path
+                  d="M7 1V13M1 7H13"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <div className={styles.scheduleList}>
-          {careSchedules.map((schedule) =>
+          {paginatedCareSchedules.map((schedule) =>
             renderScheduleCard(schedule, "돌봄")
           )}
         </div>
+
+        {filteredCareSchedules.length > itemsPerPage &&
+          renderPagination(
+            carePage,
+            Math.ceil(filteredCareSchedules.length / itemsPerPage),
+            handleCarePageChange
+          )}
       </div>
 
       {/* 접종 일정 섹션 */}
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
           <h3>접종</h3>
-          <button
-            className={styles.addButton}
-            onClick={handleAddVaccinationSchedule}
-          >
-            <span>추가</span>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path
-                d="M7 1V13M1 7H13"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
+          <div className={styles.headerControls}>
+            <select
+              value={vaccinationFilter}
+              onChange={(e) => {
+                setVaccinationFilter(e.target.value);
+                setVaccinationPage(1);
+              }}
+              className={styles.filterSelect}
+            >
+              <option value="전체">전체</option>
+              {vaccinationSubTypeOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <button
+              className={styles.addButton}
+              onClick={handleAddVaccinationSchedule}
+            >
+              <span>추가</span>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path
+                  d="M7 1V13M1 7H13"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <div className={styles.scheduleList}>
-          {vaccinationSchedules.map((schedule) =>
+          {paginatedVaccinationSchedules.map((schedule) =>
             renderScheduleCard(schedule, "접종")
           )}
         </div>
+
+        {filteredVaccinationSchedules.length > itemsPerPage &&
+          renderPagination(
+            vaccinationPage,
+            Math.ceil(filteredVaccinationSchedules.length / itemsPerPage),
+            handleVaccinationPageChange
+          )}
       </div>
+
+      {/* 캘린더 (목록 아래 위치) */}
+      <HealthCalendar
+        events={buildCalendarEvents()}
+        onEventClick={handleCalendarEventClick}
+      />
 
       {/* 일정 추가 모달: 돌봄 */}
       {showAddModal === "care" && (
@@ -277,6 +497,15 @@ export default function CareSchedule() {
         onEdit={handleEditScheduleSubmit}
         scheduleData={editingSchedule}
         type={editingType}
+      />
+
+      {/* 일정 상세 모달 */}
+      <ScheduleDetailModal
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        schedule={selectedSchedule}
+        onEdit={handleDetailModalEdit}
+        onDelete={handleDetailModalDelete}
       />
 
       {/* 삭제 확인 모달 */}
