@@ -5,6 +5,7 @@ import styles from "../styles/MedicationManagement.module.css";
 import ConfirmModal from "../components/ConfirmModal";
 import Toast from "../components/Toast";
 import AddMedicationModal from "./AddMedicationModal";
+import EditScheduleModal from "./EditScheduleModal";
 
 export default function MedicationManagement() {
   const LOCAL_STORAGE_KEY = "medication_notifications";
@@ -34,6 +35,8 @@ export default function MedicationManagement() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [toDeleteId, setToDeleteId] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingMedication, setEditingMedication] = useState(null);
 
   // 토스트 메시지 상태
   const [toastMessage, setToastMessage] = useState("");
@@ -97,7 +100,22 @@ export default function MedicationManagement() {
   };
 
   const handleEditMedication = (id) => {
-    console.log("Edit medication:", id);
+    const medication = medications.find((med) => med.id === id);
+    if (medication) {
+      setEditingMedication(medication);
+      setShowEditModal(true);
+    }
+  };
+
+  const handleEditMedicationSubmit = (updatedMedication) => {
+    setMedications((prev) =>
+      prev.map((med) =>
+        med.id === updatedMedication.id ? updatedMedication : med
+      )
+    );
+    setToastMessage(`${updatedMedication.name}이(가) 수정되었습니다.`);
+    setToastType("active");
+    setShowToast(true);
   };
 
   // 삭제 요청시 모달 띄우기
@@ -252,6 +270,18 @@ export default function MedicationManagement() {
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onAdd={handleAddNewMedication}
+      />
+
+      {/* 약 수정 모달 */}
+      <EditScheduleModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingMedication(null);
+        }}
+        onEdit={handleEditMedicationSubmit}
+        scheduleData={editingMedication}
+        type="medication"
       />
 
       {/* 토스트 메시지 */}

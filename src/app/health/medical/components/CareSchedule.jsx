@@ -6,6 +6,7 @@ import AddCareScheduleModal from "./AddCareScheduleModal";
 import AddVaccinationScheduleModal from "./AddVaccinationScheduleModal"; // 접종용 모달 따로 만드셨다면
 import ConfirmModal from "./ConfirmModal";
 import Toast from "./Toast";
+import EditScheduleModal from "./EditScheduleModal";
 
 export default function CareSchedule() {
   const defaultCareSchedules = [
@@ -13,12 +14,35 @@ export default function CareSchedule() {
       id: 1,
       name: "산책",
       type: "돌봄",
+      date: "2025-08-10",
+      time: "15:00",
       frequency: "매일 오후 3시",
       icon: "🐕",
       color: "#E8F5E8",
       isNotified: true,
     },
-    // ...생략
+    {
+      id: 2,
+      name: "미용",
+      type: "돌봄",
+      date: "2025-08-15",
+      time: "13:00",
+      frequency: "월 1회",
+      icon: "✂️",
+      color: "#FFF3E0",
+      isNotified: false,
+    },
+    {
+      id: 3,
+      name: "생일",
+      type: "돌봄",
+      date: "2025-08-15",
+      time: "00:00",
+      frequency: "연 1회",
+      icon: "🎂",
+      color: "#FCE4EC",
+      isNotified: true,
+    },
   ];
 
   const defaultVaccinationSchedules = [
@@ -26,12 +50,33 @@ export default function CareSchedule() {
       id: 4,
       name: "종합백신",
       type: "접종",
+      date: "2025-09-01",
+      time: "10:00",
       frequency: "연 1회",
       icon: "💉",
       color: "#E3F2FD",
       isNotified: true,
     },
-    // ...생략
+    {
+      id: 5,
+      name: "광견병백신",
+      type: "접종",
+      date: "2025-09-02",
+      time: "10:00",
+      frequency: "연 1회",
+      icon: "💉",
+      color: "#E3F2FD",
+      isNotified: false,
+    },
+    {
+      id: 6,
+      name: "건강검진",
+      type: "접종",
+      frequency: "반년 1회",
+      icon: "🏥",
+      color: "#F3E5F5",
+      isNotified: true,
+    },
   ];
 
   const [careSchedules, setCareSchedules] = useState(defaultCareSchedules);
@@ -44,6 +89,9 @@ export default function CareSchedule() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [toDeleteId, setToDeleteId] = useState(null);
   const [deleteType, setDeleteType] = useState(""); // "돌봄" or "접종"
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingSchedule, setEditingSchedule] = useState(null);
+  const [editingType, setEditingType] = useState(""); // "care" or "vaccination"
 
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState("inactive");
@@ -73,7 +121,35 @@ export default function CareSchedule() {
 
   // (이하 생략, 원래 코드 그대로 유지)
   const handleEditSchedule = (id, type) => {
-    console.log("Edit schedule:", id, type);
+    let schedule;
+    if (type === "돌봄") {
+      schedule = careSchedules.find((s) => s.id === id);
+      setEditingType("care");
+    } else {
+      schedule = vaccinationSchedules.find((s) => s.id === id);
+      setEditingType("vaccination");
+    }
+
+    if (schedule) {
+      setEditingSchedule(schedule);
+      setShowEditModal(true);
+    }
+  };
+
+  const handleEditScheduleSubmit = (updatedSchedule) => {
+    if (editingType === "care") {
+      setCareSchedules((prev) =>
+        prev.map((s) => (s.id === updatedSchedule.id ? updatedSchedule : s))
+      );
+    } else {
+      setVaccinationSchedules((prev) =>
+        prev.map((s) => (s.id === updatedSchedule.id ? updatedSchedule : s))
+      );
+    }
+
+    setToastMessage(`${updatedSchedule.name} 일정이 수정되었습니다.`);
+    setToastType("active");
+    setShowToast(true);
   };
 
   const toggleNotification = (id, type) => {
@@ -255,6 +331,19 @@ export default function CareSchedule() {
           onAdd={handleAddNewSchedule}
         />
       )}
+
+      {/* 일정 수정 모달 */}
+      <EditScheduleModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingSchedule(null);
+          setEditingType("");
+        }}
+        onEdit={handleEditScheduleSubmit}
+        scheduleData={editingSchedule}
+        type={editingType}
+      />
 
       {/* 삭제 확인 모달 */}
       {showConfirm && (
