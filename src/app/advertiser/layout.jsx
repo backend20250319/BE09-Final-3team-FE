@@ -9,12 +9,16 @@ export default function RootLayout({ children }) {
   const pathname = usePathname();
 
   if (pathname === "/advertiser") {
-    return <div>{children}</div>;
+    return (
+      <>
+        <Header />
+        <div>{children}</div>
+      </>
+    );
   }
 
   return (
     <>
-      <Header />
       <div className={styles.container}>
         <Sidebar />
         {children}
