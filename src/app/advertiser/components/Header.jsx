@@ -24,8 +24,12 @@ export default function Header() {
           </div>
 
           <div className={styles.headerActions}>
-            <button className={styles.loginButton}>로그인</button>
-            <button className={styles.signupButton}>회원가입</button>
+            <Link href="/advertiser/login" className={styles.loginButton}>
+                로그인
+              </Link>
+              <Link href="/advertiser/signup" className={styles.signupButton}>
+                회원가입
+              </Link>
             <button className={styles.notificationButton}>
               <div className={styles.notificationIcon}>
                 <IoIosNotifications size={24} />
