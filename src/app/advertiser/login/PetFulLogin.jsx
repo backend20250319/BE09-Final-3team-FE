@@ -89,7 +89,7 @@ export default function PetFulLogin() {
         {/* Footer Links */}
         <div className={styles.footer}>
           <div className={styles.linkGroup}>
-            <Link href="/user/signup" className={styles.link}>
+            <Link href="/advertiser/signup" className={styles.link}>
               회원가입
             </Link>
             <Link href="/advertiser/passwordfind" className={styles.link}>
