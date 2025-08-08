@@ -1,5 +1,6 @@
 import Image from "next/image";
 import styles from "../styles/CTASection.module.css";
+import Link from "next/link";
 
 export default function CTASection() {
   return (
@@ -15,7 +16,9 @@ export default function CTASection() {
             있습니다.
           </p>
           <div className={styles.ctaButtonContainer}>
-            <button className={styles.ctaButton}>계정 만들기</button>
+            <Link href="/user/signup" className={styles.ctaButton}>
+              계정만들기
+            </Link>
           </div>
         </div>
       </div>

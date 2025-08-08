@@ -106,7 +106,9 @@ const ActivityModal = ({ isOpen, onClose, onSave, isEditMode }) => {
                 />
               </div>
               <div className={styles.headerText}>
-                <h2 className={styles.modalTitle}>활동이력 카드 등록</h2>
+                <h2 className={styles.modalTitle}>
+                  {isEditMode ? "활동이력 카드 수정" : "활동이력 카드 등록"}
+                </h2>
                 <p className={styles.modalSubtitle}>
                   반려동물의 활동을 기록하고 관리하세요
                 </p>

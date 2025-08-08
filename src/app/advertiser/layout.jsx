@@ -6,23 +6,34 @@ import styles from "./styles/SideBar.module.css";
 import Header from "./components/Header";
 
 export default function RootLayout({ children }) {
-  const pathname = usePathname();
+  const pathname = usePathname() || "/";
 
-  if (pathname === "/advertiser") {
-    return (
-      <>
-        <Header />
-        <div>{children}</div>
-      </>
-    );
-  }
+  // 사이드바 숨길 경로
+  const noSidebarPrefixes = [
+    "/advertiser/login",
+    "/advertiser/signup",
+    "/advertiser/passwordfind",
+  ];
+
+  const shouldHideSidebar =
+    pathname === "/advertiser" ||
+    noSidebarPrefixes.some((p) => pathname.startsWith(p));
 
   return (
     <>
       <Header />
-      <div className={styles.container}>
-        <Sidebar />
-        {children}
+      {/* 화면 공통 배경 */}
+      <div className={styles.pageBg}>
+        {shouldHideSidebar ? (
+          // 로그인/회원가입/비번찾기/광고주 홈: 사이드바 없이
+          <main className={styles.contentOnly}>{children}</main>
+        ) : (
+          // 그 외: 사이드바 포함
+          <div className={styles.container}>
+            <Sidebar />
+            <main className={styles.main}>{children}</main>
+          </div>
+        )}
       </div>
     </>
   );
