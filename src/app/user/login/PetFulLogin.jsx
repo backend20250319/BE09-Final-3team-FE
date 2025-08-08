@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import styles from "./PetFulLogin.module.css";
 import Image from "next/image";
@@ -88,12 +89,12 @@ export default function PetFulLogin() {
         {/* Footer Links */}
         <div className={styles.footer}>
           <div className={styles.linkGroup}>
-            <a href="#" className={styles.link}>
+            <Link href="/user/signup" className={styles.link}>
               회원가입
-            </a>
-            <a href="#" className={styles.link}>
+            </Link>
+            <Link href="/user/passwordfind" className={styles.link}>
               비밀번호 찾기
-            </a>
+            </Link>
           </div>
         </div>
 

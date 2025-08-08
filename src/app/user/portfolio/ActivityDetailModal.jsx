@@ -172,18 +172,6 @@ const ActivityDetailModal = ({ isOpen, onClose, activityData }) => {
             className={styles.fullscreenContainer}
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              className={styles.fullscreenCloseButton}
-              onClick={handleFullscreenClose}
-            >
-              <Image
-                src="/icons/close-icon.svg"
-                alt="Close"
-                width={25}
-                height={24}
-              />
-            </button>
-
             {/* 풀스크린 이미지 네비게이션 */}
             <div className={styles.fullscreenNavigation}>
               <button

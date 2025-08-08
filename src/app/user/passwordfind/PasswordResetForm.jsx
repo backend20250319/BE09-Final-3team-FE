@@ -1,29 +1,30 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Image from 'next/image'; // ✅ 이미지 사용 시 필수
-import styles from './PasswordResetForm.module.css';
+import Link from "next/link";
+import { useState } from "react";
+import Image from "next/image"; // ✅ 이미지 사용 시 필수
+import styles from "./PasswordResetForm.module.css";
 
 export default function PasswordResetForm() {
-  const [email, setEmail] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [step, setStep] = useState(1); // 1: email verification, 2: password reset
 
   const handleSendVerificationCode = () => {
-    console.log('Sending verification code to:', email);
+    console.log("Sending verification code to:", email);
   };
 
   const handleVerifyCode = () => {
-    console.log('Verifying code:', verificationCode);
+    console.log("Verifying code:", verificationCode);
     setStep(2);
   };
 
   const handleResetPassword = () => {
-    console.log('Resetting password:', { newPassword, confirmPassword });
+    console.log("Resetting password:", { newPassword, confirmPassword });
   };
 
   return (
@@ -33,7 +34,7 @@ export default function PasswordResetForm() {
         <div className={styles.iconContainer}>
           <i className={styles.icon}>
             <Image
-              src="/user/key.png"
+              src="/user/key.svg"
               alt="비밀번호 찾기"
               width={128}
               height={128}
@@ -122,7 +123,7 @@ export default function PasswordResetForm() {
             <label className={styles.labelDisabled}>새 비밀번호</label>
             <div className={styles.inputContainer}>
               <input
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 placeholder="새 비밀번호를 입력하세요"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
@@ -141,7 +142,7 @@ export default function PasswordResetForm() {
             <label className={styles.labelDisabled}>비밀번호 확인</label>
             <div className={styles.inputContainer}>
               <input
-                type={showConfirmPassword ? 'text' : 'password'}
+                type={showConfirmPassword ? "text" : "password"}
                 placeholder="비밀번호를 다시 입력하세요"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -169,10 +170,10 @@ export default function PasswordResetForm() {
       {/* Footer */}
       <div className={styles.footer}>
         <p className={styles.footerText}>
-          계정이 기억나셨나요?{' '}
-          <a href="/login" className={styles.link}>
-            로그인하기
-          </a>
+          계정이 기억나셨나요?{" "}
+          <Link href="/user/login" className={styles.loginButton}>
+            로그인
+          </Link>
         </p>
       </div>
     </div>
