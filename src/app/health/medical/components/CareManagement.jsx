@@ -9,6 +9,7 @@ import Toast from "./Toast";
 import EditScheduleModal from "./EditScheduleModal";
 import ScheduleDetailModal from "./ScheduleDetailModal";
 import HealthCalendar from "../../components/HealthCalendar";
+import Select from "../../activity/components/ClientOnlySelect";
 import {
   defaultCareSchedules,
   defaultVaccinationSchedules,
@@ -42,6 +43,59 @@ export default function CareManagement() {
   // 필터링 상태
   const [careFilter, setCareFilter] = useState("전체");
   const [vaccinationFilter, setVaccinationFilter] = useState("전체");
+
+  // react-select 공통 스타일 (활동관리 산책 드롭다운과 동일 톤)
+  const selectStyles = {
+    option: (provided, state) => ({
+      ...provided,
+      backgroundColor: state.isSelected
+        ? "#e6f4ea"
+        : state.isFocused
+        ? "#f0fdf4"
+        : "white",
+      color: state.isSelected ? "#4caf50" : "#374151",
+      cursor: "pointer",
+      ":active": {
+        backgroundColor: "#c8e6c9",
+        color: "#388e3c",
+      },
+    }),
+    control: (provided, state) => ({
+      ...provided,
+      minWidth: 160,
+      borderColor: state.isFocused ? "#8bc34a" : "#d1d5db",
+      boxShadow: state.isFocused ? "0 0 0 3px rgba(139,195,74,0.3)" : "none",
+      "&:hover": {
+        borderColor: "#8bc34a",
+      },
+      borderRadius: 8,
+      paddingLeft: 2,
+    }),
+    placeholder: (provided) => ({
+      ...provided,
+      color: "#adaebc",
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      color: "#374151",
+    }),
+    menu: (provided) => ({
+      ...provided,
+      borderRadius: 8,
+      boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+      zIndex: 20,
+    }),
+  };
+
+  // 드롭다운 옵션
+  const careFilterOptions = [
+    { value: "전체", label: "전체" },
+    ...careSubTypeOptions.map((o) => ({ value: o, label: o })),
+  ];
+  const vaccinationFilterOptions = [
+    { value: "전체", label: "전체" },
+    ...vaccinationSubTypeOptions.map((o) => ({ value: o, label: o })),
+  ];
 
   // 페이징 상태
   const [carePage, setCarePage] = useState(1);
@@ -350,9 +404,7 @@ export default function CareManagement() {
             }`}
             onClick={() => page !== "..." && onPageChange(page)}
             disabled={page === "..."}
-          >
-            {page === "..." ? "ㆍㆍㆍ" : page}
-          </button>
+          ></button>
         ))}
       </div>
     );
@@ -365,21 +417,17 @@ export default function CareManagement() {
         <div className={styles.sectionHeader}>
           <h3>돌봄</h3>
           <div className={styles.headerControls}>
-            <select
-              value={careFilter}
-              onChange={(e) => {
-                setCareFilter(e.target.value);
+            <Select
+              options={careFilterOptions}
+              value={careFilterOptions.find((o) => o.value === careFilter)}
+              onChange={(opt) => {
+                setCareFilter(opt?.value || "전체");
                 setCarePage(1);
               }}
-              className={styles.filterSelect}
-            >
-              <option value="전체">전체</option>
-              {careSubTypeOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
+              placeholder="유형 선택"
+              classNamePrefix="react-select"
+              styles={selectStyles}
+            />
             <button
               className={styles.addButton}
               onClick={handleAddCareSchedule}
@@ -416,21 +464,19 @@ export default function CareManagement() {
         <div className={styles.sectionHeader}>
           <h3>접종</h3>
           <div className={styles.headerControls}>
-            <select
-              value={vaccinationFilter}
-              onChange={(e) => {
-                setVaccinationFilter(e.target.value);
+            <Select
+              options={vaccinationFilterOptions}
+              value={vaccinationFilterOptions.find(
+                (o) => o.value === vaccinationFilter
+              )}
+              onChange={(opt) => {
+                setVaccinationFilter(opt?.value || "전체");
                 setVaccinationPage(1);
               }}
-              className={styles.filterSelect}
-            >
-              <option value="전체">전체</option>
-              {vaccinationSubTypeOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
+              placeholder="유형 선택"
+              classNamePrefix="react-select"
+              styles={selectStyles}
+            />
             <button
               className={styles.addButton}
               onClick={handleAddVaccinationSchedule}

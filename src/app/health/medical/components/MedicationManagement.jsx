@@ -40,6 +40,10 @@ export default function MedicationManagement() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
 
+  // 페이징 상태
+  const [medicationPage, setMedicationPage] = useState(1);
+  const itemsPerPage = 3;
+
   useEffect(() => {
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (saved) {
@@ -138,6 +142,66 @@ export default function MedicationManagement() {
   const cancelDeleteMedication = () => {
     setShowConfirm(false);
     setToDeleteId(null);
+  };
+
+  // 페이징된 투약 목록
+  const paginatedMedications = medications.slice(
+    (medicationPage - 1) * itemsPerPage,
+    medicationPage * itemsPerPage
+  );
+
+  // 페이징 핸들러
+  const handleMedicationPageChange = (page) => {
+    setMedicationPage(page);
+  };
+
+  // 페이징 렌더링
+  const renderPagination = (currentPage, totalPages, onPageChange) => {
+    const pages = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push("...");
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push("...");
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push("...");
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i);
+        }
+        pages.push("...");
+        pages.push(totalPages);
+      }
+    }
+
+    return (
+      <div className={styles.pagination}>
+        {pages.map((page, index) => (
+          <button
+            key={index}
+            className={`${styles.pageButton} ${
+              page === currentPage ? styles.activePage : ""
+            }`}
+            onClick={() => page !== "..." && onPageChange(page)}
+            disabled={page === "..."}
+          ></button>
+        ))}
+      </div>
+    );
   };
 
   // 특정 날짜와 "HH:MM" 문자열로 Date 만들기
@@ -301,7 +365,7 @@ export default function MedicationManagement() {
         </div>
 
         <div className={styles.medicationList}>
-          {medications.map((medication) => (
+          {paginatedMedications.map((medication) => (
             <div key={medication.id} className={styles.medicationCard}>
               <div className={styles.medicationInfo}>
                 <div
@@ -316,7 +380,7 @@ export default function MedicationManagement() {
                     {medication.type} • {medication.frequency}
                   </p>
                   <p className={styles.scheduleTime}>
-                    일정: {medication.scheduleTime}
+                    {medication.scheduleTime}
                   </p>
                 </div>
               </div>
@@ -362,6 +426,14 @@ export default function MedicationManagement() {
             </div>
           ))}
         </div>
+
+        {/* 페이징 */}
+        {medications.length > itemsPerPage &&
+          renderPagination(
+            medicationPage,
+            Math.ceil(medications.length / itemsPerPage),
+            handleMedicationPageChange
+          )}
       </div>
 
       {/* 캘린더 */}

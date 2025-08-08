@@ -242,7 +242,7 @@ export default function HealthCalendar({
         }}
         eventPropGetter={eventPropGetter}
         popup
-        style={{ height: "500px", width: "1228px" }}
+        style={{ height: "800px", width: "1228px" }}
         className={styles.calendar}
         components={{ toolbar: Toolbar, event: EventItem }}
         showMultiDayTimes
