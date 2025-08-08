@@ -13,6 +13,8 @@ import {
   getTodayKey,
   STORAGE_KEYS,
 } from "../../data/mockData";
+import SaveCompleteModal from "./SaveCompleteModal";
+import SaveConfirmModal from "./SaveConfirmModal";
 
 export default function ActivityManagement() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -26,6 +28,11 @@ export default function ActivityManagement() {
   const [submittedPets, setSubmittedPets] = useState({});
 
   const [calculated, setCalculated] = useState(initialCalculated);
+
+  // 저장 완료 모달 상태
+  const [showSaveComplete, setShowSaveComplete] = useState(false);
+  // 저장 확인 모달 상태
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
 
   // 저장 여부 판단용 키
   const todayKey = useMemo(() => getTodayKey(), []);
@@ -119,6 +126,19 @@ export default function ActivityManagement() {
     }));
   };
 
+  const handleSaveClick = () => {
+    setShowSaveConfirm(true);
+  };
+
+  const handleSaveConfirm = () => {
+    setShowSaveConfirm(false);
+    handleSave();
+  };
+
+  const handleSaveCancel = () => {
+    setShowSaveConfirm(false);
+  };
+
   const handleSave = () => {
     const walkingDistanceNum = parseFloat(formData.walkingDistance);
     const activityLevelVal = formData.activityLevel;
@@ -209,11 +229,15 @@ export default function ActivityManagement() {
     try {
       localStorage.setItem(storageKey, JSON.stringify(dataToSave));
       setSubmittedPets((prev) => ({ ...prev, [storageKey]: true }));
-      alert("저장이 완료되었습니다!");
+      setShowSaveComplete(true);
     } catch (error) {
       alert("저장 중 오류가 발생했습니다.");
       console.error(error);
     }
+  };
+
+  const handleCloseSaveComplete = () => {
+    setShowSaveComplete(false);
   };
 
   return (
@@ -538,52 +562,30 @@ export default function ActivityManagement() {
         {/* 저장버튼 */}
         {!isSubmittedToday && (
           <div className={styles.saveSection}>
-            <button className={styles.saveButton} onClick={handleSave}>
+            <button className={styles.saveButton} onClick={handleSaveClick}>
               <img src="/health/save.png" alt="저장 아이콘" />
               저장
             </button>
           </div>
         )}
-
-        {/* 기록 완료 메시지 오버레이 */}
-        {isSubmittedToday && (
-          <div className={styles.overlay}>
-            <div className={styles.overlayMessage}>
-              ✅ {selectedPetName}의 오늘 기록이 저장되었습니다.
-              <button
-                className={styles.closeButton}
-                onClick={() => {
-                  localStorage.removeItem(storageKey);
-                  setSubmittedPets((prev) => ({
-                    ...prev,
-                    [storageKey]: false,
-                  }));
-                  setFormData({
-                    walkingDistance: "",
-                    activityLevel: "",
-                    totalFoodWeight: "",
-                    totalCaloriesInFood: "",
-                    feedingAmount: "",
-                    weight: "",
-                    sleepTime: "",
-                    urineCount: "",
-                    fecesCount: "",
-                    memo: "",
-                  });
-                }}
-                aria-label="닫기"
-              >
-                <img
-                  src="/health/close.png"
-                  alt="닫기 아이콘"
-                  width={20}
-                  height={20}
-                />
-              </button>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* 저장 완료 모달 */}
+      <SaveCompleteModal
+        isOpen={showSaveComplete}
+        onClose={handleCloseSaveComplete}
+        petName={selectedPetName}
+        date={todayKey}
+      />
+
+      {/* 저장 확인 모달 */}
+      <SaveConfirmModal
+        isOpen={showSaveConfirm}
+        onClose={handleSaveCancel}
+        onConfirm={handleSaveConfirm}
+        petName={selectedPetName}
+        date={todayKey}
+      />
     </div>
   );
 }
