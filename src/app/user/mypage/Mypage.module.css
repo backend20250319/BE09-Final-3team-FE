@@ -20,8 +20,8 @@
   margin-bottom: 20px;
   font-family: "Pretendard Variable", sans-serif;
   text-align: left;
-  align-self: flex-start; /* 이 줄 추가 */
-  margin-left: 130px; /* 섹션 여백과 맞추기 위해 추가 */
+  align-self: flex-start;
+  margin-left: 130px;
 }
 
 /* 메인 콘텐츠 */
@@ -183,7 +183,7 @@
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
-  color: #adaebc;
+  color: #adaebc; /* 기본 회색 - 아래에서 검정으로 덮어씀 */
   box-sizing: border-box;
 }
 
@@ -235,7 +235,7 @@
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
-  color: #adaebc;
+  color: #adaebc; /* 기본 회색 - 아래에서 검정으로 덮어씀 */
   resize: none;
   box-sizing: border-box;
 }
@@ -257,21 +257,7 @@
   margin-bottom: 8px;
 }
 
-.addressInput {
-  flex: 1;
-  height: 50px;
-  background: #ffffff;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 0 16px;
-  font-family: "Pretendard Variable", sans-serif;
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 1.5;
-  color: #adaebc;
-  box-sizing: border-box;
-}
-
+.addressInput,
 .detailAddressInput {
   flex: 1;
   height: 50px;
@@ -283,7 +269,7 @@
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
-  color: #adaebc;
+  color: #adaebc; /* 기본 회색 - 아래에서 검정으로 덮어씀 */
   box-sizing: border-box;
 }
 
@@ -322,7 +308,7 @@
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
-  color: #adaebc;
+  color: #adaebc; /* 기본 회색 - 아래에서 검정으로 덮어씀 */
   box-sizing: border-box;
 }
 
@@ -376,7 +362,7 @@
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
-  color: #adaebc;
+  color: #adaebc; /* 기본 회색 - 아래에서 검정으로 덮어씀 */
   box-sizing: border-box;
 }
 
@@ -427,7 +413,7 @@
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
-  color: #adaebc;
+  color: #adaebc; /* 기본 회색 - 아래에서 검정으로 덮어씀 */
   box-sizing: border-box;
 }
 
@@ -455,6 +441,11 @@
 
 .connectButton:hover {
   background: #5dd4a8;
+}
+
+.connectButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .connectIcon {
@@ -516,7 +507,6 @@
     width: 100%;
     max-width: 100%;
   }
-
   .profileSection,
   .additionalInfoSection,
   .socialMediaSection {
@@ -530,16 +520,13 @@
   .container {
     padding: 10px;
   }
-
   .body {
     height: auto;
     min-height: 100vh;
   }
-
   .main {
     height: auto;
   }
-
   .profileSection,
   .additionalInfoSection,
   .socialMediaSection {
@@ -547,29 +534,62 @@
     margin-left: 20px;
     margin-right: 20px;
   }
-
   .profileContent {
     flex-direction: column;
     align-items: center;
   }
-
   .formRow {
     flex-direction: column;
   }
-
   .addressRow {
     flex-direction: column;
   }
-
   .instagramContainer {
     flex-direction: column;
     height: auto;
     gap: 12px;
   }
-
   .buttonSection {
     flex-direction: column;
     align-items: center;
     gap: 16px;
   }
+}
+
+/* ===== Placeholder & 입력값 색상 통일 (전역 적용) ===== */
+.input::placeholder,
+.textarea::placeholder {
+  color: #aaa; /* placeholder 회색 */
+}
+
+/* 입력값은 항상 검정 */
+.input,
+.textarea {
+  color: #000;
+}
+
+/* readOnly일 때도 검정 유지 (브라우저 기본 흐림 제거) */
+.input:read-only,
+.textarea:read-only {
+  color: #000;
+  opacity: 1;
+  -webkit-text-fill-color: #000; /* Safari/Chrome autofill 대응 */
+}
+
+/* 자동완성된 값도 검정으로 */
+.input:-webkit-autofill,
+.textarea:-webkit-autofill {
+  -webkit-text-fill-color: #000 !important;
+  box-shadow: 0 0 0 1000px #fff inset !important;
+}
+
+/* 기존에 회색으로 지정된 클래스들 덮어쓰기 */
+.nameInput,
+.bioTextarea,
+.birthInput,
+.addressInput,
+.detailAddressInput,
+.input,
+.instagramInput {
+  color: #000 !important; /* 검정으로 강제 */
 }

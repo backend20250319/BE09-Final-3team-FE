@@ -8,8 +8,6 @@ import PetstarModal from "./PetstarModal";
 import Link from "next/link";
 
 const PetProfile = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedType, setSelectedType] = useState("All Types");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isPetstarModalOpen, setIsPetstarModalOpen] = useState(false);
@@ -26,7 +24,7 @@ const PetProfile = () => {
       image: "/user/dog.png",
       healthPercentage: 100,
       healthColor: "#8BC34A",
-      isPetStar: true, // 펫스타 상태 추가
+      isPetStar: true,
     },
     {
       id: 2,
@@ -38,7 +36,7 @@ const PetProfile = () => {
       image: "/user/cat.png",
       healthPercentage: 85,
       healthColor: "#F5A623",
-      isPetStar: false, // 펫스타가 아닌 경우
+      isPetStar: false,
     },
     {
       id: 3,
@@ -50,7 +48,7 @@ const PetProfile = () => {
       image: "/user/bird.png",
       healthPercentage: 60,
       healthColor: "#FF7675",
-      isPetStar: false, // 펫스타가 아닌 경우
+      isPetStar: false,
     },
   ];
 
@@ -96,64 +94,18 @@ const PetProfile = () => {
 
           <section className={styles.mainSection}>
             <div className={styles.contentWrapper}>
-              <div className={styles.header}>
-                <div className={styles.titleSection}>
-                  <h2 className={styles.sectionTitle}>반려동물 프로필</h2>
-                  <p className={styles.sectionDescription}>
-                    반려동물의 모든 정보를 관리하고 확인하세요
-                  </p>
-                </div>
-
-                <div className={styles.searchFilterSection}>
-                  <div className={styles.searchContainer}>
-                    <div className={styles.searchIcon}>
-                      <Image
-                        src="/user/search.png"
-                        alt="Search"
-                        width={16}
-                        height={16}
-                      />
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="Search pets..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className={styles.searchInput}
-                    />
-                  </div>
-
-                  <div className={styles.filterContainer}>
-                    <select
-                      value={selectedType}
-                      onChange={(e) => setSelectedType(e.target.value)}
-                      className={styles.filterSelect}
-                    >
-                      <option value="All Types">All Types</option>
-                      <option value="Dogs">Dogs</option>
-                      <option value="Cats">Cats</option>
-                      <option value="Birds">Birds</option>
-                    </select>
-                    <div className={styles.dropdownIcon}>
-                      <Image
-                        src="/user/down.png"
-                        alt="Dropdown"
-                        width={12}
-                        height={7}
-                      />
-                    </div>
-                  </div>
-                </div>
+              <div className={styles.titleSection}>
+                <h2 className={styles.sectionTitle}>반려동물 프로필</h2>
+                <p className={styles.sectionDescription}>
+                  반려동물의 모든 정보를 관리하고 확인하세요
+                </p>
               </div>
 
               <div className={styles.petGrid}>
                 {pets.map((pet) => (
                   <div key={pet.id} className={styles.petCard}>
                     <div className={styles.petImageContainer}>
-                      <Link
-                        href={`/user/portfolio`} // 포트폴리오 페이지 경로 ${pet.id} 나중에 pet.id 추가
-                        aria-label={`${pet.name} 포트폴리오로 이동`}
-                      >
+                      <Link href={`/user/portfolio`}>
                         <div className={styles.petImage}>
                           <Image
                             src={pet.image}
@@ -189,7 +141,6 @@ const PetProfile = () => {
                             />
                           )}
                         </div>
-
                         <div className={styles.petMetaRow}>
                           <div className={styles.healthInfo}>
                             <Image
@@ -206,11 +157,9 @@ const PetProfile = () => {
                         </div>
                       </div>
                       <div className={styles.ageText}>{pet.age}</div>
-
                       <div className={styles.petDescription}>
                         {pet.description}
                       </div>
-
                       <div className={styles.petFooter}>
                         <div className={styles.petActions}>
                           {!pet.isPetStar && (

@@ -220,6 +220,7 @@ select.birthInput::-ms-expand {
   margin: 24px 0;
   cursor: pointer;
   transition: color 0.2s ease;
+  margin-bottom: 10px;
 }
 
 .loginLink:hover {
