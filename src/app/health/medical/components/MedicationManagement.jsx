@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import styles from "../styles/MedicationManagement.module.css";
+import ConfirmModal from "../components/ConfirmModal";
 
 export default function MedicationManagement() {
   const LOCAL_STORAGE_KEY = "medication_notifications";
@@ -28,13 +29,14 @@ export default function MedicationManagement() {
   ];
 
   const [medications, setMedications] = useState(defaultMedications);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [toDeleteId, setToDeleteId] = useState(null);
 
-  // ✅ 1. 페이지 로딩 시 localStorage에서 알림 상태 불러오기
   useEffect(() => {
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (saved) {
       try {
-        const savedStatus = JSON.parse(saved); // { "1": true, "2": false }
+        const savedStatus = JSON.parse(saved);
         const updatedMedications = defaultMedications.map((med) => ({
           ...med,
           isNotified: savedStatus[med.id] ?? med.isNotified,
@@ -46,14 +48,12 @@ export default function MedicationManagement() {
     }
   }, []);
 
-  // ✅ 2. 알림 상태 토글 핸들러 + localStorage 업데이트
   const toggleNotification = (id) => {
     const updated = medications.map((med) =>
       med.id === id ? { ...med, isNotified: !med.isNotified } : med
     );
     setMedications(updated);
 
-    // localStorage에 저장
     const updatedStatus = updated.reduce((acc, med) => {
       acc[med.id] = med.isNotified;
       return acc;
@@ -76,17 +76,33 @@ export default function MedicationManagement() {
     console.log("Edit medication:", id);
   };
 
-  const handleDeleteMedication = (id) => {
-    const updated = medications.filter((med) => med.id !== id);
+  // 삭제 요청시 모달 띄우기
+  const requestDeleteMedication = (id) => {
+    setToDeleteId(id);
+    setShowConfirm(true);
+  };
+
+  // 모달에서 확인 시 실제 삭제 처리
+  const confirmDeleteMedication = () => {
+    if (toDeleteId == null) return;
+    const updated = medications.filter((med) => med.id !== toDeleteId);
     setMedications(updated);
 
-    // 로컬스토리지에서도 삭제
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
-      delete parsed[id];
+      delete parsed[toDeleteId];
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(parsed));
     }
+
+    setShowConfirm(false);
+    setToDeleteId(null);
+  };
+
+  // 모달에서 취소 시 모달 닫기
+  const cancelDeleteMedication = () => {
+    setShowConfirm(false);
+    setToDeleteId(null);
   };
 
   return (
@@ -168,7 +184,7 @@ export default function MedicationManagement() {
                 </button>
                 <button
                   className={styles.actionButton}
-                  onClick={() => handleDeleteMedication(medication.id)}
+                  onClick={() => requestDeleteMedication(medication.id)}
                 >
                   <img
                     src="/health/trash.png"
@@ -197,6 +213,15 @@ export default function MedicationManagement() {
           ))}
         </div>
       </div>
+
+      {/* 삭제 확인 모달 */}
+      {showConfirm && (
+        <ConfirmModal
+          message="일정을 삭제하시겠습니까?"
+          onConfirm={confirmDeleteMedication}
+          onCancel={cancelDeleteMedication}
+        />
+      )}
 
       {/* 스케줄 캘린더 섹션 */}
       {/* <CalendarSchedule /> */}
