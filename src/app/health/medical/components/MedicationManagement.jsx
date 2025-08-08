@@ -6,6 +6,7 @@ import ConfirmModal from "../components/ConfirmModal";
 import Toast from "../components/Toast";
 import AddMedicationModal from "./AddMedicationModal";
 import EditScheduleModal from "./EditScheduleModal";
+import PrescriptionResultModal from "./PrescriptionResultModal";
 
 export default function MedicationManagement() {
   const LOCAL_STORAGE_KEY = "medication_notifications";
@@ -37,6 +38,8 @@ export default function MedicationManagement() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingMedication, setEditingMedication] = useState(null);
+  const [showPrescriptionResult, setShowPrescriptionResult] = useState(false);
+  const [prescriptionData, setPrescriptionData] = useState(null);
 
   // 토스트 메시지 상태
   const [toastMessage, setToastMessage] = useState("");
@@ -85,6 +88,60 @@ export default function MedicationManagement() {
     const file = event.target.files[0];
     if (file) {
       console.log("Uploaded file:", file.name);
+
+      // 시뮬레이션: OCR 처리 후 결과 데이터 생성
+      setTimeout(() => {
+        const mockPrescriptionData = {
+          originalText:
+            "아목시실린 500mg 1일 3회 7일간 복용\n타이레놀 500mg 1일 2회 5일간 복용",
+          extractedMedications: [
+            {
+              id: Date.now() + 1,
+              name: "아목시실린 500mg",
+              type: "복용약",
+              frequency: "하루에 세 번",
+              duration: 7,
+              startDate: new Date().toISOString().split("T")[0],
+              endDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000)
+                .toISOString()
+                .split("T")[0],
+              icon: "💊",
+              color: "#E3F2FD",
+              isNotified: true,
+            },
+            {
+              id: Date.now() + 2,
+              name: "타이레놀 500mg",
+              type: "복용약",
+              frequency: "하루에 두 번",
+              duration: 5,
+              startDate: new Date().toISOString().split("T")[0],
+              endDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000)
+                .toISOString()
+                .split("T")[0],
+              icon: "💊",
+              color: "#E3F2FD",
+              isNotified: true,
+            },
+          ],
+          uploadTime: new Date().toISOString(),
+          fileName: file.name,
+        };
+
+        setPrescriptionData(mockPrescriptionData);
+        setShowPrescriptionResult(true);
+
+        // 자동으로 약물 목록에 추가
+        mockPrescriptionData.extractedMedications.forEach((medication) => {
+          setMedications((prev) => [...prev, medication]);
+        });
+
+        setToastMessage(
+          "처방전이 성공적으로 분석되어 약물이 자동으로 등록되었습니다."
+        );
+        setToastType("active");
+        setShowToast(true);
+      }, 2000); // 2초 후 결과 표시 (실제 OCR 처리 시간 시뮬레이션)
     }
   };
 
@@ -282,6 +339,13 @@ export default function MedicationManagement() {
         onEdit={handleEditMedicationSubmit}
         scheduleData={editingMedication}
         type="medication"
+      />
+
+      {/* 처방전 결과 모달 */}
+      <PrescriptionResultModal
+        isOpen={showPrescriptionResult}
+        onClose={() => setShowPrescriptionResult(false)}
+        prescriptionData={prescriptionData}
       />
 
       {/* 토스트 메시지 */}
