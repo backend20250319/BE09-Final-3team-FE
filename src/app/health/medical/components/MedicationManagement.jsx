@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import styles from "../styles/MedicationManagement.module.css";
 import ConfirmModal from "../components/ConfirmModal";
 import Toast from "../components/Toast";
+import AddMedicationModal from "./AddMedicationModal";
 
 export default function MedicationManagement() {
   const LOCAL_STORAGE_KEY = "medication_notifications";
@@ -32,6 +33,7 @@ export default function MedicationManagement() {
   const [medications, setMedications] = useState(defaultMedications);
   const [showConfirm, setShowConfirm] = useState(false);
   const [toDeleteId, setToDeleteId] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   // 토스트 메시지 상태
   const [toastMessage, setToastMessage] = useState("");
@@ -84,7 +86,14 @@ export default function MedicationManagement() {
   };
 
   const handleAddMedication = () => {
-    console.log("Add medication clicked");
+    setShowAddModal(true);
+  };
+
+  const handleAddNewMedication = (newMedication) => {
+    setMedications((prev) => [...prev, newMedication]);
+    setToastMessage(`${newMedication.name}이 추가되었습니다.`);
+    setToastType("active");
+    setShowToast(true);
   };
 
   const handleEditMedication = (id) => {
@@ -237,6 +246,13 @@ export default function MedicationManagement() {
           onCancel={cancelDeleteMedication}
         />
       )}
+
+      {/* 약 추가 모달 */}
+      <AddMedicationModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onAdd={handleAddNewMedication}
+      />
 
       {/* 토스트 메시지 */}
       {showToast && (
