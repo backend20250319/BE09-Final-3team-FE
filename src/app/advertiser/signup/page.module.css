@@ -8,6 +8,7 @@
   justify-content: center;
   min-height: 100vh;
   width: 100%;
+  margin-left: 40px;
 }
 
 .body {
@@ -29,7 +30,7 @@
   top: -3px;
   left: 387px;
   width: 600px;
-  height: 1310px;
+  height: 1270px;
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0px 10px 15px 0px rgba(0, 0, 0, 0.1),
@@ -52,8 +53,8 @@
   font-size: 30px;
   line-height: 1.2em;
   color: #594a3e;
-  margin: 0 0 16px 0;
   text-align: center;
+margin-top: 30px;
 }
 
 .subtitle {
@@ -86,7 +87,7 @@
   font-size: 14px;
   line-height: 1.193359375em;
   color: #594a3e;
-  margin: 0;
+  margin-top: 5px;
 }
 
 .inputGroup {
@@ -322,4 +323,49 @@ select.birthInput::-ms-expand {
   .subtitle {
     font-size: 14px;
   }
+}
+
+.dropzone {
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+  background-color: #fafafa;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.dropzone:hover {
+  border-color: #9ca3af;
+}
+
+.uploadIcon {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 8px;
+  opacity: 0.6;
+}
+
+.dropText {
+  font-size: 14px;
+  color: #4b5563;
+  margin-bottom: 12px;
+}
+
+.browseButton {
+  display: inline-block;
+  padding: 6px 12px;
+  font-size: 14px;
+  background-color: #f3f4f6;
+  border-radius: 6px;
+  color: #374151;
+  cursor: pointer;
+}
+
+.browseButton:hover {
+  background-color: #e5e7eb;
+}
+
+.fileInput {
+  display: none;
 }

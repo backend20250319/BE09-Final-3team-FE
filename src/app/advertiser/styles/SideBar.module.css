@@ -1,14 +1,22 @@
-/* 전체 페이지 컨테이너 */
-.container {
+/* === 공통 배경 래퍼(항상 깔림) === */
+.pageBg {
   min-height: 100vh;
   background: linear-gradient(90deg, #eff6ff 0%, #fcfbf8 100%);
+}
+
+/* === 기본 레이아웃(사이드바 있는 화면) === */
+.container {
   display: flex;
+  gap: 16px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px;
 }
 
 /* 사이드바 */
 .sidebar {
   width: 256px;
-  background: white;
+  background: #ffffff;
   border-right: 1px solid #e5e7eb;
   box-shadow: 0px 10px 15px 0px rgba(0, 0, 0, 0.1),
     0px 4px 6px 0px rgba(0, 0, 0, 0.1);
@@ -22,7 +30,6 @@
   display: flex;
   align-items: center;
   padding: 24px;
-
   margin-bottom: 30px;
 }
 
@@ -53,7 +60,7 @@
   margin-bottom: 8px;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease;
   text-decoration: none;
   color: #4b5563;
   font-family: "Pretendard Variable", sans-serif;
@@ -61,12 +68,13 @@
   font-size: 16px;
 }
 
+/* 흰 배경에서도 보이는 hover 톤 */
 .navItem:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(245, 166, 35, 0.08);
 }
 
 .navItem.active {
-  background: rgba(245, 166, 35, 0.1);
+  background: rgba(245, 166, 35, 0.12);
   color: #f5a623;
 }
 
@@ -74,4 +82,23 @@
   margin-right: 30px;
   width: 16px;
   height: 16px;
+}
+
+/* 메인 컨텐츠(사이드바 있는 경우) */
+.main {
+  flex: 1;
+}
+
+/* === 사이드바 없는 페이지(로그인/회원가입/비번찾기 등) === */
+.contentOnly {
+  max-width: 480px;       /* 로그인 카드 폭에 맞게 조절 */
+  margin: 0 auto;
+  padding: 48px 16px;
+}
+
+/* 반응형(선택): 좁은 화면에서 여백 조정 */
+@media (max-width: 1024px) {
+  .container {
+    padding: 16px;
+  }
 }
