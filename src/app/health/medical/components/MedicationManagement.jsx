@@ -7,7 +7,11 @@ import Toast from "../components/Toast";
 import AddMedicationModal from "./AddMedicationModal";
 import EditScheduleModal from "./EditScheduleModal";
 import PrescriptionResultModal from "./PrescriptionResultModal";
-import { defaultMedications, STORAGE_KEYS } from "../../data/mockData";
+import {
+  defaultMedications,
+  STORAGE_KEYS,
+  mockPrescriptionData,
+} from "../../data/mockData";
 
 export default function MedicationManagement() {
   const LOCAL_STORAGE_KEY = STORAGE_KEYS.MEDICATION_NOTIFICATIONS;
@@ -23,6 +27,10 @@ export default function MedicationManagement() {
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState("inactive"); // "active" or "inactive"
   const [showToast, setShowToast] = useState(false);
+
+  // OCR 결과 모달 상태
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [ocrResult, setOcrResult] = useState(null);
 
   useEffect(() => {
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -62,10 +70,15 @@ export default function MedicationManagement() {
     setShowToast(true);
   };
 
+  // 파일 업로드 핸들러 수정
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
       console.log("Uploaded file:", file.name);
+
+      // 모의 OCR 데이터 세팅 및 모달 열기
+      setOcrResult(mockPrescriptionData);
+      setShowResultModal(true);
     }
   };
 
@@ -99,13 +112,11 @@ export default function MedicationManagement() {
     setShowToast(true);
   };
 
-  // 삭제 요청시 모달 띄우기
   const requestDeleteMedication = (id) => {
     setToDeleteId(id);
     setShowConfirm(true);
   };
 
-  // 모달에서 확인 시 실제 삭제 처리
   const confirmDeleteMedication = () => {
     if (toDeleteId == null) return;
     const updated = medications.filter((med) => med.id !== toDeleteId);
@@ -122,7 +133,6 @@ export default function MedicationManagement() {
     setToDeleteId(null);
   };
 
-  // 모달에서 취소 시 모달 닫기
   const cancelDeleteMedication = () => {
     setShowConfirm(false);
     setToDeleteId(null);
@@ -263,6 +273,13 @@ export default function MedicationManagement() {
         onEdit={handleEditMedicationSubmit}
         scheduleData={editingMedication}
         type="medication"
+      />
+
+      {/* 결과 모달 */}
+      <PrescriptionResultModal
+        isOpen={showResultModal}
+        onClose={() => setShowResultModal(false)}
+        prescriptionData={ocrResult}
       />
 
       {/* 토스트 메시지 */}

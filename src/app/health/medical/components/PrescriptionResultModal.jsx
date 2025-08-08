@@ -2,6 +2,7 @@
 
 import React from "react";
 import styles from "../styles/PrescriptionResultModal.module.css";
+import { mockPrescriptionData } from "../../data/mockData";
 
 export default function PrescriptionResultModal({
   isOpen,
@@ -10,40 +11,8 @@ export default function PrescriptionResultModal({
 }) {
   if (!isOpen) return null;
 
-  // 예시 데이터 (실제로는 props로 받아올 데이터)
-  const sampleData = {
-    originalText: "아목시실린 500mg 1일 3회 7일간 복용",
-    extractedMedications: [
-      {
-        id: 1,
-        name: "아목시실린 500mg",
-        type: "복용약",
-        frequency: "하루에 세 번",
-        duration: 7,
-        startDate: "2025-01-15",
-        endDate: "2025-01-21",
-        icon: "💊",
-        color: "#E3F2FD",
-        isNotified: true,
-      },
-      {
-        id: 2,
-        name: "타이레놀 500mg",
-        type: "복용약",
-        frequency: "하루에 두 번",
-        duration: 5,
-        startDate: "2025-01-15",
-        endDate: "2025-01-19",
-        icon: "💊",
-        color: "#E3F2FD",
-        isNotified: true,
-      },
-    ],
-    uploadTime: "2025-01-15 14:30",
-    fileName: "prescription_001.jpg",
-  };
-
-  const data = prescriptionData || sampleData;
+  // props로 받은 데이터 없으면 mockPrescriptionData 사용
+  const data = prescriptionData || mockPrescriptionData;
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
