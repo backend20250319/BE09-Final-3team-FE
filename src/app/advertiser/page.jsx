@@ -11,7 +11,6 @@ export default function Page() {
   return (
     <div className={styles.mainPage}>
       <main className="{styles.mainContent}">
-        <Header />
         <HeroSection />
         <FeaturesSection />
         <DetailedFeaturesSection />
