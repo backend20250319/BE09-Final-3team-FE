@@ -1,0 +1,194 @@
+.calendarWrap {
+  width: 1230px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  margin-top: -1px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+}
+
+.calendar {
+  height: 640px;
+  padding: 0 16px 20px 16px;
+}
+
+/*****************
+ * Legend
+ *****************/
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 16px 10px 16px;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #475569;
+  font-size: 13px;
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.legendLabel {
+  line-height: 1;
+}
+
+/*****************
+ * Toolbar
+ *****************/
+.toolbar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 8px 16px 14px 16px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.dateSelectors {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.yearSelect,
+.monthSelect {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 8px 12px;
+  color: #374151;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.yearSelect:focus,
+.monthSelect:focus {
+  outline: none;
+  border-color: #cbd5e1;
+  box-shadow: 0 0 0 2px rgba(203, 213, 225, 0.35);
+}
+
+.centerLabel {
+  text-align: center;
+  font-weight: 700;
+  color: #1f2937;
+  font-size: 20px;
+}
+
+.navButtons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.iconBtn {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.iconBtn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+/*****************
+ * Event
+ *****************/
+.eventItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1;
+}
+
+.eventTime {
+  background: rgba(0, 0, 0, 0.06);
+  color: #334155;
+  border-radius: 6px;
+  padding: 1px 5px;
+  font-size: 11px;
+}
+
+.eventTitle {
+  font-size: 12px;
+  color: #1f2937;
+}
+
+/*****************
+ * RBC overrides
+ *****************/
+.calendar :global(.rbc-month-view) {
+  border-color: #eef2f7;
+}
+
+.calendar :global(.rbc-header) {
+  padding: 10px 0;
+  font-weight: 600;
+  color: #1f2937;
+  background: #fafcff;
+  border-color: #eef2f7;
+}
+
+/* Sunday (1st col) red, Saturday (7th col) blue */
+.calendar :global(.rbc-month-view .rbc-header:nth-child(1)) {
+  color: #ef4444;
+}
+.calendar :global(.rbc-month-view .rbc-header:nth-child(7)) {
+  color: #2563eb;
+}
+
+.calendar :global(.rbc-date-cell) {
+  color: #64748b;
+}
+
+.calendar :global(.rbc-off-range-bg) {
+  background: #fafafa;
+}
+
+.calendar :global(.rbc-today) {
+  background: #fffbea;
+}
+
+.calendar :global(.rbc-event) {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+}
+
+.calendar :global(.rbc-row-segment) {
+  padding: 3px 6px;
+}
+
+.calendar :global(.rbc-agenda-date-cell),
+.calendar :global(.rbc-agenda-time-cell) {
+  color: #6b7280;
+}
+
+.calendar :global(.rbc-agenda-event-cell) {
+  color: #374151;
+}
+
+@media (max-width: 768px) {
+  .calendarWrap {
+    width: 100%;
+  }
+  .calendar {
+    height: 520px;
+  }
+}

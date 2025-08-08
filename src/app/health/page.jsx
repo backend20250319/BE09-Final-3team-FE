@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -8,7 +9,7 @@ import ActivityNavTabs from "./activity/components/ActivityNavTabs";
 import ActivityReport from "./activity/components/ActivityReport";
 import MedicalNavTabs from "./medical/components/MedicalNavTabs";
 import MedicationManagement from "./medical/components/MedicationManagement";
-import CareSchedule from "./medical/components/CareSchedule";
+import CareManagement from "./medical/components/CareManagement";
 
 export default function HealthPage() {
   const { selectedPetName, setSelectedPetName } = useSelectedPet();
@@ -64,9 +65,10 @@ export default function HealthPage() {
 
           {/* 진료/처방 관리 하위 탭 렌더링 */}
           {medicalSubTab === "투약" && <MedicationManagement />}
-          {medicalSubTab === "돌봄 일정" && <CareSchedule />}
+          {medicalSubTab === "돌봄 일정" && <CareManagement />}
         </>
       )}
     </div>
   );
 }
+

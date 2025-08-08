@@ -2,6 +2,7 @@
 
 import React from "react";
 import styles from "../styles/PrescriptionResultModal.module.css";
+import { mockPrescriptionData } from "../../data/mockData";
 
 export default function PrescriptionResultModal({
   isOpen,
@@ -10,40 +11,8 @@ export default function PrescriptionResultModal({
 }) {
   if (!isOpen) return null;
 
-  // 예시 데이터 (실제로는 props로 받아올 데이터)
-  const sampleData = {
-    originalText: "아목시실린 500mg 1일 3회 7일간 복용",
-    extractedMedications: [
-      {
-        id: 1,
-        name: "아목시실린 500mg",
-        type: "복용약",
-        frequency: "하루에 세 번",
-        duration: 7,
-        startDate: "2025-01-15",
-        endDate: "2025-01-21",
-        icon: "💊",
-        color: "#E3F2FD",
-        isNotified: true,
-      },
-      {
-        id: 2,
-        name: "타이레놀 500mg",
-        type: "복용약",
-        frequency: "하루에 두 번",
-        duration: 5,
-        startDate: "2025-01-15",
-        endDate: "2025-01-19",
-        icon: "💊",
-        color: "#E3F2FD",
-        isNotified: true,
-      },
-    ],
-    uploadTime: "2025-01-15 14:30",
-    fileName: "prescription_001.jpg",
-  };
-
-  const data = prescriptionData || sampleData;
+  // props로 받은 데이터 없으면 mockPrescriptionData 사용
+  const data = prescriptionData || mockPrescriptionData;
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -69,14 +38,12 @@ export default function PrescriptionResultModal({
         <div className={styles.header}>
           <div className={styles.headerContent}>
             <div className={styles.headerIcon}>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path
-                  d="M10 2L10 18M2 10L18 10"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <img
+                src="/health/prescriptions.png"
+                alt="처방전 아이콘"
+                width={20}
+                height={20}
+              />
             </div>
             <div className={styles.headerText}>
               <h3>처방전 분석 결과</h3>
@@ -169,18 +136,15 @@ export default function PrescriptionResultModal({
           {/* 알림 설정 정보 */}
           <div className={styles.notificationInfo}>
             <div className={styles.infoIcon}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path
-                  d="M8 1V15M1 8H15"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <img
+                src="/health/pill.png"
+                alt="알약 아이콘"
+                width={16}
+                height={16}
+              />
             </div>
             <div className={styles.infoText}>
               <p>모든 약물에 대해 복용 알림이 자동으로 설정되었습니다.</p>
-              <p>마이페이지에서 알림 설정을 변경할 수 있습니다.</p>
             </div>
           </div>
         </div>

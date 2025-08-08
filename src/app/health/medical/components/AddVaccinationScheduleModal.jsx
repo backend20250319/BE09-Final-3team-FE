@@ -2,6 +2,12 @@
 
 import React, { useState } from "react";
 import styles from "../styles/AddScheduleModal.module.css";
+import {
+  vaccinationSubTypeOptions,
+  vaccinationFrequencyOptions,
+  ICON_MAP,
+  COLOR_MAP,
+} from "../../data/mockData";
 
 export default function AddVaccinationScheduleModal({
   isOpen,
@@ -21,18 +27,8 @@ export default function AddVaccinationScheduleModal({
   // 접종 일정 고정
   const mainType = "접종";
 
-  const subTypeOptions = ["예방접종", "건강검진"];
-
-  const frequencyOptions = [
-    "매일",
-    "매주",
-    "매월",
-    "연 1회",
-    "반년 1회",
-    "월 1회",
-    "주 1회",
-    "기타",
-  ];
+  const subTypeOptions = vaccinationSubTypeOptions;
+  const frequencyOptions = vaccinationFrequencyOptions;
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -61,20 +57,11 @@ export default function AddVaccinationScheduleModal({
   };
 
   const getIconForSubType = (subType) => {
-    const iconMap = {
-      예방접종: "💉",
-      건강검진: "🏥",
-      기타: "📅",
-    };
-    return iconMap[subType] || iconMap["기타"];
+    return ICON_MAP[subType] || ICON_MAP["기타"];
   };
 
   const getColorForType = (type) => {
-    const colorMap = {
-      돌봄: "#E8F5E8",
-      접종: "#E3F2FD",
-    };
-    return colorMap[type] || "#F5F5F5";
+    return COLOR_MAP[type] || "#F5F5F5";
   };
 
   const handleSubmit = () => {

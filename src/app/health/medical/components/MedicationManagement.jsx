@@ -7,30 +7,18 @@ import Toast from "../components/Toast";
 import AddMedicationModal from "./AddMedicationModal";
 import EditScheduleModal from "./EditScheduleModal";
 import PrescriptionResultModal from "./PrescriptionResultModal";
+import ScheduleDetailModal from "./ScheduleDetailModal";
+import HealthCalendar from "../../components/HealthCalendar";
+import {
+  defaultMedications,
+  STORAGE_KEYS,
+  mockPrescriptionData,
+  defaultCareSchedules,
+  defaultVaccinationSchedules,
+} from "../../data/mockData";
 
 export default function MedicationManagement() {
-  const LOCAL_STORAGE_KEY = "medication_notifications";
-
-  const defaultMedications = [
-    {
-      id: 1,
-      name: "오메가 1.5mg",
-      type: "항생제",
-      frequency: "하루에 두 번",
-      icon: "💊",
-      color: "#E3F2FD",
-      isNotified: false,
-    },
-    {
-      id: 2,
-      name: "오메가-3",
-      type: "영양제",
-      frequency: "하루에 한 번",
-      icon: "💊",
-      color: "#FFF3E0",
-      isNotified: true,
-    },
-  ];
+  const LOCAL_STORAGE_KEY = STORAGE_KEYS.MEDICATION_NOTIFICATIONS;
 
   const [medications, setMedications] = useState(defaultMedications);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -38,13 +26,23 @@ export default function MedicationManagement() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingMedication, setEditingMedication] = useState(null);
-  const [showPrescriptionResult, setShowPrescriptionResult] = useState(false);
-  const [prescriptionData, setPrescriptionData] = useState(null);
 
   // 토스트 메시지 상태
   const [toastMessage, setToastMessage] = useState("");
-  const [toastType, setToastType] = useState("inactive"); // "active" or "inactive"
+  const [toastType, setToastType] = useState("inactive");
   const [showToast, setShowToast] = useState(false);
+
+  // OCR 결과 모달 상태
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [ocrResult, setOcrResult] = useState(null);
+
+  // 일정 상세 모달 상태
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedSchedule, setSelectedSchedule] = useState(null);
+
+  // 페이징 상태
+  const [medicationPage, setMedicationPage] = useState(1);
+  const itemsPerPage = 3;
 
   useEffect(() => {
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -87,67 +85,12 @@ export default function MedicationManagement() {
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
-      console.log("Uploaded file:", file.name);
-
-      // 시뮬레이션: OCR 처리 후 결과 데이터 생성
-      setTimeout(() => {
-        const mockPrescriptionData = {
-          originalText:
-            "아목시실린 500mg 1일 3회 7일간 복용\n타이레놀 500mg 1일 2회 5일간 복용",
-          extractedMedications: [
-            {
-              id: Date.now() + 1,
-              name: "아목시실린 500mg",
-              type: "복용약",
-              frequency: "하루에 세 번",
-              duration: 7,
-              startDate: new Date().toISOString().split("T")[0],
-              endDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000)
-                .toISOString()
-                .split("T")[0],
-              icon: "💊",
-              color: "#E3F2FD",
-              isNotified: true,
-            },
-            {
-              id: Date.now() + 2,
-              name: "타이레놀 500mg",
-              type: "복용약",
-              frequency: "하루에 두 번",
-              duration: 5,
-              startDate: new Date().toISOString().split("T")[0],
-              endDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000)
-                .toISOString()
-                .split("T")[0],
-              icon: "💊",
-              color: "#E3F2FD",
-              isNotified: true,
-            },
-          ],
-          uploadTime: new Date().toISOString(),
-          fileName: file.name,
-        };
-
-        setPrescriptionData(mockPrescriptionData);
-        setShowPrescriptionResult(true);
-
-        // 자동으로 약물 목록에 추가
-        mockPrescriptionData.extractedMedications.forEach((medication) => {
-          setMedications((prev) => [...prev, medication]);
-        });
-
-        setToastMessage(
-          "처방전이 성공적으로 분석되어 약물이 자동으로 등록되었습니다."
-        );
-        setToastType("active");
-        setShowToast(true);
-      }, 2000); // 2초 후 결과 표시 (실제 OCR 처리 시간 시뮬레이션)
+      setOcrResult(mockPrescriptionData);
+      setShowResultModal(true);
     }
   };
 
-  const handleAddMedication = () => {
-    setShowAddModal(true);
-  };
+  const handleAddMedication = () => setShowAddModal(true);
 
   const handleAddNewMedication = (newMedication) => {
     setMedications((prev) => [...prev, newMedication]);
@@ -175,13 +118,11 @@ export default function MedicationManagement() {
     setShowToast(true);
   };
 
-  // 삭제 요청시 모달 띄우기
   const requestDeleteMedication = (id) => {
     setToDeleteId(id);
     setShowConfirm(true);
   };
 
-  // 모달에서 확인 시 실제 삭제 처리
   const confirmDeleteMedication = () => {
     if (toDeleteId == null) return;
     const updated = medications.filter((med) => med.id !== toDeleteId);
@@ -198,10 +139,182 @@ export default function MedicationManagement() {
     setToDeleteId(null);
   };
 
-  // 모달에서 취소 시 모달 닫기
   const cancelDeleteMedication = () => {
     setShowConfirm(false);
     setToDeleteId(null);
+  };
+
+  // 페이징된 투약 목록
+  const paginatedMedications = medications.slice(
+    (medicationPage - 1) * itemsPerPage,
+    medicationPage * itemsPerPage
+  );
+
+  // 페이징 핸들러
+  const handleMedicationPageChange = (page) => {
+    setMedicationPage(page);
+  };
+
+  // 페이징 렌더링
+  const renderPagination = (currentPage, totalPages, onPageChange) => {
+    const pages = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push("...");
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push("...");
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push("...");
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i);
+        }
+        pages.push("...");
+        pages.push(totalPages);
+      }
+    }
+
+    return (
+      <div className={styles.pagination}>
+        {pages.map((page, index) => (
+          <button
+            key={index}
+            className={`${styles.pageButton} ${
+              page === currentPage ? styles.activePage : ""
+            }`}
+            onClick={() => page !== "..." && onPageChange(page)}
+            disabled={page === "..."}
+          ></button>
+        ))}
+      </div>
+    );
+  };
+
+  // 특정 날짜와 "HH:MM" 문자열로 Date 만들기
+  const dateAtTime = (baseDate, hm) => {
+    const [hh = 9, mm = 0] = (hm || "09:00")
+      .split(":")
+      .map((n) => parseInt(n.trim(), 10));
+    return new Date(
+      baseDate.getFullYear(),
+      baseDate.getMonth(),
+      baseDate.getDate(),
+      hh,
+      mm,
+      0
+    );
+  };
+
+  // 캘린더 이벤트 구성 (투약 + 돌봄 + 접종 모두 포함)
+  const buildCalendarEvents = () => {
+    const events = [];
+
+    // 1) 투약: 기간 동안 매일, scheduleTime(콤마 구분) 각각 이벤트 생성
+    medications.forEach((med) => {
+      if (med.startDate && med.endDate) {
+        const start = new Date(med.startDate);
+        const end = new Date(med.endDate);
+        const times = (med.scheduleTime || "09:00")
+          .split(",")
+          .map((t) => t.trim());
+        const current = new Date(start);
+        while (current <= end) {
+          times.forEach((hm) => {
+            const s = dateAtTime(current, hm);
+            const e = new Date(s.getTime() + 60 * 60 * 1000);
+            events.push({
+              id: `med-${med.id}-${current.toISOString().slice(0, 10)}-${hm}`,
+              title: `${med.icon || "💊"} ${med.name}`,
+              start: s,
+              end: e,
+              allDay: false,
+              type: "medication",
+              schedule: { ...med, category: "medication" },
+            });
+          });
+          current.setDate(current.getDate() + 1);
+        }
+      }
+    });
+
+    // 2) 돌봄 일정
+    defaultCareSchedules.forEach((s) => {
+      if (!s.date) return;
+      const base = new Date(s.date);
+      const sTime = dateAtTime(base, s.scheduleTime || "09:00");
+      const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+      events.push({
+        id: `care-${s.id}`,
+        title: `${s.icon || "🐕"} ${s.name}`,
+        start: sTime,
+        end: eTime,
+        allDay: false,
+        type: "care",
+        schedule: { ...s, category: "care" },
+      });
+    });
+
+    // 3) 접종 일정
+    defaultVaccinationSchedules.forEach((s) => {
+      const dateStr = s.date || new Date().toISOString().slice(0, 10);
+      const base = new Date(dateStr);
+      const sTime = dateAtTime(base, s.scheduleTime || "10:00");
+      const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+      events.push({
+        id: `vac-${s.id}`,
+        title: `${s.icon || "💉"} ${s.name}`,
+        start: sTime,
+        end: eTime,
+        allDay: false,
+        type: s.subType === "건강검진" ? "checkup" : "vaccination",
+        schedule: {
+          ...s,
+          category: s.subType === "건강검진" ? "checkup" : "vaccination",
+        },
+      });
+    });
+
+    return events;
+  };
+
+  // 캘린더 이벤트 클릭 핸들러
+  const handleCalendarEventClick = (event) => {
+    if (event.schedule) {
+      setSelectedSchedule(event.schedule);
+      setShowDetailModal(true);
+    }
+  };
+
+  // 일정 상세 모달 핸들러
+  const handleDetailModalEdit = () => {
+    if (selectedSchedule && selectedSchedule.category === "medication") {
+      setEditingMedication(selectedSchedule);
+      setShowDetailModal(false);
+      setShowEditModal(true);
+    } else {
+      setShowDetailModal(false);
+    }
+  };
+
+  const handleDetailModalDelete = () => {
+    if (selectedSchedule && selectedSchedule.category === "medication") {
+      requestDeleteMedication(selectedSchedule.id);
+    }
+    setShowDetailModal(false);
   };
 
   return (
@@ -241,19 +354,18 @@ export default function MedicationManagement() {
           <h3>복용약 및 영양제</h3>
           <button className={styles.addButton} onClick={handleAddMedication}>
             <span>추가</span>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path
-                d="M7 1V13M1 7H13"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
+            <img
+              src="health/pill.png"
+              alt="복용약 추가 아이콘"
+              width="17"
+              height="17"
+              className={styles.icon}
+            />
           </button>
         </div>
 
         <div className={styles.medicationList}>
-          {medications.map((medication) => (
+          {paginatedMedications.map((medication) => (
             <div key={medication.id} className={styles.medicationCard}>
               <div className={styles.medicationInfo}>
                 <div
@@ -266,6 +378,9 @@ export default function MedicationManagement() {
                   <h4>{medication.name}</h4>
                   <p>
                     {medication.type} • {medication.frequency}
+                  </p>
+                  <p className={styles.scheduleTime}>
+                    {medication.scheduleTime}
                   </p>
                 </div>
               </div>
@@ -311,7 +426,21 @@ export default function MedicationManagement() {
             </div>
           ))}
         </div>
+
+        {/* 페이징 */}
+        {medications.length > itemsPerPage &&
+          renderPagination(
+            medicationPage,
+            Math.ceil(medications.length / itemsPerPage),
+            handleMedicationPageChange
+          )}
       </div>
+
+      {/* 캘린더 */}
+      <HealthCalendar
+        events={buildCalendarEvents()}
+        onEventClick={handleCalendarEventClick}
+      />
 
       {/* 삭제 확인 모달 */}
       {showConfirm && (
@@ -341,11 +470,20 @@ export default function MedicationManagement() {
         type="medication"
       />
 
-      {/* 처방전 결과 모달 */}
+      {/* 결과 모달 */}
       <PrescriptionResultModal
-        isOpen={showPrescriptionResult}
-        onClose={() => setShowPrescriptionResult(false)}
-        prescriptionData={prescriptionData}
+        isOpen={showResultModal}
+        onClose={() => setShowResultModal(false)}
+        prescriptionData={ocrResult}
+      />
+
+      {/* 일정 상세 모달 */}
+      <ScheduleDetailModal
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        schedule={selectedSchedule}
+        onEdit={handleDetailModalEdit}
+        onDelete={handleDetailModalDelete}
       />
 
       {/* 토스트 메시지 */}

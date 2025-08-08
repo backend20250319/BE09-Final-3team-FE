@@ -30,6 +30,27 @@
   line-height: 1.2;
 }
 
+.headerControls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.filterSelect {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #594a3e;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.filterSelect:focus {
+  outline: none;
+  border-color: #8bc34a;
+}
+
 .addButton {
   display: flex;
   align-items: center;
@@ -112,6 +133,12 @@
   line-height: 1.2;
 }
 
+.scheduleTime {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
 .scheduleActions {
   display: flex;
   gap: 8px;
@@ -139,6 +166,37 @@
   height: 20px;
 }
 
+/* 페이징 */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.pageButton {
+  width: 10px;
+  height: 10px;
+  background: #e5e7eb;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.pageButton:hover:not(:disabled) {
+  background: #cbd5e1;
+}
+
+.pageButton.activePage {
+  background: #8bc34a;
+}
+
+.pageButton:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
 /* 반응형 */
 @media (max-width: 768px) {
   .container {
@@ -149,6 +207,11 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
+  }
+
+  .headerControls {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .scheduleCard {

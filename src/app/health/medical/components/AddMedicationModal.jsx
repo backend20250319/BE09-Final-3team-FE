@@ -2,6 +2,10 @@
 
 import React, { useState } from "react";
 import styles from "../styles/AddMedicationModal.module.css";
+import {
+  medicationTypeOptions,
+  medicationFrequencyOptions,
+} from "../../data/mockData";
 
 export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
   const [formData, setFormData] = useState({
@@ -13,15 +17,8 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
 
   const [errors, setErrors] = useState({});
 
-  const frequencyOptions = [
-    "하루에 한 번",
-    "하루에 두 번",
-    "하루에 세 번",
-    "주에 한 번",
-    "월에 한 번",
-  ];
-
-  const typeOptions = ["복용약", "영양제"];
+  const frequencyOptions = medicationFrequencyOptions;
+  const typeOptions = medicationTypeOptions;
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
