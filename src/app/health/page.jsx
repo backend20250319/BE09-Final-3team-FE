@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -71,4 +70,3 @@ export default function HealthPage() {
     </div>
   );
 }
-

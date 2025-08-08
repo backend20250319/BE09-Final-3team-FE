@@ -484,7 +484,7 @@ export default function MedicationManagement() {
         schedule={selectedSchedule}
         onEdit={handleDetailModalEdit}
         onDelete={handleDetailModalDelete}
-      />
+g      />
 
       {/* 토스트 메시지 */}
       {showToast && (

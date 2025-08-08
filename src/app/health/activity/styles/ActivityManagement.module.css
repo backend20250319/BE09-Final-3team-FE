@@ -141,6 +141,23 @@
   overflow-y: auto;
 }
 
+/* Unify react-select height and spacing with inputs */
+.formGroup :global(.react-select__control) {
+  min-height: 48px;
+  height: 48px;
+  border-radius: 8px;
+}
+.formGroup :global(.react-select__value-container) {
+  padding: 0 12px;
+}
+.formGroup :global(.react-select__indicators) {
+  height: 48px;
+}
+.formGroup :global(.react-select__input-container) {
+  margin: 0;
+  padding: 0;
+}
+
 .formGroup input:focus,
 .formGroup textarea:focus {
   outline: none;

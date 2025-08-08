@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import Select from "./ClientOnlySelect";
-import styles from "../styles/ActivityForm.module.css";
+import styles from "../styles/ActivityManagement.module.css";
 import { useSelectedPet } from "../../context/SelectedPetContext";
 import {
   activityOptions,
@@ -281,6 +281,8 @@ export default function ActivityManagement() {
                       }),
                       control: (provided, state) => ({
                         ...provided,
+                        minHeight: "48px",
+                        height: "48px",
                         borderColor: state.isFocused ? "#8bc34a" : "#d1d5db",
                         boxShadow: state.isFocused
                           ? "0 0 0 3px rgba(139,195,74,0.3)"
@@ -288,6 +290,30 @@ export default function ActivityManagement() {
                         "&:hover": {
                           borderColor: "#8bc34a",
                         },
+                      }),
+                      valueContainer: (provided) => ({
+                        ...provided,
+                        height: "48px",
+                        padding: "0 12px",
+                      }),
+                      input: (provided) => ({
+                        ...provided,
+                        margin: 0,
+                        padding: 0,
+                      }),
+                      indicatorsContainer: (provided) => ({
+                        ...provided,
+                        height: "48px",
+                      }),
+                      dropdownIndicator: (provided) => ({
+                        ...provided,
+                        paddingTop: 0,
+                        paddingBottom: 0,
+                      }),
+                      clearIndicator: (provided) => ({
+                        ...provided,
+                        paddingTop: 0,
+                        paddingBottom: 0,
                       }),
                       placeholder: (provided) => ({
                         ...provided,
