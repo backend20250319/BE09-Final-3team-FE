@@ -178,7 +178,7 @@ export default function ProductManagement(){
                                                     isOpen={isModalOpen}
                                                     onClose={() => setIsModalOpen(false)}
                                                     onDelete={handleReject}
-                                                    actionType="reject"
+                                                    actionType="productreject"
                                                     targetKeyword={product.title}
                                                 />
                                             </>)}

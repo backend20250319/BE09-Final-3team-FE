@@ -21,15 +21,23 @@ export default function PopupModal({
         textfield:"삭제 사유",
         placeholder:"삭제 사유를 입력하세요.",
       };
-      case "reject":
+      case "productreject":
         return{
-
           title:"거절하기",
+          label:"광고 제목",
+          description:"광고 승인을 반려하시겠습니까?",
+          confirmText:"반려하기",
+          textfield:"반려 사유",
+          placeholder:"반려 사유를 입력하세요.",
+        };
+      case "petstarreject":
+        return{
+          title:"반려하기",
           label:"펫스타 아이디",
-          description:"요청을 거절하시겠습니까?",
-          confirmText:"거절하기",
-          textfield:"거절 사유",
-          placeholder:"거절 사유를 입력하세요.",
+          description:"펫스타 요청을 반려하시겠습니까?",
+          confirmText:"반려하기",
+          textfield:"반려 사유",
+          placeholder:"반려 사유를 입력하세요.",
         };
       case "restrict":
         return{

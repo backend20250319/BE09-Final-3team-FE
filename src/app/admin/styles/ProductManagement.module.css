@@ -536,3 +536,28 @@
     justify-content: flex-start;
   }
 }
+
+.reportItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 8px 0;
+}
+
+.reasonleft {
+  text-align: left;
+  flex: 1;
+}
+
+
+
+.reason {
+  text-align: center;
+  flex: 2;
+}
+
+.reasonright {
+  text-align: right;
+  flex: 1;
+}
