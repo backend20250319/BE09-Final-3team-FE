@@ -281,8 +281,8 @@ export default function ActivityManagement() {
                       }),
                       control: (provided, state) => ({
                         ...provided,
-                        minHeight: "48px",
-                        height: "48px",
+                        minHeight: "50px",
+                        height: "50px",
                         borderColor: state.isFocused ? "#8bc34a" : "#d1d5db",
                         boxShadow: state.isFocused
                           ? "0 0 0 3px rgba(139,195,74,0.3)"
@@ -293,8 +293,9 @@ export default function ActivityManagement() {
                       }),
                       valueContainer: (provided) => ({
                         ...provided,
-                        height: "48px",
+                        height: "50px",
                         padding: "0 12px",
+                        alignItems: "center",
                       }),
                       input: (provided) => ({
                         ...provided,
@@ -303,7 +304,8 @@ export default function ActivityManagement() {
                       }),
                       indicatorsContainer: (provided) => ({
                         ...provided,
-                        height: "48px",
+                        height: "50px",
+                        alignItems: "center",
                       }),
                       dropdownIndicator: (provided) => ({
                         ...provided,
