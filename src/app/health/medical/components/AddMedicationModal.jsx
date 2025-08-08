@@ -112,17 +112,14 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
         <div className={styles.header}>
           <div className={styles.headerContent}>
             <div className={styles.headerIcon}>
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path
-                  d="M9 1V17M1 9H17"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <img
+                src="/health/pill.png"
+                alt="알약 아이콘"
+                className={styles.iconImage}
+              />
             </div>
             <div className={styles.headerText}>
-              <h3>약 추가</h3>
+              <h3>투약 추가</h3>
               <p>새로운 약 정보를 추가하세요</p>
             </div>
           </div>
@@ -265,7 +262,7 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
                 strokeLinecap="round"
               />
             </svg>
-            약물 추가
+            일정 추가
           </button>
         </div>
       </div>
