@@ -1,10 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "../styles/MedicationManagement.module.css";
+import ConfirmModal from "../components/ConfirmModal";
+import Toast from "../components/Toast";
+import AddMedicationModal from "./AddMedicationModal";
+import EditScheduleModal from "./EditScheduleModal";
 
 export default function MedicationManagement() {
-  const [medications, setMedications] = useState([
+  const LOCAL_STORAGE_KEY = "medication_notifications";
+
+  const defaultMedications = [
     {
       id: 1,
       name: "오메가 1.5mg",
@@ -12,6 +18,7 @@ export default function MedicationManagement() {
       frequency: "하루에 두 번",
       icon: "💊",
       color: "#E3F2FD",
+      isNotified: false,
     },
     {
       id: 2,
@@ -20,33 +27,129 @@ export default function MedicationManagement() {
       frequency: "하루에 한 번",
       icon: "💊",
       color: "#FFF3E0",
+      isNotified: true,
     },
-  ]);
+  ];
+
+  const [medications, setMedications] = useState(defaultMedications);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [toDeleteId, setToDeleteId] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingMedication, setEditingMedication] = useState(null);
+
+  // 토스트 메시지 상태
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState("inactive"); // "active" or "inactive"
+  const [showToast, setShowToast] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (saved) {
+      try {
+        const savedStatus = JSON.parse(saved);
+        const updatedMedications = defaultMedications.map((med) => ({
+          ...med,
+          isNotified: savedStatus[med.id] ?? med.isNotified,
+        }));
+        setMedications(updatedMedications);
+      } catch (e) {
+        console.error("알림 상태 복원 실패:", e);
+      }
+    }
+  }, []);
+
+  const toggleNotification = (id) => {
+    const updated = medications.map((med) =>
+      med.id === id ? { ...med, isNotified: !med.isNotified } : med
+    );
+    setMedications(updated);
+
+    const updatedStatus = updated.reduce((acc, med) => {
+      acc[med.id] = med.isNotified;
+      return acc;
+    }, {});
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedStatus));
+
+    const updatedMed = updated.find((med) => med.id === id);
+    setToastMessage(
+      `${updatedMed.name} 일정 알림이 ${
+        updatedMed.isNotified ? "활성화" : "비활성화"
+      } 되었습니다.`
+    );
+    setToastType(updatedMed.isNotified ? "active" : "inactive");
+    setShowToast(true);
+  };
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
       console.log("Uploaded file:", file.name);
-      // Handle file upload logic here
     }
   };
 
   const handleAddMedication = () => {
-    // Add new medication logic
-    console.log("Add medication clicked");
+    setShowAddModal(true);
+  };
+
+  const handleAddNewMedication = (newMedication) => {
+    setMedications((prev) => [...prev, newMedication]);
+    setToastMessage(`${newMedication.name}이(가) 추가되었습니다.`);
+    setToastType("active");
+    setShowToast(true);
   };
 
   const handleEditMedication = (id) => {
-    console.log("Edit medication:", id);
+    const medication = medications.find((med) => med.id === id);
+    if (medication) {
+      setEditingMedication(medication);
+      setShowEditModal(true);
+    }
   };
 
-  const handleDeleteMedication = (id) => {
-    setMedications(medications.filter((med) => med.id !== id));
+  const handleEditMedicationSubmit = (updatedMedication) => {
+    setMedications((prev) =>
+      prev.map((med) =>
+        med.id === updatedMedication.id ? updatedMedication : med
+      )
+    );
+    setToastMessage(`${updatedMedication.name}이(가) 수정되었습니다.`);
+    setToastType("active");
+    setShowToast(true);
+  };
+
+  // 삭제 요청시 모달 띄우기
+  const requestDeleteMedication = (id) => {
+    setToDeleteId(id);
+    setShowConfirm(true);
+  };
+
+  // 모달에서 확인 시 실제 삭제 처리
+  const confirmDeleteMedication = () => {
+    if (toDeleteId == null) return;
+    const updated = medications.filter((med) => med.id !== toDeleteId);
+    setMedications(updated);
+
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      delete parsed[toDeleteId];
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(parsed));
+    }
+
+    setShowConfirm(false);
+    setToDeleteId(null);
+  };
+
+  // 모달에서 취소 시 모달 닫기
+  const cancelDeleteMedication = () => {
+    setShowConfirm(false);
+    setToDeleteId(null);
   };
 
   return (
     <div className={styles.container}>
-      {/* 처방전 사진 업로드 섹션 */}
+      {/* 처방전 사진 업로드 */}
       <div className={styles.prescriptionSection}>
         <div className={styles.uploadArea}>
           <div className={styles.uploadIcon}>
@@ -75,7 +178,7 @@ export default function MedicationManagement() {
         </div>
       </div>
 
-      {/* 복용약 및 영양제 섹션 */}
+      {/* 복용약 및 영양제 */}
       <div className={styles.medicationSection}>
         <div className={styles.sectionHeader}>
           <h3>복용약 및 영양제</h3>
@@ -123,21 +226,25 @@ export default function MedicationManagement() {
                 </button>
                 <button
                   className={styles.actionButton}
-                  onClick={() => handleEditMedication(medication.id)}
+                  onClick={() => requestDeleteMedication(medication.id)}
                 >
                   <img
                     src="/health/trash.png"
-                    alt="휴지통"
+                    alt="삭제"
                     width={24}
                     height={24}
                   />
                 </button>
                 <button
                   className={styles.actionButton}
-                  onClick={() => handleDeleteMedication(medication.id)}
+                  onClick={() => toggleNotification(medication.id)}
                 >
                   <img
-                    src="/health/notifi.png"
+                    src={
+                      medication.isNotified
+                        ? "/health/notifi.png"
+                        : "/health/notifi2.png"
+                    }
                     alt="알림"
                     width={24}
                     height={24}
@@ -149,41 +256,43 @@ export default function MedicationManagement() {
         </div>
       </div>
 
-      {/* 스케줄 캘린더 섹션 */}
-      <div className={styles.calendarSection}>
-        <h3>스케줄 캘린더</h3>
-        <div className={styles.calendarPlaceholder}>
-          <div className={styles.calendarIcon}>
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <rect
-                x="4"
-                y="8"
-                width="24"
-                height="20"
-                rx="2"
-                stroke="#9CA3AF"
-                strokeWidth="2"
-              />
-              <path d="M4 12H28" stroke="#9CA3AF" strokeWidth="2" />
-              <path
-                d="M10 4V8"
-                stroke="#9CA3AF"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-              <path
-                d="M22 4V8"
-                stroke="#9CA3AF"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
-          <p>
-            Calendar view showing all scheduled medications and appointments
-          </p>
-        </div>
-      </div>
+      {/* 삭제 확인 모달 */}
+      {showConfirm && (
+        <ConfirmModal
+          message="일정을 삭제하시겠습니까?"
+          onConfirm={confirmDeleteMedication}
+          onCancel={cancelDeleteMedication}
+        />
+      )}
+
+      {/* 약 추가 모달 */}
+      <AddMedicationModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onAdd={handleAddNewMedication}
+      />
+
+      {/* 약 수정 모달 */}
+      <EditScheduleModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingMedication(null);
+        }}
+        onEdit={handleEditMedicationSubmit}
+        scheduleData={editingMedication}
+        type="medication"
+      />
+
+      {/* 토스트 메시지 */}
+      {showToast && (
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          duration={1000}
+          onClose={() => setShowToast(false)}
+        />
+      )}
     </div>
   );
 }

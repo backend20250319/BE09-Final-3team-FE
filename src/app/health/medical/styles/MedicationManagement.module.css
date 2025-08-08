@@ -5,6 +5,7 @@
   border-radius: 0 0 12px 12px;
   padding: 24px;
   box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  margin-top: -1px;
 }
 
 /* 처방전 사진 업로드 섹션 */
@@ -119,6 +120,10 @@
   align-items: center;
 }
 
+.medicationCard:hover {
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 .medicationInfo {
   display: flex;
   align-items: center;
@@ -154,10 +159,15 @@
 }
 
 .actionButton {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
   background: none;
   border: none;
   border-radius: 4px;
-  padding: 8px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
@@ -166,40 +176,7 @@
   background: #f3f4f6;
 }
 
-.actionButton svg {
-  width: 16px;
-  height: 16px;
-}
-
-/* 스케줄 캘린더 섹션 */
-.calendarSection {
-  background: #f8f9fa;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 25px;
-}
-
-.calendarSection h3 {
-  font-size: 20px;
-  font-weight: 400;
-  color: #594a3e;
-  margin: 0 0 16px 0;
-}
-
-.calendarPlaceholder {
-  background: #ffffff;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 87px 0;
-  text-align: center;
-}
-
-.calendarIcon {
-  margin-bottom: 16px;
-}
-
-.calendarPlaceholder p {
-  font-size: 16px;
-  color: #6b7280;
-  margin: 0;
+.actionButton img {
+  width: 20px;
+  height: 20px;
 }

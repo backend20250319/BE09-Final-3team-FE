@@ -31,7 +31,7 @@ function getTodayKey() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-export default function ActivityForm() {
+export default function ActivityManagement() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const toggleCalendar = () => setIsCalendarOpen((prev) => !prev);
 
@@ -251,7 +251,6 @@ export default function ActivityForm() {
 
   return (
     <div className={styles.activitySection}>
-
       {/* 폼 */}
       <div className={styles.activityContent}>
         <div className={styles.activityGrid}>

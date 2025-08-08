@@ -1,6 +1,6 @@
-import styles from "../styles/ActivityHeader.module.css";
+import styles from "../styles/HealthHeader.module.css";
 
-export default function ActivityHeader() {
+export default function HealthHeader() {
   return (
     <div className={styles.header}>
       <h1 className={styles.title}>건강 관리</h1>
