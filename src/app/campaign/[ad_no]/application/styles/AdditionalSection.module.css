@@ -1,0 +1,50 @@
+/* Additional Section */
+.additionalSection {
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.additionalTitle {
+  font-size: 18px;
+  font-weight: 500;
+  color: #594A3E;
+  margin: 0 0 20px 0;
+  line-height: 1.19;
+}
+
+.additionalTextarea {
+  width: 100%;
+  height: 128px;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 32px;
+  font-size: 16px;
+  font-weight: 400;
+  color: #ADAEBC;
+  line-height: 1.5;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.additionalTextarea:focus {
+  outline: none;
+  border-color: #F5A623;
+  color: #374151;
+}
+
+.additionalTextarea::placeholder {
+  color: #ADAEBC;
+}
+
+.additionalNote {
+  font-size: 14px;
+  font-weight: 400;
+  color: #6B7280;
+  margin: 20px 0 0 0;
+  line-height: 1.19;
+}

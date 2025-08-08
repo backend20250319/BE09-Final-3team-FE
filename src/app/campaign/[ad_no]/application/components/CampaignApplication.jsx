@@ -1,0 +1,18 @@
+"use client"
+
+import React, { useState } from 'react';
+import styles from "../styles/CampaignApplication.module.css";
+import PetProfile from './PetProfile';
+import CampaignInfo from './CampaignInfo';
+
+export default function CampaignApplication({ campaignData }) {
+
+  return (
+    <div>
+      <div className={styles.mainContent}>
+        <PetProfile />
+        <CampaignInfo campaignData={campaignData} />
+      </div>
+    </div>
+  );
+}

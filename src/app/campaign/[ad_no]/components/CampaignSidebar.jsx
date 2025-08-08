@@ -1,7 +1,19 @@
+"use client";
+
+import { useRouter, usePathname } from "next/navigation";
 import Image from 'next/image';
 import styles from "../styles/CampaignSideBar.module.css"
 
 export default function CampaignSidebar({ campaignData }) {
+
+  const router = useRouter();
+  const pathname = usePathname();
+
+
+  const handleClick = () => {
+    router.push(`${pathname}/application`);
+  };
+
   const calculateDaysLeft = () => {
     const endDate = new Date(campaignData.announce_end);
     const now = new Date();
@@ -84,7 +96,7 @@ export default function CampaignSidebar({ campaignData }) {
 
       {/* 신청 버튼 */}
       <div className={`${styles.sidebarSection} ${styles.applySection}`}>
-        <button className={styles.applyButton}>
+        <button className={styles.applyButton} onClick={handleClick}>
             <Image 
               src="/campaign/airplane.png"
               alt="airplane.png"
