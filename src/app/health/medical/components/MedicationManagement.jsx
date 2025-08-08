@@ -91,7 +91,7 @@ export default function MedicationManagement() {
 
   const handleAddNewMedication = (newMedication) => {
     setMedications((prev) => [...prev, newMedication]);
-    setToastMessage(`${newMedication.name}이 추가되었습니다.`);
+    setToastMessage(`${newMedication.name}이(가) 추가되었습니다.`);
     setToastType("active");
     setShowToast(true);
   };

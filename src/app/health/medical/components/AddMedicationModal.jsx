@@ -8,6 +8,7 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
     name: "",
     frequency: "",
     type: "",
+    duration: "", // 복용 기간 (일수)
   });
 
   const [errors, setErrors] = useState({});
@@ -20,14 +21,7 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
     "월에 한 번",
   ];
 
-  const typeOptions = [
-    "항생제",
-    "영양제",
-    "진통제",
-    "소화제",
-    "비타민",
-    "기타",
-  ];
+  const typeOptions = ["복용약", "영양제"];
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -59,19 +53,37 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
       newErrors.type = "유형을 선택해주세요";
     }
 
+    if (!formData.duration) {
+      newErrors.duration = "복용 기간을 입력해주세요";
+    } else if (isNaN(formData.duration) || Number(formData.duration) <= 0) {
+      newErrors.duration = "유효한 복용 기간(숫자)을 입력해주세요";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = () => {
     if (validateForm()) {
+      // 오늘 날짜 구하기 (YYYY-MM-DD)
+      const today = new Date();
+      const startDate = today.toISOString().split("T")[0];
+
+      // 종료일 계산 (duration - 1일 후)
+      const endDateObj = new Date(today);
+      endDateObj.setDate(today.getDate() + Number(formData.duration) - 1);
+      const endDate = endDateObj.toISOString().split("T")[0];
+
       const newMedication = {
         id: Date.now(),
         name: formData.name,
         type: formData.type,
         frequency: formData.frequency,
+        duration: Number(formData.duration),
+        startDate: startDate,
+        endDate: endDate,
         icon: "💊",
-        color: formData.type === "항생제" ? "#E3F2FD" : "#FFF3E0",
+        color: formData.type === "복용약" ? "#E3F2FD" : "#FFF3E0",
         isNotified: false,
       };
 
@@ -85,6 +97,7 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
       name: "",
       frequency: "",
       type: "",
+      duration: "",
     });
     setErrors({});
     onClose();
@@ -214,6 +227,27 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
               </div>
             </div>
             {errors.type && <span className={styles.error}>{errors.type}</span>}
+          </div>
+
+          {/* 복용 기간 */}
+          <div className={styles.formGroup}>
+            <div className={styles.labelContainer}>
+              <label className={styles.label}>복용 기간(일)</label>
+              <span className={styles.required}>*</span>
+            </div>
+            <div className={styles.inputContainer}>
+              <input
+                type="number"
+                className={styles.input}
+                placeholder="예: 7"
+                min="1"
+                value={formData.duration}
+                onChange={(e) => handleInputChange("duration", e.target.value)}
+              />
+            </div>
+            {errors.duration && (
+              <span className={styles.error}>{errors.duration}</span>
+            )}
           </div>
         </div>
 
