@@ -1,10 +1,10 @@
-"use client"; // 클라이언트 컴포넌트로 지정
+"use client";
 
 import { usePathname } from "next/navigation";
 import { FiUsers, FiList, FiUser } from "react-icons/fi";
 import styles from "../styles/SideBar.module.css";
 
-const Sidebar = ({ activeTab = "profile" }) => {
+const Sidebar = () => {
   const pathname = usePathname();
   if (pathname === "/advertiser") {
     return null;
@@ -49,7 +49,7 @@ const Sidebar = ({ activeTab = "profile" }) => {
               key={item.id}
               href={item.href}
               className={`${styles.navItem} ${
-                activeTab === item.id ? styles.active : ""
+                pathname === item.href ? styles.active : ""
               }`}
             >
               {item.icon}

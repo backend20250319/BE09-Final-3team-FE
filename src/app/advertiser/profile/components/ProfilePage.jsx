@@ -8,7 +8,7 @@ const ProfilePage = () => {
       <main className={styles.main}>
         <SubHeader
           title="프로필 관리"
-          subtitle="광고주 프로필 정보 및 회사 정보를 관리하세요"
+          subtitle="기업 프로필을 간편하게 수정하고 항상 최신 정보로 관리하세요"
         />
         <ProfileCard />
       </main>
