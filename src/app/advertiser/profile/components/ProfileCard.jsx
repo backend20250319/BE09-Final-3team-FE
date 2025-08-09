@@ -15,13 +15,15 @@ import styles from "../styles/ProfilePage.module.css";
 const ProfileCard = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [companyData, setCompanyData] = useState({
-    name: "PetCare Solutions Inc.",
+    name: "PawsomeNutrition",
     description:
-      "PetCare은 반려동물의 건강과 웰니스를 위한 혁신적인 솔루션을 제공하는 선도적인 펫케어 기업입니다. 15년 이상의 경험을 바탕으로, 프리미엄 사료, 건강 모니터링 기기, 종합 케어 서비스를 전문적으로 제공합니다. 저희 기업의 목표는 첨단 기술과 따뜻한 돌봄을 통해 반려동물과 보호자의 삶의 질을 향상시키는 것입니다",
-    phone: "+1 (555) 123-4567",
-    email: "contact@petcaresolutions.com",
-    website: "www.petcaresolutions.com",
-    profileImage: "/images/company-profile.jpg",
+`PawsomeNutrition은 전 세계 반려동물에게 최고의 영양과 건강을 선사하기 위해 끊임없이 연구하고 노력하는 유기농 반려동물 사료 전문 기업입니다.
+엄선된 유기농 원료만을 사용하여 안전하고 균형 잡힌 영양을 제공하며, 합성 첨가물과 인공 색소를 배제해 반려동물이 자연 그대로의 맛과 영양을 누릴 수 있도록 합니다.
+또한 지속 가능한 생산과 친환경 포장을 통해 지구와 환경까지 생각하는 착한 기업으로, 반려동물과 보호자가 함께하는 모든 순간이 더 행복하고 건강할 수 있도록 최선을 다하고 있습니다.`,
+    phone: "02-123-4567",
+    email: "contact@pawsomenutrition.com",
+    website: "www.pawsomenutrition.com",
+    profileImage: "/campaign/brand-1.jpg",
   });
 
   const [editData, setEditData] = useState(companyData);
