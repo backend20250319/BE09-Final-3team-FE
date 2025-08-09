@@ -5,6 +5,8 @@ import SubHeader from "@/app/components/SubHeader";
 import TabNavigation from "./components/TabNavigation";
 import SearchAndSort from "./components/SearchAndSort";
 import { useCampaign } from "./context/CampaignContext";
+import CampaignGrid from "./components/CampaignGrid";
+import Pagination from "@/app/campaign/components/Pagination";
 
 export default function adsListPage() {
 
@@ -54,6 +56,8 @@ export default function adsListPage() {
           sortBy={sortBy}
           setSortBy={setSortBy}
         />
+        <CampaignGrid searchQuery={searchQuery} sortBy={sortBy} />
+        <Pagination />
       </main>
     </>
   );

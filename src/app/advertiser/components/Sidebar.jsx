@@ -40,7 +40,7 @@ const Sidebar = () => {
             alt="Advertiser"
             className={styles.avatar}
           />
-          <div className={styles.userName}>Advertiser</div>
+          <div className={styles.userName}>PawsomeNutrition</div>
         </div>
 
         <nav className={styles.navigation}>
