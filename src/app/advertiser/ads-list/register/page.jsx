@@ -8,6 +8,10 @@ import ImageUploadSection from './components/FormSections/ImageUploadSection';
 import TitleSection from './components/FormSections/TitleSection';
 import DetailInfoSection from './components/FormSections/DetailInfoSection';
 import MainGoalSection from './components/FormSections/MainGoalSection';
+import MissionsSection from './components/FormSections/MissionsSection';
+import KeywordsSection from './components/FormSections/KeyWordsSection';
+import RequirementsSection from './components/FormSections/RequirementsSection';
+import ProductPageSection from './components/FormSections/ProductPageSection';
 
 export default function CampaignRegisterPage() {
 
@@ -86,11 +90,11 @@ export default function CampaignRegisterPage() {
             <TitleSection formData={formData} handleInputChange={handleInputChange} />
             <DetailInfoSection formData={formData} handleInputChange={handleInputChange} />
             <MainGoalSection formData={formData} handleInputChange={handleInputChange} />
-            {/* <MissionsSection formData={formData} setFormData={setFormData} />
+            <MissionsSection formData={formData} setFormData={setFormData} />
             <KeywordsSection formData={formData} setFormData={setFormData} />
             <RequirementsSection formData={formData} setFormData={setFormData} />
-            <ParticipationInfoSection formData={formData} setFormData={setFormData} />
-            <ProductPageSection formData={formData} handleInputChange={handleInputChange} /> */}
+            <ProductPageSection formData={formData} handleInputChange={handleInputChange} />
+            {/* <ParticipationInfoSection formData={formData} setFormData={setFormData} /> */}
           </form>
         </div>
 
