@@ -85,10 +85,14 @@
 
 /* 메인 컨텐츠(사이드바 있는 경우) */
 .main {
-  margin: 100px auto;
+  width: 100%;
+  margin: 0 auto;
+  max-width: 1280px;
   display: flex;
   flex-direction: column;
   gap: 24px;
+  box-sizing: border-box;
+  padding: 100px 0;
 }
 
 /* === 사이드바 없는 페이지(로그인/회원가입/비번찾기 등) === */
