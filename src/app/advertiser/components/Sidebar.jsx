@@ -49,7 +49,7 @@ const Sidebar = () => {
               key={item.id}
               href={item.href}
               className={`${styles.navItem} ${
-                pathname === item.href ? styles.active : ""
+                pathname.includes(item.href) ? styles.active : ""
               }`}
             >
               {item.icon}

@@ -43,22 +43,20 @@ export default function adsListPage() {
     }, [activeTab]);
 
   return(
-    <>
-      <main style={{ flex: 1, padding: '64px 256px 0 144px' }}>
-        <SubHeader
-          title="체험단 광고 목록"
-          subtitle="체험단 광고를 직접 등록하고 다양한 지원자들의 신청 현황을 한눈에 관리해보세요"
-        />
-        <TabNavigation />
-        <SearchAndSort
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-        />
-        <CampaignGrid searchQuery={searchQuery} sortBy={sortBy} />
-        <Pagination />
-      </main>
-    </>
+    <main style={{ flex: 1 }}>
+      <SubHeader
+        title="체험단 광고 목록"
+        subtitle="체험단 광고를 직접 등록하고 다양한 지원자들의 신청 현황을 한눈에 관리해보세요"
+      />
+      <TabNavigation />
+      <SearchAndSort
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+      />
+      <CampaignGrid searchQuery={searchQuery} sortBy={sortBy} />
+      <Pagination />
+    </main>
   );
 }

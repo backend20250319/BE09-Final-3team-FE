@@ -85,7 +85,10 @@
 
 /* 메인 컨텐츠(사이드바 있는 경우) */
 .main {
-  flex: 1;
+  margin: 100px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 /* === 사이드바 없는 페이지(로그인/회원가입/비번찾기 등) === */

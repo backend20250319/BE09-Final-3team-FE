@@ -30,6 +30,7 @@
 
 .cardContent {
   padding: 16px;
+  width:410px;
   height: 184px;
   display: flex;
   flex-direction: column;

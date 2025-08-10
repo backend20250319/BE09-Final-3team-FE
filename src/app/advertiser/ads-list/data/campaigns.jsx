@@ -26,6 +26,8 @@ const campaigns = [
       campaign_select: "2025-09-10",
       campaign_start: "2025-09-10",
       campaign_end: "2025-10-10",
+      currentApplicants: 45,
+      totalApplicants: 100,
       ad_status:"approved",
       statusText: "모집중",
       applicants: "45 / 100",
