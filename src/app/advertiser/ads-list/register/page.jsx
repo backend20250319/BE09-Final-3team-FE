@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import SubHeader from "@/app/components/SubHeader";
 import styles from "./styles/CampaignRegisterPage.module.css"
 import ProgressSection from './components/CampaignRegisterForm/ProgressSection';
@@ -12,8 +13,11 @@ import MissionsSection from './components/FormSections/MissionsSection';
 import KeywordsSection from './components/FormSections/KeyWordsSection';
 import RequirementsSection from './components/FormSections/RequirementsSection';
 import ProductPageSection from './components/FormSections/ProductPageSection';
+import ParticipationInfoSection from './components/FormSections/ParticipationInfoSection';
 
 export default function CampaignRegisterPage() {
+
+  const router = useRouter();
 
   const [formData, setFormData] = useState({
     mainImage: null,
@@ -49,6 +53,15 @@ export default function CampaignRegisterPage() {
     '#E5FFF4', '#E5F4FF', '#E5E5FF', '#F0E5FF', '#F9E5FF'
   ];
 
+  const fillAllInfo = (
+    formData.participationInfo.recruitmentPeriod.start &&
+    formData.participationInfo.recruitmentPeriod.end &&
+    formData.participationInfo.participationPeriod.start &&
+    formData.participationInfo.participationPeriod.end &&
+    formData.participationInfo.selectionDate &&
+    formData.participationInfo.recruitmentCount
+  );
+
   const getCompletedSteps = () => {
     return [
       Boolean(formData.mainImage), // 0: 이미지
@@ -59,7 +72,7 @@ export default function CampaignRegisterPage() {
       formData.keywords.some(k => k), // 5: 키워드
       formData.requirements.some(r => r), // 6: 필수 요건
       Boolean(formData.productPage), // 7: 링크
-      Boolean(formData.participationInfo.recruitmentPeriod.start && formData.participationInfo.recruitmentPeriod.end) // 8: 참여 정보
+      Boolean(fillAllInfo) // 8: 참여 정보
     ];
   };
 
@@ -94,13 +107,26 @@ export default function CampaignRegisterPage() {
             <KeywordsSection formData={formData} setFormData={setFormData} />
             <RequirementsSection formData={formData} setFormData={setFormData} />
             <ProductPageSection formData={formData} handleInputChange={handleInputChange} />
-            {/* <ParticipationInfoSection formData={formData} setFormData={setFormData} /> */}
+            <ParticipationInfoSection formData={formData} setFormData={setFormData} />
           </form>
         </div>
 
         <div className={styles.buttonSection}>
-          <button type="button" className={styles.cancelButton}>취소</button>
-          <button type="submit" className={styles.submitButton}>캠페인 등록</button>
+          <button
+            type="button"
+            className={styles.submitButton}
+            onClick={() => {
+              if (completedSteps.every(Boolean)) {
+                alert("정상적으로 등록되었습니다.");
+                router.push("/advertiser/ads-list")
+              } else {
+                alert("아직 작성되지 않은 내용이 있습니다. 작성 후 다시 시도해주세요.");
+              }
+            }}
+          >
+            캠페인 등록
+          </button>
+          <button type="button" className={styles.cancelButton} onClick={() => router.push("/advertiser/ads-list")}>취소</button>
         </div>
       </div>
     </main>

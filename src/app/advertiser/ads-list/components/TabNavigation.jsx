@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCampaign } from "../context/CampaignContext";
 import styles from "../styles/TabNavigation.module.css";
 
@@ -25,6 +26,13 @@ export default function TabNavigation() {
             {label}
           </button>
         ))}
+        <div className={styles.registerButtonWrapper}>
+          <Link href="/advertiser/ads-list/register">
+            <button className={styles.registerButton}>
+              캠페인 등록
+            </button>
+          </Link>
+        </div>
       </div>
     </div>
   );

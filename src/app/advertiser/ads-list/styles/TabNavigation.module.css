@@ -4,8 +4,9 @@
 
 .tabGroup {
   display: flex;
+  align-items: center;
+  width: 100%;
   gap: 8px;
-  width: fit-content;
 }
 
 .tab {
@@ -29,6 +30,28 @@
   background: #f5a623;
   color: #ffffff;
   border-color: #f5a623;
+}
+
+.registerButtonWrapper {
+  margin-left: auto;
+}
+
+.registerButton {
+  background-color: #F5A623;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-left: 24px;
+}
+
+.registerButton:hover,
+.registerButton:focus {
+  background-color: #E0941A;
 }
 
 /* Responsive Design */

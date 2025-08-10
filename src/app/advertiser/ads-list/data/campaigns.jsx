@@ -52,7 +52,7 @@ const campaigns = [
       ad_status:"pending",
       applicants: "0 / 100",
       brand: "PawsomeNutrition",
-      created_at: "2025-08-10"
+      created_at: "2025-08-12"
     },
     {
       ad_no: 3,
