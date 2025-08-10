@@ -6,6 +6,7 @@ import styles from "./styles/CampaignRegisterPage.module.css"
 import ProgressSection from './components/CampaignRegisterForm/ProgressSection';
 import ImageUploadSection from './components/FormSections/ImageUploadSection';
 import TitleSection from './components/FormSections/TitleSection';
+import DetailInfoSection from './components/FormSections/DetailInfoSection';
 
 export default function CampaignRegisterPage() {
 
@@ -82,8 +83,8 @@ export default function CampaignRegisterPage() {
           <form className={styles.form}>
             <ImageUploadSection formData={formData} setFormData={setFormData} />
             <TitleSection formData={formData} handleInputChange={handleInputChange} />
-            {/* <DetailInfoSection formData={formData} handleInputChange={handleInputChange} />
-            <MainGoalSection formData={formData} handleInputChange={handleInputChange} />
+            <DetailInfoSection formData={formData} handleInputChange={handleInputChange} />
+            {/* <MainGoalSection formData={formData} handleInputChange={handleInputChange} />
             <MissionsSection formData={formData} setFormData={setFormData} />
             <KeywordsSection formData={formData} setFormData={setFormData} />
             <RequirementsSection formData={formData} setFormData={setFormData} />
