@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import SubHeader from "@/app/components/SubHeader";
 import TabNavigation from "./components/TabNavigation";
 import SearchAndSort from "./components/SearchAndSort";
@@ -48,6 +49,26 @@ export default function adsListPage() {
         title="체험단 광고 목록"
         subtitle="체험단 광고를 직접 등록하고 다양한 지원자들의 신청 현황을 한눈에 관리해보세요"
       />
+      <div style={{ padding: "0 144px", marginBottom: "32px" }}>
+        <Link href="/advertiser/ads-list/register">
+          <button style={{
+            backgroundColor: "#F5A623",
+            color: "white",
+            border: "none",
+            borderRadius: "8px",
+            padding: "12px 24px",
+            fontSize: "16px",
+            fontWeight: "500",
+            cursor: "pointer",
+            transition: "background-color 0.2s"
+          }}
+          onMouseOver={(e) => e.target.style.backgroundColor = "#E0941A"}
+          onMouseOut={(e) => e.target.style.backgroundColor = "#F5A623"}
+          >
+            캠페인 등록
+          </button>
+        </Link>
+      </div>
       <TabNavigation />
       <SearchAndSort
         searchQuery={searchQuery}
