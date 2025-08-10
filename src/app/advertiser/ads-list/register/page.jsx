@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import SubHeader from "@/app/components/SubHeader";
 import styles from "./styles/CampaignRegisterPage.module.css"
 import ProgressSection from './components/CampaignRegisterForm/ProgressSection';
+import ImageUploadSection from './components/FormSections/ImageUploadSection';
 
 export default function CampaignRegisterPage() {
 
@@ -69,8 +70,7 @@ export default function CampaignRegisterPage() {
         subtitle="반려동물 인플루언서와 소통하기 위한 새로운 광고 캠페인을 만들어보세요"
       />
       <div className={styles.container}>
-        <div className={styles.formContainer}>
-          
+        <div className={styles.formContainer}>          
           <ProgressSection 
             steps={steps} 
             stepColors={stepColors}
@@ -79,8 +79,8 @@ export default function CampaignRegisterPage() {
           />
 
           <form className={styles.form}>
-            {/* <ImageUploadSection formData={formData} setFormData={setFormData} />
-            <TitleSection formData={formData} handleInputChange={handleInputChange} />
+            <ImageUploadSection formData={formData} setFormData={setFormData} />
+            {/* <TitleSection formData={formData} handleInputChange={handleInputChange} />
             <DetailInfoSection formData={formData} handleInputChange={handleInputChange} />
             <MainGoalSection formData={formData} handleInputChange={handleInputChange} />
             <MissionsSection formData={formData} setFormData={setFormData} />
