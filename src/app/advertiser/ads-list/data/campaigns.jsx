@@ -36,7 +36,8 @@ const campaigns = [
       created_at: "2025-07-20",
       mission: ['인스타그램 게시물 1개 작성', '인스타그램 스토리 1개 업로드', '상품 언박싱 비디오', '사료 주는 순간을 담은 사진'],
       keyword: ['#유기농 사료', '#프리미엄 사료', '#건강 사료', '#천연 재료', '#PawsomeNutrition'],
-      requirement: ['강아지 또는 고양이 인플루언서', '최소 팔로워 수: 1K', '체험단 참여 횟수: 1회 이상']
+      requirement: ['강아지 또는 고양이 인플루언서', '최소 팔로워 수: 1K', '체험단 참여 횟수: 1회 이상'],
+      campaign_url: "http://www.pawsomenutrition.com/advertisement/123"
     },
     {
       ad_no: 2,

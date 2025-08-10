@@ -132,7 +132,7 @@ export default function CampaignCard({ campaign }) {
   );
 
   const rejectionData = {
-    reason: "광고 필수 요소(체험단 선정일) 누락됨",
+    reason: "잘못된 상품 판매 페이지 기입",
     campaignTitle: campaign.title
   };
 

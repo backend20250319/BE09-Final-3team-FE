@@ -7,7 +7,7 @@ import styles from '../styles/CampaignDetail.module.css';
 import PetstarList from './PetstarList';
 import ApplicantList from './ApplicantList';
 
-export default function CampaignDetail({ campaignData }) {
+export default function CampaignDetail({ campaignData, adNo }) {
 
   const router = useRouter();
   const [applicantPage, setApplicantPage] = useState(1);
@@ -136,7 +136,7 @@ export default function CampaignDetail({ campaignData }) {
         {/* Campaign Header */}
         <div className={styles.campaignHeader}>
           <h1 className={styles.campaignTitle}>{campaignData.title}</h1>
-          <button className={styles.editButton}>
+          <button className={styles.editButton} onClick={() => router.push(`/advertiser/ads-list/edit/${adNo}`)}>
             <Image 
               src="/advertiser/mod_icon.png"
               alt="mod_icon.png"

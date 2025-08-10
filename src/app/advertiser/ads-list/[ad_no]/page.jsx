@@ -16,6 +16,6 @@ export default function CampaignDetailPage() {
   }, [params.ad_no, campaignData]);
 
   return campaignData ? (
-    <CampaignDetail campaignData={campaignData} />
+    <CampaignDetail campaignData={campaignData} adNo={parseInt(params.ad_no, 10)} />
   ) : null;
 }
