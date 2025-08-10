@@ -1,12 +1,14 @@
 "use client";
 
-import styles from "../styles/TabNavigation.module.css";
+import Link from "next/link";
 import { useCampaign } from "../context/CampaignContext";
+import styles from "../styles/TabNavigation.module.css";
 
 const tabs = [
-  { key: "recruiting", label: "모집중인 체험단 상품" },
-  { key: "ended", label: "종료된 체험단 상품" },
-  { key: "applied", label: "신청한 체험단 상품" },
+  { key: "approved", label: "진행중인 광고" },
+  { key: "pending", label: "승인 대기중인 광고" },
+  { key: "rejected", label: "반려된 광고" },
+  { key: "ended", label: "종료된 광고" },
 ];
 
 export default function TabNavigation() {
@@ -24,6 +26,13 @@ export default function TabNavigation() {
             {label}
           </button>
         ))}
+        <div className={styles.registerButtonWrapper}>
+          <Link href="/advertiser/ads-list/register">
+            <button className={styles.registerButton}>
+              캠페인 등록
+            </button>
+          </Link>
+        </div>
       </div>
     </div>
   );

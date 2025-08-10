@@ -11,7 +11,7 @@ const SORT_OPTIONS = {
   ],
   ended: [
     { value: "endedRecent", label: "종료일 최신순" },
-    { value: "endedOld", label: "종료일 오래된 순" },
+    { value: "endedOld", label: "종료일 오래된순" },
     { value: "popular", label: "인기순" }
   ],
   applied: [

@@ -1,7 +1,6 @@
 /* 메인 컨텐츠 */
 .main {
   flex: 1;
-  padding: 64px 256px 0 144px;
 }
 
 .header {

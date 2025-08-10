@@ -1,6 +1,7 @@
 .pagination {
   display: flex;
   justify-content: center;
+  margin-top: 450px;
   margin-bottom: 64px;
 }
 

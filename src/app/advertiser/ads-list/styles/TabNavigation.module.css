@@ -1,0 +1,67 @@
+.tabContainer {
+  margin-bottom: 24px;
+}
+
+.tabGroup {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+}
+
+.tab {
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #594a3e;
+  font-size: 16px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1.2;
+}
+
+.tab:hover {
+  background: #f9fafb;
+}
+
+.tab.active {
+  background: #f5a623;
+  color: #ffffff;
+  border-color: #f5a623;
+}
+
+.registerButtonWrapper {
+  margin-left: auto;
+}
+
+.registerButton {
+  background-color: #F5A623;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-left: 24px;
+}
+
+.registerButton:hover,
+.registerButton:focus {
+  background-color: #E0941A;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .tabContainer {
+    margin-bottom: 0;
+  }
+  
+  .tab {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+}

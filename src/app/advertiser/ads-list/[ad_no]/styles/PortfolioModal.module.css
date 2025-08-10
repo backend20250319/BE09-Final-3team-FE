@@ -1,0 +1,485 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 32px;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+}
+
+.modalTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  color: #6b7280;
+  transition: all 0.2s;
+}
+
+.closeButton:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.modalBody {
+  padding: 32px;
+}
+
+.petProfileCard {
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.petHeader {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.petImageContainer {
+  width: 128px;
+  height: 128px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.petProfileImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.petInfo {
+  flex: 1;
+}
+
+.petDetail {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: row; 
+  align-items: center;
+  gap: 16px;
+}
+
+.petName {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+.instagramSection {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.instagramHandle {
+  font-size: 16px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.detailItem {
+  display: flex;
+  gap: 8px;
+}
+
+.detailLabel {
+  font-weight: 600;
+  color: #374151;
+  min-width: 60px;
+}
+
+.detailValue {
+  color: #6b7280;
+}
+
+.activityContent {
+  margin-bottom: 32px;
+}
+
+.activityTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 16px 0;
+}
+
+.petDescription,
+.petPersonality,
+.addSection {
+  margin-bottom: 24px;
+}
+
+.descriptionTitle,
+.personalityTitle,
+.addSectionTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 12px 0;
+}
+
+.descriptionText,
+.personalityText,
+.addSectionText {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #4b5563;
+  margin: 0;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.statCard {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  border: 1px solid #e5e7eb;
+}
+
+.statValue {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.ownerInfo {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 24px;
+}
+
+.ownerTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 16px 0;
+}
+
+.ownerProfile {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.ownerImage {
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ownerDetails {
+  flex: 1;
+}
+
+.ownerName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+.ownerIntro {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #4b5563;
+  margin: 0;
+}
+
+.ownerContact {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.contactItem {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.contactItem:last-child {
+  margin-bottom: 0;
+}
+
+.contactLabel {
+  font-weight: 600;
+  color: #374151;
+  min-width: 80px;
+}
+
+.contactValue {
+  color: #6b7280;
+}
+
+/* ActivityHistory 컴포넌트 스타일 */
+.cardsWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 400px;
+  margin-top: 20px;
+}
+
+.navButton {
+  width: 44px;
+  height: 44px;
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.navButton:hover {
+  border-color: #8bc34a;
+  background: #f0f5ec;
+  transform: scale(1.05);
+}
+
+.navButton:active {
+  transform: scale(0.95);
+}
+
+.activityCardsContainer {
+  flex: 1;
+  height: 400px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  position: relative;
+  cursor: grab;
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f1f1f1;
+}
+
+.activityCardsContainer::-webkit-scrollbar {
+  height: 8px;
+}
+
+.activityCardsContainer::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.activityCardsContainer::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.activityCardsContainer::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.activityCardsContainer:active {
+  cursor: grabbing;
+}
+
+.activityCards {
+  display: flex;
+  gap: 20px;
+  transition: transform 0.3s ease;
+  width: max-content;
+  padding: 10px 0;
+  user-select: none;
+}
+
+.activityCard {
+  width: 350px;
+  height: 480px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.activityCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.1);
+  border-color: #8bc34a;
+}
+
+.cardImage {
+  width: 100%;
+  height: 180px;
+  position: relative;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.imagePlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: #f3f4f6;
+}
+
+.cardContent {
+  padding: 16px;
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+.cardForm {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  overflow: visible;
+}
+
+.formRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.formRow:last-child {
+  flex: 3;
+}
+
+.formRow label {
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4b5563;
+  margin-bottom: 2px;
+}
+
+.labelWithEdit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.labelWithEdit label {
+  margin-bottom: 0;
+}
+
+.readOnlyText {
+  padding: 6px 10px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: #374151;
+  line-height: 1.4;
+  min-height: 32px;
+  display: block;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  max-height: none;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .modalContent {
+    width: 95%;
+    margin: 20px;
+  }
+  
+  .modalHeader {
+    padding: 16px 20px;
+  }
+  
+  .modalBody {
+    padding: 20px;
+  }
+  
+  .petHeader {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .ownerProfile {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}

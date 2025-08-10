@@ -6,11 +6,9 @@
 
 /* === 기본 레이아웃(사이드바 있는 화면) === */
 .container {
+  min-height: 120vh;
   display: flex;
   gap: 16px;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 24px;
 }
 
 /* 사이드바 */
@@ -29,8 +27,8 @@
 .userProfile {
   display: flex;
   align-items: center;
-  padding: 24px;
-  margin-bottom: 30px;
+  padding: 30px;
+  margin-bottom: 10px;
 }
 
 .avatar {
@@ -51,6 +49,7 @@
 
 .navigation {
   padding: 0 24px;
+  min-width: 250px;
 }
 
 .navItem {
@@ -86,7 +85,10 @@
 
 /* 메인 컨텐츠(사이드바 있는 경우) */
 .main {
-  flex: 1;
+  margin: 100px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 /* === 사이드바 없는 페이지(로그인/회원가입/비번찾기 등) === */
