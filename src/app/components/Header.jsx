@@ -19,7 +19,7 @@ export default function Header() {
     { name: "펫 관리", href: "/user/management" },
     { name: "SNS 관리", href: "/sns" },
     { name: "건강 관리", href: "/health" },
-    { name: "커뮤니티", href: "/notice" },
+    { name: "커뮤니티", href: "/community" },
   ];
 
   return (
