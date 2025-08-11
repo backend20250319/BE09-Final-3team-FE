@@ -10,6 +10,11 @@
   overflow: hidden;
 }
 
+/* 저장 완료 후 activitySection 높이 조정 */
+.activitySection.saved {
+  min-height: 700px;
+}
+
 /* Activity Content */
 .activityContent {
   padding: 30px;

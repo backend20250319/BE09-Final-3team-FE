@@ -271,7 +271,11 @@ export default function ActivityManagement() {
   };
 
   return (
-    <div className={styles.activitySection}>
+    <div
+      className={`${styles.activitySection} ${
+        isSubmittedToday ? styles.saved : ""
+      }`}
+    >
       {/* 폼 */}
       <div className={styles.activityContent}>
         <div className={styles.activityGrid}>
