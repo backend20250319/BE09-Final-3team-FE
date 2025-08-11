@@ -163,9 +163,9 @@ export default function EditScheduleModal({
       case "medication":
         return "투약 수정";
       case "care":
-        return "돌봄 일정 수정";
+        return "돌봄 수정";
       case "vaccination":
-        return "접종 일정 수정";
+        return "접종 수정";
       default:
         return "일정 수정";
     }
@@ -176,7 +176,7 @@ export default function EditScheduleModal({
       case "medication":
         return "투약 정보를 수정하세요";
       case "care":
-        return "돌봄 일정을 수정하세요";
+        return "돌봄을 수정하세요";
       case "vaccination":
         return "접종 일정을 수정하세요";
       default:

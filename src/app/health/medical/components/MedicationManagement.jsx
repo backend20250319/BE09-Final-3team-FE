@@ -251,7 +251,7 @@ export default function MedicationManagement() {
       }
     });
 
-    // 2) 돌봄 일정
+    // 2) 돌봄
     defaultCareSchedules.forEach((s) => {
       if (!s.date) return;
       const base = new Date(s.date);
@@ -484,7 +484,8 @@ export default function MedicationManagement() {
         schedule={selectedSchedule}
         onEdit={handleDetailModalEdit}
         onDelete={handleDetailModalDelete}
-g      />
+        g
+      />
 
       {/* 토스트 메시지 */}
       {showToast && (

@@ -64,7 +64,7 @@ export default function HealthPage() {
 
           {/* 진료/처방 관리 하위 탭 렌더링 */}
           {medicalSubTab === "투약" && <MedicationManagement />}
-          {medicalSubTab === "돌봄 일정" && <CareManagement />}
+          {medicalSubTab === "돌봄" && <CareManagement />}
         </>
       )}
     </div>

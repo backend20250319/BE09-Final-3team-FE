@@ -412,7 +412,7 @@ export default function CareManagement() {
 
   return (
     <div className={styles.container}>
-      {/* 돌봄 일정 섹션 */}
+      {/* 돌봄 섹션 */}
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
           <h3>돌봄</h3>

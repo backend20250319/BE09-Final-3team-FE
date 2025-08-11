@@ -110,8 +110,8 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
               </svg>
             </div>
             <div className={styles.headerText}>
-              <h3>돌봄 일정 추가</h3>
-              <p>새로운 돌봄 일정을 추가하세요</p>
+              <h3>돌봄 추가</h3>
+              <p>새로운 돌봄을 추가하세요</p>
             </div>
           </div>
           <button className={styles.closeButton} onClick={handleClose}>
