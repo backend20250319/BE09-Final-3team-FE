@@ -19,11 +19,17 @@ export default function Toast({ message, type, duration = 1000, onClose }) {
     };
   }, [duration, onClose]);
 
+  const getToastClass = () => {
+    if (type === "delete") return styles.toastDelete;
+    if (type === "active") return styles.toastActive;
+    return styles.toastInactive;
+  };
+
   return (
     <div
-      className={`${styles.toast} ${
-        type === "active" ? styles.toastActive : styles.toastInactive
-      } ${isVisible ? styles.fadeIn : styles.fadeOut}`}
+      className={`${styles.toast} ${getToastClass()} ${
+        isVisible ? styles.fadeIn : styles.fadeOut
+      }`}
     >
       {message}
     </div>

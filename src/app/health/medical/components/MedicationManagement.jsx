@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import styles from "../styles/MedicationManagement.module.css";
 import ConfirmModal from "../components/ConfirmModal";
 import Toast from "../components/Toast";
@@ -8,7 +8,6 @@ import AddMedicationModal from "./AddMedicationModal";
 import EditScheduleModal from "./EditScheduleModal";
 import PrescriptionResultModal from "./PrescriptionResultModal";
 import ScheduleDetailModal from "./ScheduleDetailModal";
-import HealthCalendar from "../../components/HealthCalendar";
 import {
   defaultMedications,
   STORAGE_KEYS,
@@ -17,12 +16,24 @@ import {
   defaultVaccinationSchedules,
 } from "../../data/mockData";
 
-export default function MedicationManagement() {
+export default function MedicationManagement({
+  medications,
+  onMedicationsUpdate,
+  careSchedules,
+  onCareSchedulesUpdate,
+  vaccinationSchedules,
+  onVaccinationSchedulesUpdate,
+  onCalendarEventsChange,
+  showDetailModal,
+  setShowDetailModal,
+  selectedSchedule,
+  setSelectedSchedule,
+}) {
   const LOCAL_STORAGE_KEY = STORAGE_KEYS.MEDICATION_NOTIFICATIONS;
 
-  const [medications, setMedications] = useState(defaultMedications);
   const [showConfirm, setShowConfirm] = useState(false);
   const [toDeleteId, setToDeleteId] = useState(null);
+  const [deleteType, setDeleteType] = useState(""); // "medication", "care", "vaccination"
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingMedication, setEditingMedication] = useState(null);
@@ -36,24 +47,126 @@ export default function MedicationManagement() {
   const [showResultModal, setShowResultModal] = useState(false);
   const [ocrResult, setOcrResult] = useState(null);
 
-  // 일정 상세 모달 상태
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [selectedSchedule, setSelectedSchedule] = useState(null);
-
   // 페이징 상태
   const [medicationPage, setMedicationPage] = useState(1);
   const itemsPerPage = 3;
 
+  // 캘린더 이벤트 상태 (돌봄 일정과 동일하게 추가)
+  const [calendarEvents, setCalendarEvents] = useState([]);
+
+  // 특정 날짜와 "HH:MM" 문자열로 Date 만들기 - buildCalendarEvents 이전에 선언
+  const dateAtTime = useCallback((baseDate, hm) => {
+    const [hh = 9, mm = 0] = (hm || "09:00")
+      .split(":")
+      .map((n) => parseInt(n.trim(), 10));
+    return new Date(
+      baseDate.getFullYear(),
+      baseDate.getMonth(),
+      baseDate.getDate(),
+      hh,
+      mm,
+      0
+    );
+  }, []);
+
+  // 캘린더 이벤트 구성 (투약 + 돌봄 + 접종 모두 포함) - useEffect 이전에 선언
+  const buildCalendarEvents = useCallback(() => {
+    const events = [];
+
+    // 1) 투약: 기간 동안 매일, scheduleTime(콤마 구분) 각각 이벤트 생성
+    medications.forEach((med) => {
+      if (med.startDate && med.endDate) {
+        const start = new Date(med.startDate);
+        const end = new Date(med.endDate);
+        const times = (med.scheduleTime || "09:00")
+          .split(",")
+          .map((t) => t.trim());
+        const current = new Date(start);
+        while (current <= end) {
+          times.forEach((hm) => {
+            const s = dateAtTime(current, hm);
+            const e = new Date(s.getTime() + 60 * 60 * 1000);
+            events.push({
+              id: `med-${med.id}-${current.toISOString().slice(0, 10)}-${hm}`,
+              title: `${med.icon || "💊"} ${med.name}`,
+              start: s,
+              end: e,
+              allDay: false,
+              type: "medication",
+              schedule: { ...med, category: "medication", type: "medication" },
+            });
+          });
+          current.setDate(current.getDate() + 1);
+        }
+      }
+    });
+
+    // 2) 돌봄
+    careSchedules.forEach((s) => {
+      if (!s.date) return;
+      const base = new Date(s.date);
+      const sTime = dateAtTime(base, s.scheduleTime || "09:00");
+      const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+      events.push({
+        id: `care-${s.id}`,
+        title: `${s.icon || "🐕"} ${s.name}`,
+        start: sTime,
+        end: eTime,
+        allDay: false,
+        type: "care",
+        schedule: { ...s, category: "care" },
+      });
+    });
+
+    // 3) 접종 일정
+    vaccinationSchedules.forEach((s) => {
+      const dateStr = s.date || new Date().toISOString().slice(0, 10);
+      const base = new Date(dateStr);
+      const sTime = dateAtTime(base, s.scheduleTime || "10:00");
+      const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+      events.push({
+        id: `vac-${s.id}`,
+        title: `${s.icon || "💉"} ${s.name}`,
+        start: sTime,
+        end: eTime,
+        allDay: false,
+        type: s.subType === "건강검진" ? "checkup" : "vaccination",
+        schedule: {
+          ...s,
+          category: s.subType === "건강검진" ? "checkup" : "vaccination",
+        },
+      });
+    });
+
+    return events;
+  }, [medications, careSchedules, vaccinationSchedules, dateAtTime]);
+
+  // 캘린더 이벤트를 상위 컴포넌트로 전달 - buildCalendarEvents 의존성 추가
+  useEffect(() => {
+    if (onCalendarEventsChange) {
+      const events = buildCalendarEvents();
+      setCalendarEvents(events); // 캘린더 이벤트 상태 업데이트
+      onCalendarEventsChange(events);
+    }
+  }, [
+    medications,
+    careSchedules,
+    vaccinationSchedules,
+    onCalendarEventsChange,
+    buildCalendarEvents,
+  ]);
+
+  // 로컬 스토리지에서 알림 상태 복원
   useEffect(() => {
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (saved) {
       try {
         const savedStatus = JSON.parse(saved);
-        const updatedMedications = defaultMedications.map((med) => ({
+        const updatedMedications = medications.map((med) => ({
           ...med,
           isNotified: savedStatus[med.id] ?? med.isNotified,
         }));
-        setMedications(updatedMedications);
+        onMedicationsUpdate(updatedMedications);
       } catch (e) {
         console.error("알림 상태 복원 실패:", e);
       }
@@ -64,7 +177,7 @@ export default function MedicationManagement() {
     const updated = medications.map((med) =>
       med.id === id ? { ...med, isNotified: !med.isNotified } : med
     );
-    setMedications(updated);
+    onMedicationsUpdate(updated);
 
     const updatedStatus = updated.reduce((acc, med) => {
       acc[med.id] = med.isNotified;
@@ -93,10 +206,17 @@ export default function MedicationManagement() {
   const handleAddMedication = () => setShowAddModal(true);
 
   const handleAddNewMedication = (newMedication) => {
-    setMedications((prev) => [...prev, newMedication]);
+    onMedicationsUpdate((prev) => [...prev, newMedication]);
     setToastMessage(`${newMedication.name}이(가) 추가되었습니다.`);
     setToastType("active");
     setShowToast(true);
+
+    // 캘린더 이벤트 즉시 업데이트
+    const events = buildCalendarEvents();
+    setCalendarEvents(events);
+    if (onCalendarEventsChange) {
+      onCalendarEventsChange(events);
+    }
   };
 
   const handleEditMedication = (id) => {
@@ -108,7 +228,7 @@ export default function MedicationManagement() {
   };
 
   const handleEditMedicationSubmit = (updatedMedication) => {
-    setMedications((prev) =>
+    onMedicationsUpdate((prev) =>
       prev.map((med) =>
         med.id === updatedMedication.id ? updatedMedication : med
       )
@@ -116,27 +236,88 @@ export default function MedicationManagement() {
     setToastMessage(`${updatedMedication.name}이(가) 수정되었습니다.`);
     setToastType("active");
     setShowToast(true);
+
+    // 캘린더 이벤트 즉시 업데이트
+    const events = buildCalendarEvents();
+    setCalendarEvents(events);
+    if (onCalendarEventsChange) {
+      onCalendarEventsChange(events);
+    }
   };
 
   const requestDeleteMedication = (id) => {
     setToDeleteId(id);
+    setDeleteType("medication");
     setShowConfirm(true);
   };
 
   const confirmDeleteMedication = () => {
     if (toDeleteId == null) return;
-    const updated = medications.filter((med) => med.id !== toDeleteId);
-    setMedications(updated);
 
-    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      delete parsed[toDeleteId];
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(parsed));
+    if (deleteType === "medication") {
+      // medications 상태에서 제거
+      const updated = medications.filter((med) => med.id !== toDeleteId);
+      onMedicationsUpdate(updated);
+
+      // 로컬 스토리지에서도 삭제
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        delete parsed[toDeleteId];
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(parsed));
+      }
+
+      // 토스트 메시지 표시
+      const deletedMed = medications.find((med) => med.id === toDeleteId);
+      if (deletedMed) {
+        setToastMessage(`${deletedMed.name}이(가) 삭제되었습니다.`);
+        setToastType("delete");
+        setShowToast(true);
+      }
+    } else if (deleteType === "care") {
+      // 돌봄 일정 삭제
+      const updated = careSchedules.filter(
+        (schedule) => schedule.id !== toDeleteId
+      );
+      onCareSchedulesUpdate(updated);
+
+      // 토스트 메시지 표시
+      const deletedSchedule = careSchedules.find(
+        (schedule) => schedule.id === toDeleteId
+      );
+      if (deletedSchedule) {
+        setToastMessage(`${deletedSchedule.name} 일정이 삭제되었습니다.`);
+        setToastType("delete");
+        setShowToast(true);
+      }
+    } else if (deleteType === "vaccination") {
+      // 접종 일정 삭제
+      const updated = vaccinationSchedules.filter(
+        (schedule) => schedule.id !== toDeleteId
+      );
+      onVaccinationSchedulesUpdate(updated);
+
+      // 토스트 메시지 표시
+      const deletedSchedule = vaccinationSchedules.find(
+        (schedule) => schedule.id === toDeleteId
+      );
+      if (deletedSchedule) {
+        setToastMessage(`${deletedSchedule.name} 일정이 삭제되었습니다.`);
+        setToastType("delete");
+        setShowToast(true);
+      }
+    }
+
+    // 캘린더 이벤트 즉시 업데이트
+    const events = buildCalendarEvents();
+    setCalendarEvents(events);
+    if (onCalendarEventsChange) {
+      onCalendarEventsChange(events);
     }
 
     setShowConfirm(false);
     setToDeleteId(null);
+    setDeleteType("");
   };
 
   const cancelDeleteMedication = () => {
@@ -204,115 +385,97 @@ export default function MedicationManagement() {
     );
   };
 
-  // 특정 날짜와 "HH:MM" 문자열로 Date 만들기
-  const dateAtTime = (baseDate, hm) => {
-    const [hh = 9, mm = 0] = (hm || "09:00")
-      .split(":")
-      .map((n) => parseInt(n.trim(), 10));
-    return new Date(
-      baseDate.getFullYear(),
-      baseDate.getMonth(),
-      baseDate.getDate(),
-      hh,
-      mm,
-      0
-    );
-  };
-
-  // 캘린더 이벤트 구성 (투약 + 돌봄 + 접종 모두 포함)
-  const buildCalendarEvents = () => {
-    const events = [];
-
-    // 1) 투약: 기간 동안 매일, scheduleTime(콤마 구분) 각각 이벤트 생성
-    medications.forEach((med) => {
-      if (med.startDate && med.endDate) {
-        const start = new Date(med.startDate);
-        const end = new Date(med.endDate);
-        const times = (med.scheduleTime || "09:00")
-          .split(",")
-          .map((t) => t.trim());
-        const current = new Date(start);
-        while (current <= end) {
-          times.forEach((hm) => {
-            const s = dateAtTime(current, hm);
-            const e = new Date(s.getTime() + 60 * 60 * 1000);
-            events.push({
-              id: `med-${med.id}-${current.toISOString().slice(0, 10)}-${hm}`,
-              title: `${med.icon || "💊"} ${med.name}`,
-              start: s,
-              end: e,
-              allDay: false,
-              type: "medication",
-              schedule: { ...med, category: "medication" },
-            });
-          });
-          current.setDate(current.getDate() + 1);
-        }
-      }
-    });
-
-    // 2) 돌봄
-    defaultCareSchedules.forEach((s) => {
-      if (!s.date) return;
-      const base = new Date(s.date);
-      const sTime = dateAtTime(base, s.scheduleTime || "09:00");
-      const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
-      events.push({
-        id: `care-${s.id}`,
-        title: `${s.icon || "🐕"} ${s.name}`,
-        start: sTime,
-        end: eTime,
-        allDay: false,
-        type: "care",
-        schedule: { ...s, category: "care" },
-      });
-    });
-
-    // 3) 접종 일정
-    defaultVaccinationSchedules.forEach((s) => {
-      const dateStr = s.date || new Date().toISOString().slice(0, 10);
-      const base = new Date(dateStr);
-      const sTime = dateAtTime(base, s.scheduleTime || "10:00");
-      const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
-      events.push({
-        id: `vac-${s.id}`,
-        title: `${s.icon || "💉"} ${s.name}`,
-        start: sTime,
-        end: eTime,
-        allDay: false,
-        type: s.subType === "건강검진" ? "checkup" : "vaccination",
-        schedule: {
-          ...s,
-          category: s.subType === "건강검진" ? "checkup" : "vaccination",
-        },
-      });
-    });
-
-    return events;
-  };
-
-  // 캘린더 이벤트 클릭 핸들러
-  const handleCalendarEventClick = (event) => {
-    if (event.schedule) {
-      setSelectedSchedule(event.schedule);
-      setShowDetailModal(true);
-    }
-  };
-
   // 일정 상세 모달 핸들러
   const handleDetailModalEdit = () => {
-    if (selectedSchedule && selectedSchedule.category === "medication") {
+    console.log("handleDetailModalEdit called", selectedSchedule);
+    if (selectedSchedule) {
       setEditingMedication(selectedSchedule);
       setShowDetailModal(false);
       setShowEditModal(true);
-    } else {
-      setShowDetailModal(false);
     }
   };
 
   const handleDetailModalDelete = () => {
-    if (selectedSchedule && selectedSchedule.category === "medication") {
-      requestDeleteMedication(selectedSchedule.id);
+    if (selectedSchedule) {
+      // selectedSchedule.schedule에서 원본 schedule의 id를 가져옴
+      let scheduleId = selectedSchedule.id;
+
+      // selectedSchedule.schedule이 있는 경우 (캘린더 이벤트에서 클릭한 경우)
+      if (selectedSchedule.schedule && selectedSchedule.schedule.id) {
+        scheduleId = selectedSchedule.schedule.id;
+      } else if (
+        typeof selectedSchedule.id === "string" &&
+        selectedSchedule.id.startsWith("med-")
+      ) {
+        // 캘린더 이벤트의 id에서 원본 medication의 id 추출 (fallback)
+        const parts = selectedSchedule.id.split("-");
+        if (parts.length >= 2) {
+          scheduleId = parseInt(parts[1], 10); // 숫자로 변환
+        }
+      }
+
+      // 일정 타입에 따라 삭제 처리
+      if (
+        selectedSchedule.category === "medication" ||
+        selectedSchedule.type === "medication" ||
+        (selectedSchedule.schedule &&
+          selectedSchedule.schedule.category === "medication")
+      ) {
+        // 투약 일정 삭제
+        const updated = medications.filter((med) => med.id !== scheduleId);
+        onMedicationsUpdate(updated);
+
+        // 로컬 스토리지에서도 삭제
+        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          delete parsed[scheduleId];
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(parsed));
+        }
+
+        setToastMessage(
+          `${
+            selectedSchedule.name || selectedSchedule.title
+          }이(가) 삭제되었습니다.`
+        );
+      } else if (
+        selectedSchedule.category === "care" ||
+        selectedSchedule.type === "care" ||
+        (selectedSchedule.schedule &&
+          selectedSchedule.schedule.category === "care")
+      ) {
+        // 돌봄 일정 삭제
+        const updated = careSchedules.filter(
+          (schedule) => schedule.id !== scheduleId
+        );
+        onCareSchedulesUpdate(updated);
+        setToastMessage(`${selectedSchedule.name} 일정이 삭제되었습니다.`);
+      } else if (
+        selectedSchedule.category === "vaccination" ||
+        selectedSchedule.category === "checkup" ||
+        selectedSchedule.type === "vaccination" ||
+        selectedSchedule.type === "checkup" ||
+        (selectedSchedule.schedule &&
+          (selectedSchedule.schedule.category === "vaccination" ||
+            selectedSchedule.schedule.category === "checkup"))
+      ) {
+        // 접종 일정 삭제
+        const updated = vaccinationSchedules.filter(
+          (schedule) => schedule.id !== scheduleId
+        );
+        onVaccinationSchedulesUpdate(updated);
+        setToastMessage(`${selectedSchedule.name} 일정이 삭제되었습니다.`);
+      }
+
+      setToastType("delete");
+      setShowToast(true);
+
+      // 캘린더 이벤트 즉시 업데이트
+      const events = buildCalendarEvents();
+      setCalendarEvents(events);
+      if (onCalendarEventsChange) {
+        onCalendarEventsChange(events);
+      }
     }
     setShowDetailModal(false);
   };
@@ -436,12 +599,6 @@ export default function MedicationManagement() {
           )}
       </div>
 
-      {/* 캘린더 */}
-      <HealthCalendar
-        events={buildCalendarEvents()}
-        onEventClick={handleCalendarEventClick}
-      />
-
       {/* 삭제 확인 모달 */}
       {showConfirm && (
         <ConfirmModal
@@ -484,7 +641,6 @@ export default function MedicationManagement() {
         schedule={selectedSchedule}
         onEdit={handleDetailModalEdit}
         onDelete={handleDetailModalDelete}
-        g
       />
 
       {/* 토스트 메시지 */}

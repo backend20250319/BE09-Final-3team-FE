@@ -40,6 +40,30 @@ export default function HealthCalendar({
 }) {
   const [currentDate, setCurrentDate] = useState(defaultDate);
   const [currentView] = useState(defaultView);
+  const [showMoreEvents, setShowMoreEvents] = useState(null);
+  const [activeFilters, setActiveFilters] = useState({
+    medication: true,
+    care: true,
+    vaccination: true,
+    checkup: true,
+    etc: true,
+  });
+
+  // 필터링된 이벤트
+  const filteredEvents = useMemo(() => {
+    return events.filter((event) => {
+      const eventType = event.type || "etc";
+      return activeFilters[eventType];
+    });
+  }, [events, activeFilters]);
+
+  // 필터 토글 함수
+  const toggleFilter = (filterType) => {
+    setActiveFilters((prev) => ({
+      ...prev,
+      [filterType]: !prev[filterType],
+    }));
+  };
 
   // rbc 이벤트 스타일 지정
   const eventPropGetter = useMemo(() => {
@@ -193,25 +217,53 @@ export default function HealthCalendar({
     );
   };
 
+  // + 일정 n개 클릭 시 드롭다운 표시
+  const handleShowMoreClick = (events, date, slotInfo) => {
+    setShowMoreEvents({ events, date, slotInfo });
+  };
+
+  // 드롭다운 닫기
+  const handleCloseShowMore = () => {
+    setShowMoreEvents(null);
+  };
+
   const legend = (
     <div className={styles.legend}>
       {Object.entries(EVENT_TYPE_COLORS).map(([key, color]) => (
         <div key={key} className={styles.legendItem}>
-          <span
-            className={styles.legendDot}
-            style={{ backgroundColor: color }}
-          />
-          <span className={styles.legendLabel}>
-            {key === "medication"
-              ? "투약"
-              : key === "care"
-              ? "돌봄"
-              : key === "vaccination"
-              ? "접종"
-              : key === "checkup"
-              ? "건강검진"
-              : "기타"}
-          </span>
+          <button
+            className={`${styles.filterButton} ${
+              activeFilters[key] ? styles.activeFilter : styles.inactiveFilter
+            }`}
+            onClick={() => toggleFilter(key)}
+            title={`${
+              key === "medication"
+                ? "투약"
+                : key === "care"
+                ? "돌봄"
+                : key === "vaccination"
+                ? "접종"
+                : key === "checkup"
+                ? "건강검진"
+                : "기타"
+            } 필터`}
+          >
+            <span
+              className={styles.legendDot}
+              style={{ backgroundColor: color }}
+            />
+            <span className={styles.legendLabel}>
+              {key === "medication"
+                ? "투약"
+                : key === "care"
+                ? "돌봄"
+                : key === "vaccination"
+                ? "접종"
+                : key === "checkup"
+                ? "건강검진"
+                : "기타"}
+            </span>
+          </button>
         </div>
       ))}
     </div>
@@ -223,7 +275,7 @@ export default function HealthCalendar({
       <BigCalendar
         culture="ko"
         localizer={localizer}
-        events={events}
+        events={filteredEvents}
         startAccessor="start"
         endAccessor="end"
         view={currentView}
@@ -246,7 +298,60 @@ export default function HealthCalendar({
         className={styles.calendar}
         components={{ toolbar: Toolbar, event: EventItem }}
         showMultiDayTimes
+        onShowMore={(events, date, slotInfo) =>
+          handleShowMoreClick(events, date, slotInfo)
+        }
       />
+
+      {/* + 일정 n개 드롭다운 */}
+      {showMoreEvents && (
+        <div className={styles.showMoreOverlay} onClick={handleCloseShowMore}>
+          <div
+            className={styles.showMoreModal}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.showMoreHeader}>
+              <h3>
+                {format(showMoreEvents.date, "M월 d일", { locale: ko })} 일정
+              </h3>
+              <button
+                onClick={handleCloseShowMore}
+                className={styles.closeButton}
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles.showMoreEvents}>
+              {showMoreEvents.events.map((event, index) => (
+                <div
+                  key={index}
+                  className={styles.showMoreEventItem}
+                  onClick={() => {
+                    if (onEventClick) {
+                      onEventClick(event);
+                    }
+                    handleCloseShowMore();
+                  }}
+                >
+                  <div
+                    className={styles.eventTypeIndicator}
+                    style={{
+                      backgroundColor:
+                        EVENT_TYPE_COLORS[event.type] || EVENT_TYPE_COLORS.etc,
+                    }}
+                  />
+                  <div className={styles.eventInfo}>
+                    <div className={styles.eventTime}>
+                      {format(event.start, "HH:mm")}
+                    </div>
+                    <div className={styles.eventTitle}>{event.title}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

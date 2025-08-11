@@ -108,13 +108,17 @@ export default function ScheduleDetailModal({
 
         {/* 액션 버튼 */}
         <div className={styles.footer}>
-          <button className={styles.deleteButton} onClick={onDelete}>
+          <button
+            className={styles.deleteButton}
+            onClick={() => {
+              console.log("Delete button clicked in ScheduleDetailModal");
+              console.log("Schedule to delete:", schedule);
+              onDelete();
+            }}
+          >
             삭제
           </button>
           <div className={styles.actionButtons}>
-            <button className={styles.cancelButton} onClick={onClose}>
-              닫기
-            </button>
             <button className={styles.editButton} onClick={onEdit}>
               수정
             </button>
