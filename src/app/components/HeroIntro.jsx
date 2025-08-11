@@ -20,7 +20,7 @@ export default function HeroIntro() {
         <div className="container">
           <div className={styles.heroTextContent}>
             <h2 className={styles.heroTitle}>
-              PetFul 에서 반려 동물과의 새로운 디지털 <br />
+              PetFul에서 반려 동물과의 새로운 디지털 <br />
               라이프를 시작해보세요
             </h2>
             <p className={styles.heroDescription}>

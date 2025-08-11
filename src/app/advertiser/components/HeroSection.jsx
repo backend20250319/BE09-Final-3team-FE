@@ -19,12 +19,13 @@ export default function HeroSection() {
       <div className={styles.heroContent}>
         <div className={styles.container}>
           <div className={styles.content}>
-            <h1 className={styles.title}>광고주님 환영합니다!</h1>
+            <h2 className={styles.title}>
+              PetFul에서 반려동물 인플루언서와 소통하며 <br />
+              비즈니스를 성장시켜보세요</h2>
             <p className={styles.subtitle}>
-              Petful에서 반려동물 SNS 활동자와 소통하고 티켓팅 광고를 통해
-              비즈니스를
+              수많은 광고주들이 펫풀(Petful)과 함께
               <br />
-              성장시킬 수 있는 여러가지 컨텐츠가 있습니다.
+              다양한 콘텐츠와 캠페인으로 브랜드를 알려가고 있습니다
             </p>
           </div>
 
