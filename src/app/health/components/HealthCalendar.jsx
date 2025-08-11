@@ -229,43 +229,45 @@ export default function HealthCalendar({
 
   const legend = (
     <div className={styles.legend}>
-      {Object.entries(EVENT_TYPE_COLORS).map(([key, color]) => (
-        <div key={key} className={styles.legendItem}>
-          <button
-            className={`${styles.filterButton} ${
-              activeFilters[key] ? styles.activeFilter : styles.inactiveFilter
-            }`}
-            onClick={() => toggleFilter(key)}
-            title={`${
-              key === "medication"
-                ? "투약"
-                : key === "care"
-                ? "돌봄"
-                : key === "vaccination"
-                ? "접종"
-                : key === "checkup"
-                ? "건강검진"
-                : "기타"
-            } 필터`}
-          >
-            <span
-              className={styles.legendDot}
-              style={{ backgroundColor: color }}
-            />
-            <span className={styles.legendLabel}>
-              {key === "medication"
-                ? "투약"
-                : key === "care"
-                ? "돌봄"
-                : key === "vaccination"
-                ? "접종"
-                : key === "checkup"
-                ? "건강검진"
-                : "기타"}
-            </span>
-          </button>
-        </div>
-      ))}
+      {Object.entries(EVENT_TYPE_COLORS)
+        .filter(([key]) => key !== "etc") // 기타 버튼 제거
+        .map(([key, color]) => (
+          <div key={key} className={styles.legendItem}>
+            <button
+              className={`${styles.filterButton} ${
+                activeFilters[key] ? styles.activeFilter : styles.inactiveFilter
+              }`}
+              onClick={() => toggleFilter(key)}
+              title={`${
+                key === "medication"
+                  ? "투약"
+                  : key === "care"
+                  ? "돌봄"
+                  : key === "vaccination"
+                  ? "접종"
+                  : key === "checkup"
+                  ? "건강검진"
+                  : "기타"
+              } 필터`}
+            >
+              <span
+                className={styles.legendDot}
+                style={{ backgroundColor: color }}
+              />
+              <span className={styles.legendLabel}>
+                {key === "medication"
+                  ? "투약"
+                  : key === "care"
+                  ? "돌봄"
+                  : key === "vaccination"
+                  ? "접종"
+                  : key === "checkup"
+                  ? "건강검진"
+                  : "기타"}
+              </span>
+            </button>
+          </div>
+        ))}
     </div>
   );
 

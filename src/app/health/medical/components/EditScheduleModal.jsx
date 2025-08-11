@@ -219,14 +219,12 @@ export default function EditScheduleModal({
         <div className={styles.header}>
           <div className={styles.headerContent}>
             <div className={styles.headerIcon}>
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path
-                  d="M9 1V17M1 9H17"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <img
+                src="/health/pets.png"
+                alt="돌봄 수정 아이콘"
+                width={20}
+                height={20}
+              />
             </div>
             <div className={styles.headerText}>
               <h3>{getTitle()}</h3>

@@ -341,6 +341,13 @@
   color: #374151;
 }
 
+/* 일정 n개 텍스트 스타일 */
+.calendar :global(.rbc-show-more) {
+  color: #9ca3af !important;
+  font-size: 12px;
+  font-weight: 500;
+}
+
 @media (max-width: 768px) {
   .calendarWrap {
     width: 100%;

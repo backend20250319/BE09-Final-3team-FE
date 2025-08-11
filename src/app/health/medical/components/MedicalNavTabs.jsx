@@ -46,11 +46,11 @@ export default function MedicalNavTabs({
           </button>
           <button
             className={`${styles.navTab} ${
-              activeTab === "돌봄 일정" ? styles.active : ""
+              activeTab === "돌봄" ? styles.active : ""
             }`}
-            onClick={() => setActiveTab("돌봄 일정")}
+            onClick={() => setActiveTab("돌봄")}
           >
-            돌봄 일정
+            돌봄
           </button>
 
           <div

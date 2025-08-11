@@ -550,50 +550,6 @@ export default function CareManagement({
 
   return (
     <div className={styles.container}>
-      {/* 투약 섹션 */}
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h3>투약</h3>
-        </div>
-
-        <div className={styles.scheduleList}>
-          {medications.map((medication) => (
-            <div key={medication.id} className={styles.scheduleCard}>
-              <div className={styles.scheduleInfo}>
-                <div
-                  className={styles.scheduleIcon}
-                  style={{ backgroundColor: medication.color }}
-                >
-                  {medication.icon}
-                </div>
-                <div className={styles.scheduleDetails}>
-                  <h4>{medication.name}</h4>
-                  <p>
-                    {medication.type} • {medication.frequency}
-                  </p>
-                  <p className={styles.scheduleTime}>
-                    {medication.scheduleTime}
-                  </p>
-                </div>
-              </div>
-              <div className={styles.scheduleActions}>
-                <button
-                  className={styles.actionButton}
-                  onClick={() => requestDeleteMedication(medication.id)}
-                >
-                  <img
-                    src="/health/trash.png"
-                    alt="삭제"
-                    width={24}
-                    height={24}
-                  />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* 돌봄 섹션 */}
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
@@ -615,14 +571,12 @@ export default function CareManagement({
               onClick={handleAddCareSchedule}
             >
               <span>추가</span>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path
-                  d="M7 1V13M1 7H13"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <img
+                src="/health/pets.png"
+                alt="돌봄 추가 아이콘"
+                width={18}
+                height={18}
+              />
             </button>
           </div>
         </div>
@@ -664,14 +618,12 @@ export default function CareManagement({
               onClick={handleAddVaccinationSchedule}
             >
               <span>추가</span>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path
-                  d="M7 1V13M1 7H13"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <img
+                src="/health/syringe.png"
+                alt="접종 추가 아이콘"
+                width={18}
+                height={18}
+              />
             </button>
           </div>
         </div>

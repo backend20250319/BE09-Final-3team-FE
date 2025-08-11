@@ -105,17 +105,15 @@ export default function AddVaccinationScheduleModal({
         <div className={styles.header}>
           <div className={styles.headerContent}>
             <div className={styles.headerIcon}>
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path
-                  d="M9 1V17M1 9H17"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <img
+                src="/health/syringe.png"
+                alt="접종 일정 추가 아이콘"
+                width={20}
+                height={20}
+              />
             </div>
             <div className={styles.headerText}>
-              <h3>접종 일정 추가</h3>
+              <h3>접종 추가</h3>
               <p>새로운 접종 일정을 추가하세요</p>
             </div>
           </div>

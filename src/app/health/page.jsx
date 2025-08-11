@@ -226,7 +226,7 @@ export default function HealthPage() {
               setSelectedSchedule={setSelectedSchedule}
             />
           )}
-          {medicalSubTab === "돌봄 일정" && (
+          {medicalSubTab === "돌봄" && (
             <CareManagement
               medications={medications}
               onMedicationsUpdate={handleMedicationsUpdate}
