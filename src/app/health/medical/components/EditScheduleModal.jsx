@@ -171,6 +171,19 @@ export default function EditScheduleModal({
     }
   };
 
+  const getIconSrc = () => {
+    switch (type) {
+      case "medication":
+        return "/health/pill.png";
+      case "vaccination":
+        return "/health/syringe.png";
+      case "care":
+        return "/health/pets.png";
+      default:
+        return "/health/pets.png";
+    }
+  };
+
   const getSubTitle = () => {
     switch (type) {
       case "medication":
@@ -220,8 +233,8 @@ export default function EditScheduleModal({
           <div className={styles.headerContent}>
             <div className={styles.headerIcon}>
               <img
-                src="/health/pets.png"
-                alt="돌봄 수정 아이콘"
+                src={getIconSrc()}
+                alt={`${getTitle()} 아이콘`}
                 width={20}
                 height={20}
               />
