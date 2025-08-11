@@ -24,7 +24,7 @@ export default function PetProfile() {
       image: '/user/dog.png',
       instagram: '@goldenbuddy',
       followers: '189K',
-      price: '250,000',
+      cost: '250,000',
       partcipation: 10
     },
     루나: {

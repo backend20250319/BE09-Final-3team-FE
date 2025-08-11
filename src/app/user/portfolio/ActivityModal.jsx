@@ -1,9 +1,15 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styles from "./ActivityModal.module.css";
 import Image from "next/image";
 
-const ActivityModal = ({ isOpen, onClose, onSave, isEditMode }) => {
+const ActivityModal = ({
+  isOpen,
+  onClose,
+  onSave,
+  isEditMode,
+  editingData,
+}) => {
   const [formData, setFormData] = useState({
     title: "",
     period: "",
@@ -11,7 +17,56 @@ const ActivityModal = ({ isOpen, onClose, onSave, isEditMode }) => {
     detailedContent: "",
   });
   const [uploadedImages, setUploadedImages] = useState([]);
+  const [showTempSaveModal, setShowTempSaveModal] = useState(false);
+  const [showValidationModal, setShowValidationModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [validationMessage, setValidationMessage] = useState("");
   const fileInputRef = useRef(null);
+
+  // 수정 모드일 때 기존 데이터를 폼에 불러오기
+  useEffect(() => {
+    if (isEditMode && editingData) {
+      setFormData({
+        title: editingData.title || "",
+        period: editingData.period || "",
+        content: editingData.content || "",
+        detailedContent: editingData.detailedContent || "",
+      });
+
+      // 기존 이미지들을 모두 불러오기
+      if (editingData.images && editingData.images.length > 0) {
+        // images 배열이 있는 경우
+        const existingImages = editingData.images.map((image, index) => ({
+          id: Date.now() + index,
+          file: null,
+          preview: image.startsWith("/") ? image : `/${image}`,
+        }));
+        setUploadedImages(existingImages);
+      } else if (editingData.image && editingData.image !== "/campaign-1.jpg") {
+        // 단일 image가 있는 경우
+        setUploadedImages([
+          {
+            id: Date.now(),
+            file: null,
+            preview: editingData.image.startsWith("/")
+              ? editingData.image
+              : `/${editingData.image}`,
+          },
+        ]);
+      } else {
+        setUploadedImages([]);
+      }
+    } else {
+      // 새로 등록할 때는 기본값으로 초기화
+      setFormData({
+        title: "",
+        period: "",
+        content: "",
+        detailedContent: "",
+      });
+      setUploadedImages([]);
+    }
+  }, [isEditMode, editingData]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -53,28 +108,53 @@ const ActivityModal = ({ isOpen, onClose, onSave, isEditMode }) => {
     });
   };
 
+  const handleTempSave = () => {
+    // 임시저장 모달 표시
+    setShowTempSaveModal(true);
+
+    // 2초 후 모달 자동 닫기
+    setTimeout(() => {
+      setShowTempSaveModal(false);
+    }, 2000);
+  };
+
   const handleSave = () => {
+    // 필수 필드 검증
+    const missingFields = [];
+
     if (!formData.title.trim()) {
-      alert("활동 이력 제목을 입력해주세요.");
-      return;
+      missingFields.push("활동 이력 제목");
     }
     if (!formData.period.trim()) {
-      alert("활동 시기를 입력해주세요.");
-      return;
+      missingFields.push("활동 시기");
     }
     if (!formData.content.trim()) {
-      alert("활동 내역을 입력해주세요.");
+      missingFields.push("활동 내역");
+    }
+
+    if (missingFields.length > 0) {
+      // 작성되지 않은 내용이 있는 경우
+      setValidationMessage(
+        `${missingFields.join(", ")}이(가) 작성되지 않았습니다.`
+      );
+      setShowValidationModal(true);
       return;
     }
 
+    // 모든 필드가 작성된 경우 확인 모달 표시
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmSave = () => {
     const activityData = {
       ...formData,
       images: uploadedImages,
-      id: Date.now(),
+      id: isEditMode && editingData ? editingData.id : Date.now(),
     };
 
     onSave(activityData);
     handleClose();
+    setShowConfirmModal(false);
   };
 
   const handleClose = () => {
@@ -85,6 +165,9 @@ const ActivityModal = ({ isOpen, onClose, onSave, isEditMode }) => {
       detailedContent: "",
     });
     setUploadedImages([]);
+    setShowTempSaveModal(false);
+    setShowValidationModal(false);
+    setShowConfirmModal(false);
     onClose();
   };
 
@@ -151,9 +234,9 @@ const ActivityModal = ({ isOpen, onClose, onSave, isEditMode }) => {
                   <Image
                     src={image.preview}
                     alt="Preview"
-                    width={100}
-                    height={100}
-                    objectFit="cover"
+                    width={70}
+                    height={70}
+                    className={styles.previewImage}
                   />
                   <button
                     className={styles.removeImageButton}
@@ -163,6 +246,24 @@ const ActivityModal = ({ isOpen, onClose, onSave, isEditMode }) => {
                   </button>
                 </div>
               ))}
+
+              {/* 추가 버튼 */}
+              {uploadedImages.length < 10 && (
+                <div
+                  className={styles.addImageButton}
+                  onClick={handleImageUpload}
+                >
+                  <div className={styles.addImageIcon}>
+                    <Image
+                      src="/user/upload.svg"
+                      alt="Add Image"
+                      width={40}
+                      height={33}
+                    />
+                  </div>
+                  <span className={styles.addImageText}>추가</span>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -223,6 +324,9 @@ const ActivityModal = ({ isOpen, onClose, onSave, isEditMode }) => {
 
         {/* 버튼 영역 */}
         <div className={styles.buttonSection}>
+          <button className={styles.tempSaveButton} onClick={handleTempSave}>
+            임시저장
+          </button>
           <button className={styles.editButton} onClick={handleSave}>
             <Image
               src="/user/edit-icon.svg"
@@ -252,6 +356,70 @@ const ActivityModal = ({ isOpen, onClose, onSave, isEditMode }) => {
           multiple
           style={{ display: "none" }}
         />
+
+        {/* 임시저장 완료 모달 */}
+        {showTempSaveModal && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.alertModal}>
+              <div className={styles.alertContent}>
+                <div className={`${styles.alertIcon} ${styles.successIcon}`}>
+                  ✓
+                </div>
+                <h3 className={styles.alertTitle}>
+                  임시저장이 완료되었습니다.
+                </h3>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 검증 실패 모달 */}
+        {showValidationModal && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.alertModal}>
+              <div className={styles.alertContent}>
+                <div className={`${styles.alertIcon} ${styles.warningIcon}`}>
+                  ⚠
+                </div>
+                <h3 className={styles.alertTitle}>{validationMessage}</h3>
+                <button
+                  className={styles.alertButton}
+                  onClick={() => setShowValidationModal(false)}
+                >
+                  확인
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 등록 확인 모달 */}
+        {showConfirmModal && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.alertModal}>
+              <div className={styles.alertContent}>
+                <div className={`${styles.alertIcon} ${styles.questionIcon}`}>
+                  ?
+                </div>
+                <h3 className={styles.alertTitle}>등록하시겠습니까?</h3>
+                <div className={styles.confirmButtons}>
+                  <button
+                    className={styles.confirmButton}
+                    onClick={handleConfirmSave}
+                  >
+                    등록
+                  </button>
+                  <button
+                    className={styles.cancelButton}
+                    onClick={() => setShowConfirmModal(false)}
+                  >
+                    취소
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

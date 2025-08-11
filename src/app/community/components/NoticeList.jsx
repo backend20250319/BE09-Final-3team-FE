@@ -2,7 +2,7 @@
 import React from "react";
 import NoticeCard from "./NoticeCard";
 import styles from "../styles/NoticeList.module.css";
-import posts from "@/app/notice/data/posts";
+import posts from "@/app/community/data/posts";
 import {useRouter} from "next/navigation";
 
 
@@ -10,7 +10,7 @@ export default function NoticeList({activeTab}) {
   const router = useRouter();
 
   const handleClick = (id) => {
-    router.push(`/notice/${id}`);
+    router.push(`/community/${id}`);
   };
 
   return (

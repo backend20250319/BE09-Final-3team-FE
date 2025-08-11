@@ -1,4 +1,4 @@
-import PostForm from "@/app/notice/components/PostForm";
+import PostForm from "@/app/community/components/PostForm";
 
 
 export default function NewPostPage(){
