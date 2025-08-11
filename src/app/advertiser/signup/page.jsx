@@ -19,16 +19,44 @@ export default function SignupPage() {
     birthDay: "",
   });
 
+  const [errors, setErrors] = useState({
+    passwordMatch: false,
+  });
+
+  const [verificationStatus, setVerificationStatus] = useState({
+    codeSent: false,
+  });
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+
+    // 비밀번호 확인 검증
+    if (name === "password" || name === "confirmPassword") {
+      const password = name === "password" ? value : formData.password;
+      const confirmPassword =
+        name === "confirmPassword" ? value : formData.confirmPassword;
+
+      if (confirmPassword && password !== confirmPassword) {
+        setErrors((prev) => ({ ...prev, passwordMatch: true }));
+      } else {
+        setErrors((prev) => ({ ...prev, passwordMatch: false }));
+      }
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // 비밀번호 일치 확인
+    if (formData.password !== formData.confirmPassword) {
+      setErrors((prev) => ({ ...prev, passwordMatch: true }));
+      return;
+    }
+
     console.log("Form submitted:", formData);
     // Add your form submission logic here
   };
@@ -36,6 +64,7 @@ export default function SignupPage() {
   const sendVerificationCode = () => {
     console.log("Sending verification code to:", formData.email);
     // Add verification code sending logic here
+    setVerificationStatus((prev) => ({ ...prev, codeSent: true }));
   };
 
   const verifyCode = () => {
@@ -74,6 +103,11 @@ export default function SignupPage() {
                     인증번호 발송
                   </button>
                 </div>
+                {verificationStatus.codeSent && (
+                  <div className={styles.successMessage}>
+                    인증번호가 발송되었습니다.
+                  </div>
+                )}
               </div>
 
               {/* Verification Code */}
@@ -126,6 +160,9 @@ export default function SignupPage() {
                     className={styles.input}
                   />
                 </div>
+                {errors.passwordMatch && formData.confirmPassword && (
+                  <div className={styles.errorMessage}>일치하지 않습니다.</div>
+                )}
               </div>
 
               {/* Name */}
