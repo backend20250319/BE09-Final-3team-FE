@@ -132,15 +132,15 @@ export default function MemberManagement(){
 
                             {activeTab === "신고당한 회원" &&
                                 reportLogs.map((reportLogs) => (
-                                    <div key={reportLogs.no} className={styles.productCard}>
+                                    <div key={reportLogs.report_no} className={styles.productCard}>
                                         <div className={styles.productContent}>
                                             <div className={styles.productImage}>
-                                                <img src={reportLogs.profileImage} alt={reportLogs.target} />
+                                                <img src={reportLogs.reporter_img} alt={reportLogs.target} />
                                             </div>
                                             <div className={styles.productInfo}>
                                                 <div className={styles.resonleft} style={{fontSize:"larger"}}>{reportLogs.target}</div>
                                                <div className={styles.reasonleft}>{reportLogs.reason}</div>
-                                                <div className={styles.reasonright} style={{fontSize:"larger"}}>{reportLogs.reporter}</div>
+                                                <div className={styles.reasonright} style={{fontSize:"larger"}}>신고자 : {reportLogs.reporter}</div>
                                             </div>
                                         </div>
                                         <div className={styles.productActions} style={{ width: "265px" }}>
