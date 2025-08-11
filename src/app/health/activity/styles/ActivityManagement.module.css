@@ -47,7 +47,7 @@
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 21px;
-  min-height: 100px;
+  min-height: 162px;
   transition: all 0.3s ease;
 }
 
@@ -74,8 +74,8 @@
 
 .activityCard.notes {
   background: #f0f8ff;
-  min-height: 165px;
-  padding: 16px 20px;
+  min-height: 100px;
+  padding: 21px 21px 0 21px;
 }
 
 .activityHeader {
@@ -117,6 +117,10 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.activityCard.notes .formGroup {
+  gap: 1;
 }
 
 .formGroup label {
@@ -171,7 +175,7 @@
 
 .formGroup textarea {
   resize: none;
-  min-height: 104px;
+  min-height: 74px;
 }
 
 .walking input:focus,
@@ -189,7 +193,7 @@
 .notesTextarea {
   padding: 12px;
   border: 1px solid #d1d5db;
-  min-height: 83px;
+  min-height: 104px; /* 83px에서 104px로 변경하여 다른 textarea와 일치 */
   border-radius: 8px;
   font-weight: 400;
   font-size: 16px;
@@ -212,14 +216,9 @@
 }
 
 /* 글자수 제한 표시 */
-.textareaContainer {
-  position: relative;
-}
-
 .characterCount {
-  position: absolute;
-  bottom: 8px;
-  right: 12px;
+  text-align: right;
+  margin-top: 4px;
   font-size: 12px;
   color: #9ca3af;
   pointer-events: none;
