@@ -116,12 +116,7 @@ const PetProfile = () => {
                           />
                         </div>
                       </Link>
-                      <div
-                        className={styles.healthBadge}
-                        style={{ backgroundColor: pet.healthColor }}
-                      >
-                        {pet.healthPercentage}%
-                      </div>
+                   
                     </div>
 
                     <div className={styles.petInfo}>
@@ -142,18 +137,7 @@ const PetProfile = () => {
                           )}
                         </div>
                         <div className={styles.petMetaRow}>
-                          <div className={styles.healthInfo}>
-                            <Image
-                              src="/user/heartVec.png"
-                              alt="Health"
-                              width={16}
-                              height={16}
-                              className={styles.healthIcon}
-                            />
-                            <span className={styles.healthText}>
-                              {pet.health}
-                            </span>
-                          </div>
+                          
                         </div>
                       </div>
                       <div className={styles.ageText}>{pet.age}</div>
@@ -216,9 +200,9 @@ const PetProfile = () => {
                       height={21}
                     />
                   </div>
-                  <h3 className={styles.addPetTitle}>Add New Pet</h3>
+                  <h3 className={styles.addPetTitle}>반려동물 등록하기</h3>
                   <p className={styles.addPetDescription}>
-                    Create a profile for your new family member
+                    새로운 반려동물의 프로필을 등록해보세요!
                   </p>
                 </div>
               </div>
