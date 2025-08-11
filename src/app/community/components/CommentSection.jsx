@@ -10,8 +10,8 @@ export default function CommentSection({ postId }) {
   const handleAddComment = (newComment) => {
     const comment = {
       id: comments.length + 1,
-      author: "@current_user",
-      avatar: "/images/current-user.jpg",
+      author: "엠마왓슨",
+      avatar: "/owner/owner1.jpeg",
       content: newComment,
       time: "방금 전",
     };
