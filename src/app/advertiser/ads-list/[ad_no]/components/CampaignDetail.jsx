@@ -162,11 +162,11 @@ export default function CampaignDetail({ campaignData, adNo }) {
             {/* Campaign Stats */}
             <div className={styles.statsSection}>
               <div className={styles.statItem}>
-                <div className={styles.statValue}>{campaignData.announce_start}~{campaignData.announce_end}</div>
+                <div className={styles.statValue}>{campaignData.announce_start} ~ {campaignData.announce_end}</div>
                 <div className={styles.statLabel}>체험단 모집 기간</div>
               </div>
               <div className={styles.statItem}>
-                <div className={styles.statValue}>{campaignData.campaign_start}~{campaignData.campaign_end}</div>
+                <div className={styles.statValue}>{campaignData.campaign_start} ~ {campaignData.campaign_end}</div>
                 <div className={styles.statLabel}>체험단 참여 기간</div>
               </div>
               <div className={styles.statsGrid}>
