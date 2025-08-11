@@ -52,7 +52,7 @@ export default function FeatureCards() {
       description:
         "반려동물의 건강 상태를 추적하고 일상을 체계적으로 관리해보세요.",
       color: "#FF7675",
-      link: "/health/activity",
+      link: "/health",
     },
 
     {
