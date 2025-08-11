@@ -6,14 +6,14 @@ import Image from "next/image";
 const MyPage = () => {
   // ✅ 컨트롤드 입력을 위한 초기 빈 값
   const [formData, setFormData] = useState({
-    // name: "정승원",
-    // phone: "010-1234-1234",
-    // email: "petlover123@email.com",
-    // instagram: "@buddytheretriever",
-    // bio: "안녕하세요!골든 리트리버 ‘황금이’, 샴 고양이 ‘루나’, 푸른 마코 앵무 ‘찰리’와 함께하는 인플루언서 정승원입니다. 저는 반려동물과 함께하는 일상 속에서 다양한 상품과 서비스를 체험하고, 그 경험을 진솔하고 생생하게 전달하는 것을 주 컨텐츠로 삼고 있습니다.특히 펫 전용 제품 리뷰, 체험단 활동, 반려동물과의 라이프스타일 콘텐츠를 통해 많은 분들이 반려동물과의 삶을 더 풍성하게 즐길 수 있도록 돕고 있습니다.",
-    // address: "서울특별시 강남구",
-    // detailAddress: "",
-    // birthDate: "2001-08-10",
+    name: "정승원",
+    phone: "010-1234-1234",
+    email: "petlover123@email.com",
+    instagram: "@buddytheretriever",
+    bio: "안녕하세요!골든 리트리버 ‘황금이’, 샴 고양이 ‘루나’, 푸른 마코 앵무 ‘찰리’와 함께하는 인플루언서 정승원입니다. 저는 반려동물과 함께하는 일상 속에서 다양한 상품과 서비스를 체험하고, 그 경험을 진솔하고 생생하게 전달하는 것을 주 컨텐츠로 삼고 있습니다.특히 펫 전용 제품 리뷰, 체험단 활동, 반려동물과의 라이프스타일 콘텐츠를 통해 많은 분들이 반려동물과의 삶을 더 풍성하게 즐길 수 있도록 돕고 있습니다.",
+    address: "서울특별시 강남구",
+    detailAddress: "",
+    birthDate: "2001-08-10",
   });
 
   const [isEditable, setIsEditable] = useState(false);

@@ -250,6 +250,26 @@ select.birthInput::-ms-expand {
   background: #d68a16;
 }
 
+.errorMessage {
+  font-family: "Pretendard Variable";
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5em;
+  color: #dc2626;
+  margin-top: 4px;
+  margin-left: 4px;
+}
+
+.successMessage {
+  font-family: "Pretendard Variable";
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5em;
+  color: #16a34a;
+  margin-top: 4px;
+  margin-left: 4px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .body {
