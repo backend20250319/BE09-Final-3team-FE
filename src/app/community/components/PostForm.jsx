@@ -13,7 +13,7 @@ export default function PostForm() {
     const handleCancel = () => {
         const confirmCancel = window.confirm("게시글 작성을 취소하시겠습니까?");
         if (confirmCancel) {
-            router.push('/notice');
+            router.push('/community');
         }
     };
 

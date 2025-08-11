@@ -7,7 +7,7 @@ export default function NoticeHeader({activeTab,setActiveTab}) {
   const router = useRouter();
 
   const handleAdd = () => {
-    router.push('/notice/new');
+    router.push('/community/new');
   }
   return (
     <div className={styles.header}>
