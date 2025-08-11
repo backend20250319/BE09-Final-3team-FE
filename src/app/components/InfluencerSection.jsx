@@ -3,66 +3,27 @@
 import { useState } from "react";
 import Image from "next/image";
 import styles from "../styles/InfluencerSection.module.css";
+import petstars from "../advertiser/petstar-list/data/PetStars";
 
 export default function InfluencerSection() {
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  const influencers = [
-    {
-      id: 1,
-      name: "Buddy",
-      breed: "Golden Retriever",
-      username: "@goldenbuddy",
-      followers: "245K",
-      profileImage: "/influencer-1.jpg",
-      userAvatar: "/user-1.jpg",
-      description:
-        "Adventure-loving golden who enjoys beach days and hiking trails with his human.",
-    },
-    {
-      id: 2,
-      name: "Luna",
-      breed: "Siamese Cat",
-      username: "@lunathesiamese",
-      followers: "189K",
-      profileImage: "/influencer-2.jpg",
-      userAvatar: "/user-2.jpg",
-      description:
-        "Elegant and sassy Siamese who loves luxury cat beds and gourmet treats.",
-    },
-    {
-      id: 3,
-      name: "Bruno",
-      breed: "French Bulldog",
-      username: "@brunothefrenchie",
-      followers: "320K",
-      profileImage: "/influencer-3.jpg",
-      userAvatar: "/user-3.jpg",
-      description:
-        "Playful Frenchie with a big personality and an even bigger wardrobe collection.",
-    },
-    {
-      id: 4,
-      name: "Max",
-      breed: "Maine Coon",
-      username: "@magnificent_max",
-      followers: "178K",
-      profileImage: "/influencer-4.jpg",
-      userAvatar: "/user-4.jpg",
-      description:
-        "Majestic Maine Coon who loves to show off his impressive size and fluffy coat.",
-    },
-  ];
+  // 현재 시작 인덱스
+  const [startIndex, setStartIndex] = useState(0);
+  const itemsPerPage = 4;
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % influencers.length);
+    setStartIndex((prev) =>
+      prev + 1 > petstars.length - itemsPerPage ? 0 : prev + 1
+    );
   };
 
   const prevSlide = () => {
-    setCurrentSlide(
-      (prev) => (prev - 1 + influencers.length) % influencers.length
+    setStartIndex((prev) =>
+      prev - 1 < 0 ? petstars.length - itemsPerPage : prev - 1
     );
   };
+
+  // 보여줄 카드만 추출
+  const visiblePetstars = petstars.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <section className={styles.influencerSection}>
@@ -76,58 +37,53 @@ export default function InfluencerSection() {
 
         <div className={styles.influencerSlider}>
           <div className={styles.influencerGrid}>
-            {influencers.map((influencer) => (
+            {visiblePetstars.map((influencer) => (
               <div key={influencer.id} className={styles.influencerCard}>
                 <div className={styles.cardImage}>
                   <Image
-                    src={influencer.profileImage}
+                    src={influencer.image}
                     alt={influencer.name}
                     width={256}
                     height={256}
                     className={styles.profileImage}
                   />
-                  <div className={styles.nameOverlay}>
-                    <h3 className={styles.petName}>{influencer.name}</h3>
-                    <p className={styles.petBreed}>{influencer.breed}</p>
-                  </div>
                 </div>
 
                 <div className={styles.cardContent}>
                   <div className={styles.userInfo}>
-                    <div className={styles.userAvatar}>
-                      <Image
-                        src={influencer.userAvatar}
-                        alt={influencer.username}
-                        width={32}
-                        height={32}
-                        className={styles.avatarImage}
-                      />
+                    <div className={styles.petInfo}>
+                      <h3 className={styles.petName}>{influencer.name}</h3>
+                      <p className={styles.petBreed}>{influencer.breed}</p>
                     </div>
-                    <span className={styles.username}>
-                      {influencer.username}
-                    </span>
                   </div>
 
                   <div className={styles.statsInfo}>
-                    <div className={styles.followersIcon}>
-                      <svg
-                        width="16"
-                        height="14"
-                        viewBox="0 0 16 14"
-                        fill="none"
-                      >
-                        <path
-                          d="M8 13.32C12.6667 10.6667 16 7.64 16 4.5C16 1.96 13.84 0 11.5 0C9.74 0 8.5 1 8 1.5C7.5 1 6.26 0 4.5 0C2.16 0 0 1.96 0 4.5C0 7.64 3.33333 10.6667 8 13.32Z"
-                          fill="#FF7675"
-                        />
-                      </svg>
-                    </div>
-                    <span className={styles.followersCount}>
-                      {influencer.followers}
+                    <span className={styles.username}>
+                      {influencer.sns_profile}
                     </span>
+                    <div className={styles.followersBox}>
+                      <div className={styles.followersIcon}>
+                        <svg
+                          width="16"
+                          height="14"
+                          viewBox="0 0 16 14"
+                          fill="none"
+                        >
+                          <path
+                            d="M8 13.32C12.6667 10.6667 16 7.64 16 4.5C16 1.96 13.84 0 11.5 0C9.74 0 8.5 1 8 1.5C7.5 1 6.26 0 4.5 0C2.16 0 0 1.96 0 4.5C0 7.64 3.33333 10.6667 8 13.32Z"
+                            fill="#FF7675"
+                          />
+                        </svg>
+                      </div>
+                      <span className={styles.followersCount}>
+                        {influencer.followers}
+                      </span>
+                    </div>
                   </div>
 
-                  <p className={styles.description}>{influencer.description}</p>
+                  <p className={styles.description}>
+                    {influencer.description}
+                  </p>
                 </div>
               </div>
             ))}

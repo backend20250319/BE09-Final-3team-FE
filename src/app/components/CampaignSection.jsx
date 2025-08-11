@@ -1,74 +1,32 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import styles from "../styles/CampaignSection.module.css";
+import campaigns from "../campaign/data/campaigns";
 
 export default function CampaignSection() {
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  const campaigns = [
-    {
-      id: 1,
-      image: "/campaign-1.jpg",
-      price: "$500-1000",
-      brand: {
-        name: "PawsomeNutrition",
-        logo: "/brand-1.jpg",
-      },
-      title: "Organic Pet Food Campaign",
-      description:
-        "Looking for dogs and cats to showcase our new organic food line. 3 posts required.",
-      deadline: "7일 후 마감",
-    },
-    {
-      id: 2,
-      image: "/campaign-2.jpg",
-      price: "$300-600",
-      brand: {
-        name: "FunnyTails",
-        logo: "/brand-2.jpg",
-      },
-      title: "Interactive Toy Launch",
-      description:
-        "Seeking playful cats to feature with our new interactive toys. Video content preferred.",
-      deadline: "14시간 후 마감",
-    },
-    {
-      id: 3,
-      image: "/campaign-3.jpg",
-      price: "$400-800",
-      brand: {
-        name: "PetGlam",
-        logo: "/brand-3.jpg",
-      },
-      title: "Grooming Kit Promotion",
-      description:
-        "Looking for well-groomed dogs to showcase our premium grooming products.",
-      deadline: "10일 후 마감",
-    },
-    {
-      id: 4,
-      image: "/campaign-4.jpg",
-      price: "$600-1200",
-      brand: {
-        name: "PetAdventures",
-        logo: "/brand-4.jpg",
-      },
-      title: "Travel Accessories Launch",
-      description:
-        "Seeking pets who love to travel for our new line of travel accessories and carriers.",
-      deadline: "21일 후 마감",
-    },
-  ];
+  const router = useRouter();
+  const [startIndex, setStartIndex] = useState(0);
+  const itemsPerPage = 4;
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % campaigns.length);
+    setStartIndex((prev) =>
+      prev + 1 > campaigns.length - itemsPerPage ? 0 : prev + 1
+    );
   };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + campaigns.length) % campaigns.length);
+    setStartIndex((prev) =>
+      prev - 1 < 0 ? campaigns.length - itemsPerPage : prev - 1
+    );
   };
+
+  const visibleCampaigns = campaigns.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
 
   return (
     <section className={styles.campaignSection}>
@@ -76,14 +34,14 @@ export default function CampaignSection() {
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>진행 중인 체험단</h2>
           <p className={styles.sectionSubtitle}>
-            당신과 같은 펫 인플루언서를 찾고 있는 브랜드들과 연결해보세요.
+            당신과 같은 펫 인플루언서를 찾고 있는 브랜드들과 연결해보세요
           </p>
         </div>
 
         <div className={styles.campaignSlider}>
           <div className={styles.campaignGrid}>
-            {campaigns.map((campaign, index) => (
-              <div key={campaign.id} className={styles.campaignCard}>
+            {visibleCampaigns.map((campaign) => (
+              <div key={campaign.ad_no} className={styles.campaignCard}>
                 <div className={styles.cardImage}>
                   <Image
                     src={campaign.image}
@@ -92,34 +50,38 @@ export default function CampaignSection() {
                     height={160}
                     className={styles.campaignImage}
                   />
-                  <div className={styles.priceTag}>{campaign.price}</div>
                 </div>
-
                 <div className={styles.cardContent}>
                   <div className={styles.brandInfo}>
                     <div className={styles.brandLogo}>
                       <Image
-                        src={campaign.brand.logo}
-                        alt={campaign.brand.name}
+                        src={campaign.brand_url}
+                        alt={campaign.brand}
                         width={32}
                         height={32}
                         className={styles.brandImage}
                       />
                     </div>
-                    <span className={styles.brandName}>
-                      {campaign.brand.name}
-                    </span>
+                    <span className={styles.brandName}>{campaign.brand}</span>
                   </div>
-
                   <h3 className={styles.campaignTitle}>{campaign.title}</h3>
-
                   <p className={styles.campaignDescription}>
-                    {campaign.description}
+                    {campaign.objective}
                   </p>
-
                   <div className={styles.cardFooter}>
-                    <span className={styles.deadline}>{campaign.deadline}</span>
-                    <button className={styles.applyButton}>신청하기</button>
+                    <span className={styles.deadline}>
+                      {campaign.announce_start}~{campaign.announce_end}
+                    </span>
+                    <button
+                    className={styles.applyButton}
+                    onClick={() => {
+                      if (campaign.ad_no === 1) {
+                        router.push("/campaign/1");
+                      }
+                    }}
+                  >
+                    신청하기
+                  </button>
                   </div>
                 </div>
               </div>
@@ -142,7 +104,6 @@ export default function CampaignSection() {
                 />
               </svg>
             </button>
-
             <button
               className={styles.sliderButton}
               onClick={nextSlide}
@@ -162,7 +123,7 @@ export default function CampaignSection() {
         </div>
 
         <div className={styles.viewAllContainer}>
-          <a href="#all-campaigns" className={styles.viewAllLink}>
+          <a href="campaign" className={styles.viewAllLink}>
             <span>모든 체험단 목록</span>
             <svg width="14" height="12" viewBox="0 0 14 12" fill="none">
               <path

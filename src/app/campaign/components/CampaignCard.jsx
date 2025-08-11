@@ -74,19 +74,13 @@ export default function CampaignCard({ campaign, openModal }) {
         <div className={styles.brandSection}>
           <div className={styles.brandInfo}>
             <div className={styles.brandIcon}>
-              <svg width="10" height="9" viewBox="0 0 10 9" fill="none">
-                <path
-                  d="M5 8.5C7.76142 8.5 10 6.26142 10 3.5C10 0.738579 7.76142 -1.5 5 -1.5C2.23858 -1.5 0 0.738579 0 3.5C0 6.26142 2.23858 8.5 5 8.5Z"
-                  fill="#8BC34A"
-                />
-                <path
-                  d="M3.75 3.875L4.375 4.5L6.25 2.625"
-                  stroke="white"
-                  strokeWidth="0.75"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <Image  
+                src={campaign.brand_url}
+                alt={campaign.brand}
+                width={32}
+                height={32}
+                className={styles.brandImage}
+              />
             </div>
             <span className={styles.brandName}>{campaign.brand}</span>
           </div>
