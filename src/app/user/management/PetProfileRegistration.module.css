@@ -31,10 +31,12 @@
 }
 
 .modalHeader {
+  margin-top: 20px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   margin-bottom: 32px;
+  position: relative;
 }
 
 .closeButton {
@@ -51,6 +53,10 @@
   justify-content: center;
   border-radius: 50%;
   transition: background-color 0.2s;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .closeButton:hover {
@@ -78,9 +84,9 @@
   color: #594a3e;
   text-align: center;
   margin: 0;
-  width: 165px;
-  margin-left: auto;
-  margin-right: auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .content {
@@ -107,52 +113,94 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  position: relative;
+}
+
+.imageWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 .petImage {
-  width: 252px;
-  height: 252px;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   border-radius: 12px;
 }
 
 .imagePlaceholder {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   width: 100%;
   height: 100%;
+  gap: 16px;
+  text-align: center;
+  margin-top: 50px;
 }
 
 .uploadIcon {
   width: 43px;
   height: 31px;
   color: #9ca3af;
+  display: block;
+  margin: 0 auto;
 }
 
-.uploadButtonContainer {
+.imageOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
-  gap: 8px;
   justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border-radius: 12px;
 }
 
-.uploadButton {
+.imageWrapper:hover .imageOverlay {
+  opacity: 1;
+}
+
+.overlayUploadButton {
+  background: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #000000;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.overlayUploadButton:hover {
+  background: #f3f4f6;
+}
+
+.placeholderUploadButton {
   background: #ffffff;
   border: 1px solid #d1d5db;
   border-radius: 8px;
-  padding: 5px 13px;
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 1.5;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
   color: #000000;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 43px;
-  width: 107px;
-  justify-content: center;
+  transition: background-color 0.2s ease;
+  display: block;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.placeholderUploadButton:hover {
+  background: #f9fafb;
 }
 
 .fileInput {
@@ -206,12 +254,12 @@
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
-  color: #adaebc;
+  color: #000000;
   background: #ffffff;
 }
 
 .input::placeholder {
-  color: #adaebc;
+  color: #9ca3af;
 }
 
 .textarea {
@@ -222,7 +270,7 @@
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
-  color: #adaebc;
+  color: #000000;
   background: #ffffff;
   resize: none; /* 사용자가 크기 조절 못하게 */
   overflow: hidden; /* 스크롤바 감춤 */
@@ -231,7 +279,7 @@
 }
 
 .textarea::placeholder {
-  color: #adaebc;
+  color: #9ca3af;
 }
 
 .selectContainer {
@@ -251,11 +299,23 @@
   font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
-  color: #adaebc;
+  color: #9ca3af;
   background: #ffffff;
   appearance: none;
   cursor: pointer;
   box-sizing: border-box;
+}
+
+.select option {
+  color: #000000;
+}
+
+.select option:first-child {
+  color: #9ca3af;
+}
+
+.select:not([value=""]) {
+  color: #000000;
 }
 
 .select:focus {
@@ -315,6 +375,9 @@
   height: 48px;
   width: 117.45px;
   justify-content: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .deleteButton {
@@ -333,6 +396,9 @@
   height: 48px;
   width: 115.45px;
   justify-content: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .buttonIcon {
@@ -352,10 +418,6 @@
 
 .deleteButton:hover {
   background: #e66767;
-}
-
-.uploadButton:hover {
-  background: #f9fafb;
 }
 
 .input:focus,

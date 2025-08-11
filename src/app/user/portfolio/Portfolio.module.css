@@ -523,10 +523,14 @@
   font-family: "Pretendard Variable", sans-serif;
   font-size: 16px;
   font-weight: 400;
-  color: #adaebc;
+  color: #000000;
   background: #ffffff;
   resize: none;
   box-sizing: border-box;
+}
+
+.personalityTextarea::placeholder {
+  color: #6b7280;
 }
 
 .personalityTextarea:focus {
@@ -560,16 +564,21 @@
 
 .introductionInput {
   width: 100%;
-  height: 34px;
+  height: 140px;
   padding: 12px 16px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-family: "Pretendard Variable", sans-serif;
   font-size: 16px;
   font-weight: 400;
-  color: #adaebc;
+  color: #000000;
   background: #ffffff;
   box-sizing: border-box;
+  resize: none;
+}
+
+.introductionInput::placeholder {
+  color: #6b7280;
 }
 
 .introductionInput:focus {
@@ -621,9 +630,13 @@
   font-family: "Pretendard Variable", sans-serif;
   font-size: 16px;
   font-weight: 400;
-  color: #adaebc;
+  color: #000000;
   background: #ffffff;
   box-sizing: border-box;
+}
+
+.formGroup input::placeholder {
+  color: #6b7280;
 }
 
 .formGroup input:focus,
@@ -675,9 +688,13 @@
   font-family: "Pretendard Variable", sans-serif;
   font-size: 16px;
   font-weight: 400;
-  color: #adaebc;
+  color: #000000;
   background: #ffffff;
   box-sizing: border-box;
+}
+
+.contactForm .formGroup input::placeholder {
+  color: #6b7280;
 }
 
 .contactForm .formGroup input:focus {
@@ -728,6 +745,145 @@
 
 .submitButton:hover {
   background: #e0941a;
+}
+
+/* 알림 모달 */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.alertModal {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.15);
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.alertContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.alertIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.successIcon {
+  background: #10b981;
+}
+
+.warningIcon {
+  background: #f59e0b;
+}
+
+.questionIcon {
+  background: #3b82f6;
+}
+
+.alertTitle {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  color: #374151;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.alertButton {
+  width: 120px;
+  height: 40px;
+  background: #8bc34a;
+  border: none;
+  border-radius: 20px;
+  color: #ffffff;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.alertButton:hover {
+  background: #7cb342;
+  transform: translateY(-1px);
+}
+
+.confirmButtons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.confirmButton {
+  width: 100px;
+  height: 40px;
+  background: #8bc34a;
+  border: none;
+  border-radius: 20px;
+  color: #ffffff;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.confirmButton:hover {
+  background: #7cb342;
+  transform: translateY(-1px);
+}
+
+.cancelButton {
+  width: 100px;
+  height: 40px;
+  background: #6b7280;
+  border: none;
+  border-radius: 20px;
+  color: #ffffff;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover {
+  background: #4b5563;
+  transform: translateY(-1px);
 }
 
 /* 반응형 디자인 */

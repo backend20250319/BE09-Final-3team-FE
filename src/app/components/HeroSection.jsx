@@ -14,7 +14,7 @@ export default function HeroSection() {
         "간편한 신청 절차",
         "실시간 진행 상황 안내",
       ],
-      image: "/campaign-1.jpg",
+      image: "/campaign.png",
       color: "#F5A623",
       reverse: false,
     },

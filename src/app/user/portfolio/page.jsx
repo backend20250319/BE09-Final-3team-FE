@@ -1,12 +1,63 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styles from "./Portfolio.module.css";
 import ActivityModal from "./ActivityModal";
 import ActivityDetailModal from "./ActivityDetailModal";
 import Image from "next/image";
-import ActivityCardCarousel from "./ActivityCardCarousel"; // ✅ 추가
+import ActivityCardCarousel from "./ActivityCardCarousel";
+import { useSearchParams } from "next/navigation";
 
 const PortfolioPage = () => {
+  const searchParams = useSearchParams();
+  const petId = searchParams.get("petId");
+
+  // 반려동물 데이터 (실제로는 API에서 가져올 데이터)
+  const pets = [
+    {
+      id: 1,
+      name: "황금이",
+      breed: "골든 리트리버",
+      age: "3살",
+      health: "Healthy",
+      description:
+        "장난기 많고 에너지가 넘칩니다. 공놀이와 해변에서 수영하는 것을 좋아합니다.",
+      image: "/user/dog.png",
+      healthPercentage: 100,
+      healthColor: "#8BC34A",
+      isPetStar: true,
+      gender: "수컷",
+      sns: "instagram",
+    },
+    {
+      id: 2,
+      name: "루나",
+      breed: "샴 고양이",
+      age: "2살",
+      health: "Healthy",
+      description: "독립적이고 우아한 성격입니다.",
+      image: "/user/cat.png",
+      healthPercentage: 85,
+      healthColor: "#F5A623",
+      isPetStar: false,
+      gender: "암컷",
+      sns: "",
+    },
+    {
+      id: 3,
+      name: "찰리",
+      breed: "푸른 마코 앵무",
+      age: "5살",
+      health: "건강 검진 예정",
+      description: "수다스럽고 사교적인 성격입니다.",
+      image: "/user/bird.png",
+      healthPercentage: 60,
+      healthColor: "#FF7675",
+      isPetStar: false,
+      gender: "수컷",
+      sns: "",
+    },
+  ];
+
   const [formData, setFormData] = useState({
     ownerName: "",
     email: "",
@@ -93,8 +144,32 @@ const PortfolioPage = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState(null);
+  const [editingActivity, setEditingActivity] = useState(null);
+  const [showTempSaveModal, setShowTempSaveModal] = useState(false);
+  const [showValidationModal, setShowValidationModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [validationMessage, setValidationMessage] = useState("");
 
   const fileInputRef = useRef(null);
+
+  // petId가 있을 때 해당 반려동물의 정보를 포트폴리오에 불러오기
+  useEffect(() => {
+    if (petId) {
+      const selectedPet = pets.find((pet) => pet.id === parseInt(petId));
+      if (selectedPet) {
+        setFormData((prev) => ({
+          ...prev,
+          petName: selectedPet.name,
+          breed: selectedPet.breed,
+          age: selectedPet.age,
+          gender: selectedPet.gender === "수컷" ? "male" : "female",
+          personality: selectedPet.description,
+          introduction: selectedPet.description,
+        }));
+        setProfileImage(selectedPet.image);
+      }
+    }
+  }, [petId]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -122,9 +197,11 @@ const PortfolioPage = () => {
   const addActivityCard = () => {
     setIsModalOpen(true);
     setIsEditMode(false);
+    setEditingActivity(null);
   };
 
-  const handleEditActivity = () => {
+  const handleEditActivity = (activity) => {
+    setEditingActivity(activity);
     setIsModalOpen(true);
     setIsEditMode(true);
   };
@@ -135,19 +212,103 @@ const PortfolioPage = () => {
   };
 
   const handleSaveActivity = (activityData) => {
-    const newCard = {
-      id: Date.now(),
-      image:
-        activityData.images && activityData.images.length > 0
-          ? activityData.images[0].preview
-          : "/campaign-1.jpg",
-      title: activityData.title,
-      period: activityData.period,
-      content: activityData.content,
-      detailedContent: activityData.detailedContent,
-      progress: 100,
-    };
-    setActivityCards((prev) => [...prev, newCard]);
+    if (isEditMode && editingActivity) {
+      // 수정 모드: 기존 활동이력 업데이트
+      setActivityCards((prev) =>
+        prev.map((card) =>
+          card.id === editingActivity.id
+            ? {
+                ...card,
+                image:
+                  activityData.images && activityData.images.length > 0
+                    ? activityData.images[0].preview
+                    : card.image,
+                title: activityData.title,
+                period: activityData.period,
+                content: activityData.content,
+                detailedContent: activityData.detailedContent,
+              }
+            : card
+        )
+      );
+    } else {
+      // 새로 등록 모드: 새로운 활동이력 추가
+      const newCard = {
+        id: Date.now(),
+        image:
+          activityData.images && activityData.images.length > 0
+            ? activityData.images[0].preview
+            : "/campaign-1.jpg",
+        title: activityData.title,
+        period: activityData.period,
+        content: activityData.content,
+        detailedContent: activityData.detailedContent,
+        progress: 100,
+      };
+      setActivityCards((prev) => [...prev, newCard]);
+    }
+  };
+
+  const handleTempSave = () => {
+    // 임시저장 모달 표시
+    setShowTempSaveModal(true);
+
+    // 2초 후 모달 자동 닫기
+    setTimeout(() => {
+      setShowTempSaveModal(false);
+    }, 2000);
+  };
+
+  const handleSubmit = () => {
+    // 필수 필드 검증
+    const missingFields = [];
+
+    if (!formData.petName.trim()) {
+      missingFields.push("반려동물 이름");
+    }
+    if (!formData.breed.trim()) {
+      missingFields.push("품종");
+    }
+    if (!formData.age.trim()) {
+      missingFields.push("나이");
+    }
+    if (!formData.gender.trim()) {
+      missingFields.push("성별");
+    }
+    if (!formData.personality.trim()) {
+      missingFields.push("성격");
+    }
+    if (!formData.introduction.trim()) {
+      missingFields.push("간단한 소개");
+    }
+    if (!formData.ownerName.trim()) {
+      missingFields.push("이름");
+    }
+    if (!formData.email.trim()) {
+      missingFields.push("이메일");
+    }
+    if (!formData.phoneNumber.trim()) {
+      missingFields.push("연락처");
+    }
+
+    if (missingFields.length > 0) {
+      // 작성되지 않은 내용이 있는 경우
+      setValidationMessage(
+        `${missingFields.join(", ")}이(가) 작성되지 않았습니다.`
+      );
+      setShowValidationModal(true);
+      return;
+    }
+
+    // 모든 필드가 작성된 경우 확인 모달 표시
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmSubmit = () => {
+    // 실제 등록 로직 구현
+    console.log("포트폴리오 등록 완료:", formData);
+    setShowConfirmModal(false);
+    // 여기에 실제 API 호출 로직 추가
   };
 
   return (
@@ -218,14 +379,14 @@ const PortfolioPage = () => {
             <div className={styles.sectionContent}>
               <textarea
                 className={styles.personalityTextarea}
-                placeholder="반려동물의 성격 및 활동 경력을 500자 이내로 작성해주세요."
+                placeholder="반려동물의 성격 및 활동 경력을 300자 이내로 작성해주세요."
                 name="personality"
                 value={formData.personality}
                 onChange={handleInputChange}
-                maxLength={500}
+                maxLength={300}
               ></textarea>
               <div className={styles.characterCount}>
-                {formData.personality.length}/500
+                {formData.personality.length}/300
               </div>
             </div>
           </section>
@@ -237,17 +398,17 @@ const PortfolioPage = () => {
               <h2 className={styles.sectionTitle}>간단한 소개</h2>
             </div>
             <div className={styles.sectionContent}>
-              <input
-                type="text"
+              <textarea
                 className={styles.introductionInput}
-                placeholder="한줄 소개를 100자 이내로 작성해주세요."
+                placeholder="한줄 소개를 300자 이내로 작성해주세요."
                 name="introduction"
                 value={formData.introduction}
                 onChange={handleInputChange}
-                maxLength={100}
+                maxLength={300}
+                rows={3}
               />
               <div className={styles.characterCount}>
-                {formData.introduction.length}/100
+                {formData.introduction.length}/300
               </div>
             </div>
           </section>
@@ -303,8 +464,8 @@ const PortfolioPage = () => {
                     className={styles.genderSelect}
                   >
                     <option value="">선택</option>
-                    <option value="male">남아</option>
-                    <option value="female">여아</option>
+                    <option value="male">수컷</option>
+                    <option value="female">암컷</option>
                   </select>
                 </div>
                 <div className={styles.formGroup}>
@@ -369,8 +530,12 @@ const PortfolioPage = () => {
 
           {/* 버튼 섹션 */}
           <div className={styles.buttonSection}>
-            <button className={styles.saveDraftButton}>임시 저장</button>
-            <button className={styles.submitButton}>등록하기</button>
+            <button className={styles.saveDraftButton} onClick={handleTempSave}>
+              임시 저장
+            </button>
+            <button className={styles.submitButton} onClick={handleSubmit}>
+              등록하기
+            </button>
           </div>
         </main>
       </div>
@@ -378,9 +543,13 @@ const PortfolioPage = () => {
       {/* 활동이력 추가 모달 */}
       <ActivityModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingActivity(null);
+        }}
         onSave={handleSaveActivity}
         isEditMode={isEditMode}
+        editingData={editingActivity}
       />
 
       {/* 활동이력 상세 모달 */}
@@ -389,6 +558,68 @@ const PortfolioPage = () => {
         onClose={() => setIsDetailModalOpen(false)}
         activityData={selectedActivity}
       />
+
+      {/* 임시저장 완료 모달 */}
+      {showTempSaveModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.alertModal}>
+            <div className={styles.alertContent}>
+              <div className={`${styles.alertIcon} ${styles.successIcon}`}>
+                ✓
+              </div>
+              <h3 className={styles.alertTitle}>임시저장이 완료되었습니다.</h3>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 검증 실패 모달 */}
+      {showValidationModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.alertModal}>
+            <div className={styles.alertContent}>
+              <div className={`${styles.alertIcon} ${styles.warningIcon}`}>
+                ⚠
+              </div>
+              <h3 className={styles.alertTitle}>{validationMessage}</h3>
+              <button
+                className={styles.alertButton}
+                onClick={() => setShowValidationModal(false)}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 등록 확인 모달 */}
+      {showConfirmModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.alertModal}>
+            <div className={styles.alertContent}>
+              <div className={`${styles.alertIcon} ${styles.questionIcon}`}>
+                ?
+              </div>
+              <h3 className={styles.alertTitle}>등록하시겠습니까?</h3>
+              <div className={styles.confirmButtons}>
+                <button
+                  className={styles.confirmButton}
+                  onClick={handleConfirmSubmit}
+                >
+                  등록
+                </button>
+                <button
+                  className={styles.cancelButton}
+                  onClick={() => setShowConfirmModal(false)}
+                >
+                  취소
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
