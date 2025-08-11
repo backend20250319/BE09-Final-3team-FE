@@ -5,6 +5,7 @@
   border-radius: 12px;
   margin-top: -1px;
   box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  position: relative;
 }
 
 .calendar {
@@ -29,6 +30,61 @@
   gap: 8px;
   color: #475569;
   font-size: 13px;
+}
+
+.filterButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+  color: #475569;
+}
+
+.filterButton:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.activeFilter {
+  background: #f0f9ff; /* 하늘색 계열 */
+  border-color: #a6d7ff;
+  color: #0b4f71;
+}
+
+.activeFilter:hover {
+  background: #d6e8f7;
+  border-color: #87c5f8;
+}
+
+/* 전체 필터 버튼 특별 스타일 */
+.filterButton:first-child {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  font-weight: 600;
+}
+
+.filterButton:first-child.activeFilter {
+  background: #e3f2fd; /* 하늘색 계열 */
+  border-color: #64b5f6;
+}
+
+.inactiveFilter {
+  background: #f9fafb;
+  border-color: #e5e7eb;
+  color: #9ca3af;
+  opacity: 0.6;
+}
+
+.inactiveFilter:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  opacity: 0.8;
 }
 
 .legendDot {
@@ -132,6 +188,119 @@
 }
 
 /*****************
+ * Show More Events Dropdown
+ *****************/
+.showMoreOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.showMoreModal {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 400px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: hidden;
+}
+
+.showMoreHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.showMoreHeader h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.showMoreEvents {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.showMoreEventItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.showMoreEventItem:hover {
+  background: #f9fafb;
+}
+
+.showMoreEventItem:last-child {
+  border-bottom: none;
+}
+
+.eventTypeIndicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.eventInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.eventInfo .eventTime {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.eventInfo .eventTitle {
+  font-size: 14px;
+  color: #1f2937;
+  font-weight: 500;
+}
+
+/*****************
  * RBC overrides
  *****************/
 .calendar :global(.rbc-month-view) {
@@ -182,6 +351,13 @@
 
 .calendar :global(.rbc-agenda-event-cell) {
   color: #374151;
+}
+
+/* 일정 n개 텍스트 스타일 */
+.calendar :global(.rbc-show-more) {
+  color: #9ca3af !important;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 @media (max-width: 768px) {

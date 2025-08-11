@@ -21,6 +21,10 @@
   background-color: #f18181;
 }
 
+.toastDelete {
+  background-color: #ef4444;
+}
+
 .fadeIn {
   animation: fadeIn 0.5s forwards ease-in-out;
 }

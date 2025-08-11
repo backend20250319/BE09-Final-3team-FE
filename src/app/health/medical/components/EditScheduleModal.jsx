@@ -163,11 +163,24 @@ export default function EditScheduleModal({
       case "medication":
         return "투약 수정";
       case "care":
-        return "돌봄 일정 수정";
+        return "돌봄 수정";
       case "vaccination":
-        return "접종 일정 수정";
+        return "접종 수정";
       default:
         return "일정 수정";
+    }
+  };
+
+  const getIconSrc = () => {
+    switch (type) {
+      case "medication":
+        return "/health/pill.png";
+      case "vaccination":
+        return "/health/syringe.png";
+      case "care":
+        return "/health/pets.png";
+      default:
+        return "/health/pets.png";
     }
   };
 
@@ -176,7 +189,7 @@ export default function EditScheduleModal({
       case "medication":
         return "투약 정보를 수정하세요";
       case "care":
-        return "돌봄 일정을 수정하세요";
+        return "돌봄을 수정하세요";
       case "vaccination":
         return "접종 일정을 수정하세요";
       default:
@@ -219,14 +232,12 @@ export default function EditScheduleModal({
         <div className={styles.header}>
           <div className={styles.headerContent}>
             <div className={styles.headerIcon}>
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path
-                  d="M9 1V17M1 9H17"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <img
+                src={getIconSrc()}
+                alt={`${getTitle()} 아이콘`}
+                width={20}
+                height={20}
+              />
             </div>
             <div className={styles.headerText}>
               <h3>{getTitle()}</h3>

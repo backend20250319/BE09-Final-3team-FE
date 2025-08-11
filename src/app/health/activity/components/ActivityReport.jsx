@@ -94,7 +94,7 @@ export default function ActivityReport() {
     <section className={styles.activityReportSection}>
       <div className={styles.dateRangeContainer}>
         <div className={styles.dateRangeHeader}>
-          <span className={styles.dateRangeLabel}>Date Range:</span>
+          <span className={styles.dateRangeLabel}></span>
           <div className={styles.periodButtons}>
             {["일", "주", "월", "년"].map((period) => (
               <button
