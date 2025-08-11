@@ -92,8 +92,13 @@ export default function MedicationManagement({
               start: s,
               end: e,
               allDay: false,
-              type: "medication",
-              schedule: { ...med, category: "medication", type: "medication" },
+              // 캘린더 필터와 색상 매핑을 위해 투약 유형(복용약/영양제)로 설정
+              type: med.type || "복용약",
+              schedule: {
+                ...med,
+                category: "medication",
+                type: med.type || "복용약",
+              },
             });
           });
           current.setDate(current.getDate() + 1);
@@ -113,7 +118,8 @@ export default function MedicationManagement({
         start: sTime,
         end: eTime,
         allDay: false,
-        type: "care",
+        // 캘린더 필터와 색상 매핑을 위해 돌봄 하위유형(산책/미용/생일)로 설정
+        type: s.subType || "산책",
         schedule: { ...s, category: "care" },
       });
     });
@@ -130,9 +136,11 @@ export default function MedicationManagement({
         start: sTime,
         end: eTime,
         allDay: false,
-        type: s.subType === "건강검진" ? "checkup" : "vaccination",
+        // 캘린더 필터와 색상 매핑을 위해 접종 하위유형(예방접종/건강검진)로 설정
+        type: s.subType === "건강검진" ? "건강검진" : "예방접종",
         schedule: {
           ...s,
+          // 상세 모달 등 내부 로직을 위해 category는 영문 키로 유지
           category: s.subType === "건강검진" ? "checkup" : "vaccination",
         },
       });

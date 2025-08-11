@@ -52,14 +52,26 @@
 }
 
 .activeFilter {
-  background: #f0fdf4;
-  border-color: #8bc34a;
-  color: #166534;
+  background: #f0f9ff; /* 하늘색 계열 */
+  border-color: #a6d7ff;
+  color: #0b4f71;
 }
 
 .activeFilter:hover {
-  background: #e6f4ea;
-  border-color: #7cb342;
+  background: #d6e8f7;
+  border-color: #87c5f8;
+}
+
+/* 전체 필터 버튼 특별 스타일 */
+.filterButton:first-child {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  font-weight: 600;
+}
+
+.filterButton:first-child.activeFilter {
+  background: #e3f2fd; /* 하늘색 계열 */
+  border-color: #64b5f6;
 }
 
 .inactiveFilter {

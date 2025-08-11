@@ -16,6 +16,16 @@ export const EVENT_TYPE_COLORS = {
   vaccination: "#E1BEE7",
   checkup: "#FFE0B2",
   etc: "#E0E0E0",
+  // 투약 유형별 색상
+  복용약: "#90CAF9", // 더 선명한 블루톤
+  영양제: "#FFE082", // 더 선명한 앰버톤
+  // 돌봄 유형별 색상
+  산책: "#81C784", // 더 선명한 그린톤
+  미용: "#CE93D8", // 더 선명한 퍼플톤
+  생일: "#F48FB1", // 더 선명한 핑크톤
+  // 접종 유형별 색상
+  예방접종: "#E1BEE7",
+  건강검진: "#FFB74D", // 더 선명한 오렌지톤
 };
 
 const locales = { ko };
@@ -37,6 +47,7 @@ export default function HealthCalendar({
   views = ["month"],
   showLegend = true,
   onEventClick,
+  activeTab = "투약", // 현재 활성 탭 추가
 }) {
   const [currentDate, setCurrentDate] = useState(defaultDate);
   const [currentView] = useState(defaultView);
@@ -47,15 +58,41 @@ export default function HealthCalendar({
     vaccination: true,
     checkup: true,
     etc: true,
+    복용약: true,
+    영양제: true,
+    산책: true,
+    미용: true,
+    생일: true,
+    예방접종: true,
+    건강검진: true,
   });
 
   // 필터링된 이벤트
   const filteredEvents = useMemo(() => {
     return events.filter((event) => {
       const eventType = event.type || "etc";
-      return activeFilters[eventType];
+
+      // 투약 탭: 복용약/영양제만, 그리고 해당 필터가 활성화된 경우만 표시
+      if (activeTab === "투약") {
+        const isMedicationType =
+          eventType === "복용약" || eventType === "영양제";
+        return isMedicationType && !!activeFilters[eventType];
+      }
+
+      // 돌봄 탭: 산책/미용/생일/예방접종/건강검진만, 그리고 해당 필터가 활성화된 경우만 표시
+      if (activeTab === "돌봄") {
+        const isCareType =
+          eventType === "산책" ||
+          eventType === "미용" ||
+          eventType === "생일" ||
+          eventType === "예방접종" ||
+          eventType === "건강검진";
+        return isCareType && !!activeFilters[eventType];
+      }
+
+      return !!activeFilters[eventType];
     });
-  }, [events, activeFilters]);
+  }, [events, activeFilters, activeTab]);
 
   // 필터 토글 함수
   const toggleFilter = (filterType) => {
@@ -63,6 +100,45 @@ export default function HealthCalendar({
       ...prev,
       [filterType]: !prev[filterType],
     }));
+  };
+
+  // 전체 필터 토글 함수
+  const toggleAllFilters = () => {
+    if (activeTab === "투약") {
+      // 투약 탭에서는 복용약과 영양제만 토글
+      const allActive = activeFilters.복용약 && activeFilters.영양제;
+      setActiveFilters((prev) => ({
+        ...prev,
+        복용약: !allActive,
+        영양제: !allActive,
+      }));
+    } else if (activeTab === "돌봄") {
+      // 돌봄 탭에서는 돌봄과 접종 관련 필터만 토글
+      const allActive =
+        activeFilters.산책 &&
+        activeFilters.미용 &&
+        activeFilters.생일 &&
+        activeFilters.예방접종 &&
+        activeFilters.건강검진;
+      setActiveFilters((prev) => ({
+        ...prev,
+        산책: !allActive,
+        미용: !allActive,
+        생일: !allActive,
+        예방접종: !allActive,
+        건강검진: !allActive,
+      }));
+    } else {
+      // 기본 전체 토글
+      const allActive = Object.values(activeFilters).every(Boolean);
+      setActiveFilters((prev) => {
+        const newFilters = {};
+        Object.keys(prev).forEach((key) => {
+          newFilters[key] = !allActive;
+        });
+        return newFilters;
+      });
+    }
   };
 
   // rbc 이벤트 스타일 지정
@@ -229,45 +305,161 @@ export default function HealthCalendar({
 
   const legend = (
     <div className={styles.legend}>
-      {Object.entries(EVENT_TYPE_COLORS)
-        .filter(([key]) => key !== "etc") // 기타 버튼 제거
-        .map(([key, color]) => (
-          <div key={key} className={styles.legendItem}>
+      {/* 전체 필터 버튼 */}
+      <div className={styles.legendItem}>
+        <button
+          className={`${styles.filterButton} ${
+            (activeTab === "투약" &&
+              activeFilters.복용약 &&
+              activeFilters.영양제) ||
+            (activeTab === "돌봄" &&
+              activeFilters.산책 &&
+              activeFilters.미용 &&
+              activeFilters.생일 &&
+              activeFilters.예방접종 &&
+              activeFilters.건강검진)
+              ? styles.activeFilter
+              : styles.inactiveFilter
+          }`}
+          onClick={toggleAllFilters}
+          title="전체 필터"
+        >
+          <span className={styles.legendLabel}>전체</span>
+        </button>
+      </div>
+
+      {/* 투약 탭 필터 */}
+      {activeTab === "투약" && (
+        <>
+          <div className={styles.legendItem}>
             <button
               className={`${styles.filterButton} ${
-                activeFilters[key] ? styles.activeFilter : styles.inactiveFilter
+                activeFilters.복용약
+                  ? styles.activeFilter
+                  : styles.inactiveFilter
               }`}
-              onClick={() => toggleFilter(key)}
-              title={`${
-                key === "medication"
-                  ? "투약"
-                  : key === "care"
-                  ? "돌봄"
-                  : key === "vaccination"
-                  ? "접종"
-                  : key === "checkup"
-                  ? "건강검진"
-                  : "기타"
-              } 필터`}
+              onClick={() => toggleFilter("복용약")}
+              title="복용약 필터"
             >
               <span
                 className={styles.legendDot}
-                style={{ backgroundColor: color }}
+                style={{
+                  backgroundColor: EVENT_TYPE_COLORS.복용약 || "#E3F2FD",
+                }}
               />
-              <span className={styles.legendLabel}>
-                {key === "medication"
-                  ? "투약"
-                  : key === "care"
-                  ? "돌봄"
-                  : key === "vaccination"
-                  ? "접종"
-                  : key === "checkup"
-                  ? "건강검진"
-                  : "기타"}
-              </span>
+              <span className={styles.legendLabel}>복용약</span>
             </button>
           </div>
-        ))}
+          <div className={styles.legendItem}>
+            <button
+              className={`${styles.filterButton} ${
+                activeFilters.영양제
+                  ? styles.activeFilter
+                  : styles.inactiveFilter
+              }`}
+              onClick={() => toggleFilter("영양제")}
+              title="영양제 필터"
+            >
+              <span
+                className={styles.legendDot}
+                style={{
+                  backgroundColor: EVENT_TYPE_COLORS.영양제 || "#FFF3E0",
+                }}
+              />
+              <span className={styles.legendLabel}>영양제</span>
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* 돌봄 탭 필터 */}
+      {activeTab === "돌봄" && (
+        <>
+          <div className={styles.legendItem}>
+            <button
+              className={`${styles.filterButton} ${
+                activeFilters.산책 ? styles.activeFilter : styles.inactiveFilter
+              }`}
+              onClick={() => toggleFilter("산책")}
+              title="산책 필터"
+            >
+              <span
+                className={styles.legendDot}
+                style={{ backgroundColor: EVENT_TYPE_COLORS.산책 || "#E8F5E8" }}
+              />
+              <span className={styles.legendLabel}>산책</span>
+            </button>
+          </div>
+          <div className={styles.legendItem}>
+            <button
+              className={`${styles.filterButton} ${
+                activeFilters.미용 ? styles.activeFilter : styles.inactiveFilter
+              }`}
+              onClick={() => toggleFilter("미용")}
+              title="미용 필터"
+            >
+              <span
+                className={styles.legendDot}
+                style={{ backgroundColor: EVENT_TYPE_COLORS.미용 || "#FFF3E0" }}
+              />
+              <span className={styles.legendLabel}>미용</span>
+            </button>
+          </div>
+          <div className={styles.legendItem}>
+            <button
+              className={`${styles.filterButton} ${
+                activeFilters.생일 ? styles.activeFilter : styles.inactiveFilter
+              }`}
+              onClick={() => toggleFilter("생일")}
+              title="생일 필터"
+            >
+              <span
+                className={styles.legendDot}
+                style={{ backgroundColor: EVENT_TYPE_COLORS.생일 || "#FCE4EC" }}
+              />
+              <span className={styles.legendLabel}>생일</span>
+            </button>
+          </div>
+          <div className={styles.legendItem}>
+            <button
+              className={`${styles.filterButton} ${
+                activeFilters.예방접종
+                  ? styles.activeFilter
+                  : styles.inactiveFilter
+              }`}
+              onClick={() => toggleFilter("예방접종")}
+              title="예방접종 필터"
+            >
+              <span
+                className={styles.legendDot}
+                style={{
+                  backgroundColor: EVENT_TYPE_COLORS.예방접종 || "#E1BEE7",
+                }}
+              />
+              <span className={styles.legendLabel}>예방접종</span>
+            </button>
+          </div>
+          <div className={styles.legendItem}>
+            <button
+              className={`${styles.filterButton} ${
+                activeFilters.건강검진
+                  ? styles.activeFilter
+                  : styles.inactiveFilter
+              }`}
+              onClick={() => toggleFilter("건강검진")}
+              title="건강검진 필터"
+            >
+              <span
+                className={styles.legendDot}
+                style={{
+                  backgroundColor: EVENT_TYPE_COLORS.건강검진 || "#FFE0B2",
+                }}
+              />
+              <span className={styles.legendLabel}>건강검진</span>
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 

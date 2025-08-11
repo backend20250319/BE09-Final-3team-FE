@@ -76,7 +76,11 @@ export default function MedicalNavTabs({
               className={styles.calendarDropdown}
               style={{ top: iconPosition.top, left: iconPosition.left }}
             >
-              <HealthCalendar events={events} onEventClick={onEventClick} />
+              <HealthCalendar
+                events={events}
+                onEventClick={onEventClick}
+                activeTab={activeTab}
+              />
             </div>,
             document.body
           )}

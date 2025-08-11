@@ -348,8 +348,13 @@ export default function CareManagement({
               start: s,
               end: e,
               allDay: false,
-              type: "medication",
-              schedule: { ...med, category: "medication", type: "medication" },
+              // 캘린더 필터와 색상 매핑을 위해 투약 유형(복용약/영양제)로 설정
+              type: med.type || "복용약",
+              schedule: {
+                ...med,
+                category: "medication",
+                type: med.type || "복용약",
+              },
             });
           });
           current.setDate(current.getDate() + 1);
@@ -365,7 +370,8 @@ export default function CareManagement({
         parseDateTime(s.date, s.scheduleTime).getTime() + 60 * 60 * 1000
       ),
       allDay: false,
-      type: "care",
+      // 캘린더 필터와 색상 매핑을 위해 돌봄 하위유형(산책/미용/생일)로 설정
+      type: s.subType || "산책",
       schedule: s,
     }));
 
@@ -384,7 +390,8 @@ export default function CareManagement({
           60 * 60 * 1000
       ),
       allDay: false,
-      type: s.name === "건강검진" ? "checkup" : "vaccination",
+      // 캘린더 필터와 색상 매핑을 위해 접종 하위유형(예방접종/건강검진)로 설정
+      type: s.subType === "건강검진" ? "건강검진" : "예방접종",
       schedule: s,
     }));
 
@@ -595,10 +602,10 @@ export default function CareManagement({
           )}
       </div>
 
-      {/* 접종 일정 섹션 */}
+      {/* 예방접종 일정 섹션 */}
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
-          <h3>접종</h3>
+          <h3>예방접종</h3>
           <div className={styles.headerControls}>
             <Select
               options={vaccinationFilterOptions}
@@ -620,7 +627,7 @@ export default function CareManagement({
               <span>추가</span>
               <img
                 src="/health/syringe.png"
-                alt="접종 추가 아이콘"
+                alt="예방접종 추가 아이콘"
                 width={18}
                 height={18}
               />
