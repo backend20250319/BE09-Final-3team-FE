@@ -29,7 +29,7 @@ export default function HeroSection() {
         "사진과 영상 포함한 맞춤 포트폴리오 생성",
         "소셜 미디어 연동",
       ],
-      image: "/influencer-1.jpg",
+      image: "/petcare.png",
       color: "#8BC34A",
       reverse: true,
     },

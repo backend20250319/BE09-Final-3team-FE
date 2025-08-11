@@ -53,7 +53,7 @@
 .cardImage {
   position: relative;
   width: 100%;
-  height: 256px;
+  height: 250px;
   overflow: hidden;
 }
 
@@ -63,29 +63,18 @@
   object-fit: cover;
 }
 
-.nameOverlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(0deg, #000000 0%, rgba(0, 0, 0, 0) 100%);
-  padding: 16px;
-  color: #ffffff;
-}
-
 .petName {
   font-size: 18px;
   font-weight: 400;
   line-height: 1.56;
-  color: #ffffff;
-  margin-bottom: 4px;
+  color: #4b5563;
 }
 
 .petBreed {
   font-size: 14px;
   font-weight: 400;
   line-height: 1.43;
-  color: #ffffff;
+  color: #4b5563;
 }
 
 .cardContent {
@@ -96,17 +85,14 @@
 }
 
 .userInfo {
-  display: flex;
-  align-items: center;
   gap: 8px;
   margin-bottom: 8px;
 }
 
-.userAvatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  overflow: hidden;
+.petInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .avatarImage {
@@ -125,8 +111,14 @@
 .statsInfo {
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: space-between;
   margin-bottom: 12px;
+}
+
+.followersBox {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .followersIcon {
@@ -150,6 +142,12 @@
   line-height: 1.43;
   color: #4b5563;
   flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
 }
 
 .sliderControls {
@@ -228,7 +226,7 @@
   }
   
   .cardImage {
-    height: 200px;
+    height: 150px;
   }
   
   .cardContent {
