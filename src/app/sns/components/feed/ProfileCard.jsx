@@ -36,7 +36,7 @@ export default function ProfileCard() {
       <div className={styles.profileContent}>
         <div className={styles.avatarContainer}>
           <Image
-            src={profileData.avatar}
+            src="/user-1.jpg"
             alt="Profile Avatar"
             width={80}
             height={80}
@@ -50,17 +50,17 @@ export default function ProfileCard() {
               <div className={styles.statNumber}>
                 {profileData.stats.followers}
               </div>
-              <div className={styles.statLabel}>Followers</div>
+              <div className={styles.statLabel}>팔로워</div>
             </div>
             <div className={styles.statItem}>
               <div className={styles.statNumber}>
                 {profileData.stats.following}
               </div>
-              <div className={styles.statLabel}>Following</div>
+              <div className={styles.statLabel}>팔로잉</div>
             </div>
             <div className={styles.statItem}>
               <div className={styles.statNumber}>{profileData.stats.posts}</div>
-              <div className={styles.statLabel}>Posts</div>
+              <div className={styles.statLabel}>게시물</div>
             </div>
           </div>
         </div>
