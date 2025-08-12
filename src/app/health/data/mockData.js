@@ -122,15 +122,16 @@ export const mockPrescriptionData = {
     {
       id: Date.now() + 1,
       name: "아목시실린 500mg",
-      type: "복용약",
-      frequency: "하루에 세 번",
-      scheduleTime: "08:00, 14:00, 20:00",
-      notificationTime: "07:30, 13:30, 19:30",
-      duration: 7,
-      startDate: new Date().toISOString().split("T")[0],
+      type: "복용약", // 기본값으로 설정
+      frequency: "1일 3회", // 처방전에서 실제 추출 가능한 정보
+      duration: 7, // 처방전에서 실제 추출 가능한 정보
+      startDate: new Date().toISOString().split("T")[0], // 업로드 당일로 자동 설정
       endDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000)
         .toISOString()
-        .split("T")[0],
+        .split("T")[0], // duration 기반 자동 계산
+      // 이하 필드들은 기본값으로 설정 (OCR로 추출 불가능)
+      scheduleTime: "09:00", // 기본값
+      notificationTiming: "당일", // 기본값
       icon: "💊",
       color: "#E3F2FD",
       isNotified: true,
@@ -138,15 +139,16 @@ export const mockPrescriptionData = {
     {
       id: Date.now() + 2,
       name: "타이레놀 500mg",
-      type: "복용약",
-      frequency: "하루에 두 번",
-      scheduleTime: "09:00, 21:00",
-      notificationTime: "08:30, 20:30",
-      duration: 5,
-      startDate: new Date().toISOString().split("T")[0],
+      type: "복용약", // 기본값으로 설정
+      frequency: "1일 2회", // 처방전에서 실제 추출 가능한 정보
+      duration: 5, // 처방전에서 실제 추출 가능한 정보
+      startDate: new Date().toISOString().split("T")[0], // 업로드 당일로 자동 설정
       endDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000)
         .toISOString()
-        .split("T")[0],
+        .split("T")[0], // duration 기반 자동 계산
+      // 이하 필드들은 기본값으로 설정 (OCR로 추출 불가능)
+      scheduleTime: "09:00", // 기본값
+      notificationTiming: "당일", // 기본값
       icon: "💊",
       color: "#E3F2FD",
       isNotified: true,
@@ -260,6 +262,57 @@ export const defaultCareSchedules = [
     frequency: "매일 오후 3시",
     icon: "🐕",
     color: "#E8F5E8",
+    isNotified: true,
+    petName: "차차",
+  },
+  {
+    id: 7,
+    name: "약물 투여",
+    type: "돌봄",
+    subType: "기타",
+    startDate: "2025-08-13",
+    endDate: "2025-08-20",
+    date: "2025-08-13", // 호환성을 위해 유지
+    scheduleTime: "09:00",
+    notificationTime: "08:45",
+    notificationTiming: "당일",
+    frequency: "매일",
+    icon: "💊",
+    color: "#F0F0F0",
+    isNotified: true,
+    petName: "몽글이",
+  },
+  {
+    id: 8,
+    name: "사료 교체",
+    type: "돌봄",
+    subType: "기타",
+    startDate: "2025-08-16",
+    endDate: "2025-08-16",
+    date: "2025-08-16", // 호환성을 위해 유지
+    scheduleTime: "18:00",
+    notificationTime: "17:30",
+    notificationTiming: "1일전",
+    frequency: "월 1회",
+    icon: "🍽️",
+    color: "#F0F0F0",
+    isNotified: false,
+    petName: "초코",
+  },
+  {
+    id: 9,
+    name: "체중 측정",
+    type: "돌봄",
+    subType: "기타",
+    startDate: "2025-08-14",
+    endDate: "2025-08-14",
+    date: "2025-08-14", // 호환성을 위해 유지
+    scheduleTime: "10:30",
+    notificationTime: "10:15",
+    notificationTiming: "2일전",
+    frequency: "주 1회",
+    icon: "⚖️",
+    color: "#F0F0F0",
     isNotified: true,
     petName: "차차",
   },
@@ -525,22 +578,34 @@ export const ICON_MAP = {
   산책: "🐕",
   미용: "✂️",
   생일: "🎂",
+  기타: "📝",
   // 접종
   종합백신: "💉",
   광견병백신: "💉",
   건강검진: "🏥",
+  예방접종: "💉",
   // 투약
   복용약: "💊",
   영양제: "💊",
-  기타: "📅",
 };
 
 // 색상 매핑
 export const COLOR_MAP = {
+  // 메인 카테고리
+  투약: "#E3F2FD",
   돌봄: "#E8F5E8",
-  접종: "#E3F2FD",
+  접종: "#F3E5F5",
+  // 투약
   복용약: "#E3F2FD",
   영양제: "#FFF3E0",
+  // 돌봄
+  산책: "#E8F5E8",
+  미용: "#FFF3E0",
+  생일: "#FCE4EC",
+  기타: "#F0F0F0",
+  // 접종
+  예방접종: "#E3F2FD",
+  건강검진: "#F3E5F5",
 };
 
 // 유틸리티 함수들
@@ -579,7 +644,7 @@ export const medicationFrequencyOptions = [
 export const notificationTimingOptions = ["당일", "1일전", "2일전", "3일전"];
 
 // 돌봄 일정용 옵션들
-export const careSubTypeOptions = ["산책", "미용", "생일"];
+export const careSubTypeOptions = ["산책", "미용", "생일", "기타"];
 
 export const careFrequencyOptions = [
   "매일",

@@ -90,12 +90,11 @@ export default function AddVaccinationScheduleModal({
         date: formData.startDate, // 호환성 유지
         scheduleTime: formData.scheduleTime,
         time: formData.scheduleTime, // 호환성 유지
-        notificationTime: formData.scheduleTime,
         notificationTiming: formData.notificationTiming,
         petName: selectedPetName, // 선택된 펫 이름 추가
         icon: getIconForSubType(formData.subType),
         color: getColorForType(mainType),
-        isNotified: false,
+        isNotified: true,
       };
 
       onAdd(newSchedule);

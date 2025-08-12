@@ -18,7 +18,7 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
     type: "",
     duration: "", // 복용 기간 (일수)
     startDate: "", // 시작 날짜
-    notificationTime: "", // 알림 시간
+    scheduleTime: "", // 일정 시간 (실제 복용 시간)
     notificationTiming: "", // 알림 시기 (당일, 1일전, 2일전, 3일전)
   });
 
@@ -68,8 +68,8 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
       newErrors.startDate = "시작 날짜를 선택해주세요";
     }
 
-    if (!formData.notificationTime) {
-      newErrors.notificationTime = "일정 시간을 입력해주세요";
+    if (!formData.scheduleTime) {
+      newErrors.scheduleTime = "일정 시간을 입력해주세요";
     }
 
     if (!formData.notificationTiming) {
@@ -98,13 +98,12 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
         duration: Number(formData.duration),
         startDate: formData.startDate,
         endDate: endDate,
-        notificationTime: formData.notificationTime,
+        scheduleTime: formData.scheduleTime, // 실제 복용 시간
         notificationTiming: formData.notificationTiming,
-        scheduleTime: formData.notificationTime, // 복용 시간으로 사용
         petName: selectedPetName, // 선택된 펫 이름 추가
         icon: "💊",
         color: formData.type === "복용약" ? "#E3F2FD" : "#FFF3E0",
-        isNotified: false,
+        isNotified: true,
       };
 
       onAdd(newMedication);
@@ -119,7 +118,7 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
       type: "",
       duration: "",
       startDate: "",
-      notificationTime: "",
+      scheduleTime: "",
       notificationTiming: "",
     });
     setErrors({});
@@ -299,14 +298,14 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
               <input
                 type="time"
                 className={styles.input}
-                value={formData.notificationTime}
+                value={formData.scheduleTime}
                 onChange={(e) =>
-                  handleInputChange("notificationTime", e.target.value)
+                  handleInputChange("scheduleTime", e.target.value)
                 }
               />
             </div>
-            {errors.notificationTime && (
-              <span className={styles.error}>{errors.notificationTime}</span>
+            {errors.scheduleTime && (
+              <span className={styles.error}>{errors.scheduleTime}</span>
             )}
           </div>
 

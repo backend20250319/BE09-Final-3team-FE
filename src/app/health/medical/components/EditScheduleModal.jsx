@@ -31,7 +31,6 @@ export default function EditScheduleModal({
     time: "", // 호환성을 위해 유지
     scheduleTime: "", // 일정 시간
     duration: "", // 투약용
-    notificationTime: "", // 알림 시간 (모든 타입용)
     notificationTiming: "", // 알림 시기 (모든 타입용)
   });
 
@@ -50,8 +49,6 @@ export default function EditScheduleModal({
         time: scheduleData.time || scheduleData.scheduleTime || "", // 호환성
         scheduleTime: scheduleData.scheduleTime || scheduleData.time || "",
         duration: scheduleData.duration || "",
-        notificationTime:
-          scheduleData.notificationTime || scheduleData.scheduleTime || "",
         notificationTiming: scheduleData.notificationTiming || "",
       });
     }
@@ -117,8 +114,8 @@ export default function EditScheduleModal({
     }
 
     // 투약의 경우 알림 시간도 필수
-    if (type === "medication" && !formData.notificationTime) {
-      newErrors.notificationTime = "일정 시간을 입력해주세요";
+    if (type === "medication" && !formData.scheduleTime) {
+      newErrors.scheduleTime = "일정 시간을 입력해주세요";
     }
 
     setErrors(newErrors);
@@ -154,9 +151,8 @@ export default function EditScheduleModal({
           duration: Number(formData.duration),
           startDate: formData.date || scheduleData.startDate,
           endDate: endDate,
-          notificationTime: formData.notificationTime,
+          scheduleTime: formData.scheduleTime,
           notificationTiming: formData.notificationTiming,
-          scheduleTime: formData.notificationTime,
           icon: getIconForSubType(formData.subType),
           color: getColorForType(formData.subType),
         };
@@ -175,7 +171,7 @@ export default function EditScheduleModal({
           date: formData.startDate || formData.date, // 호환성 유지
           scheduleTime: formData.scheduleTime || formData.time,
           time: formData.scheduleTime || formData.time, // 호환성 유지
-          notificationTime: formData.scheduleTime || formData.time,
+
           notificationTiming: formData.notificationTiming,
           icon: getIconForSubType(formData.subType),
           color: getColorForType(mainType),
@@ -198,7 +194,7 @@ export default function EditScheduleModal({
       time: "",
       scheduleTime: "",
       duration: "",
-      notificationTime: "",
+
       notificationTiming: "",
     });
     setErrors({});
@@ -439,14 +435,14 @@ export default function EditScheduleModal({
                 <input
                   type="time"
                   className={styles.input}
-                  value={formData.notificationTime}
+                  value={formData.scheduleTime}
                   onChange={(e) =>
-                    handleInputChange("notificationTime", e.target.value)
+                    handleInputChange("scheduleTime", e.target.value)
                   }
                 />
               </div>
-              {errors.notificationTime && (
-                <span className={styles.error}>{errors.notificationTime}</span>
+              {errors.scheduleTime && (
+                <span className={styles.error}>{errors.scheduleTime}</span>
               )}
             </div>
           )}

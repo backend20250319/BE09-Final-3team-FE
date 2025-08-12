@@ -3,12 +3,16 @@
 import React from "react";
 import styles from "../styles/PrescriptionResultModal.module.css";
 import { mockPrescriptionData } from "../../data/mockData";
+import { useSelectedPet } from "../../context/SelectedPetContext";
 
 export default function PrescriptionResultModal({
   isOpen,
   onClose,
   prescriptionData,
+  onAddMedications,
 }) {
+  const { selectedPetName } = useSelectedPet();
+
   if (!isOpen) return null;
 
   // props로 받은 데이터 없으면 mockPrescriptionData 사용
@@ -29,6 +33,21 @@ export default function PrescriptionResultModal({
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const handleConfirm = () => {
+    // OCR 추출된 약물들을 실제 투약 목록에 추가
+    if (onAddMedications && data.extractedMedications) {
+      data.extractedMedications.forEach((medication) => {
+        // 선택된 펫 이름을 추가하여 투약 목록에 등록
+        const medicationWithPet = {
+          ...medication,
+          petName: selectedPetName,
+        };
+        onAddMedications(medicationWithPet);
+      });
+    }
+    onClose();
   };
 
   return (
@@ -151,7 +170,7 @@ export default function PrescriptionResultModal({
 
         {/* 푸터 */}
         <div className={styles.footer}>
-          <button className={styles.confirmButton} onClick={onClose}>
+          <button className={styles.confirmButton} onClick={handleConfirm}>
             확인
           </button>
         </div>

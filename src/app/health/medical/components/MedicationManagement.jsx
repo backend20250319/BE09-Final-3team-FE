@@ -675,6 +675,7 @@ export default function MedicationManagement({
         isOpen={showResultModal}
         onClose={() => setShowResultModal(false)}
         prescriptionData={ocrResult}
+        onAddMedications={handleAddNewMedication}
       />
 
       {/* 일정 상세 모달 */}
