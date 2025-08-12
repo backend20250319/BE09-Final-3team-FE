@@ -79,7 +79,7 @@
 
 .activityCard.notes {
   background: #f0f8ff;
-  min-height: 173px;
+  min-height: 175px;
   padding: 21px 21px 0 21px;
 }
 
@@ -111,9 +111,7 @@
   margin: 0;
 }
 
-/* Info button and dropdown */
 .infoButton {
-  margin-left: 6px;
   width: 22px;
   height: 22px;
   border-radius: 50%;
@@ -313,7 +311,7 @@
 }
 
 .addMealButton {
-  background: #f5a623;
+  background: #ffb339;
   color: #fff;
   border: none;
   border-radius: 6px;

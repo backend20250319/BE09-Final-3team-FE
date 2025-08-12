@@ -28,6 +28,9 @@ export default function ActivityManagement() {
   const [meals, setMeals] = useState([]);
   const [showMealInfo, setShowMealInfo] = useState(false);
 
+  // 산책 정보 안내
+  const [showWalkInfo, setShowWalkInfo] = useState(false);
+
   // 펫 이름별로 저장했는지 상태 관리 (오늘 날짜 key 사용)
   const [submittedPets, setSubmittedPets] = useState({});
 
@@ -398,6 +401,19 @@ export default function ActivityManagement() {
                   />
                 </div>
                 <h3>산책</h3>
+                <button
+                  type="button"
+                  className={styles.infoButton}
+                  onClick={() => setShowWalkInfo((v) => !v)}
+                  aria-label="산책 정보 안내"
+                >
+                  i
+                </button>
+                {showWalkInfo && (
+                  <div className={styles.infoDropdown}>
+                    권장 소모 칼로리는 활동량을 선택해야 표시됩니다.
+                  </div>
+                )}
               </div>
               <div className={styles.activityForm}>
                 <div className={styles.formGroup}>
