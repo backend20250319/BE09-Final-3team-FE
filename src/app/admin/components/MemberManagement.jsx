@@ -85,10 +85,16 @@ export default function MemberManagement(){
                                     </svg>
                                 </div>
                             </div>
-                            <select className={styles.sortSelect}>
-                                <option>최신순</option>
-                                <option>오래된순</option>
-                            </select>
+                            {activeTab === "펫스타 지원" ?
+                                <select className={styles.sortSelect}>
+                                    <option>최신순</option>
+                                    <option>오래된순</option>
+                                </select>
+                                :
+                                <select className={styles.sortSelect}>
+                                    <option>관리자</option>
+                                    <option>일반회원</option>
+                                </select>}
                         </div>
                     </div>
                     {/* Product List */}
