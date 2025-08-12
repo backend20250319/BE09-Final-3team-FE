@@ -30,6 +30,18 @@ function sortCampaigns(campaigns, sortBy, activeTab) {
         const getApplicantsNum = (str) => Number((str || "0").split("/")[0].trim()) || 0;
         return getApplicantsNum(b.applicants) - getApplicantsNum(a.applicants);
       });
+    case "selectedRecent":
+      // 선정일 최신순 (체험단 선정일 내림차순)
+      return [...campaigns].sort((a, b) => new Date(b.campaign_select) - new Date(a.campaign_select));
+    case "selectedRecent":
+      // 선정일 오래된순 (체험단 선정일 오름차순)
+      return [...campaigns].sort((a, b) => new Date(a.campaign_select) - new Date(b.campaign_select));
+    case "endedRecent":
+      // 체험 종료일 최신순 (공고 종료일 내림차순)
+      return [...campaigns].sort((a, b) => new Date(b.campaign_end) - new Date(a.campaign_end));
+    case "endedOld":
+      // 체험 종료일 오래된 순 (공고 종료일 오름차순)
+      return [...campaigns].sort((a, b) => new Date(a.campaign_end) - new Date(b.campaign_end));
     case "createdRecent":
       // 등록일 최신순 (공고 등록일 내림차순)
       return [...campaigns].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -57,6 +69,12 @@ export default function CampaignGrid({searchQuery, sortBy}) {
     case "approved":
       filteredCampaigns = campaigns.filter(c => c.ad_status === "approved");
       break;
+    case "closed":
+      filteredCampaigns = campaigns.filter(c => c.ad_status === "closed");
+      break;
+    case "trial":
+      filteredCampaigns = campaigns.filter(c => c.ad_status === "trial");
+      break;
     case "pending":
       filteredCampaigns = campaigns.filter(c => c.ad_status === "pending");
       break;
@@ -81,4 +99,4 @@ export default function CampaignGrid({searchQuery, sortBy}) {
       </div>
     </section>
   );
-}
+};

@@ -1,8 +1,11 @@
 "use client";
-import React from "react";
+import React, {useState} from "react";
 import styles from "../styles/PostContent.module.css";
+import Image from "next/image";
+import ReportModal from "@/app/advertiser/ads-list/[ad_no]/components/ReportModal";
 
 export default function PostContent({ post }) {
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -17,9 +20,29 @@ export default function PostContent({ post }) {
                   fill="#6B7280"
                 />
               </svg>
+              <div>
               <span className={styles.count}>{post.commentCount || 24}</span>
             </div>
             <span className={styles.author}>{post.author}</span>
+          </div>
+          <button
+              className={styles.sirenButton}
+              onClick={() => {
+                setIsReportModalOpen(true);
+              }}
+              style={{backgroundColor:"white"}}
+          >
+            <Image
+                src="/siren.png"
+                alt="siren.png"
+                width={30}
+                height={30} />
+          </button>
+        <ReportModal
+            isOpen={isReportModalOpen}
+            onClose={() => setIsReportModalOpen(false)}
+            applicantName={post.author}
+        />
           </div>
         </div>
       </header>
