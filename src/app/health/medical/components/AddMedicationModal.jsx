@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import styles from "../styles/AddMedicationModal.module.css";
+import { useSelectedPet } from "../../context/SelectedPetContext";
 import {
   medicationTypeOptions,
   medicationFrequencyOptions,
@@ -9,6 +10,8 @@ import {
 } from "../../data/mockData";
 
 export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
+  const { selectedPetName } = useSelectedPet();
+
   const [formData, setFormData] = useState({
     name: "",
     frequency: "",
@@ -98,6 +101,7 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
         notificationTime: formData.notificationTime,
         notificationTiming: formData.notificationTiming,
         scheduleTime: formData.notificationTime, // 복용 시간으로 사용
+        petName: selectedPetName, // 선택된 펫 이름 추가
         icon: "💊",
         color: formData.type === "복용약" ? "#E3F2FD" : "#FFF3E0",
         isNotified: false,

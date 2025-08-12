@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import styles from "../styles/MedicationManagement.module.css";
+import { useSelectedPet } from "../../context/SelectedPetContext";
 import ConfirmModal from "../components/ConfirmModal";
 import Toast from "../components/Toast";
 import AddMedicationModal from "./AddMedicationModal";
@@ -29,6 +30,7 @@ export default function MedicationManagement({
   selectedSchedule,
   setSelectedSchedule,
 }) {
+  const { selectedPetName } = useSelectedPet();
   const LOCAL_STORAGE_KEY = STORAGE_KEYS.MEDICATION_NOTIFICATIONS;
 
   const [showConfirm, setShowConfirm] = useState(false);
@@ -74,37 +76,40 @@ export default function MedicationManagement({
     const events = [];
 
     // 1) 투약: 기간 동안 매일, scheduleTime(콤마 구분) 각각 이벤트 생성
-    medications.forEach((med) => {
-      if (med.startDate && med.endDate) {
-        const start = new Date(med.startDate);
-        const end = new Date(med.endDate);
-        const times = (med.scheduleTime || "09:00")
-          .split(",")
-          .map((t) => t.trim());
-        const current = new Date(start);
-        while (current <= end) {
-          times.forEach((hm) => {
-            const s = dateAtTime(current, hm);
-            const e = new Date(s.getTime() + 60 * 60 * 1000);
-            events.push({
-              id: `med-${med.id}-${current.toISOString().slice(0, 10)}-${hm}`,
-              title: `${med.icon || "💊"} ${med.name}`,
-              start: s,
-              end: e,
-              allDay: false,
-              // 캘린더 필터와 색상 매핑을 위해 투약 유형(복용약/영양제)로 설정
-              type: med.type || "복용약",
-              schedule: {
-                ...med,
-                category: "medication",
+    // 선택된 펫의 투약만 필터링
+    medications
+      .filter((med) => !selectedPetName || med.petName === selectedPetName)
+      .forEach((med) => {
+        if (med.startDate && med.endDate) {
+          const start = new Date(med.startDate);
+          const end = new Date(med.endDate);
+          const times = (med.scheduleTime || "09:00")
+            .split(",")
+            .map((t) => t.trim());
+          const current = new Date(start);
+          while (current <= end) {
+            times.forEach((hm) => {
+              const s = dateAtTime(current, hm);
+              const e = new Date(s.getTime() + 60 * 60 * 1000);
+              events.push({
+                id: `med-${med.id}-${current.toISOString().slice(0, 10)}-${hm}`,
+                title: `${med.icon || "💊"} ${med.name}`,
+                start: s,
+                end: e,
+                allDay: false,
+                // 캘린더 필터와 색상 매핑을 위해 투약 유형(복용약/영양제)로 설정
                 type: med.type || "복용약",
-              },
+                schedule: {
+                  ...med,
+                  category: "medication",
+                  type: med.type || "복용약",
+                },
+              });
             });
-          });
-          current.setDate(current.getDate() + 1);
+            current.setDate(current.getDate() + 1);
+          }
         }
-      }
-    });
+      });
 
     // 2) 돌봄
     careSchedules.forEach((s) => {
@@ -147,7 +152,13 @@ export default function MedicationManagement({
     });
 
     return events;
-  }, [medications, careSchedules, vaccinationSchedules, dateAtTime]);
+  }, [
+    medications,
+    careSchedules,
+    vaccinationSchedules,
+    dateAtTime,
+    selectedPetName,
+  ]);
 
   // 캘린더 이벤트를 상위 컴포넌트로 전달 - buildCalendarEvents 의존성 추가
   useEffect(() => {
@@ -160,6 +171,7 @@ export default function MedicationManagement({
     medications,
     careSchedules,
     vaccinationSchedules,
+    selectedPetName,
     onCalendarEventsChange,
     buildCalendarEvents,
   ]);
@@ -333,8 +345,11 @@ export default function MedicationManagement({
     setToDeleteId(null);
   };
 
-  // 페이징된 투약 목록
-  const paginatedMedications = medications.slice(
+  // 선택된 펫의 투약만 필터링 후 페이징
+  const filteredMedications = medications.filter(
+    (med) => !selectedPetName || med.petName === selectedPetName
+  );
+  const paginatedMedications = filteredMedications.slice(
     (medicationPage - 1) * itemsPerPage,
     medicationPage * itemsPerPage
   );
@@ -599,10 +614,10 @@ export default function MedicationManagement({
         </div>
 
         {/* 페이징 */}
-        {medications.length > itemsPerPage &&
+        {filteredMedications.length > itemsPerPage &&
           renderPagination(
             medicationPage,
-            Math.ceil(medications.length / itemsPerPage),
+            Math.ceil(filteredMedications.length / itemsPerPage),
             handleMedicationPageChange
           )}
       </div>

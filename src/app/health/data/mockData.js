@@ -20,6 +20,7 @@ export const defaultMedications = [
     icon: "💊",
     color: "#E3F2FD",
     isNotified: true,
+    petName: "몽글이",
   },
   {
     id: 2,
@@ -34,6 +35,7 @@ export const defaultMedications = [
     icon: "💊",
     color: "#FFF3E0",
     isNotified: true,
+    petName: "초코",
   },
   {
     id: 3,
@@ -48,6 +50,7 @@ export const defaultMedications = [
     icon: "💊",
     color: "#FFF3E0",
     isNotified: false,
+    petName: "차차",
   },
   {
     id: 4,
@@ -62,6 +65,7 @@ export const defaultMedications = [
     icon: "💊",
     color: "#FFF3E0",
     isNotified: true,
+    petName: "몽글이",
   },
   {
     id: 5,
@@ -76,6 +80,7 @@ export const defaultMedications = [
     icon: "💊",
     color: "#FFF3E0",
     isNotified: false,
+    petName: "초코",
   },
   {
     id: 6,
@@ -90,6 +95,7 @@ export const defaultMedications = [
     icon: "💊",
     color: "#FFF3E0",
     isNotified: true,
+    petName: "차차",
   },
   {
     id: 7,
@@ -104,6 +110,7 @@ export const defaultMedications = [
     icon: "💊",
     color: "#FFF3E0",
     isNotified: true,
+    petName: "몽글이",
   },
 ];
 
