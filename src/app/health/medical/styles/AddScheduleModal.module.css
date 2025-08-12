@@ -15,10 +15,13 @@
 /* 모달 */
 .modal {
   width: 600px;
+  max-height: 90vh;
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 헤더 */
@@ -84,6 +87,8 @@
 /* 폼 */
 .form {
   padding: 32px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .formGroup {
@@ -187,6 +192,7 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .cancelButton {

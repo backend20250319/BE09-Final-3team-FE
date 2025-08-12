@@ -5,6 +5,7 @@ import styles from "../styles/AddMedicationModal.module.css";
 import {
   medicationTypeOptions,
   medicationFrequencyOptions,
+  notificationTimingOptions,
 } from "../../data/mockData";
 
 export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
@@ -13,12 +14,16 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
     frequency: "",
     type: "",
     duration: "", // 복용 기간 (일수)
+    startDate: "", // 시작 날짜
+    notificationTime: "", // 알림 시간
+    notificationTiming: "", // 알림 시기 (당일, 1일전, 2일전, 3일전)
   });
 
   const [errors, setErrors] = useState({});
 
   const frequencyOptions = medicationFrequencyOptions;
   const typeOptions = medicationTypeOptions;
+  const timingOptions = notificationTimingOptions;
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -56,19 +61,30 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
       newErrors.duration = "유효한 복용 기간(숫자)을 입력해주세요";
     }
 
+    if (!formData.startDate) {
+      newErrors.startDate = "시작 날짜를 선택해주세요";
+    }
+
+    if (!formData.notificationTime) {
+      newErrors.notificationTime = "일정 시간을 입력해주세요";
+    }
+
+    if (!formData.notificationTiming) {
+      newErrors.notificationTiming = "알림 시기를 선택해주세요";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = () => {
     if (validateForm()) {
-      // 오늘 날짜 구하기 (YYYY-MM-DD)
-      const today = new Date();
-      const startDate = today.toISOString().split("T")[0];
-
-      // 종료일 계산 (duration - 1일 후)
-      const endDateObj = new Date(today);
-      endDateObj.setDate(today.getDate() + Number(formData.duration) - 1);
+      // 종료일 계산 (startDate + duration - 1일 후)
+      const startDateObj = new Date(formData.startDate);
+      const endDateObj = new Date(startDateObj);
+      endDateObj.setDate(
+        startDateObj.getDate() + Number(formData.duration) - 1
+      );
       const endDate = endDateObj.toISOString().split("T")[0];
 
       const newMedication = {
@@ -77,8 +93,11 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
         type: formData.type,
         frequency: formData.frequency,
         duration: Number(formData.duration),
-        startDate: startDate,
+        startDate: formData.startDate,
         endDate: endDate,
+        notificationTime: formData.notificationTime,
+        notificationTiming: formData.notificationTiming,
+        scheduleTime: formData.notificationTime, // 복용 시간으로 사용
         icon: "💊",
         color: formData.type === "복용약" ? "#E3F2FD" : "#FFF3E0",
         isNotified: false,
@@ -95,6 +114,9 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
       frequency: "",
       type: "",
       duration: "",
+      startDate: "",
+      notificationTime: "",
+      notificationTiming: "",
     });
     setErrors({});
     onClose();
@@ -241,6 +263,84 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
             </div>
             {errors.duration && (
               <span className={styles.error}>{errors.duration}</span>
+            )}
+          </div>
+
+          {/* 시작 날짜 */}
+          <div className={styles.formGroup}>
+            <div className={styles.labelContainer}>
+              <label className={styles.label}>시작 날짜</label>
+              <span className={styles.required}>*</span>
+            </div>
+            <div className={styles.inputContainer}>
+              <input
+                type="date"
+                className={styles.input}
+                value={formData.startDate}
+                onChange={(e) => handleInputChange("startDate", e.target.value)}
+              />
+            </div>
+            {errors.startDate && (
+              <span className={styles.error}>{errors.startDate}</span>
+            )}
+          </div>
+
+          {/* 일정 시간 */}
+          <div className={styles.formGroup}>
+            <div className={styles.labelContainer}>
+              <label className={styles.label}>일정 시간</label>
+              <span className={styles.required}>*</span>
+            </div>
+            <div className={styles.inputContainer}>
+              <input
+                type="time"
+                className={styles.input}
+                value={formData.notificationTime}
+                onChange={(e) =>
+                  handleInputChange("notificationTime", e.target.value)
+                }
+              />
+            </div>
+            {errors.notificationTime && (
+              <span className={styles.error}>{errors.notificationTime}</span>
+            )}
+          </div>
+
+          {/* 알림 시기 */}
+          <div className={styles.formGroup}>
+            <div className={styles.labelContainer}>
+              <label className={styles.label}>알림 시기</label>
+              <span className={styles.required}>*</span>
+            </div>
+            <div className={styles.selectContainer}>
+              <select
+                className={styles.select}
+                value={formData.notificationTiming}
+                onChange={(e) =>
+                  handleInputChange("notificationTiming", e.target.value)
+                }
+              >
+                <option value="">알림 시기를 선택하세요</option>
+                {timingOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+              <div className={styles.selectArrow}>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path
+                    d="M3 5L7 9L11 5"
+                    stroke="#9CA3AF"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+            </div>
+            {errors.notificationTiming && (
+              <span className={styles.error}>{errors.notificationTiming}</span>
             )}
           </div>
         </div>

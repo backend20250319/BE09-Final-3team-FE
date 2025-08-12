@@ -5,6 +5,7 @@ import styles from "../styles/AddScheduleModal.module.css";
 import {
   medicationTypeOptions,
   medicationFrequencyOptions,
+  notificationTimingOptions,
   careSubTypeOptions,
   careFrequencyOptions,
   vaccinationSubTypeOptions,
@@ -27,6 +28,8 @@ export default function EditScheduleModal({
     date: "",
     time: "",
     duration: "", // 투약용
+    notificationTime: "", // 알림 시간 (투약용)
+    notificationTiming: "", // 알림 시기 (투약용)
   });
 
   const [errors, setErrors] = useState({});
@@ -41,6 +44,8 @@ export default function EditScheduleModal({
         date: scheduleData.date || scheduleData.startDate || "",
         time: scheduleData.time || "",
         duration: scheduleData.duration || "",
+        notificationTime: scheduleData.notificationTime || "",
+        notificationTiming: scheduleData.notificationTiming || "",
       });
     }
   }, [scheduleData]);
@@ -88,6 +93,15 @@ export default function EditScheduleModal({
       newErrors.duration = "유효한 복용 기간(숫자)을 입력해주세요";
     }
 
+    // 투약의 경우 알림 관련 필드도 필수
+    if (type === "medication" && !formData.notificationTime) {
+      newErrors.notificationTime = "일정 시간을 입력해주세요";
+    }
+
+    if (type === "medication" && !formData.notificationTiming) {
+      newErrors.notificationTiming = "알림 시기를 선택해주세요";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -106,10 +120,11 @@ export default function EditScheduleModal({
 
       if (type === "medication") {
         // 투약 수정
-        const today = new Date();
-        const startDate = today.toISOString().split("T")[0];
-        const endDateObj = new Date(today);
-        endDateObj.setDate(today.getDate() + Number(formData.duration) - 1);
+        const startDateObj = new Date(formData.date || scheduleData.startDate);
+        const endDateObj = new Date(startDateObj);
+        endDateObj.setDate(
+          startDateObj.getDate() + Number(formData.duration) - 1
+        );
         const endDate = endDateObj.toISOString().split("T")[0];
 
         updatedSchedule = {
@@ -118,8 +133,11 @@ export default function EditScheduleModal({
           type: formData.subType,
           frequency: formData.frequency,
           duration: Number(formData.duration),
-          startDate: startDate,
+          startDate: formData.date || scheduleData.startDate,
           endDate: endDate,
+          notificationTime: formData.notificationTime,
+          notificationTiming: formData.notificationTiming,
+          scheduleTime: formData.notificationTime,
           icon: getIconForSubType(formData.subType),
           color: getColorForType(formData.subType),
         };
@@ -153,6 +171,8 @@ export default function EditScheduleModal({
       date: "",
       time: "",
       duration: "",
+      notificationTime: "",
+      notificationTiming: "",
     });
     setErrors({});
     onClose();
@@ -381,10 +401,77 @@ export default function EditScheduleModal({
             </div>
           )}
 
+          {/* 투약의 경우 일정 시간 */}
+          {type === "medication" && (
+            <div className={styles.formGroup}>
+              <div className={styles.labelContainer}>
+                <label className={styles.label}>일정 시간</label>
+                <span className={styles.required}>*</span>
+              </div>
+              <div className={styles.inputContainer}>
+                <input
+                  type="time"
+                  className={styles.input}
+                  value={formData.notificationTime}
+                  onChange={(e) =>
+                    handleInputChange("notificationTime", e.target.value)
+                  }
+                />
+              </div>
+              {errors.notificationTime && (
+                <span className={styles.error}>{errors.notificationTime}</span>
+              )}
+            </div>
+          )}
+
+          {/* 투약의 경우 알림 시기 */}
+          {type === "medication" && (
+            <div className={styles.formGroup}>
+              <div className={styles.labelContainer}>
+                <label className={styles.label}>알림 시기</label>
+                <span className={styles.required}>*</span>
+              </div>
+              <div className={styles.selectContainer}>
+                <select
+                  className={styles.select}
+                  value={formData.notificationTiming}
+                  onChange={(e) =>
+                    handleInputChange("notificationTiming", e.target.value)
+                  }
+                >
+                  <option value="">알림 시기를 선택하세요</option>
+                  {notificationTimingOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                <div className={styles.selectArrow}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path
+                      d="M3 5L7 9L11 5"
+                      stroke="#9CA3AF"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+              {errors.notificationTiming && (
+                <span className={styles.error}>
+                  {errors.notificationTiming}
+                </span>
+              )}
+            </div>
+          )}
+
           {/* 날짜 */}
           <div className={styles.formGroup}>
             <div className={styles.labelContainer}>
-              <label className={styles.label}>날짜</label>
+              <label className={styles.label}>
+                {type === "medication" ? "시작 날짜" : "날짜"}
+              </label>
               <span className={styles.required}>*</span>
             </div>
             <div className={styles.inputContainer}>

@@ -14,6 +14,7 @@ export const defaultMedications = [
     frequency: "하루에 두 번",
     scheduleTime: "09:00, 21:00",
     notificationTime: "08:30, 20:30",
+    notificationTiming: "당일",
     startDate: "2025-08-01",
     endDate: "2025-08-07",
     icon: "💊",
@@ -27,6 +28,7 @@ export const defaultMedications = [
     frequency: "하루에 한 번",
     scheduleTime: "12:00",
     notificationTime: "11:30",
+    notificationTiming: "1일전",
     startDate: "2025-08-01",
     endDate: "2025-08-30",
     icon: "💊",
@@ -40,6 +42,7 @@ export const defaultMedications = [
     frequency: "하루에 한 번",
     scheduleTime: "08:00",
     notificationTime: "07:30",
+    notificationTiming: "당일",
     startDate: "2025-08-01",
     endDate: "2025-08-15",
     icon: "💊",
@@ -53,6 +56,7 @@ export const defaultMedications = [
     frequency: "하루에 한 번",
     scheduleTime: "19:00",
     notificationTime: "18:30",
+    notificationTiming: "2일전",
     startDate: "2025-08-01",
     endDate: "2025-08-31",
     icon: "💊",
@@ -66,6 +70,7 @@ export const defaultMedications = [
     frequency: "하루에 한 번",
     scheduleTime: "10:00",
     notificationTime: "09:30",
+    notificationTiming: "당일",
     startDate: "2025-08-01",
     endDate: "2025-08-20",
     icon: "💊",
@@ -79,6 +84,7 @@ export const defaultMedications = [
     frequency: "하루에 한 번",
     scheduleTime: "07:30",
     notificationTime: "07:00",
+    notificationTiming: "1일전",
     startDate: "2025-08-05",
     endDate: "2025-08-25",
     icon: "💊",
@@ -92,6 +98,7 @@ export const defaultMedications = [
     frequency: "하루에 두 번",
     scheduleTime: "09:00, 21:00",
     notificationTime: "08:30, 20:30",
+    notificationTiming: "당일",
     startDate: "2025-08-03",
     endDate: "2025-08-17",
     icon: "💊",
@@ -516,6 +523,9 @@ export const medicationFrequencyOptions = [
   "주에 한 번",
   "월에 한 번",
 ];
+
+// 알림 시기 옵션들
+export const notificationTimingOptions = ["당일", "1일전", "2일전", "3일전"];
 
 // 돌봄 일정용 옵션들
 export const careSubTypeOptions = ["산책", "미용", "생일"];
