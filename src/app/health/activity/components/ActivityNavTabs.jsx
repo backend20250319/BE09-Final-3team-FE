@@ -17,28 +17,22 @@ export default function ActivityNavTabs({
   useEffect(() => {
     if (iconRef.current) {
       const rect = iconRef.current.getBoundingClientRect();
-      const calendarWidth = 400; // 달력의 대략적인 너비
+      const calendarWidth = 400;
       const windowWidth = window.innerWidth;
 
       let left = rect.left + window.scrollX;
 
-      // 달력이 오른쪽으로 나가서 화면을 벗어나는 경우
       if (left + calendarWidth > windowWidth) {
-        // 달력을 아이콘의 왼쪽에 배치하되, 화면 안에 들어오도록 조정
         left = Math.max(0, windowWidth - calendarWidth - 20); // 20px 여백 추가
       } else {
-        // 기본적으로 아이콘의 왼쪽에 배치
-        left = rect.left + window.scrollX - calendarWidth;
-
-        // 왼쪽으로 나가서 화면을 벗어나는 경우
         if (left < 0) {
-          left = 20; // 왼쪽에 20px 여백
+          left = 20;
         }
       }
 
       setIconPosition({
         top: rect.bottom + window.scrollY + 8,
-        left: left,
+        left: left - 400,
       });
     }
   }, [iconRef, isCalendarOpen]);
@@ -49,11 +43,11 @@ export default function ActivityNavTabs({
         <div className={styles.navTabs}>
           <button
             className={`${styles.navTab} ${
-              activeTab === "활동 관리" ? styles.active : ""
+              activeTab === "활동 기록" ? styles.active : ""
             }`}
-            onClick={() => setActiveTab("활동 관리")}
+            onClick={() => setActiveTab("활동 기록")}
           >
-            활동 관리
+            활동 기록
           </button>
           <button
             className={`${styles.navTab} ${

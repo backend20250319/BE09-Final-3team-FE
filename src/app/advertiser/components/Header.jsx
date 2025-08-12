@@ -22,7 +22,7 @@ export default function Header() {
           <div className={styles.headerActions}>
             <Link href="/" className={styles.homeButton}>
               <IoMdHome size={25} />
-              <span>메인</span>
+              <span>인플루언서</span>
             </Link>
             <Link href="/advertiser/login" className={styles.loginButton}>
                 로그인
