@@ -115,11 +115,24 @@ export default function ActivityManagement() {
     const activityLevel = parseFloat(formData.activityLevel);
     const validWeight = !isNaN(weight) ? weight : 0;
 
-    // 저장된 식사들의 총 섭취 칼로리만 합산
+    // 저장된 식사들의 총 섭취 칼로리 합산
     const mealsIntake = meals.reduce((sum, m) => {
       const intake = typeof m.intakeKcal === "number" ? m.intakeKcal : 0;
       return sum + intake;
     }, 0);
+
+    // 현재 입력 중인 식사의 칼로리 미리보기
+    const totalFoodWeight = parseFloat(formData.totalFoodWeight);
+    const totalCaloriesInFood = parseFloat(formData.totalCaloriesInFood);
+    const feedingAmount = parseFloat(formData.feedingAmount);
+
+    const currentMealIntake =
+      !isNaN(totalFoodWeight) &&
+      totalFoodWeight > 0 &&
+      !isNaN(totalCaloriesInFood) &&
+      !isNaN(feedingAmount)
+        ? feedingAmount * (totalCaloriesInFood / totalFoodWeight)
+        : 0;
 
     setCalculated({
       recommendedBurn:
@@ -134,12 +147,15 @@ export default function ActivityManagement() {
         validWeight && !isNaN(activityLevel)
           ? validWeight * activityLevel * 100
           : 0,
-      actualIntake: mealsIntake,
+      actualIntake: mealsIntake + currentMealIntake,
     });
   }, [
     formData.weight,
     formData.walkingDistance,
     formData.activityLevel,
+    formData.totalFoodWeight,
+    formData.totalCaloriesInFood,
+    formData.feedingAmount,
     meals,
   ]);
 
@@ -537,18 +553,18 @@ export default function ActivityManagement() {
                 </div>
                 <div className={styles.calorieInfo}>
                   <div className={styles.calorieItem}>
-                    <p>권장 소모 칼로리</p>
-                    <p className={styles.calorieValue}>
-                      {calculated.recommendedBurn > 0
-                        ? `${formatNumber(calculated.recommendedBurn)} kcal`
-                        : "--"}
-                    </p>
-                  </div>
-                  <div className={styles.calorieItem}>
                     <p>소모 칼로리</p>
                     <p className={styles.calorieValue}>
                       {calculated.actualBurn > 0
                         ? `${formatNumber(calculated.actualBurn)} kcal`
+                        : "--"}
+                    </p>
+                  </div>
+                  <div className={styles.calorieItem}>
+                    <p>권장 소모 칼로리</p>
+                    <p className={styles.calorieValue}>
+                      {calculated.recommendedBurn > 0
+                        ? `${formatNumber(calculated.recommendedBurn)} kcal`
                         : "--"}
                     </p>
                   </div>
@@ -677,7 +693,7 @@ export default function ActivityManagement() {
                               kcal
                             </span>
                             <span>섭취 {m.feedingAmount}g</span>
-                            <span>섭취 칼로리 {formatNumber(intake)} kcal</span>
+                            <span>칼로리 {formatNumber(intake)} kcal</span>
                           </div>
                           {!isSubmittedToday && (
                             <button
