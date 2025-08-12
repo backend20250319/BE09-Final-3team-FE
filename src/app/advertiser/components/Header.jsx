@@ -17,13 +17,13 @@ export default function Header() {
                 height={200}
               />
             </Link>
-            <Link href="/" className={styles.homeButton}>
-              <IoMdHome size={20} />
-              <span>메인</span>
-            </Link>
           </div>
 
           <div className={styles.headerActions}>
+            <Link href="/" className={styles.homeButton}>
+              <IoMdHome size={25} />
+              <span>메인</span>
+            </Link>
             <Link href="/advertiser/login" className={styles.loginButton}>
                 로그인
               </Link>

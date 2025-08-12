@@ -35,6 +35,21 @@ export default function HeroSection() {
     },
     {
       id: 3,
+      badge: "Grow Your Audience",
+      title: "SNS 관리",
+      description:
+      "반려동물 SNS 계정의 팔로워 증가, 참여율, 콘텐츠 반응을 분석하세요. 댓글도 쉽게 관리하고, 유해한 댓글은 자동으로 감지해드려요.",
+      features: [
+        "SNS 분석",
+        "댓글 관리",
+        "SNS 활동의 성과를 분석하고 성장 흐름을 파악",
+      ],
+      image: "/sns.png",
+      color: "#60A5FA",
+      reverse: false,
+    },
+    {
+      id: 4,
       badge: "Keep Them Healthy",
       title: "건강관리",
       description:
@@ -44,23 +59,8 @@ export default function HeroSection() {
         "예방접종 및 약 복용 알림",
         "영양 섭취 기록 및 맞춤 추천",
       ],
-      image: "/health-bg.jpg",
+      image: "/health.png",
       color: "#FF7675",
-      reverse: false,
-    },
-    {
-      id: 4,
-      badge: "Grow Your Audience",
-      title: "SNS 관리",
-      description:
-        "반려동물 SNS 계정의 팔로워 증가, 참여율, 콘텐츠 반응을 분석하세요. 댓글도 쉽게 관리하고, 유해한 댓글은 자동으로 감지해드려요.",
-      features: [
-        "SNS 분석",
-        "댓글 관리",
-        "SNS 활동의 성과를 분석하고 성장 흐름을 파악",
-      ],
-      image: "/sns-bg.jpg",
-      color: "#60A5FA",
       reverse: true,
     },
     {
@@ -70,7 +70,7 @@ export default function HeroSection() {
       description:
         "반려동물 애호가들의 활기찬 커뮤니티에 참여하세요. 사진 및 정보를 공유하거나 궁금한 점을 묻는 등 다른 반려동물 주인 및 인플루언서들과 소통할 수 있습니다. 서로의 경험에서 배우며 함께 성장하세요.",
       features: ["정보공유 게시판", "Q&A 게시판"],
-      image: "/community-bg.jpg",
+      image: "/community.png",
       color: "#C084FC",
       reverse: false,
     },

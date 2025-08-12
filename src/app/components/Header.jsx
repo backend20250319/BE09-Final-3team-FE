@@ -37,13 +37,13 @@ export default function Header() {
                   height={200}
                 />
               </Link>
-              <Link href="/advertiser" className={styles.advertiserButton}>
-                <IoMdBusiness size={20} />
-                <span>광고주</span>
-              </Link>
             </div>
 
             <div className={styles.headerActions}>
+              <Link href="/advertiser" className={styles.advertiserButton}>
+                <IoMdBusiness size={25} />
+                <span>광고주</span>
+              </Link>
               <Link href="/user/login" className={styles.loginButton}>
                 로그인
               </Link>

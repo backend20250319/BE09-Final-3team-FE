@@ -5,10 +5,12 @@ import { useCampaign } from "../context/CampaignContext";
 import styles from "../styles/TabNavigation.module.css";
 
 const tabs = [
-  { key: "approved", label: "진행중인 광고" },
-  { key: "pending", label: "승인 대기중인 광고" },
-  { key: "rejected", label: "반려된 광고" },
+  { key: "approved", label: "모집중인 광고" },
+  { key: "closed", label: "모집 종료된 광고" },
+  { key: "trial", label: "체험 기간 중인 광고" },
   { key: "ended", label: "종료된 광고" },
+  { key: "pending", label: "승인 대기중인 광고" },
+  { key: "rejected", label: "반려된 광고" }
 ];
 
 export default function TabNavigation() {
