@@ -17,10 +17,14 @@ export default function MemberManagement(){
         console.log(`Reject product ${productId}`);
         // 거절 로직 구현
     };
-    const handleApprove = (productId) => {
-        console.log(`Approve product ${productId}`);
-        // 승인 로직 구현
-    };
+    const handleApprove = () => {
+        if(confirm("승인하시겠습니까?")){
+            alert("승인되었습니다.")
+        }else{
+            alert("승인이 취소되었습니다.")
+        }
+    }
+
 
     return(
         <>
@@ -113,10 +117,10 @@ export default function MemberManagement(){
                                         </div>
                                         <div className={styles.productActions} style={{ width: "265px" }}>
                                             <button className={styles.approveBtn} onClick={handleApprove}>
-                                                APPROVE
+                                                승인하기
                                             </button>
                                             <button className={styles.rejectBtn} onClick={() => setIsModalOpen(true)}>
-                                                REJECT
+                                                거절하기
                                             </button>
                                             <PopupModal
                                                 isOpen={isModalOpen}
@@ -145,7 +149,7 @@ export default function MemberManagement(){
                                         </div>
                                         <div className={styles.productActions} style={{ width: "265px" }}>
                                             <button className={styles.deleteBtn} onClick={() => setIsModalOpen(true)}>
-                                                RESTRICT
+                                                제한하기
                                             </button>
                                             <PopupModal
                                                 isOpen={isModalOpen}

@@ -16,10 +16,14 @@ export default function ProductManagement(){
         console.log(`Reject product ${productId}`);
         // 삭제 로직 구현
     };
-    const handleApprove = (productId) => {
-        console.log(`Approve product ${productId}`);
-        // 삭제 로직 구현
-    };
+
+    const handleApprove = () => {
+        if(confirm("승인하시겠습니까?")){
+            alert("승인되었습니다.")
+        }else{
+            alert("승인이 취소되었습니다.")
+        }
+    }
 
     return(
         <>
@@ -138,7 +142,7 @@ export default function ProductManagement(){
                                                             strokeWidth="2"
                                                         />
                                                     </svg>
-                                                    DELETE
+                                                    삭제하기
                                                 </button>
                                                 <PopupModal
                                                     isOpen={isModalOpen}
@@ -166,13 +170,13 @@ export default function ProductManagement(){
                                                             strokeLinejoin="round"
                                                         />
                                                     </svg>
-                                                    APPROVE
+                                                    승인하기
                                                 </button>
                                                 <button className={styles.rejectBtn} onClick={()=>setIsModalOpen(true)}>
                                                     <svg width="11" height="10" viewBox="0 0 11 10" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                         <path d="M10.6598 1.70664C11.0504 1.31602 11.0504 0.681641 10.6598 0.291016C10.2691 -0.0996094 9.63477 -0.0996094 9.24414 0.291016L5.95352 3.58477L2.65977 0.294141C2.26914 -0.0964844 1.63477 -0.0964844 1.24414 0.294141C0.853516 0.684766 0.853516 1.31914 1.24414 1.70977L4.53789 5.00039L1.24727 8.29414C0.856641 8.68476 0.856641 9.31914 1.24727 9.70977C1.63789 10.1004 2.27227 10.1004 2.66289 9.70977L5.95352 6.41602L9.24727 9.70664C9.63789 10.0973 10.2723 10.0973 10.6629 9.70664C11.0535 9.31602 11.0535 8.68164 10.6629 8.29102L7.36914 5.00039L10.6598 1.70664Z" fill="white"/>
                                                     </svg>
-                                                    REJECT
+                                                    거절하기
                                                 </button>
                                                 <PopupModal
                                                     isOpen={isModalOpen}
