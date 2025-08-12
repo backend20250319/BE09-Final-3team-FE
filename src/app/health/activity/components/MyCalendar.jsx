@@ -161,10 +161,27 @@ const MyCalendar = () => {
 
   const days = getDaysInMonth(currentDate);
 
+  // 프로필 이미지 매핑 (헤더용)
+  const petImageMap = {
+    몽글이: "/user/dog.png",
+    초코: "/user/cat.png",
+    차차: "/user/bird.png",
+  };
+  const headerAvatarSrc = petImageMap[selectedPetName] || "/user/dog.png";
+
   return (
     <div className={styles.calendarContainer}>
       <div className={styles.calendarHeader}>
-        <h3 className={styles.calendarTitle}>{selectedPetName}의 활동 기록</h3>
+        <div className={styles.titleRow}>
+          <img
+            src={headerAvatarSrc}
+            alt={`${selectedPetName} 프로필`}
+            className={styles.headerAvatar}
+          />
+          <h3 className={styles.calendarTitle}>
+            {selectedPetName}의 활동 기록
+          </h3>
+        </div>
         <p className={styles.calendarSubtitle}>
           녹색으로 표시된 날짜를 클릭하면 해당 날짜의 활동 기록을 볼 수
           있습니다.

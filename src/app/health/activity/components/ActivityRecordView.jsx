@@ -21,11 +21,27 @@ export default function ActivityRecordView({
     });
   };
 
+  // 프로필 이미지 매핑 (선택된 펫에 맞춰 표시)
+  const petImageMap = {
+    몽글이: "/user/dog.png",
+    초코: "/user/cat.png",
+    차차: "/user/bird.png",
+  };
+  const petName = recordData?.petName || "";
+  const avatarSrc = petImageMap[petName] || "/user/dog.png";
+
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
         <div className={styles.header}>
-          <h2 className={styles.title}>{formatDate(date)} 활동 기록</h2>
+          <div className={styles.headerLeft}>
+            <img
+              src={avatarSrc}
+              alt={`${petName} 프로필`}
+              className={styles.avatar}
+            />
+            <h2 className={styles.title}>{formatDate(date)} 활동 기록</h2>
+          </div>
           <button
             className={styles.closeButton}
             onClick={onClose}
@@ -155,5 +171,3 @@ export default function ActivityRecordView({
     </div>
   );
 }
-
-

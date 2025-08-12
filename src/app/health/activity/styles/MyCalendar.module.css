@@ -12,10 +12,24 @@
   color: white;
 }
 
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .calendarTitle {
   font-size: 20px;
   font-weight: 600;
   margin: 0 0 8px 0;
+}
+
+.headerAvatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.85);
 }
 
 .calendarSubtitle {

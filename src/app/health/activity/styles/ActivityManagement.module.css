@@ -79,7 +79,7 @@
 
 .activityCard.notes {
   background: #f0f8ff;
-  min-height: 100px;
+  min-height: 175px;
   padding: 21px 21px 0 21px;
 }
 
@@ -111,6 +111,36 @@
   margin: 0;
 }
 
+.infoButton {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  background: #fff;
+  color: #666;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 20px;
+}
+
+.infoButton:hover {
+  background: #fafafa;
+}
+
+.infoDropdown {
+  position: absolute;
+  margin-top: 90px;
+  margin-left: 80px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #374151;
+  z-index: 5;
+}
+
 /* Form Styles */
 .activityForm {
   display: flex;
@@ -125,7 +155,7 @@
 }
 
 .activityCard.notes .formGroup {
-  gap: 1;
+  gap: 2;
 }
 
 .formGroup label {
@@ -270,6 +300,66 @@
 .feeding textarea:focus {
   border-color: #fad291;
   box-shadow: 0 0 0 3px rgba(255, 243, 224, 0.3);
+}
+
+/* Meals list */
+
+.headerRight {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.addMealButton {
+  background: #ffb339;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.addMealButton:hover {
+  background: #e09417;
+}
+
+.mealList {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mealItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.mealSummary {
+  display: flex;
+  gap: 12px;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.removeMealButton {
+  background: transparent;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.removeMealButton:hover {
+  background: rgba(239, 68, 68, 0.06);
 }
 
 /* Calorie Info */

@@ -25,7 +25,7 @@ export default function HealthPage() {
   ];
 
   const [activeMainTab, setActiveMainTab] = useState("활동 관리");
-  const [activeSubTab, setActiveSubTab] = useState("활동 관리");
+  const [activeSubTab, setActiveSubTab] = useState("활동 기록");
   const [medicalSubTab, setMedicalSubTab] = useState("투약");
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [medicalCalendarEvents, setMedicalCalendarEvents] = useState([]);
@@ -198,8 +198,8 @@ export default function HealthPage() {
             toggleCalendar={toggleCalendar}
           />
 
-          {/* 활동 관리 하위 탭 렌더링 */}
-          {activeSubTab === "활동 관리" && <ActivityForm />}
+          {/* 활동 기록 하위 탭 렌더링 */}
+          {activeSubTab === "활동 기록" && <ActivityForm />}
           {activeSubTab === "리포트" && <ActivityReport />}
         </>
       )}

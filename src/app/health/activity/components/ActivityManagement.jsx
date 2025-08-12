@@ -24,6 +24,13 @@ export default function ActivityManagement() {
 
   const [formData, setFormData] = useState(initialFormData);
 
+  // 다중 식사 관리
+  const [meals, setMeals] = useState([]);
+  const [showMealInfo, setShowMealInfo] = useState(false);
+
+  // 산책 정보 안내
+  const [showWalkInfo, setShowWalkInfo] = useState(false);
+
   // 펫 이름별로 저장했는지 상태 관리 (오늘 날짜 key 사용)
   const [submittedPets, setSubmittedPets] = useState({});
 
@@ -66,6 +73,22 @@ export default function ActivityManagement() {
         fecesCount: savedData.fecesCount || "",
         memo: savedData.memo || "",
       });
+      // 저장된 식사 목록 보정 (섭취 칼로리 필드가 없을 수 있음)
+      const loadedMeals = Array.isArray(savedData.meals) ? savedData.meals : [];
+      const normalizedMeals = loadedMeals.map((m) => {
+        const w = parseFloat(m.totalFoodWeight);
+        const c = parseFloat(m.totalCaloriesInFood);
+        const a = parseFloat(m.feedingAmount);
+        const intake =
+          !isNaN(w) && w > 0 && !isNaN(c) && !isNaN(a) ? a * (c / w) : 0;
+        return {
+          totalFoodWeight: m.totalFoodWeight,
+          totalCaloriesInFood: m.totalCaloriesInFood,
+          feedingAmount: m.feedingAmount,
+          intakeKcal: typeof m.intakeKcal === "number" ? m.intakeKcal : intake,
+        };
+      });
+      setMeals(normalizedMeals);
       setSubmittedPets((prev) => ({ ...prev, [storageKey]: true }));
     } else {
       // 저장된 데이터 없으면 초기화
@@ -81,6 +104,7 @@ export default function ActivityManagement() {
         fecesCount: "",
         memo: "",
       });
+      setMeals([]);
       setSubmittedPets((prev) => ({ ...prev, [storageKey]: false }));
     }
   }, [selectedPetName, storageKey]);
@@ -88,17 +112,26 @@ export default function ActivityManagement() {
   useEffect(() => {
     const weight = parseFloat(formData.weight);
     const walkingDistance = parseFloat(formData.walkingDistance);
-    const totalFoodWeight = parseFloat(formData.totalFoodWeight);
-    const totalCaloriesInFood = parseFloat(formData.totalCaloriesInFood);
-    const feedingAmount = parseFloat(formData.feedingAmount);
     const activityLevel = parseFloat(formData.activityLevel);
     const validWeight = !isNaN(weight) ? weight : 0;
 
-    const caloriePerGram =
-      !isNaN(totalCaloriesInFood) &&
+    // 저장된 식사들의 총 섭취 칼로리 합산
+    const mealsIntake = meals.reduce((sum, m) => {
+      const intake = typeof m.intakeKcal === "number" ? m.intakeKcal : 0;
+      return sum + intake;
+    }, 0);
+
+    // 현재 입력 중인 식사의 칼로리 미리보기
+    const totalFoodWeight = parseFloat(formData.totalFoodWeight);
+    const totalCaloriesInFood = parseFloat(formData.totalCaloriesInFood);
+    const feedingAmount = parseFloat(formData.feedingAmount);
+
+    const currentMealIntake =
       !isNaN(totalFoodWeight) &&
-      totalFoodWeight > 0
-        ? totalCaloriesInFood / totalFoodWeight
+      totalFoodWeight > 0 &&
+      !isNaN(totalCaloriesInFood) &&
+      !isNaN(feedingAmount)
+        ? feedingAmount * (totalCaloriesInFood / totalFoodWeight)
         : 0;
 
     setCalculated({
@@ -114,12 +147,17 @@ export default function ActivityManagement() {
         validWeight && !isNaN(activityLevel)
           ? validWeight * activityLevel * 100
           : 0,
-      actualIntake:
-        !isNaN(feedingAmount) && caloriePerGram > 0
-          ? feedingAmount * caloriePerGram
-          : 0,
+      actualIntake: mealsIntake + currentMealIntake,
     });
-  }, [formData]);
+  }, [
+    formData.weight,
+    formData.walkingDistance,
+    formData.activityLevel,
+    formData.totalFoodWeight,
+    formData.totalCaloriesInFood,
+    formData.feedingAmount,
+    meals,
+  ]);
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -145,9 +183,6 @@ export default function ActivityManagement() {
   const handleSave = () => {
     const walkingDistanceNum = parseFloat(formData.walkingDistance);
     const activityLevelVal = formData.activityLevel;
-    const totalFoodWeightNum = parseFloat(formData.totalFoodWeight);
-    const totalCaloriesInFoodNum = parseFloat(formData.totalCaloriesInFood);
-    const feedingAmountNum = parseFloat(formData.feedingAmount);
     const weightNum = parseFloat(formData.weight);
     const sleepTimeNum = parseInt(formData.sleepTime, 10);
     const urineCountNum = parseInt(formData.urineCount, 10);
@@ -169,23 +204,12 @@ export default function ActivityManagement() {
       errors.activityLevel = "올바른 활동량을 선택해주세요.";
     }
 
-    if (formData.totalFoodWeight.trim() === "") {
-      errors.totalFoodWeight = "총 그람수를 입력해주세요.";
-    } else if (isNaN(totalFoodWeightNum) || totalFoodWeightNum <= 0) {
-      errors.totalFoodWeight = "0보다 큰 값을 입력해주세요.";
-    }
-
-    if (formData.totalCaloriesInFood.trim() === "") {
-      errors.totalCaloriesInFood = "총 칼로리를 입력해주세요.";
-    } else if (isNaN(totalCaloriesInFoodNum) || totalCaloriesInFoodNum <= 0) {
-      errors.totalCaloriesInFood = "0보다 큰 값을 입력해주세요.";
-    }
-
-    if (formData.feedingAmount.trim() === "") {
-      errors.feedingAmount = "섭취량을 입력해주세요.";
-    } else if (isNaN(feedingAmountNum) || feedingAmountNum < 0) {
-      errors.feedingAmount = "0 이상의 올바른 값을 입력해주세요.";
-    }
+    // 식사 유효성: 저장 시에는 1개 이상 추가되어 있어야 함
+    const currentTotalFoodWeightNum = parseFloat(formData.totalFoodWeight);
+    const currentTotalCaloriesInFoodNum = parseFloat(
+      formData.totalCaloriesInFood
+    );
+    const currentFeedingAmountNum = parseFloat(formData.feedingAmount);
 
     if (formData.weight.trim() === "") {
       errors.weight = "몸무게를 입력해주세요.";
@@ -230,8 +254,50 @@ export default function ActivityManagement() {
       parseFloat(activityLevelVal) *
       5
     ).toFixed(1);
-    const caloriePerGram = totalCaloriesInFoodNum / totalFoodWeightNum;
-    const feedingCalorie = (feedingAmountNum * caloriePerGram).toFixed(1);
+
+    // 저장용 식사 목록 구성: 추가된 식사들이 우선, 없고 현재 입력이 유효하면 현재 입력 1건 포함
+    let mealsToSave = meals;
+    if (
+      meals.length === 0 &&
+      !isNaN(currentTotalFoodWeightNum) &&
+      currentTotalFoodWeightNum > 0 &&
+      !isNaN(currentTotalCaloriesInFoodNum) &&
+      currentTotalCaloriesInFoodNum > 0 &&
+      !isNaN(currentFeedingAmountNum) &&
+      currentFeedingAmountNum >= 0
+    ) {
+      const intake =
+        currentFeedingAmountNum *
+        (currentTotalCaloriesInFoodNum / currentTotalFoodWeightNum);
+      mealsToSave = [
+        {
+          totalFoodWeight: currentTotalFoodWeightNum,
+          totalCaloriesInFood: currentTotalCaloriesInFoodNum,
+          feedingAmount: currentFeedingAmountNum,
+          intakeKcal: intake,
+        },
+      ];
+    }
+
+    if (mealsToSave.length === 0) {
+      alert("식사 정보를 최소 1개 이상 추가해주세요.");
+      return;
+    }
+
+    const feedingCalorieTotal = mealsToSave.reduce((sum, m) => {
+      const intake =
+        typeof m.intakeKcal === "number"
+          ? m.intakeKcal
+          : (() => {
+              const w = parseFloat(m.totalFoodWeight);
+              const c = parseFloat(m.totalCaloriesInFood);
+              const a = parseFloat(m.feedingAmount);
+              return !isNaN(w) && w > 0 && !isNaN(c) && !isNaN(a)
+                ? a * (c / w)
+                : 0;
+            })();
+      return sum + intake;
+    }, 0);
 
     // 저장할 데이터에 formData 원본 값도 같이 저장 (불러올 때 사용)
     const dataToSave = {
@@ -241,6 +307,7 @@ export default function ActivityManagement() {
       totalFoodWeight: formData.totalFoodWeight,
       totalCaloriesInFood: formData.totalCaloriesInFood,
       feedingAmount: formData.feedingAmount,
+      meals: mealsToSave,
       weight: formData.weight,
       sleepTime: formData.sleepTime,
       urineCount: formData.urineCount,
@@ -249,7 +316,7 @@ export default function ActivityManagement() {
       // 아래는 계산값 (필요 시)
       weightNum,
       walk_calories: parseInt(walkingCalorie, 10),
-      eat_calories: parseInt(feedingCalorie, 10),
+      eat_calories: parseInt(feedingCalorieTotal.toFixed(1), 10),
       sleep_time: sleepTimeNum,
       urine_count: urineCountNum,
       feces_count: fecesCountNum,
@@ -268,6 +335,64 @@ export default function ActivityManagement() {
 
   const handleCloseSaveComplete = () => {
     setShowSaveComplete(false);
+  };
+
+  // 식사 추가/삭제
+  const handleAddMeal = () => {
+    if (isSubmittedToday) return;
+    const w = parseFloat(formData.totalFoodWeight);
+    const c = parseFloat(formData.totalCaloriesInFood);
+    const a = parseFloat(formData.feedingAmount);
+
+    const errs = { ...validationErrors };
+    let hasError = false;
+    if (formData.totalFoodWeight.trim() === "" || isNaN(w) || w <= 0) {
+      errs.totalFoodWeight = "0보다 큰 값을 입력해주세요.";
+      hasError = true;
+    } else {
+      delete errs.totalFoodWeight;
+    }
+    if (formData.totalCaloriesInFood.trim() === "" || isNaN(c) || c <= 0) {
+      errs.totalCaloriesInFood = "0보다 큰 값을 입력해주세요.";
+      hasError = true;
+    } else {
+      delete errs.totalCaloriesInFood;
+    }
+    if (formData.feedingAmount.trim() === "" || isNaN(a) || a < 0) {
+      errs.feedingAmount = "0 이상의 올바른 값을 입력해주세요.";
+      hasError = true;
+    } else {
+      delete errs.feedingAmount;
+    }
+
+    if (hasError) {
+      setValidationErrors(errs);
+      return;
+    }
+
+    setValidationErrors(errs);
+    const intake = a * (c / w);
+    setMeals((prev) => [
+      ...prev,
+      {
+        totalFoodWeight: w,
+        totalCaloriesInFood: c,
+        feedingAmount: a,
+        intakeKcal: intake,
+      },
+    ]);
+    // 다음 입력을 위해 초기화
+    setFormData((prev) => ({
+      ...prev,
+      totalFoodWeight: "",
+      totalCaloriesInFood: "",
+      feedingAmount: "",
+    }));
+  };
+
+  const handleRemoveMeal = (index) => {
+    if (isSubmittedToday) return;
+    setMeals((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -292,6 +417,19 @@ export default function ActivityManagement() {
                   />
                 </div>
                 <h3>산책</h3>
+                <button
+                  type="button"
+                  className={styles.infoButton}
+                  onClick={() => setShowWalkInfo((v) => !v)}
+                  aria-label="산책 정보 안내"
+                >
+                  i
+                </button>
+                {showWalkInfo && (
+                  <div className={styles.infoDropdown}>
+                    권장 소모 칼로리는 활동량을 선택해야 표시됩니다.
+                  </div>
+                )}
               </div>
               <div className={styles.activityForm}>
                 <div className={styles.formGroup}>
@@ -415,18 +553,18 @@ export default function ActivityManagement() {
                 </div>
                 <div className={styles.calorieInfo}>
                   <div className={styles.calorieItem}>
-                    <p>권장 소모 칼로리</p>
-                    <p className={styles.calorieValue}>
-                      {calculated.recommendedBurn > 0
-                        ? `${formatNumber(calculated.recommendedBurn)} kcal`
-                        : "--"}
-                    </p>
-                  </div>
-                  <div className={styles.calorieItem}>
                     <p>소모 칼로리</p>
                     <p className={styles.calorieValue}>
                       {calculated.actualBurn > 0
                         ? `${formatNumber(calculated.actualBurn)} kcal`
+                        : "--"}
+                    </p>
+                  </div>
+                  <div className={styles.calorieItem}>
+                    <p>권장 소모 칼로리</p>
+                    <p className={styles.calorieValue}>
+                      {calculated.recommendedBurn > 0
+                        ? `${formatNumber(calculated.recommendedBurn)} kcal`
                         : "--"}
                     </p>
                   </div>
@@ -441,6 +579,32 @@ export default function ActivityManagement() {
                   <img src="/health/meal.png" alt="식사 아이콘" />
                 </div>
                 <h3>식사</h3>
+                <button
+                  type="button"
+                  className={styles.infoButton}
+                  onClick={() => setShowMealInfo((v) => !v)}
+                  aria-label="식사 정보 안내"
+                >
+                  i
+                </button>
+                {showMealInfo && (
+                  <div className={styles.infoDropdown}>
+                    하나의 음식의 총 칼로리와 총 무게를 적어주세요
+                    <br />
+                    권장 섭취 칼로리는 활동량을 선택해야 표시됩니다.
+                  </div>
+                )}
+                {!isSubmittedToday && (
+                  <div className={styles.headerRight}>
+                    <button
+                      type="button"
+                      className={styles.addMealButton}
+                      onClick={handleAddMeal}
+                    >
+                      식사 추가
+                    </button>
+                  </div>
+                )}
               </div>
               <div className={styles.activityForm}>
                 <div className={styles.horizontalInputs}>
@@ -516,6 +680,35 @@ export default function ActivityManagement() {
                     }
                   />
                 </div>
+                {meals.length > 0 && (
+                  <ul className={styles.mealList}>
+                    {meals.map((m, idx) => {
+                      const intake =
+                        typeof m.intakeKcal === "number" ? m.intakeKcal : 0;
+                      return (
+                        <li key={idx} className={styles.mealItem}>
+                          <div className={styles.mealSummary}>
+                            <span>
+                              총 {m.totalFoodWeight}g / {m.totalCaloriesInFood}
+                              kcal
+                            </span>
+                            <span>섭취 {m.feedingAmount}g</span>
+                            <span>칼로리 {formatNumber(intake)} kcal</span>
+                          </div>
+                          {!isSubmittedToday && (
+                            <button
+                              type="button"
+                              className={styles.removeMealButton}
+                              onClick={() => handleRemoveMeal(idx)}
+                            >
+                              삭제
+                            </button>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
                 <div className={styles.calorieInfo}>
                   <div className={styles.calorieItem}>
                     <p>섭취 칼로리</p>
