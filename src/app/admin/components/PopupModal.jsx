@@ -142,14 +142,14 @@ export default function PopupModal({
               onClick={handleDelete}
               disabled={!deleteReason.trim()}
             >
-              <svg width="12" height="16" viewBox="0 0 12 16" fill="none">
+              <svg width="12" height="18" viewBox="0 0 12 16" fill="none">
                 <path
                   d="M1 3H11M4 3V2C4 1.44772 4.44772 1 5 1H7C7.55228 1 8 1.44772 8 2V3M9.5 3V13C9.5 14.1046 8.60457 15 7.5 15H4.5C3.39543 15 2.5 14.1046 2.5 13V3H9.5Z"
                   stroke="white"
                   strokeWidth="2"
                 />
               </svg>
-              {getModalContent().confirmText}
+              <a style={{marginTop:"2px"}}>{getModalContent().confirmText}</a>
             </button>
           </div>
         </div>
