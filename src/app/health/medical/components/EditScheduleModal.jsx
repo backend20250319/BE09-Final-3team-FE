@@ -44,7 +44,8 @@ export default function EditScheduleModal({
         date: scheduleData.date || scheduleData.startDate || "",
         time: scheduleData.time || "",
         duration: scheduleData.duration || "",
-        notificationTime: scheduleData.notificationTime || "",
+        notificationTime:
+          scheduleData.notificationTime || scheduleData.scheduleTime || "",
         notificationTiming: scheduleData.notificationTiming || "",
       });
     }
