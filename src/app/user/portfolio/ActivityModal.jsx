@@ -149,7 +149,13 @@ const ActivityModal = ({
     return days;
   };
 
-  const Calendar = ({ selectedDate, onDateSelect, onClose, isVisible, isEndDate = false }) => {
+  const Calendar = ({
+    selectedDate,
+    onDateSelect,
+    onClose,
+    isVisible,
+    isEndDate = false,
+  }) => {
     if (!isVisible) return null;
 
     const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -188,19 +194,23 @@ const ActivityModal = ({
 
     const handleDateClick = (date) => {
       const formattedDate = date.toISOString().split("T")[0];
-      
+
       // 종료 시기 캘린더에서 시작 시기보다 이전 날짜 선택 방지
-      if (isEndDate && formData.startDate && formattedDate < formData.startDate) {
+      if (
+        isEndDate &&
+        formData.startDate &&
+        formattedDate < formData.startDate
+      ) {
         alert("종료 시기는 시작 시기보다 이전 날짜를 선택할 수 없습니다.");
         return;
       }
-      
+
       // 시작 시기 캘린더에서 종료 시기보다 이후 날짜 선택 방지
       if (!isEndDate && formData.endDate && formattedDate > formData.endDate) {
         alert("시작 시기는 종료 시기보다 이후 날짜를 선택할 수 없습니다.");
         return;
       }
-      
+
       onDateSelect(formattedDate);
     };
 
@@ -237,13 +247,17 @@ const ActivityModal = ({
                   selectedDate === date.toISOString().split("T")[0];
                 const isToday =
                   date.toDateString() === new Date().toDateString();
-                
+
                 // 종료 시기 캘린더에서 시작 시기보다 이전 날짜는 비활성화
-                const isDisabled = isEndDate && formData.startDate && 
+                const isDisabled =
+                  isEndDate &&
+                  formData.startDate &&
                   date.toISOString().split("T")[0] < formData.startDate;
-                
+
                 // 시작 시기 캘린더에서 종료 시기보다 이후 날짜는 비활성화
-                const isDisabledStart = !isEndDate && formData.endDate && 
+                const isDisabledStart =
+                  !isEndDate &&
+                  formData.endDate &&
                   date.toISOString().split("T")[0] > formData.endDate;
 
                 return (
@@ -253,7 +267,7 @@ const ActivityModal = ({
                       !isCurrentMonth ? styles.otherMonth : ""
                     } ${isSelected ? styles.selected : ""} ${
                       isToday ? styles.today : ""
-                    } ${(isDisabled || isDisabledStart) ? styles.disabled : ""}`}
+                    } ${isDisabled || isDisabledStart ? styles.disabled : ""}`}
                     onClick={() => handleDateClick(date)}
                     disabled={!isCurrentMonth || isDisabled || isDisabledStart}
                   >
