@@ -180,6 +180,8 @@
   border-radius: 6px;
   padding: 1px 5px;
   font-size: 11px;
+  display: inline-block;
+  width: fit-content;
 }
 
 .eventTitle {
