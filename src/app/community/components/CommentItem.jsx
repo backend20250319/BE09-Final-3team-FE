@@ -1,8 +1,13 @@
 "use client";
 import React from "react";
 import styles from "../styles/CommentItem.module.css";
+import ReportModal from "@/app/advertiser/ads-list/[ad_no]/components/ReportModal";
+import {useState} from "react";
+import Image from "next/image";
 
 export default function CommentItem({ comment }) {
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+
   return (
     <div className={styles.container}>
       <img
@@ -16,6 +21,7 @@ export default function CommentItem({ comment }) {
           <span className={styles.time}>{comment.time}</span>
         </div>
         <p className={styles.text}>{comment.content}</p>
+          <div style={{justifyContent:"space-between" , display:"flex"}}>
         <button className={styles.replyButton}>
           <svg
             className={styles.replyIcon}
@@ -31,6 +37,25 @@ export default function CommentItem({ comment }) {
           </svg>
           답글 달기
         </button>
+              <button
+                  className={styles.sirenButton}
+                  onClick={() => {
+                      setIsReportModalOpen(true);
+                  }}
+                  style={{backgroundColor:"white"}}
+              >
+                  <Image
+                      src="/siren.png"
+                      alt="siren.png"
+                      width={30}
+                      height={30} />
+              </button>
+          </div>
+          <ReportModal
+              isOpen={isReportModalOpen}
+              onClose={() => setIsReportModalOpen(false)}
+              applicantName={comment?.author}
+          />
       </div>
     </div>
   );
