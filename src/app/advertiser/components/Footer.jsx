@@ -9,7 +9,7 @@ export default function Footer() {
         <div className={styles.content}>
           <div className={styles.brandSection}>
             <p className={styles.description}>
-              예비·펫 인플루언서와 광고주를 연결하는 반려동물 건강 관리 & 마케팅
+              펫 인플루언서와 광고주를 연결하는 반려동물 건강 관리 & 마케팅
               통합 플랫폼
             </p>
             <div className={styles.logo}>
