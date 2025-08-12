@@ -4,8 +4,11 @@ import { useState } from "react";
 import Image from "next/image";
 import styles from "../styles/InfluencerSection.module.css";
 import petstars from "../advertiser/petstar-list/data/PetStars";
+import { usePathname } from "next/navigation";
 
 export default function InfluencerSection() {
+
+  const pathname = usePathname();
   // 현재 시작 인덱스
   const [startIndex, setStartIndex] = useState(0);
   const itemsPerPage = 4;
@@ -123,6 +126,23 @@ export default function InfluencerSection() {
             </button>
           </div>
         </div>
+
+        {pathname === "/advertiser" && (
+          <div className={styles.viewAllContainer}>
+            <a href="advertiser/petstar-list" className={styles.viewAllLink}>
+              <span>모든 펫스타 목록</span>
+              <svg width="14" height="12" viewBox="0 0 14 12" fill="none">
+                <path
+                  d="M1 6H13M13 6L8 1M13 6L8 11"
+                  stroke="#F5A623"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </a>
+          </div>
+        )}
       </div>
     </section>
   );

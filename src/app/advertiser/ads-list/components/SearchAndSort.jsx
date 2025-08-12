@@ -9,6 +9,8 @@ const SORT_OPTIONS = {
     { value: "endedRecent", label: "마감 임박순" },
     { value: "popular", label: "인기순" }
   ],
+  closed: [],
+  trial: [],
   pending: [
     { value: "createdRecent", label: "등록일 최신순" },
     { value: "createdOld", label: "등록일 오래된순" }

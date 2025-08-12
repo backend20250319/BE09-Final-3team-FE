@@ -1,9 +1,9 @@
 import HeroSection from "./components/HeroSection";
 import FeaturesSection from "./components/FeaturesSection";
 import DetailedFeaturesSection from "./components/DetailedFeaturesSection";
-import InfluencersSection from "./components/InfluencersSection";
 import CTASection from "./components/CTASection";
 import styles from "../styles/MainPage.module.css";
+import InfluencerSection from "../components/InfluencerSection";
 
 export default function Page() {
   return (
@@ -12,7 +12,7 @@ export default function Page() {
         <HeroSection />
         <FeaturesSection />
         <DetailedFeaturesSection />
-        <InfluencersSection />
+        <InfluencerSection />
         <CTASection />
       </main>
     </div>
