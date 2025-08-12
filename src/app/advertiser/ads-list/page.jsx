@@ -22,11 +22,12 @@ export default function adsListPage() {
             { value: "popular", label: "인기순" }
           ],
           closed: [
-            { value: "", label: "선정일 최신순" }
+            { value: "selectedRecent", label: "선정일 최신순" },
+            { value: "selectedOld", label: "선정일 최신순" }
           ],
           trial: [
-            { value: "", label: "체험 종료일 최신순" },
-            { value: "", label: "체험 종료일 오래된순" }
+            { value: "trialEndedRecent", label: "체험 종료일 최신순" },
+            { value: "tiralEndedOld", label: "체험 종료일 오래된순" }
           ],
           pending: [
             { value: "createdRecent", label: "등록일 최신순" },
@@ -42,7 +43,7 @@ export default function adsListPage() {
             { value: "endedRecent", label: "종료일 최신순" },
             { value: "endedOld", label: "종료일 오래된순" },
             { value: "popular", label: "인기순" }
-          ],
+          ]
       };
   
       setSortBy(SORT_OPTIONS[activeTab][0].value);
@@ -50,20 +51,23 @@ export default function adsListPage() {
     }, [activeTab]);
 
   return(
-    <main style={{ flex: 1 }}>
-      <SubHeader
-        title="체험단 광고 목록"
-        subtitle="체험단 광고를 직접 등록하고 다양한 지원자들의 신청 현황을 한눈에 관리해보세요"
-      />
-      <TabNavigation />
-      <SearchAndSort
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        sortBy={sortBy}
-        setSortBy={setSortBy}
-      />
-      <CampaignGrid searchQuery={searchQuery} sortBy={sortBy} />
+    <>
+      <main style={{ flex: 1, height: "1000px" }}>
+        <SubHeader
+          title="체험단 광고 목록"
+          subtitle="체험단 광고를 직접 등록하고 다양한 지원자들의 신청 현황을 한눈에 관리해보세요"
+        />
+        <TabNavigation />
+        <SearchAndSort
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+        />
+        <CampaignGrid searchQuery={searchQuery} sortBy={sortBy} />
+      </main>
       <Pagination />
-    </main>
+    </>
+    
   );
 }
