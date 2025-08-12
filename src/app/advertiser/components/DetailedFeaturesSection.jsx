@@ -6,8 +6,8 @@ export default function DetailedFeaturesSection() {
   const features = [
     {
       id: 1,
-      title: "Add Your Product",
-      subtitle: "상품 등록",
+      title: "Add Your Campaign",
+      subtitle: "캠페인 등록",
       description:
         "인플루언서 캠페인을 위해 브랜드 제품을 손쉽게 등록하고 인플루언서 캠페인을 위해 브랜드 제품을 손쉽게 등록하고 관리하세요. 제품의 상세 정보와 이미지를 입력해 상품을 효과적으로 소개하고, 몇 번의 클릭만으로 원하는 캠페인에 제품을 지정할 수 있습니다.",
       points: [
@@ -15,7 +15,7 @@ export default function DetailedFeaturesSection() {
         "모든 등록된 상품을 한눈에 확인할 수 있는 대시보드 뷰",
         "실시간 편집, 업데이트 및 삭제",
       ],
-      image: "/ad/ad1.jpeg",
+      image: "/advertiser/campaignRegister.png",
       titleColor: "#F5A623",
     },
     {
@@ -29,7 +29,7 @@ export default function DetailedFeaturesSection() {
         "인플루언서 소셜 통계와 지원서의 빠른 확인",
         "일괄 및 개별 승인/거절 도구",
       ],
-      image: "/user-1.jpg",
+      image: "/advertiser/applicants.png",
       titleColor: "#8BC34A",
       reverse: true,
     },
@@ -44,7 +44,7 @@ export default function DetailedFeaturesSection() {
         "상세 프로필: 이력, 통계, 캠페인 성과 확인",
         "반려동물 종류, 팔로워 수, 참여도 기준 전수 탐색",
       ],
-      image: "/petstar/petstar1.jpeg",
+      image: "/advertiser/petstars.png",
       titleColor: "#FF7675",
     },
     {
@@ -58,7 +58,7 @@ export default function DetailedFeaturesSection() {
         "상품 특성에 맞춰 최적의 펫스타를 AI가 추천",
         "추천 펫스타와의 효율적인 협업 지원",
       ],
-      image: "/campaign-1.jpg",
+      image: "/advertiser/petstarlists.png",
       titleColor: "#60A5FA",
       reverse: true,
     },
@@ -73,7 +73,7 @@ export default function DetailedFeaturesSection() {
         "게시 여부 등 실시간 진행 상황 확인",
         "리뷰별 피드백 작성과 승인 처리를 간편하게 지원",
       ],
-      image: "/influencer-1.jpg",
+      image: "/advertiser/review.png",
       titleColor: "#C084FC",
     },
   ];

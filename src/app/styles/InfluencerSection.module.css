@@ -189,6 +189,27 @@
   background: #f9fafb;
 }
 
+.viewAllContainer {
+  text-align: center;
+  margin-top: 32px;
+}
+
+.viewAllLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #f5a623;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.viewAllLink:hover {
+  color: #e6941f;
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
   .influencerGrid {

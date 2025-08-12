@@ -21,6 +21,13 @@ export default function adsListPage() {
             { value: "endedRecent", label: "마감 임박순" },
             { value: "popular", label: "인기순" }
           ],
+          closed: [
+            { value: "", label: "선정일 최신순" }
+          ],
+          trial: [
+            { value: "", label: "체험 종료일 최신순" },
+            { value: "", label: "체험 종료일 오래된순" }
+          ],
           pending: [
             { value: "createdRecent", label: "등록일 최신순" },
             { value: "createdOld", label: "등록일 오래된순" }

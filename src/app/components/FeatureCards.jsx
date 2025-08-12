@@ -28,7 +28,7 @@ export default function FeatureCards() {
       link: "/user/management",
     },
     {
-      id: 4,
+      id: 3,
       icon: (
         <div className={styles.iconWrapper}>
           <FiShare2 size={36} color="#60A5FA" />
@@ -40,7 +40,7 @@ export default function FeatureCards() {
       link: "/sns",
     },
     {
-      id: 3,
+      id: 4,
       icon: (
         <div className={styles.iconWrapper}>
           <FiActivity size={36} color="#FF7675" />
