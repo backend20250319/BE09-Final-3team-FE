@@ -73,7 +73,8 @@
 /* Main Content Layout */
 .mainContent {
   display: flex;
-  height: calc(100vh - 77px);
+  flex:1;
+  height: auto;
 }
 
 /* Sidebar */
@@ -190,7 +191,7 @@
   flex: 1;
   padding: 24px;
   background: #ffffff;
-  width: 135%;
+  width:135%;
 }
 
 .content {

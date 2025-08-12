@@ -19,7 +19,7 @@ export default function NavbarDropdown({
       <div className={styles.header}>
         <span className={styles.title}>알림</span>
       </div>
-      <div className={styles.list} onClick={handleAlarm}>
+      <div className={styles.list} onClick={handleAlarm} style={{cursor:"pointer"}}>
         {notifications.length === 0 ? (
           <div className={styles.empty}>알림이 없습니다.</div>
         ) : (

@@ -3,7 +3,7 @@
 // 프로필 데이터
 export const profileData = {
   username: "@Petful_influencer",
-  avatar: "/images/profile-avatar.jpg",
+  avatar: "/user-1",
   stats: {
     followers: "245.2K",
     following: "1,847",
@@ -51,22 +51,22 @@ export const feedStatsData = [
 export const topPerformingPostsData = [
   {
     id: 1,
-    image: "/images/post-1.jpg",
-    title: "Beach day adventures! 🏖️",
+    image: "/campaign-2.jpg",
+    title: "바다 여행 후기 🏖️",
     likes: "15.2K",
     comments: "847",
   },
   {
     id: 2,
-    image: "/images/post-2.jpg",
-    title: "New toy unboxing! 🎾",
+    image: "/campaign-3.jpg",
+    title: "새 장난감 언박싱! 🎾",
     likes: "12.8K",
     comments: "623",
   },
   {
     id: 3,
-    image: "/images/post-3.jpg",
-    title: "Sunday nap vibes 😴",
+    image: "/campaign-4.jpg",
+    title: "일요일 낮 바이브! 😴",
     likes: "11.4K",
     comments: "445",
   },

@@ -34,6 +34,9 @@ export default function ActivityManagement() {
   // 저장 확인 모달 상태
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
 
+  // 유효성 검사 오류 상태
+  const [validationErrors, setValidationErrors] = useState({});
+
   // 저장 여부 판단용 키
   const todayKey = useMemo(() => getTodayKey(), []);
   const storageKey = useMemo(
@@ -150,45 +153,72 @@ export default function ActivityManagement() {
     const urineCountNum = parseInt(formData.urineCount, 10);
     const fecesCountNum = parseInt(formData.fecesCount, 10);
 
-    if (
-      isNaN(walkingDistanceNum) ||
-      walkingDistanceNum < 0 ||
-      !validActivityLevels.includes(activityLevelVal) ||
-      isNaN(totalFoodWeightNum) ||
-      totalFoodWeightNum <= 0 ||
-      isNaN(totalCaloriesInFoodNum) ||
-      totalCaloriesInFoodNum <= 0 ||
-      isNaN(feedingAmountNum) ||
-      feedingAmountNum < 0 ||
-      isNaN(weightNum) ||
-      weightNum < 0 ||
-      isNaN(sleepTimeNum) ||
-      sleepTimeNum < 0 ||
-      isNaN(urineCountNum) ||
-      urineCountNum < 0 ||
-      isNaN(fecesCountNum) ||
-      fecesCountNum < 0
-    ) {
-      alert(
-        "모든 숫자 필드는 0 이상의 올바른 값을 입력해주세요.\n활동계수는 1.2, 1.5, 1.7, 1.9 중 선택해야 합니다."
-      );
+    // 유효성 검사 오류 초기화
+    const errors = {};
+
+    // 필수 입력 검사
+    if (formData.walkingDistance.trim() === "") {
+      errors.walkingDistance = "산책 거리를 입력해주세요.";
+    } else if (isNaN(walkingDistanceNum) || walkingDistanceNum < 0) {
+      errors.walkingDistance = "0 이상의 올바른 값을 입력해주세요.";
+    }
+
+    if (formData.activityLevel.trim() === "") {
+      errors.activityLevel = "활동량을 선택해주세요.";
+    } else if (!validActivityLevels.includes(activityLevelVal)) {
+      errors.activityLevel = "올바른 활동량을 선택해주세요.";
+    }
+
+    if (formData.totalFoodWeight.trim() === "") {
+      errors.totalFoodWeight = "총 그람수를 입력해주세요.";
+    } else if (isNaN(totalFoodWeightNum) || totalFoodWeightNum <= 0) {
+      errors.totalFoodWeight = "0보다 큰 값을 입력해주세요.";
+    }
+
+    if (formData.totalCaloriesInFood.trim() === "") {
+      errors.totalCaloriesInFood = "총 칼로리를 입력해주세요.";
+    } else if (isNaN(totalCaloriesInFoodNum) || totalCaloriesInFoodNum <= 0) {
+      errors.totalCaloriesInFood = "0보다 큰 값을 입력해주세요.";
+    }
+
+    if (formData.feedingAmount.trim() === "") {
+      errors.feedingAmount = "섭취량을 입력해주세요.";
+    } else if (isNaN(feedingAmountNum) || feedingAmountNum < 0) {
+      errors.feedingAmount = "0 이상의 올바른 값을 입력해주세요.";
+    }
+
+    if (formData.weight.trim() === "") {
+      errors.weight = "몸무게를 입력해주세요.";
+    } else if (isNaN(weightNum) || weightNum < 0) {
+      errors.weight = "0 이상의 올바른 값을 입력해주세요.";
+    }
+
+    if (formData.sleepTime.trim() === "") {
+      errors.sleepTime = "수면 시간을 입력해주세요.";
+    } else if (isNaN(sleepTimeNum) || sleepTimeNum < 0) {
+      errors.sleepTime = "0 이상의 올바른 값을 입력해주세요.";
+    }
+
+    if (formData.urineCount.trim() === "") {
+      errors.urineCount = "소변 횟수를 입력해주세요.";
+    } else if (isNaN(urineCountNum) || urineCountNum < 0) {
+      errors.urineCount = "0 이상의 올바른 값을 입력해주세요.";
+    }
+
+    if (formData.fecesCount.trim() === "") {
+      errors.fecesCount = "대변 횟수를 입력해주세요.";
+    } else if (isNaN(fecesCountNum) || fecesCountNum < 0) {
+      errors.fecesCount = "0 이상의 올바른 값을 입력해주세요.";
+    }
+
+    // 오류가 있으면 validationErrors 설정하고 함수 종료
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
       return;
     }
 
-    if (
-      formData.walkingDistance.trim() === "" ||
-      formData.activityLevel.trim() === "" ||
-      formData.totalFoodWeight.trim() === "" ||
-      formData.totalCaloriesInFood.trim() === "" ||
-      formData.feedingAmount.trim() === "" ||
-      formData.weight.trim() === "" ||
-      formData.sleepTime.trim() === "" ||
-      formData.urineCount.trim() === "" ||
-      formData.fecesCount.trim() === ""
-    ) {
-      alert("모든 필수 항목을 입력해주세요.");
-      return;
-    }
+    // 오류가 없으면 validationErrors 초기화
+    setValidationErrors({});
 
     if (isSubmittedToday) {
       alert(`${selectedPetName}은(는) 이미 오늘 기록이 저장되었습니다.`);
@@ -241,7 +271,11 @@ export default function ActivityManagement() {
   };
 
   return (
-    <div className={styles.activitySection}>
+    <div
+      className={`${styles.activitySection} ${
+        isSubmittedToday ? styles.saved : ""
+      }`}
+    >
       {/* 폼 */}
       <div className={styles.activityContent}>
         <div className={styles.activityGrid}>
@@ -261,7 +295,14 @@ export default function ActivityManagement() {
               </div>
               <div className={styles.activityForm}>
                 <div className={styles.formGroup}>
-                  <label htmlFor="walkingDistance">산책 거리 (km)</label>
+                  <label
+                    htmlFor="walkingDistance"
+                    className={
+                      validationErrors.walkingDistance ? styles.errorLabel : ""
+                    }
+                  >
+                    산책 거리 (km)
+                  </label>
                   <input
                     type="number"
                     id="walkingDistance"
@@ -270,10 +311,20 @@ export default function ActivityManagement() {
                     step={0.1}
                     min={0}
                     disabled={isSubmittedToday}
+                    className={
+                      validationErrors.walkingDistance ? styles.errorInput : ""
+                    }
                   />
                 </div>
                 <div className={styles.formGroup}>
-                  <label htmlFor="activityLevel">활동량</label>
+                  <label
+                    htmlFor="activityLevel"
+                    className={
+                      validationErrors.activityLevel ? styles.errorLabel : ""
+                    }
+                  >
+                    활동량
+                  </label>
                   <Select
                     id="activityLevel"
                     options={activityOptions}
@@ -288,6 +339,9 @@ export default function ActivityManagement() {
                     }}
                     placeholder="선택하세요"
                     classNamePrefix="react-select"
+                    className={
+                      validationErrors.activityLevel ? styles.errorSelect : ""
+                    }
                     styles={{
                       option: (provided, state) => ({
                         ...provided,
@@ -391,7 +445,16 @@ export default function ActivityManagement() {
               <div className={styles.activityForm}>
                 <div className={styles.horizontalInputs}>
                   <div className={styles.formGroup}>
-                    <label htmlFor="totalFoodWeight">총 그람수 (g)</label>
+                    <label
+                      htmlFor="totalFoodWeight"
+                      className={
+                        validationErrors.totalFoodWeight
+                          ? styles.errorLabel
+                          : ""
+                      }
+                    >
+                      총 그람수 (g)
+                    </label>
                     <input
                       type="number"
                       id="totalFoodWeight"
@@ -399,10 +462,22 @@ export default function ActivityManagement() {
                       onChange={handleChange}
                       min={0}
                       disabled={isSubmittedToday}
+                      className={
+                        validationErrors.totalFoodWeight
+                          ? styles.errorInput
+                          : ""
+                      }
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label htmlFor="totalCaloriesInFood">
+                    <label
+                      htmlFor="totalCaloriesInFood"
+                      className={
+                        validationErrors.totalCaloriesInFood
+                          ? styles.errorLabel
+                          : ""
+                      }
+                    >
                       총 칼로리 (kcal)
                     </label>
                     <input
@@ -412,11 +487,23 @@ export default function ActivityManagement() {
                       onChange={handleChange}
                       min={0}
                       disabled={isSubmittedToday}
+                      className={
+                        validationErrors.totalCaloriesInFood
+                          ? styles.errorInput
+                          : ""
+                      }
                     />
                   </div>
                 </div>
                 <div className={styles.formGroup}>
-                  <label htmlFor="feedingAmount">섭취량 (g)</label>
+                  <label
+                    htmlFor="feedingAmount"
+                    className={
+                      validationErrors.feedingAmount ? styles.errorLabel : ""
+                    }
+                  >
+                    섭취량 (g)
+                  </label>
                   <input
                     type="number"
                     id="feedingAmount"
@@ -424,6 +511,9 @@ export default function ActivityManagement() {
                     onChange={handleChange}
                     min={0}
                     disabled={isSubmittedToday}
+                    className={
+                      validationErrors.feedingAmount ? styles.errorInput : ""
+                    }
                   />
                 </div>
                 <div className={styles.calorieInfo}>
@@ -460,7 +550,12 @@ export default function ActivityManagement() {
               </div>
               <div className={styles.activityForm}>
                 <div className={styles.formGroup}>
-                  <label htmlFor="weight">몸무게 (kg)</label>
+                  <label
+                    htmlFor="weight"
+                    className={validationErrors.weight ? styles.errorLabel : ""}
+                  >
+                    몸무게 (kg)
+                  </label>
                   <input
                     type="number"
                     id="weight"
@@ -469,6 +564,7 @@ export default function ActivityManagement() {
                     step={0.1}
                     min={0}
                     disabled={isSubmittedToday}
+                    className={validationErrors.weight ? styles.errorInput : ""}
                   />
                 </div>
               </div>
@@ -484,7 +580,14 @@ export default function ActivityManagement() {
               </div>
               <div className={styles.activityForm}>
                 <div className={styles.formGroup}>
-                  <label htmlFor="sleepTime">수면 시간 (시간)</label>
+                  <label
+                    htmlFor="sleepTime"
+                    className={
+                      validationErrors.sleepTime ? styles.errorLabel : ""
+                    }
+                  >
+                    수면 시간 (시간)
+                  </label>
                   <input
                     type="number"
                     id="sleepTime"
@@ -493,6 +596,9 @@ export default function ActivityManagement() {
                     step={1}
                     min={0}
                     disabled={isSubmittedToday}
+                    className={
+                      validationErrors.sleepTime ? styles.errorInput : ""
+                    }
                   />
                 </div>
               </div>
@@ -509,7 +615,14 @@ export default function ActivityManagement() {
               <div className={styles.activityForm}>
                 <div className={styles.bathroomInputs}>
                   <div className={styles.formGroup}>
-                    <label htmlFor="urineCount">소변 횟수</label>
+                    <label
+                      htmlFor="urineCount"
+                      className={
+                        validationErrors.urineCount ? styles.errorLabel : ""
+                      }
+                    >
+                      소변 횟수
+                    </label>
                     <input
                       type="number"
                       id="urineCount"
@@ -518,10 +631,20 @@ export default function ActivityManagement() {
                       min={0}
                       step={1}
                       disabled={isSubmittedToday}
+                      className={
+                        validationErrors.urineCount ? styles.errorInput : ""
+                      }
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label htmlFor="fecesCount">대변 횟수</label>
+                    <label
+                      htmlFor="fecesCount"
+                      className={
+                        validationErrors.fecesCount ? styles.errorLabel : ""
+                      }
+                    >
+                      대변 횟수
+                    </label>
                     <input
                       type="number"
                       id="fecesCount"
@@ -530,6 +653,9 @@ export default function ActivityManagement() {
                       min={0}
                       step={1}
                       disabled={isSubmittedToday}
+                      className={
+                        validationErrors.fecesCount ? styles.errorInput : ""
+                      }
                     />
                   </div>
                 </div>
@@ -545,15 +671,21 @@ export default function ActivityManagement() {
                 <h3>메모</h3>
               </div>
               <div className={styles.activityForm}>
-                <textarea
-                  className={`${styles.noResize} ${styles.notesTextarea}`}
-                  placeholder="추가 사항을 작성하세요."
-                  rows={2}
-                  id="memo"
-                  value={formData.memo}
-                  onChange={handleChange}
-                  disabled={isSubmittedToday}
-                />
+                <div className={styles.formGroup}>
+                  <textarea
+                    className={`${styles.noResize} ${styles.notesTextarea}`}
+                    placeholder="추가 사항을 작성하세요."
+                    rows={1}
+                    id="memo"
+                    value={formData.memo}
+                    onChange={handleChange}
+                    disabled={isSubmittedToday}
+                    maxLength={50}
+                  />
+                  <div className={styles.characterCount}>
+                    {formData.memo.length}/50
+                  </div>
+                </div>
               </div>
             </div>
           </div>

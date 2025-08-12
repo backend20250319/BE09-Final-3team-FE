@@ -10,6 +10,11 @@
   overflow: hidden;
 }
 
+/* 저장 완료 후 activitySection 높이 조정 */
+.activitySection.saved {
+  min-height: 700px;
+}
+
 /* Activity Content */
 .activityContent {
   padding: 30px;
@@ -47,7 +52,7 @@
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 21px;
-  min-height: 100px;
+  min-height: 162px;
   transition: all 0.3s ease;
 }
 
@@ -74,8 +79,8 @@
 
 .activityCard.notes {
   background: #f0f8ff;
-  min-height: 165px;
-  padding: 16px 20px;
+  min-height: 100px;
+  padding: 21px 21px 0 21px;
 }
 
 .activityHeader {
@@ -117,6 +122,10 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.activityCard.notes .formGroup {
+  gap: 1;
 }
 
 .formGroup label {
@@ -171,7 +180,7 @@
 
 .formGroup textarea {
   resize: none;
-  min-height: 104px;
+  min-height: 74px;
 }
 
 .walking input:focus,
@@ -189,7 +198,7 @@
 .notesTextarea {
   padding: 12px;
   border: 1px solid #d1d5db;
-  min-height: 83px;
+  min-height: 104px; /* 83px에서 104px로 변경하여 다른 textarea와 일치 */
   border-radius: 8px;
   font-weight: 400;
   font-size: 16px;
@@ -198,6 +207,7 @@
   color: #374151;
   resize: none;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  font-family: "Pretendard Variable", sans-serif;
 }
 
 .notesTextarea::placeholder {
@@ -208,6 +218,40 @@
   border-color: #4eadff;
   box-shadow: 0 0 0 2px rgba(78, 173, 255, 0.2);
   outline: none;
+}
+
+/* 글자수 제한 표시 */
+.characterCount {
+  text-align: right;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+/* 유효성 검사 오류 스타일 */
+.errorLabel {
+  color: #dc2626 !important;
+}
+
+.errorInput {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+.errorInput:focus {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2) !important;
+}
+
+.errorSelect :global(.react-select__control) {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+.errorSelect :global(.react-select__control):focus {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2) !important;
 }
 
 .bathroom input:focus,

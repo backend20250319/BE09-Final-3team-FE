@@ -558,8 +558,14 @@
 
 /* ===== Placeholder & 입력값 색상 통일 (전역 적용) ===== */
 .input::placeholder,
-.textarea::placeholder {
-  color: #aaa; /* placeholder 회색 */
+.textarea::placeholder,
+.nameInput::placeholder,
+.bioTextarea::placeholder,
+.birthInput::placeholder,
+.addressInput::placeholder,
+.detailAddressInput::placeholder,
+.instagramInput::placeholder {
+  color: #9ca3af; /* placeholder 회색 통일 */
 }
 
 /* 입력값은 항상 검정 */

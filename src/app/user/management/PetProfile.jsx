@@ -11,6 +11,7 @@ const PetProfile = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isPetstarModalOpen, setIsPetstarModalOpen] = useState(false);
+  const [selectedPet, setSelectedPet] = useState(null);
 
   const pets = [
     {
@@ -25,6 +26,8 @@ const PetProfile = () => {
       healthPercentage: 100,
       healthColor: "#8BC34A",
       isPetStar: true,
+      gender: "수컷",
+      sns: "instagram",
     },
     {
       id: 2,
@@ -37,6 +40,8 @@ const PetProfile = () => {
       healthPercentage: 85,
       healthColor: "#F5A623",
       isPetStar: false,
+      gender: "암컷",
+      sns: "",
     },
     {
       id: 3,
@@ -49,10 +54,22 @@ const PetProfile = () => {
       healthPercentage: 60,
       healthColor: "#FF7675",
       isPetStar: false,
+      gender: "수컷",
+      sns: "",
     },
   ];
 
   const hasPets = pets.length > 0;
+
+  const handleEditPet = (pet) => {
+    setSelectedPet(pet);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedPet(null);
+  };
 
   return (
     <div className={styles.container}>
@@ -105,7 +122,7 @@ const PetProfile = () => {
                 {pets.map((pet) => (
                   <div key={pet.id} className={styles.petCard}>
                     <div className={styles.petImageContainer}>
-                      <Link href={`/user/portfolio`}>
+                      <Link href={`/user/portfolio?petId=${pet.id}`}>
                         <div className={styles.petImage}>
                           <Image
                             src={pet.image}
@@ -116,12 +133,6 @@ const PetProfile = () => {
                           />
                         </div>
                       </Link>
-                      <div
-                        className={styles.healthBadge}
-                        style={{ backgroundColor: pet.healthColor }}
-                      >
-                        {pet.healthPercentage}%
-                      </div>
                     </div>
 
                     <div className={styles.petInfo}>
@@ -141,20 +152,7 @@ const PetProfile = () => {
                             />
                           )}
                         </div>
-                        <div className={styles.petMetaRow}>
-                          <div className={styles.healthInfo}>
-                            <Image
-                              src="/user/heartVec.png"
-                              alt="Health"
-                              width={16}
-                              height={16}
-                              className={styles.healthIcon}
-                            />
-                            <span className={styles.healthText}>
-                              {pet.health}
-                            </span>
-                          </div>
-                        </div>
+                        <div className={styles.petMetaRow}></div>
                       </div>
                       <div className={styles.ageText}>{pet.age}</div>
                       <div className={styles.petDescription}>
@@ -177,7 +175,7 @@ const PetProfile = () => {
                           )}
                           <button
                             className={styles.actionButton}
-                            onClick={() => setIsModalOpen(true)}
+                            onClick={() => handleEditPet(pet)}
                           >
                             <Image
                               src="/user/edit.png"
@@ -216,9 +214,9 @@ const PetProfile = () => {
                       height={21}
                     />
                   </div>
-                  <h3 className={styles.addPetTitle}>Add New Pet</h3>
+                  <h3 className={styles.addPetTitle}>반려동물 등록하기</h3>
                   <p className={styles.addPetDescription}>
-                    Create a profile for your new family member
+                    새로운 반려동물의 프로필을 등록해보세요!
                   </p>
                 </div>
               </div>
@@ -230,7 +228,9 @@ const PetProfile = () => {
       {/* 펫 프로필 등록 모달 */}
       <PetProfileRegistration
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleCloseModal}
+        petData={selectedPet}
+        isEditMode={!!selectedPet}
       />
 
       {/* 삭제 확인 모달 */}

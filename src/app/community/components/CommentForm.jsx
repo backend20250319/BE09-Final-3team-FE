@@ -18,7 +18,7 @@ export default function CommentForm({ onAddComment }) {
       <h3 className={styles.title}>댓글 남기기</h3>
       <form className={styles.form} onSubmit={handleSubmit}>
         <img
-          src="/images/current-user.jpg"
+          src="/owner/owner1.jpeg"
           alt="User"
           className={styles.avatar}
         />

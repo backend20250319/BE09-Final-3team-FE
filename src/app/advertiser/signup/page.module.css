@@ -54,7 +54,7 @@
   line-height: 1.2em;
   color: #594a3e;
   text-align: center;
-margin-top: 30px;
+  margin-top: 30px;
 }
 
 .subtitle {
@@ -79,6 +79,7 @@ margin-top: 30px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-height: 80px; /* 비밀번호 확인 필드의 경우 오류 메시지를 위한 공간 확보 */
 }
 
 .label {
@@ -241,6 +242,7 @@ select.birthInput::-ms-expand {
   cursor: pointer;
   transition: background-color 0.2s ease;
   margin-top: 24px;
+  flex-shrink: 0; /* 버튼 높이가 줄어들지 않도록 설정 */
 }
 
 .submitButton:hover {
@@ -249,6 +251,26 @@ select.birthInput::-ms-expand {
 
 .submitButton:active {
   background: #d68a16;
+}
+
+.errorMessage {
+  font-family: "Pretendard Variable";
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5em;
+  color: #dc2626;
+  margin-top: 4px;
+  margin-left: 4px;
+}
+
+.successMessage {
+  font-family: "Pretendard Variable";
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5em;
+  color: #16a34a;
+  margin-top: 4px;
+  margin-left: 4px;
 }
 
 /* Responsive Design */

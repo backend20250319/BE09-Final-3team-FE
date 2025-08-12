@@ -100,18 +100,16 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
         <div className={styles.header}>
           <div className={styles.headerContent}>
             <div className={styles.headerIcon}>
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path
-                  d="M9 1V17M1 9H17"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <img
+                src="/health/pets.png"
+                alt="돌봄 추가 아이콘"
+                width={18}
+                height={18}
+              />
             </div>
             <div className={styles.headerText}>
-              <h3>돌봄 일정 추가</h3>
-              <p>새로운 돌봄 일정을 추가하세요</p>
+              <h3>돌봄 추가</h3>
+              <p>새로운 돌봄을 추가하세요</p>
             </div>
           </div>
           <button className={styles.closeButton} onClick={handleClose}>
