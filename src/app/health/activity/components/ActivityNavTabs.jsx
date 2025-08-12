@@ -49,11 +49,11 @@ export default function ActivityNavTabs({
         <div className={styles.navTabs}>
           <button
             className={`${styles.navTab} ${
-              activeTab === "활동 관리" ? styles.active : ""
+              activeTab === "활동 기록" ? styles.active : ""
             }`}
-            onClick={() => setActiveTab("활동 관리")}
+            onClick={() => setActiveTab("활동 기록")}
           >
-            활동 관리
+            활동 기록
           </button>
           <button
             className={`${styles.navTab} ${

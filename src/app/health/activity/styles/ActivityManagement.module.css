@@ -79,7 +79,7 @@
 
 .activityCard.notes {
   background: #f0f8ff;
-  min-height: 100px;
+  min-height: 173px;
   padding: 21px 21px 0 21px;
 }
 
@@ -157,7 +157,7 @@
 }
 
 .activityCard.notes .formGroup {
-  gap: 1;
+  gap: 2;
 }
 
 .formGroup label {
