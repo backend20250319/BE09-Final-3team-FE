@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import styles from "../styles/CareManagement.module.css";
+import { useSelectedPet } from "../../context/SelectedPetContext";
 import AddCareScheduleModal from "./AddCareScheduleModal";
 import AddVaccinationScheduleModal from "./AddVaccinationScheduleModal";
 import ConfirmModal from "./ConfirmModal";
@@ -29,6 +30,7 @@ export default function CareManagement({
   selectedSchedule,
   setSelectedSchedule,
 }) {
+  const { selectedPetName } = useSelectedPet();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [toDeleteId, setToDeleteId] = useState(null);
@@ -114,6 +116,7 @@ export default function CareManagement({
     careSchedules,
     vaccinationSchedules,
     medications,
+    selectedPetName,
     onCalendarEventsChange,
   ]);
 
@@ -294,11 +297,15 @@ export default function CareManagement({
 
   // 필터링된 일정들
   const filteredCareSchedules = careSchedules.filter(
-    (schedule) => careFilter === "전체" || schedule.subType === careFilter
+    (schedule) =>
+      (careFilter === "전체" || schedule.subType === careFilter) &&
+      (!selectedPetName || schedule.petName === selectedPetName)
   );
   const filteredVaccinationSchedules = vaccinationSchedules.filter(
     (schedule) =>
-      vaccinationFilter === "전체" || schedule.subType === vaccinationFilter
+      (vaccinationFilter === "전체" ||
+        schedule.subType === vaccinationFilter) &&
+      (!selectedPetName || schedule.petName === selectedPetName)
   );
 
   // 페이징된 일정들
@@ -328,72 +335,78 @@ export default function CareManagement({
       return new Date(y, m - 1, day, hh, mm, 0);
     };
 
-    // 투약 이벤트
+    // 투약 이벤트 - 선택된 펫의 투약만 필터링
     const medEvents = [];
-    medications.forEach((med) => {
-      if (med.startDate && med.endDate) {
-        const start = new Date(med.startDate);
-        const end = new Date(med.endDate);
-        const times = (med.scheduleTime || "09:00")
-          .split(",")
-          .map((t) => t.trim());
-        const current = new Date(start);
-        while (current <= end) {
-          times.forEach((hm) => {
-            const s = parseDateTime(current.toISOString().slice(0, 10), hm);
-            const e = new Date(s.getTime() + 60 * 60 * 1000);
-            medEvents.push({
-              id: `med-${med.id}-${current.toISOString().slice(0, 10)}-${hm}`,
-              title: `${med.icon || "💊"} ${med.name}`,
-              start: s,
-              end: e,
-              allDay: false,
-              // 캘린더 필터와 색상 매핑을 위해 투약 유형(복용약/영양제)로 설정
-              type: med.type || "복용약",
-              schedule: {
-                ...med,
-                category: "medication",
+    medications
+      .filter((med) => !selectedPetName || med.petName === selectedPetName)
+      .forEach((med) => {
+        if (med.startDate && med.endDate) {
+          const start = new Date(med.startDate);
+          const end = new Date(med.endDate);
+          const times = (med.scheduleTime || "09:00")
+            .split(",")
+            .map((t) => t.trim());
+          const current = new Date(start);
+          while (current <= end) {
+            times.forEach((hm) => {
+              const s = parseDateTime(current.toISOString().slice(0, 10), hm);
+              const e = new Date(s.getTime() + 60 * 60 * 1000);
+              medEvents.push({
+                id: `med-${med.id}-${current.toISOString().slice(0, 10)}-${hm}`,
+                title: `${med.icon || "💊"} ${med.name}`,
+                start: s,
+                end: e,
+                allDay: false,
+                // 캘린더 필터와 색상 매핑을 위해 투약 유형(복용약/영양제)로 설정
                 type: med.type || "복용약",
-              },
+                schedule: {
+                  ...med,
+                  category: "medication",
+                  type: med.type || "복용약",
+                },
+              });
             });
-          });
-          current.setDate(current.getDate() + 1);
+            current.setDate(current.getDate() + 1);
+          }
         }
-      }
-    });
+      });
 
-    const careEvents = careSchedules.map((s) => ({
-      id: `care-${s.id}`,
-      title: `${s.icon} ${s.name}`,
-      start: parseDateTime(s.date, s.scheduleTime),
-      end: new Date(
-        parseDateTime(s.date, s.scheduleTime).getTime() + 60 * 60 * 1000
-      ),
-      allDay: false,
-      // 캘린더 필터와 색상 매핑을 위해 돌봄 하위유형(산책/미용/생일)로 설정
-      type: s.subType || "산책",
-      schedule: s,
-    }));
+    const careEvents = careSchedules
+      .filter((s) => !selectedPetName || s.petName === selectedPetName)
+      .map((s) => ({
+        id: `care-${s.id}`,
+        title: `${s.icon} ${s.name}`,
+        start: parseDateTime(s.date, s.scheduleTime),
+        end: new Date(
+          parseDateTime(s.date, s.scheduleTime).getTime() + 60 * 60 * 1000
+        ),
+        allDay: false,
+        // 캘린더 필터와 색상 매핑을 위해 돌봄 하위유형(산책/미용/생일)로 설정
+        type: s.subType || "산책",
+        schedule: s,
+      }));
 
-    const vacEvents = vaccinationSchedules.map((s) => ({
-      id: `vac-${s.id}`,
-      title: `${s.icon} ${s.name}`,
-      start: parseDateTime(
-        s.date || new Date().toISOString().slice(0, 10),
-        s.scheduleTime
-      ),
-      end: new Date(
-        parseDateTime(
+    const vacEvents = vaccinationSchedules
+      .filter((s) => !selectedPetName || s.petName === selectedPetName)
+      .map((s) => ({
+        id: `vac-${s.id}`,
+        title: `${s.icon} ${s.name}`,
+        start: parseDateTime(
           s.date || new Date().toISOString().slice(0, 10),
           s.scheduleTime
-        ).getTime() +
-          60 * 60 * 1000
-      ),
-      allDay: false,
-      // 캘린더 필터와 색상 매핑을 위해 접종 하위유형(예방접종/건강검진)로 설정
-      type: s.subType === "건강검진" ? "건강검진" : "예방접종",
-      schedule: s,
-    }));
+        ),
+        end: new Date(
+          parseDateTime(
+            s.date || new Date().toISOString().slice(0, 10),
+            s.scheduleTime
+          ).getTime() +
+            60 * 60 * 1000
+        ),
+        allDay: false,
+        // 캘린더 필터와 색상 매핑을 위해 접종 하위유형(예방접종/건강검진)로 설정
+        type: s.subType === "건강검진" ? "건강검진" : "예방접종",
+        schedule: s,
+      }));
 
     return [...medEvents, ...careEvents, ...vacEvents];
   };

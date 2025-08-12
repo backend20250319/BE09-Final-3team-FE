@@ -70,33 +70,6 @@
   /* DatePicker 컨테이너 스타일 */
 }
 
-/* DatePicker 커스텀 스타일 */
-.datePickerContainer :global(.react-datepicker-wrapper) {
-  flex: 1;
-}
-
-.datePickerContainer :global(.react-datepicker__input-container input) {
-  width: 100%;
-  padding: 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 400;
-  color: #594a3e;
-  background: white;
-  cursor: pointer;
-}
-
-.datePickerContainer :global(.react-datepicker__input-container input:focus) {
-  outline: none;
-  border-color: #f5a623;
-}
-
-.datePickerContainer
-  :global(.react-datepicker__input-container input::placeholder) {
-  color: #adaebc;
-}
-
 @media (max-width: 768px) {
   .dateSection {
     grid-template-columns: 1fr;

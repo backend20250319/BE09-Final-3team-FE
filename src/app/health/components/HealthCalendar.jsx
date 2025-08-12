@@ -23,6 +23,7 @@ export const EVENT_TYPE_COLORS = {
   산책: "#81C784", // 더 선명한 그린톤
   미용: "#CE93D8", // 더 선명한 퍼플톤
   생일: "#F48FB1", // 더 선명한 핑크톤
+  기타: "#BDBDBD", // 회색톤
   // 접종 유형별 색상
   예방접종: "#E1BEE7",
   건강검진: "#FFB74D", // 더 선명한 오렌지톤
@@ -63,6 +64,7 @@ export default function HealthCalendar({
     산책: true,
     미용: true,
     생일: true,
+    기타: true,
     예방접종: true,
     건강검진: true,
   });
@@ -79,12 +81,13 @@ export default function HealthCalendar({
         return isMedicationType && !!activeFilters[eventType];
       }
 
-      // 돌봄 탭: 산책/미용/생일/예방접종/건강검진만, 그리고 해당 필터가 활성화된 경우만 표시
+      // 돌봄 탭: 산책/미용/생일/기타/예방접종/건강검진만, 그리고 해당 필터가 활성화된 경우만 표시
       if (activeTab === "돌봄") {
         const isCareType =
           eventType === "산책" ||
           eventType === "미용" ||
           eventType === "생일" ||
+          eventType === "기타" ||
           eventType === "예방접종" ||
           eventType === "건강검진";
         return isCareType && !!activeFilters[eventType];
@@ -118,6 +121,7 @@ export default function HealthCalendar({
         activeFilters.산책 &&
         activeFilters.미용 &&
         activeFilters.생일 &&
+        activeFilters.기타 &&
         activeFilters.예방접종 &&
         activeFilters.건강검진;
       setActiveFilters((prev) => ({
@@ -125,6 +129,7 @@ export default function HealthCalendar({
         산책: !allActive,
         미용: !allActive,
         생일: !allActive,
+        기타: !allActive,
         예방접종: !allActive,
         건강검진: !allActive,
       }));
@@ -316,6 +321,7 @@ export default function HealthCalendar({
               activeFilters.산책 &&
               activeFilters.미용 &&
               activeFilters.생일 &&
+              activeFilters.기타 &&
               activeFilters.예방접종 &&
               activeFilters.건강검진)
               ? styles.activeFilter
@@ -418,6 +424,21 @@ export default function HealthCalendar({
                 style={{ backgroundColor: EVENT_TYPE_COLORS.생일 || "#FCE4EC" }}
               />
               <span className={styles.legendLabel}>생일</span>
+            </button>
+          </div>
+          <div className={styles.legendItem}>
+            <button
+              className={`${styles.filterButton} ${
+                activeFilters.기타 ? styles.activeFilter : styles.inactiveFilter
+              }`}
+              onClick={() => toggleFilter("기타")}
+              title="기타 필터"
+            >
+              <span
+                className={styles.legendDot}
+                style={{ backgroundColor: EVENT_TYPE_COLORS.기타 || "#BDBDBD" }}
+              />
+              <span className={styles.legendLabel}>기타</span>
             </button>
           </div>
           <div className={styles.legendItem}>

@@ -83,6 +83,14 @@ export default function ScheduleDetailModal({
                   {schedule.frequency || "-"}
                 </span>
               </div>
+              {schedule.notificationTiming && (
+                <div className={styles.infoItem}>
+                  <span className={styles.label}>알림 시기</span>
+                  <span className={styles.value}>
+                    {schedule.notificationTiming}
+                  </span>
+                </div>
+              )}
               {schedule.startDate && (
                 <div className={styles.infoItem}>
                   <span className={styles.label}>시작일</span>

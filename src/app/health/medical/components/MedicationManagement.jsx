@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import styles from "../styles/MedicationManagement.module.css";
+import { useSelectedPet } from "../../context/SelectedPetContext";
 import ConfirmModal from "../components/ConfirmModal";
 import Toast from "../components/Toast";
 import AddMedicationModal from "./AddMedicationModal";
@@ -29,6 +30,7 @@ export default function MedicationManagement({
   selectedSchedule,
   setSelectedSchedule,
 }) {
+  const { selectedPetName } = useSelectedPet();
   const LOCAL_STORAGE_KEY = STORAGE_KEYS.MEDICATION_NOTIFICATIONS;
 
   const [showConfirm, setShowConfirm] = useState(false);
@@ -74,80 +76,109 @@ export default function MedicationManagement({
     const events = [];
 
     // 1) 투약: 기간 동안 매일, scheduleTime(콤마 구분) 각각 이벤트 생성
-    medications.forEach((med) => {
-      if (med.startDate && med.endDate) {
-        const start = new Date(med.startDate);
-        const end = new Date(med.endDate);
-        const times = (med.scheduleTime || "09:00")
-          .split(",")
-          .map((t) => t.trim());
-        const current = new Date(start);
-        while (current <= end) {
-          times.forEach((hm) => {
-            const s = dateAtTime(current, hm);
-            const e = new Date(s.getTime() + 60 * 60 * 1000);
-            events.push({
-              id: `med-${med.id}-${current.toISOString().slice(0, 10)}-${hm}`,
-              title: `${med.icon || "💊"} ${med.name}`,
-              start: s,
-              end: e,
-              allDay: false,
-              // 캘린더 필터와 색상 매핑을 위해 투약 유형(복용약/영양제)로 설정
-              type: med.type || "복용약",
-              schedule: {
-                ...med,
-                category: "medication",
+    // 선택된 펫의 투약만 필터링
+    medications
+      .filter((med) => !selectedPetName || med.petName === selectedPetName)
+      .forEach((med) => {
+        if (med.startDate && med.endDate) {
+          const start = new Date(med.startDate);
+          const end = new Date(med.endDate);
+          const times = (med.scheduleTime || "09:00")
+            .split(",")
+            .map((t) => t.trim());
+          const current = new Date(start);
+          while (current <= end) {
+            times.forEach((hm) => {
+              const s = dateAtTime(current, hm);
+              const e = new Date(s.getTime() + 60 * 60 * 1000);
+              events.push({
+                id: `med-${med.id}-${current.toISOString().slice(0, 10)}-${hm}`,
+                title: `${med.icon || "💊"} ${med.name}`,
+                start: s,
+                end: e,
+                allDay: false,
+                // 캘린더 필터와 색상 매핑을 위해 투약 유형(복용약/영양제)로 설정
                 type: med.type || "복용약",
-              },
+                schedule: {
+                  ...med,
+                  category: "medication",
+                  type: med.type || "복용약",
+                },
+              });
             });
+            current.setDate(current.getDate() + 1);
+          }
+        }
+      });
+
+    // 2) 돌봄 - 선택된 펫의 일정만 필터링
+    careSchedules
+      .filter((s) => !selectedPetName || s.petName === selectedPetName)
+      .forEach((s) => {
+        if (!s.date && !s.startDate) return;
+
+        const startDate = new Date(s.startDate || s.date);
+        const endDate = new Date(s.endDate || s.date);
+        const current = new Date(startDate);
+
+        // 시작일부터 종료일까지 반복하여 이벤트 생성
+        while (current <= endDate) {
+          const sTime = dateAtTime(current, s.scheduleTime || "09:00");
+          const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+          events.push({
+            id: `care-${s.id}-${current.toISOString().slice(0, 10)}`,
+            title: `${s.icon || "🐕"} ${s.name}`,
+            start: sTime,
+            end: eTime,
+            allDay: false,
+            // 캘린더 필터와 색상 매핑을 위해 돌봄 하위유형(산책/미용/생일)로 설정
+            type: s.subType || "산책",
+            schedule: { ...s, category: "care" },
           });
           current.setDate(current.getDate() + 1);
         }
-      }
-    });
-
-    // 2) 돌봄
-    careSchedules.forEach((s) => {
-      if (!s.date) return;
-      const base = new Date(s.date);
-      const sTime = dateAtTime(base, s.scheduleTime || "09:00");
-      const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
-      events.push({
-        id: `care-${s.id}`,
-        title: `${s.icon || "🐕"} ${s.name}`,
-        start: sTime,
-        end: eTime,
-        allDay: false,
-        // 캘린더 필터와 색상 매핑을 위해 돌봄 하위유형(산책/미용/생일)로 설정
-        type: s.subType || "산책",
-        schedule: { ...s, category: "care" },
       });
-    });
 
-    // 3) 접종 일정
-    vaccinationSchedules.forEach((s) => {
-      const dateStr = s.date || new Date().toISOString().slice(0, 10);
-      const base = new Date(dateStr);
-      const sTime = dateAtTime(base, s.scheduleTime || "10:00");
-      const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
-      events.push({
-        id: `vac-${s.id}`,
-        title: `${s.icon || "💉"} ${s.name}`,
-        start: sTime,
-        end: eTime,
-        allDay: false,
-        // 캘린더 필터와 색상 매핑을 위해 접종 하위유형(예방접종/건강검진)로 설정
-        type: s.subType === "건강검진" ? "건강검진" : "예방접종",
-        schedule: {
-          ...s,
-          // 상세 모달 등 내부 로직을 위해 category는 영문 키로 유지
-          category: s.subType === "건강검진" ? "checkup" : "vaccination",
-        },
+    // 3) 접종 일정 - 선택된 펫의 일정만 필터링
+    vaccinationSchedules
+      .filter((s) => !selectedPetName || s.petName === selectedPetName)
+      .forEach((s) => {
+        if (!s.date && !s.startDate) return;
+
+        const startDate = new Date(s.startDate || s.date);
+        const endDate = new Date(s.endDate || s.date);
+        const current = new Date(startDate);
+
+        // 시작일부터 종료일까지 반복하여 이벤트 생성
+        while (current <= endDate) {
+          const sTime = dateAtTime(current, s.scheduleTime || "10:00");
+          const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+          events.push({
+            id: `vac-${s.id}-${current.toISOString().slice(0, 10)}`,
+            title: `${s.icon || "💉"} ${s.name}`,
+            start: sTime,
+            end: eTime,
+            allDay: false,
+            // 캘린더 필터와 색상 매핑을 위해 접종 하위유형(예방접종/건강검진)로 설정
+            type: s.subType === "건강검진" ? "건강검진" : "예방접종",
+            schedule: {
+              ...s,
+              // 상세 모달 등 내부 로직을 위해 category는 영문 키로 유지
+              category: s.subType === "건강검진" ? "checkup" : "vaccination",
+            },
+          });
+          current.setDate(current.getDate() + 1);
+        }
       });
-    });
 
     return events;
-  }, [medications, careSchedules, vaccinationSchedules, dateAtTime]);
+  }, [
+    medications,
+    careSchedules,
+    vaccinationSchedules,
+    dateAtTime,
+    selectedPetName,
+  ]);
 
   // 캘린더 이벤트를 상위 컴포넌트로 전달 - buildCalendarEvents 의존성 추가
   useEffect(() => {
@@ -160,6 +191,7 @@ export default function MedicationManagement({
     medications,
     careSchedules,
     vaccinationSchedules,
+    selectedPetName,
     onCalendarEventsChange,
     buildCalendarEvents,
   ]);
@@ -333,8 +365,11 @@ export default function MedicationManagement({
     setToDeleteId(null);
   };
 
-  // 페이징된 투약 목록
-  const paginatedMedications = medications.slice(
+  // 선택된 펫의 투약만 필터링 후 페이징
+  const filteredMedications = medications.filter(
+    (med) => !selectedPetName || med.petName === selectedPetName
+  );
+  const paginatedMedications = filteredMedications.slice(
     (medicationPage - 1) * itemsPerPage,
     medicationPage * itemsPerPage
   );
@@ -599,10 +634,10 @@ export default function MedicationManagement({
         </div>
 
         {/* 페이징 */}
-        {medications.length > itemsPerPage &&
+        {filteredMedications.length > itemsPerPage &&
           renderPagination(
             medicationPage,
-            Math.ceil(medications.length / itemsPerPage),
+            Math.ceil(filteredMedications.length / itemsPerPage),
             handleMedicationPageChange
           )}
       </div>
@@ -640,6 +675,7 @@ export default function MedicationManagement({
         isOpen={showResultModal}
         onClose={() => setShowResultModal(false)}
         prescriptionData={ocrResult}
+        onAddMedications={handleAddNewMedication}
       />
 
       {/* 일정 상세 모달 */}

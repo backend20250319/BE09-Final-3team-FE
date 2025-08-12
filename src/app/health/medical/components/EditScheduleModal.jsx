@@ -5,6 +5,7 @@ import styles from "../styles/AddScheduleModal.module.css";
 import {
   medicationTypeOptions,
   medicationFrequencyOptions,
+  notificationTimingOptions,
   careSubTypeOptions,
   careFrequencyOptions,
   vaccinationSubTypeOptions,
@@ -24,9 +25,13 @@ export default function EditScheduleModal({
     name: "",
     subType: "",
     frequency: "",
-    date: "",
-    time: "",
+    date: "", // 시작날짜로 사용 (호환성 유지)
+    startDate: "", // 시작날짜
+    endDate: "", // 종료날짜
+    time: "", // 호환성을 위해 유지
+    scheduleTime: "", // 일정 시간
     duration: "", // 투약용
+    notificationTiming: "", // 알림 시기 (모든 타입용)
   });
 
   const [errors, setErrors] = useState({});
@@ -38,9 +43,13 @@ export default function EditScheduleModal({
         name: scheduleData.name || "",
         subType: scheduleData.subType || scheduleData.type || "",
         frequency: scheduleData.frequency || "",
-        date: scheduleData.date || scheduleData.startDate || "",
-        time: scheduleData.time || "",
+        date: scheduleData.date || scheduleData.startDate || "", // 호환성
+        startDate: scheduleData.startDate || scheduleData.date || "",
+        endDate: scheduleData.endDate || scheduleData.date || "",
+        time: scheduleData.time || scheduleData.scheduleTime || "", // 호환성
+        scheduleTime: scheduleData.scheduleTime || scheduleData.time || "",
         duration: scheduleData.duration || "",
+        notificationTiming: scheduleData.notificationTiming || "",
       });
     }
   }, [scheduleData]);
@@ -74,8 +83,24 @@ export default function EditScheduleModal({
       newErrors.frequency = "빈도를 선택해주세요";
     }
 
-    if (!formData.date) {
-      newErrors.date = "날짜를 선택해주세요";
+    // 시작날짜 검증
+    if (!formData.startDate && !formData.date) {
+      newErrors.startDate = "시작 날짜를 선택해주세요";
+    }
+
+    // 종료날짜 검증
+    if (!formData.endDate) {
+      newErrors.endDate = "종료 날짜를 선택해주세요";
+    }
+
+    // 일정 시간 검증
+    if (!formData.scheduleTime && !formData.time) {
+      newErrors.scheduleTime = "일정 시간을 입력해주세요";
+    }
+
+    // 알림 시기 검증 (모든 타입)
+    if (!formData.notificationTiming) {
+      newErrors.notificationTiming = "알림 시기를 선택해주세요";
     }
 
     // 투약의 경우 복용 기간도 필수
@@ -86,6 +111,11 @@ export default function EditScheduleModal({
       (isNaN(formData.duration) || Number(formData.duration) <= 0)
     ) {
       newErrors.duration = "유효한 복용 기간(숫자)을 입력해주세요";
+    }
+
+    // 투약의 경우 알림 시간도 필수
+    if (type === "medication" && !formData.scheduleTime) {
+      newErrors.scheduleTime = "일정 시간을 입력해주세요";
     }
 
     setErrors(newErrors);
@@ -106,10 +136,11 @@ export default function EditScheduleModal({
 
       if (type === "medication") {
         // 투약 수정
-        const today = new Date();
-        const startDate = today.toISOString().split("T")[0];
-        const endDateObj = new Date(today);
-        endDateObj.setDate(today.getDate() + Number(formData.duration) - 1);
+        const startDateObj = new Date(formData.date || scheduleData.startDate);
+        const endDateObj = new Date(startDateObj);
+        endDateObj.setDate(
+          startDateObj.getDate() + Number(formData.duration) - 1
+        );
         const endDate = endDateObj.toISOString().split("T")[0];
 
         updatedSchedule = {
@@ -118,8 +149,10 @@ export default function EditScheduleModal({
           type: formData.subType,
           frequency: formData.frequency,
           duration: Number(formData.duration),
-          startDate: startDate,
+          startDate: formData.date || scheduleData.startDate,
           endDate: endDate,
+          scheduleTime: formData.scheduleTime,
+          notificationTiming: formData.notificationTiming,
           icon: getIconForSubType(formData.subType),
           color: getColorForType(formData.subType),
         };
@@ -133,8 +166,13 @@ export default function EditScheduleModal({
           type: mainType,
           subType: formData.subType,
           frequency: formData.frequency,
-          date: formData.date,
-          time: formData.time,
+          startDate: formData.startDate || formData.date,
+          endDate: formData.endDate,
+          date: formData.startDate || formData.date, // 호환성 유지
+          scheduleTime: formData.scheduleTime || formData.time,
+          time: formData.scheduleTime || formData.time, // 호환성 유지
+
+          notificationTiming: formData.notificationTiming,
           icon: getIconForSubType(formData.subType),
           color: getColorForType(mainType),
         };
@@ -151,8 +189,13 @@ export default function EditScheduleModal({
       subType: "",
       frequency: "",
       date: "",
+      startDate: "",
+      endDate: "",
       time: "",
+      scheduleTime: "",
       duration: "",
+
+      notificationTiming: "",
     });
     setErrors({});
     onClose();
@@ -381,36 +424,128 @@ export default function EditScheduleModal({
             </div>
           )}
 
-          {/* 날짜 */}
+          {/* 투약의 경우 일정 시간 */}
+          {type === "medication" && (
+            <div className={styles.formGroup}>
+              <div className={styles.labelContainer}>
+                <label className={styles.label}>일정 시간</label>
+                <span className={styles.required}>*</span>
+              </div>
+              <div className={styles.inputContainer}>
+                <input
+                  type="time"
+                  className={styles.input}
+                  value={formData.scheduleTime}
+                  onChange={(e) =>
+                    handleInputChange("scheduleTime", e.target.value)
+                  }
+                />
+              </div>
+              {errors.scheduleTime && (
+                <span className={styles.error}>{errors.scheduleTime}</span>
+              )}
+            </div>
+          )}
+
+          {/* 시작 날짜 */}
           <div className={styles.formGroup}>
             <div className={styles.labelContainer}>
-              <label className={styles.label}>날짜</label>
+              <label className={styles.label}>시작 날짜</label>
               <span className={styles.required}>*</span>
             </div>
             <div className={styles.inputContainer}>
               <input
                 type="date"
                 className={styles.input}
-                value={formData.date}
-                onChange={(e) => handleInputChange("date", e.target.value)}
+                value={formData.startDate || formData.date}
+                onChange={(e) => {
+                  handleInputChange("startDate", e.target.value);
+                  handleInputChange("date", e.target.value); // 호환성 유지
+                }}
               />
             </div>
-            {errors.date && <span className={styles.error}>{errors.date}</span>}
+            {errors.startDate && (
+              <span className={styles.error}>{errors.startDate}</span>
+            )}
           </div>
 
-          {/* 시간 */}
+          {/* 종료 날짜 */}
           <div className={styles.formGroup}>
             <div className={styles.labelContainer}>
-              <label className={styles.label}>시간</label>
+              <label className={styles.label}>종료 날짜</label>
+              <span className={styles.required}>*</span>
+            </div>
+            <div className={styles.inputContainer}>
+              <input
+                type="date"
+                className={styles.input}
+                value={formData.endDate}
+                onChange={(e) => handleInputChange("endDate", e.target.value)}
+              />
+            </div>
+            {errors.endDate && (
+              <span className={styles.error}>{errors.endDate}</span>
+            )}
+          </div>
+
+          {/* 일정 시간 */}
+          <div className={styles.formGroup}>
+            <div className={styles.labelContainer}>
+              <label className={styles.label}>일정 시간</label>
+              <span className={styles.required}>*</span>
             </div>
             <div className={styles.inputContainer}>
               <input
                 type="time"
                 className={styles.input}
-                value={formData.time}
-                onChange={(e) => handleInputChange("time", e.target.value)}
+                value={formData.scheduleTime || formData.time}
+                onChange={(e) => {
+                  handleInputChange("scheduleTime", e.target.value);
+                  handleInputChange("time", e.target.value); // 호환성 유지
+                }}
               />
             </div>
+            {errors.scheduleTime && (
+              <span className={styles.error}>{errors.scheduleTime}</span>
+            )}
+          </div>
+
+          {/* 알림 시기 (모든 타입) */}
+          <div className={styles.formGroup}>
+            <div className={styles.labelContainer}>
+              <label className={styles.label}>알림 시기</label>
+              <span className={styles.required}>*</span>
+            </div>
+            <div className={styles.selectContainer}>
+              <select
+                className={styles.select}
+                value={formData.notificationTiming}
+                onChange={(e) =>
+                  handleInputChange("notificationTiming", e.target.value)
+                }
+              >
+                <option value="">알림 시기를 선택하세요</option>
+                {notificationTimingOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+              <div className={styles.selectArrow}>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path
+                    d="M3 5L7 9L11 5"
+                    stroke="#9CA3AF"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+            </div>
+            {errors.notificationTiming && (
+              <span className={styles.error}>{errors.notificationTiming}</span>
+            )}
           </div>
         </div>
 
