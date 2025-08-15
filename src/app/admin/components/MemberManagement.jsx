@@ -4,6 +4,7 @@ import PopupModal from "@/app/admin/components/PopupModal";
 import React, {useState} from "react";
 import petstars from "@/app/admin/data/petstars";
 import reportLogs from "@/app/admin/data/reportLogs";
+import advertisers from "@/app/admin/data/advertiser";
 
 
 export default function MemberManagement(){
@@ -50,15 +51,27 @@ export default function MemberManagement(){
                             >
                                 신고당한 회원 목록
                             </button>
+                            <button
+                                className={`${styles.tab} ${
+                                    activeTab === "광고주 회원 승인" ? styles.active : ""
+                                }`}
+                                onClick={() => setActiveTab("광고주 회원 승인")}
+                            >
+                             광고주 회원 신청 목록
+                            </button>
                         </nav>
                     </div>
 
                     {/* Search and Filter */}
                     <div className={styles.searchSection}>
                         <div>
-                            {activeTab==="펫스타 지원"? <h2 className={styles.sectionTitle}>펫스타 지원자 목록</h2> : <h2 className={styles.sectionTitle}>
-                                신고당한 회원 목록
-                            </h2>}
+                            {activeTab === "펫스타 지원" ? (
+                                <h2 className={styles.sectionTitle}>펫스타 지원자 목록</h2>
+                            ) : activeTab === "신고당한 회원" ? (
+                                <h2 className={styles.sectionTitle}>신고당한 회원 목록</h2>
+                            ) : (
+                                <h2 className={styles.sectionTitle}>광고주 회원 신청 목록</h2>
+                            )}
                         </div>
                         <div className={styles.rightControls}>
                             <div className={styles.searchContainer}>
@@ -92,7 +105,7 @@ export default function MemberManagement(){
                                 </select>
                                 :
                                 <select className={styles.sortSelect}>
-                                    <option>관리자</option>
+                                    <option>광고주</option>
                                     <option>일반회원</option>
                                 </select>}
                         </div>
@@ -132,7 +145,6 @@ export default function MemberManagement(){
                                                 isOpen={isModalOpen}
                                                 onClose={() => setIsModalOpen(false)}
                                                 onDelete={handleReject}
-                                                productTitle="신규 캠페인: 여름 할인 50%"
                                                 actionType="petstarreject"
                                                 targetKeyword={petstar.petName}
                                             />
@@ -161,9 +173,37 @@ export default function MemberManagement(){
                                                 isOpen={isModalOpen}
                                                 onClose={() => setIsModalOpen(false)}
                                                 onDelete={handleRestrict}
-                                                productTitle="신고된 사용자 제재"
                                                 actionType="restrict"
                                                 targetKeyword={reportLogs.target}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            {activeTab === "광고주 회원 승인" &&
+                                advertisers.map((advertiser) => (
+                                    <div key={advertiser.advertiser_no} className={styles.productCard}>
+                                        <div className={styles.productContent}>
+                                            <div className={styles.productInfo}>
+                                                <div className={styles.resonleft} style={{fontSize:"larger"}}>광고주 이메일 : {advertiser.email}</div>
+                                                <div className={styles.reasonleft}>전화번호 : {advertiser.phone}</div>
+                                                <div className={styles.reasonleft} style={{fontSize:"larger"}}>기업 이름 :{advertiser.company.name}</div>
+                                                <div className={styles.reasonleft}>사업자 등록 번호 : {advertiser.company.business_num}</div>
+                                                <div className={styles.reasonleft}>기업 관련 서류 : {advertiser.company.url}</div>
+                                            </div>
+                                        </div>
+                                        <div className={styles.productActions} style={{ width: "265px" }}>
+                                            <button className={styles.approveBtn} onClick={handleApprove}>
+                                                승인하기
+                                            </button>
+                                            <button className={styles.rejectBtn} onClick={() => setIsModalOpen(true)}>
+                                                반려하기
+                                            </button>
+                                            <PopupModal
+                                                isOpen={isModalOpen}
+                                                onClose={() => setIsModalOpen(false)}
+                                                onDelete={handleReject}
+                                                actionType="advertiserreject"
+                                                targetKeyword={advertiser.email}
                                             />
                                         </div>
                                     </div>
