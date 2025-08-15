@@ -14,7 +14,7 @@ export default function ProductManagement(){
     };
     const handleReject = (productId) => {
         console.log(`Reject product ${productId}`);
-        // 삭제 로직 구현
+        // 반려 로직 구현
     };
 
     const handleApprove = () => {
