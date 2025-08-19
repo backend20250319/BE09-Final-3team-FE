@@ -5,8 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import CampaignDetail from './components/CampaignDetail';
 import CampaignHeader from './components/CampaignHeader';
 import CampaignSidebar from './components/CampaignSidebar';
-import styles from './styles/CampaignPage.module.css'
-import campaigns from '../data/campaigns';
+import styles from ".//styles/CampaignPage.module.css"
+import campaigns from '../../data/campaigns';
 
 export default function AdvertisementPage() {
   const params = useParams();

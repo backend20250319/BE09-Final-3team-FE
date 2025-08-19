@@ -78,61 +78,92 @@ export default function HeroSection() {
 
   return (
     <section className={styles.heroSection}>
-      <div className="container">
-        {features.map((feature) => (
-          <div
-            key={feature.id}
-            className={`${styles.featureRow} ${
-              feature.reverse ? styles.reverse : ""
-            }`}
-          >
-            <div className={styles.contentArea}>
-              <div className={styles.textContent}>
-                <span className={styles.badge} style={{ color: feature.color }}>
-                  {feature.badge}
-                </span>
-                <h2 className={styles.title}>{feature.title}</h2>
-                <p className={styles.description}>{feature.description}</p>
-                <ul className={styles.featureList}>
-                  {feature.features.map((item, index) => (
-                    <li key={index} className={styles.featureItem}>
-                      <div className={styles.checkIcon}>
-                        <svg
-                          width="14"
-                          height="10"
-                          viewBox="0 0 14 10"
-                          fill="none"
-                        >
-                          <path
-                            d="M1 5L5 9L13 1"
-                            stroke={feature.color}
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </div>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            <div className={styles.imageArea}>
-              <div className={styles.imageContainer}>
-                <Image
-                  src={feature.image}
-                  alt={feature.title}
-                  width={624}
-                  height={624}
-                  className={styles.featureImage}
-                />
-              </div>
-            </div>
+  <div className="container">
+    {features.map((feature, idx) => (
+      <div
+        key={feature.id}
+        className={`${styles.featureRow} ${feature.reverse ? styles.reverse : ""}`}
+        data-aos="fade-up"
+        data-aos-delay={idx * 120}
+        data-aos-duration="800"
+      >
+        <div className={styles.contentArea}>
+          <div className={styles.textContent}>
+            <span
+              className={styles.badge}
+              style={{ color: feature.color }}
+              data-aos="fade-up"
+              data-aos-delay={100}
+              data-aos-duration="500"
+            >
+              {feature.badge}
+            </span>
+            <h2
+              className={styles.title}
+              data-aos="fade-up"
+              data-aos-delay={200}
+              data-aos-duration="500"
+            >
+              {feature.title}
+            </h2>
+            <p
+              className={styles.description}
+              data-aos="fade-up"
+              data-aos-delay={300}
+              data-aos-duration="500"
+            >
+              {feature.description}
+            </p>
+            <ul className={styles.featureList}>
+              {feature.features.map((item, index) => (
+                <li
+                  key={index}
+                  className={styles.featureItem}
+                  data-aos="fade-up"
+                  data-aos-delay={400 + index * 150}
+                  data-aos-duration="500"
+                >
+                  <div className={styles.checkIcon}>
+                    <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
+                      <path
+                        d="M1 5L5 9L13 1"
+                        stroke={feature.color}
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  {item}
+                </li>
+              ))}
+            </ul>
           </div>
-        ))}
+        </div>
+        <div
+          className={styles.imageArea}
+          data-aos="zoom-in"
+          data-aos-delay={150}
+          data-aos-duration="900"
+        >
+          <div className={styles.imageContainer}>
+            <Image
+              src={feature.image}
+              alt={feature.title}
+              width={624}
+              height={624}
+              className={styles.featureImage}
+            />
+          </div>
+        </div>
       </div>
-    </section>
+    ))}
+  </div>
+</section>
+
+
+
+
+
   );
 }

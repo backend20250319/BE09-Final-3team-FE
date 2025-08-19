@@ -2,6 +2,7 @@ import { FiGift, FiHeart, FiActivity, FiShare2, FiUsers } from "react-icons/fi";
 import styles from "../styles/FeatureCards.module.css";
 
 export default function FeatureCards() {
+
   const cards = [
     {
       id: 1,
@@ -69,13 +70,19 @@ export default function FeatureCards() {
 
   return (
     <section className={styles.featureCardsSection}>
-      <div className="container">
+      <div 
+        data-aos="zoom-out" 
+        data-aos-offset="200"
+        className="container">
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>당신이 필요한 모든 것</h2>
         </div>
         <div className={styles.cardsGrid}>
-          {cards.map((card) => (
-            <div
+          {cards.map((card, id) => (
+            <div 
+              data-aos="fade-up" 
+              data-aos-offset="300"
+              data-aos-delay={id * 100}
               key={card.id}
               className={styles.card}
               style={{ borderTopColor: card.color }}

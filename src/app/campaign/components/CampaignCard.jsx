@@ -141,7 +141,7 @@ export default function CampaignCard({ campaign, openModal }) {
 
   if (campaign.ad_no === 1) {
     return (
-      <Link href={`/campaign/${campaign.ad_no}`} className={styles.campaignCardLink}>
+      <Link href={`/campaign/info/${campaign.ad_no}`} className={styles.campaignCardLink}>
         {cardContent}
       </Link>
     );

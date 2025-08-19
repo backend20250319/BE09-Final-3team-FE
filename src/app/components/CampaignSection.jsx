@@ -1,32 +1,18 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import styles from "../styles/CampaignSection.module.css";
 import campaigns from "../campaign/data/campaigns";
 
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Navigation } from "swiper/modules";
+
+import "swiper/css";
+import "swiper/css/navigation";
+
 export default function CampaignSection() {
   const router = useRouter();
-  const [startIndex, setStartIndex] = useState(0);
-  const itemsPerPage = 4;
-
-  const nextSlide = () => {
-    setStartIndex((prev) =>
-      prev + 1 > campaigns.length - itemsPerPage ? 0 : prev + 1
-    );
-  };
-
-  const prevSlide = () => {
-    setStartIndex((prev) =>
-      prev - 1 < 0 ? campaigns.length - itemsPerPage : prev - 1
-    );
-  };
-
-  const visibleCampaigns = campaigns.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
 
   return (
     <section className={styles.campaignSection}>
@@ -39,60 +25,75 @@ export default function CampaignSection() {
         </div>
 
         <div className={styles.campaignSlider}>
-          <div className={styles.campaignGrid}>
-            {visibleCampaigns.map((campaign) => (
-              <div key={campaign.ad_no} className={styles.campaignCard}>
-                <div className={styles.cardImage}>
-                  <Image
-                    src={campaign.image}
-                    alt={campaign.title}
-                    width={288}
-                    height={160}
-                    className={styles.campaignImage}
-                  />
-                </div>
-                <div className={styles.cardContent}>
-                  <div className={styles.brandInfo}>
-                    <div className={styles.brandLogo}>
-                      <Image
-                        src={campaign.brand_url}
-                        alt={campaign.brand}
-                        width={32}
-                        height={32}
-                        className={styles.brandImage}
-                      />
+          <Swiper
+            modules={[Autoplay, Navigation]}
+            slidesPerView={4}
+            spaceBetween={20}
+            loop={true}
+            autoplay={{
+              delay: 3000,
+              disableOnInteraction: false,
+            }}
+            navigation={{
+              prevEl: "#swiper-prev",
+              nextEl: "#swiper-next",
+            }}
+            className={styles.mySwiper}
+          >
+            {campaigns.map((campaign) => (
+              <SwiperSlide key={campaign.ad_no}>
+                <div className={styles.campaignCard}>
+                  <div className={styles.cardImage}>
+                    <Image
+                      src={campaign.image}
+                      alt={campaign.title}
+                      width={288}
+                      height={160}
+                      className={styles.campaignImage}
+                    />
+                  </div>
+                  <div className={styles.cardContent}>
+                    <div className={styles.brandInfo}>
+                      <div className={styles.brandLogo}>
+                        <Image
+                          src={campaign.brand_url}
+                          alt={campaign.brand}
+                          width={32}
+                          height={32}
+                          className={styles.brandImage}
+                        />
+                      </div>
+                      <span className={styles.brandName}>{campaign.brand}</span>
                     </div>
-                    <span className={styles.brandName}>{campaign.brand}</span>
-                  </div>
-                  <h3 className={styles.campaignTitle}>{campaign.title}</h3>
-                  <p className={styles.campaignDescription}>
-                    {campaign.objective}
-                  </p>
-                  <div className={styles.cardFooter}>
-                    <span className={styles.deadline}>
-                      {campaign.announce_start}~{campaign.announce_end}
-                    </span>
-                    <button
-                    className={styles.applyButton}
-                    onClick={() => {
-                      if (campaign.ad_no === 1) {
-                        router.push("/campaign/1");
-                      }
-                    }}
-                  >
-                    신청하기
-                  </button>
+                    <h3 className={styles.campaignTitle}>{campaign.title}</h3>
+                    <p className={styles.campaignDescription}>{campaign.objective}</p>
+                    <div className={styles.cardFooter}>
+                      <span className={styles.deadline}>
+                        {campaign.announce_start} ~ {campaign.announce_end}
+                      </span>
+                      <button
+                        className={styles.applyButton}
+                        onClick={() => {
+                          if (campaign.ad_no === 1) {
+                            router.push("/campaign/1");
+                          }
+                        }}
+                      >
+                        신청하기
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </SwiperSlide>
             ))}
-          </div>
+          </Swiper>
 
           <div className={styles.sliderControls}>
             <button
               className={styles.sliderButton}
-              onClick={prevSlide}
-              aria-label="이전 슬라이드"
+              id="swiper-prev"
+
+              type="button"
             >
               <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
                 <path
@@ -104,10 +105,11 @@ export default function CampaignSection() {
                 />
               </svg>
             </button>
+
             <button
               className={styles.sliderButton}
-              onClick={nextSlide}
-              aria-label="다음 슬라이드"
+              id="swiper-next"
+              type="button"
             >
               <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
                 <path
