@@ -1,5 +1,8 @@
 "use client";
 
+import React, { useEffect } from "react";
+import AOS from "aos";
+import "aos/dist/aos.css";
 import styles from "../styles/MainPage.module.css";
 import HeroIntro from "./HeroIntro.jsx";
 import HeroSection from "./HeroSection.jsx";
@@ -9,6 +12,11 @@ import InfluencerSection from "./InfluencerSection.jsx";
 import CTASection from "./CTASection.jsx";
 
 export default function MainPage() {
+
+  useEffect(() => {
+    AOS.init();
+  },[])
+
   return (
     <div className={styles.mainPage}>
       <main className={styles.mainContent}>
