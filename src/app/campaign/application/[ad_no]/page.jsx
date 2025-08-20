@@ -2,8 +2,8 @@
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import campaigns from "@/app/campaign/data/campaigns";
-import CampaignApplication from './components/CampaignApplication';
-import ApplicationHeader from './components/ApplicationHeader';
+import CampaignApplication from '../../application/[ad_no]/components/CampaignApplication';
+import ApplicationHeader from '../../application/[ad_no]/components/ApplicationHeader';
 
 export default function CampaignApplicationPage() {
 

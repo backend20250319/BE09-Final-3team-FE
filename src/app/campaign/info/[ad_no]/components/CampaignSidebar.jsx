@@ -1,17 +1,15 @@
 "use client";
 
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Image from 'next/image';
 import styles from "../styles/CampaignSideBar.module.css"
 
 export default function CampaignSidebar({ campaignData }) {
 
   const router = useRouter();
-  const pathname = usePathname();
-
 
   const handleClick = () => {
-    router.push(`${pathname}/application`);
+    router.push(`/campaign/application/${campaignData.ad_no}`);
   };
 
   const calculateDaysLeft = () => {
