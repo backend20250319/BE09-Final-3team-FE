@@ -16,6 +16,9 @@
   justify-content: space-between;
   height: 80px;
   position: relative;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 80px;
 }
 
 .leftSection {
@@ -100,7 +103,7 @@
 
 .loginButton {
   background: transparent;
-  color: #F5A623; /* 변경: 글자색 */
+  color: #f5a623; /* 변경: 글자색 */
   /* padding: 8px 0; */
   font-size: 16px;
   font-weight: 400;
@@ -109,6 +112,27 @@
   min-width: 41px;
   height: 24px;
   padding-right: 8px;
+}
+
+/* 로그아웃 버튼 */
+.logoutButton {
+  background: transparent;
+  color: #f5a623; /* 로그인 버튼과 동일한 색상 */
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.19;
+  text-align: center;
+  min-width: 41px;
+  height: 24px;
+  padding-right: 8px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.logoutButton:hover {
+  color: #e0941f; /* 로그인 버튼과 동일한 호버 색상 */
 }
 
 .signupButton {
@@ -168,6 +192,9 @@
   justify-content: center;
   height: 64px;
   gap: 120px;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 80px;
 }
 
 .navLink {
@@ -187,8 +214,13 @@
 
 /* Responsive Design */
 @media (max-width: 1200px) {
+  .topHeaderContent {
+    padding: 0 40px;
+  }
+
   .navContent {
     gap: 60px;
+    padding: 0 40px;
   }
 }
 
@@ -196,7 +228,7 @@
   .topHeaderContent {
     flex-direction: column;
     height: auto;
-    padding: 12px 0;
+    padding: 12px 20px;
   }
 
   .logo {
@@ -211,7 +243,7 @@
   .navContent {
     flex-direction: column;
     gap: 16px;
-    padding: 16px 0;
+    padding: 16px 20px;
     height: auto;
   }
 
