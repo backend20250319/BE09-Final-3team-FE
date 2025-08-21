@@ -73,6 +73,7 @@ export default function SignupPage() {
   const [modal, setModal] = useState({
     isOpen: false,
     message: "",
+    isSignupSuccess: false,
   });
 
   const handleInputChange = (e) => {
@@ -123,16 +124,17 @@ export default function SignupPage() {
   };
 
   // 모달 열기 함수
-  const openModal = (message) => {
-    setModal({ isOpen: true, message });
+  const openModal = (message, isSignupSuccess = false) => {
+    setModal({ isOpen: true, message, isSignupSuccess });
   };
 
   // 모달 닫기 함수
   const closeModal = () => {
-    setModal({ isOpen: false, message: "" });
+    const wasSignupSuccess = modal.isSignupSuccess;
+    setModal({ isOpen: false, message: "", isSignupSuccess: false });
 
-    // 회원가입 성공 메시지가 있었다면 로그인 페이지로 이동
-    if (modal.message && modal.message.includes("회원가입")) {
+    // 회원가입 성공이었다면 로그인 페이지로 이동
+    if (wasSignupSuccess) {
       router.push("/user/login");
     }
   };
@@ -349,7 +351,8 @@ export default function SignupPage() {
             회원가입이 성공적으로 완료되었습니다.
             <br />
             로그인 후 이용해주세요.
-          </>
+          </>,
+          true // 회원가입 성공 플래그
         );
         // 모달 닫기 시 자동으로 로그인 페이지로 이동
       } else if (res.status === 409) {
