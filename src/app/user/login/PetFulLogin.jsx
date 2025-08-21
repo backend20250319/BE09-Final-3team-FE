@@ -61,20 +61,25 @@ export default function PetFulLogin() {
 
       if (response.ok) {
         // 로그인 성공 - 토큰 저장
-        if (data.accessToken) {
-          localStorage.setItem("accessToken", data.accessToken);
-          localStorage.setItem("refreshToken", data.refreshToken);
-          localStorage.setItem("userEmail", data.email);
-          localStorage.setItem("userNickname", data.name || ""); // 닉네임 저장
+        const authData = data.data; // ApiResponse 구조에서 실제 데이터 추출
+
+        if (authData && authData.accessToken) {
+          localStorage.setItem("accessToken", authData.accessToken);
+          localStorage.setItem("refreshToken", authData.refreshToken);
+          localStorage.setItem("userEmail", authData.email);
+          localStorage.setItem("userNickname", authData.name || ""); // 닉네임 저장
 
           // 토큰 만료 시간 저장 (선택사항)
-          if (data.accessExpiresAt) {
-            localStorage.setItem("accessTokenExpiresAt", data.accessExpiresAt);
+          if (authData.accessExpiresAt) {
+            localStorage.setItem(
+              "accessTokenExpiresAt",
+              authData.accessExpiresAt
+            );
           }
-          if (data.refreshExpiresAt) {
+          if (authData.refreshExpiresAt) {
             localStorage.setItem(
               "refreshTokenExpiresAt",
-              data.refreshExpiresAt
+              authData.refreshExpiresAt
             );
           }
 

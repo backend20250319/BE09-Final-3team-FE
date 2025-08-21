@@ -63,6 +63,13 @@ export default function SignupPage() {
     verified: false,
   });
   const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [nicknameError, setNicknameError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [addressError, setAddressError] = useState("");
+  const [birthError, setBirthError] = useState("");
   const [loading, setLoading] = useState({
     signup: false,
     sendCode: false,
@@ -73,14 +80,33 @@ export default function SignupPage() {
   const [modal, setModal] = useState({
     isOpen: false,
     message: "",
+    isSignupSuccess: false,
   });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    // 이메일 입력 시 에러 메시지 초기화
+    // 각 필드 입력 시 해당 에러 메시지 초기화
     if (name === "email") {
       setEmailError("");
+    } else if (name === "password") {
+      setPasswordError("");
+    } else if (name === "confirmPassword") {
+      setConfirmPasswordError("");
+    } else if (name === "name") {
+      setNameError("");
+    } else if (name === "nickname") {
+      setNicknameError("");
+    } else if (name === "phone") {
+      setPhoneError("");
+    } else if (name === "address") {
+      setAddressError("");
+    } else if (
+      name === "birthYear" ||
+      name === "birthMonth" ||
+      name === "birthDay"
+    ) {
+      setBirthError("");
     }
 
     // 전화번호 입력 처리
@@ -122,17 +148,30 @@ export default function SignupPage() {
     }
   };
 
+  // 모든 에러 메시지 초기화
+  const clearAllErrors = () => {
+    setEmailError("");
+    setPasswordError("");
+    setConfirmPasswordError("");
+    setNameError("");
+    setNicknameError("");
+    setPhoneError("");
+    setAddressError("");
+    setBirthError("");
+  };
+
   // 모달 열기 함수
-  const openModal = (message) => {
-    setModal({ isOpen: true, message });
+  const openModal = (message, isSignupSuccess = false) => {
+    setModal({ isOpen: true, message, isSignupSuccess });
   };
 
   // 모달 닫기 함수
   const closeModal = () => {
-    setModal({ isOpen: false, message: "" });
+    const wasSignupSuccess = modal.isSignupSuccess;
+    setModal({ isOpen: false, message: "", isSignupSuccess: false });
 
-    // 회원가입 성공 메시지가 있었다면 로그인 페이지로 이동
-    if (modal.message && modal.message.includes("회원가입")) {
+    // 회원가입 성공이었다면 로그인 페이지로 이동
+    if (wasSignupSuccess) {
       router.push("/user/login");
     }
   };
@@ -344,17 +383,58 @@ export default function SignupPage() {
       console.log("회원가입 응답 데이터:", data);
 
       if (res.status === 201) {
+        clearAllErrors(); // 성공 시 모든 에러 초기화
         openModal(
           <>
             회원가입이 성공적으로 완료되었습니다.
             <br />
             로그인 후 이용해주세요.
-          </>
+          </>,
+          true // 회원가입 성공 플래그
         );
         // 모달 닫기 시 자동으로 로그인 페이지로 이동
       } else if (res.status === 409) {
         setEmailError(data.message ?? "이미 존재하는 이메일입니다.");
+      } else if (res.status === 400 && data.data) {
+        // 검증 에러 처리 - 기존 에러 초기화 후 새로운 에러 설정
+        clearAllErrors();
+        const validationErrors = data.data;
+
+        // 각 필드별 에러 메시지 설정
+        if (validationErrors.email) {
+          setEmailError(validationErrors.email);
+        }
+        if (validationErrors.password) {
+          setPasswordError(validationErrors.password);
+        }
+        if (validationErrors.confirmPassword) {
+          setConfirmPasswordError(validationErrors.confirmPassword);
+        }
+        if (validationErrors.name) {
+          setNameError(validationErrors.name);
+        }
+        if (validationErrors.nickname) {
+          setNicknameError(validationErrors.nickname);
+        }
+        if (validationErrors.phone) {
+          setPhoneError(validationErrors.phone);
+        }
+        if (validationErrors.address) {
+          setAddressError(validationErrors.address);
+        }
+        if (
+          validationErrors.birthYear ||
+          validationErrors.birthMonth ||
+          validationErrors.birthDay
+        ) {
+          setBirthError(
+            validationErrors.birthYear ||
+              validationErrors.birthMonth ||
+              validationErrors.birthDay
+          );
+        }
       } else {
+        // 일반적인 에러
         setEmailError(
           data.message ?? `회원가입 실패: ${data.message || res.statusText}`
         );
@@ -451,6 +531,9 @@ export default function SignupPage() {
                     className={styles.input}
                   />
                 </div>
+                {passwordError && (
+                  <div className={styles.errorMessage}>{passwordError}</div>
+                )}
               </div>
 
               {/* Confirm Password */}
@@ -471,6 +554,11 @@ export default function SignupPage() {
                     비밀번호가 일치하지 않습니다.
                   </div>
                 )}
+                {confirmPasswordError && (
+                  <div className={styles.errorMessage}>
+                    {confirmPasswordError}
+                  </div>
+                )}
               </div>
 
               {/* Name */}
@@ -486,6 +574,9 @@ export default function SignupPage() {
                     className={styles.input}
                   />
                 </div>
+                {nameError && (
+                  <div className={styles.errorMessage}>{nameError}</div>
+                )}
               </div>
 
               {/* Nickname */}
@@ -501,6 +592,9 @@ export default function SignupPage() {
                     className={styles.input}
                   />
                 </div>
+                {nicknameError && (
+                  <div className={styles.errorMessage}>{nicknameError}</div>
+                )}
               </div>
 
               {/* Phone */}
@@ -517,6 +611,9 @@ export default function SignupPage() {
                     className={styles.input}
                   />
                 </div>
+                {phoneError && (
+                  <div className={styles.errorMessage}>{phoneError}</div>
+                )}
               </div>
 
               {/* Address */}
@@ -532,6 +629,9 @@ export default function SignupPage() {
                     className={styles.input}
                   />
                 </div>
+                {addressError && (
+                  <div className={styles.errorMessage}>{addressError}</div>
+                )}
               </div>
 
               {/* Detail Address */}
@@ -612,6 +712,9 @@ export default function SignupPage() {
                     <div className={styles.dropdownIcon}></div>
                   </div>
                 </div>
+                {birthError && (
+                  <div className={styles.errorMessage}>{birthError}</div>
+                )}
               </div>
 
               <button
