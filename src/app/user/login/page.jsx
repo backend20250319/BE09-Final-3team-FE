@@ -1,7 +1,7 @@
-// user/signup/page.js
+// user/login/page.jsx
 
 import PetFulLogin from "./PetFulLogin";
 
-export default function SignupPage() {
+export default function LoginPage() {
   return <PetFulLogin />;
 }

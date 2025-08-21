@@ -2,18 +2,112 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./PetFulLogin.module.css";
 import Image from "next/image";
 
+// 환경변수로 게이트웨이/백엔드 베이스 URL 관리
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  "http://localhost:8000/api/v1/user-service";
+
+// 디버깅용 로그
+console.log("API_BASE URL:", API_BASE);
+
 export default function PetFulLogin() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log("Login attempt:", { email, password });
+    setError("");
+    setLoading(true);
+
+    try {
+      console.log("로그인 시도:", { email });
+
+      const response = await fetch(`${API_BASE}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        mode: "cors",
+        credentials: "omit",
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
+
+      console.log("로그인 응답 상태:", response.status, response.statusText);
+
+      let data = {};
+      try {
+        const responseText = await response.text();
+        console.log("로그인 응답 텍스트:", responseText);
+
+        if (responseText.trim()) {
+          data = JSON.parse(responseText);
+        }
+      } catch (parseError) {
+        console.error("로그인 JSON 파싱 에러:", parseError);
+      }
+
+      console.log("로그인 응답 데이터:", data);
+
+      if (response.ok) {
+        // 로그인 성공 - 토큰 저장
+        if (data.accessToken) {
+          localStorage.setItem("accessToken", data.accessToken);
+          localStorage.setItem("refreshToken", data.refreshToken);
+          localStorage.setItem("userEmail", data.email);
+          localStorage.setItem("userNickname", data.name || ""); // 닉네임 저장
+
+          // 토큰 만료 시간 저장 (선택사항)
+          if (data.accessExpiresAt) {
+            localStorage.setItem("accessTokenExpiresAt", data.accessExpiresAt);
+          }
+          if (data.refreshExpiresAt) {
+            localStorage.setItem(
+              "refreshTokenExpiresAt",
+              data.refreshExpiresAt
+            );
+          }
+
+          console.log("로그인 성공, 토큰 저장 완료");
+
+          // 커스텀 이벤트 발생 (헤더 업데이트용)
+          window.dispatchEvent(new Event("loginStatusChanged"));
+
+          // 메인 페이지로 리다이렉트
+          router.push("/");
+        } else {
+          setError("로그인 응답에 토큰이 없습니다.");
+        }
+      } else {
+        // 로그인 실패
+        if (response.status === 401) {
+          setError("이메일 또는 비밀번호가 올바르지 않습니다.");
+        } else if (response.status === 400) {
+          setError(data.message || "로그인 요청이 올바르지 않습니다.");
+        } else {
+          setError(data.message || "로그인에 실패했습니다. 다시 시도해주세요.");
+        }
+      }
+    } catch (error) {
+      console.error("로그인 에러:", error);
+      if (error.name === "TypeError" && error.message.includes("fetch")) {
+        setError("네트워크 연결을 확인해주세요.");
+      } else {
+        setError("로그인 중 오류가 발생했습니다. 다시 시도해주세요.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const togglePasswordVisibility = () => {
@@ -49,6 +143,7 @@ export default function PetFulLogin() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
 
@@ -63,11 +158,13 @@ export default function PetFulLogin() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={loading}
               />
               <button
                 type="button"
                 className={styles.passwordToggle}
                 onClick={togglePasswordVisibility}
+                disabled={loading}
               >
                 <Image
                   src={showPassword ? "/user/eye.svg" : "/user/eye-closed.svg"}
@@ -80,9 +177,16 @@ export default function PetFulLogin() {
             </div>
           </div>
 
+          {/* Error Message */}
+          {error && <div className={styles.errorMessage}>{error}</div>}
+
           {/* Login Button */}
-          <button type="submit" className={styles.loginButton}>
-            로그인
+          <button
+            type="submit"
+            className={styles.loginButton}
+            disabled={loading}
+          >
+            {loading ? "로그인 중..." : "로그인"}
           </button>
         </form>
 
