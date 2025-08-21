@@ -167,6 +167,29 @@
   background-color: #d08a1d;
 }
 
+.loginButton:disabled {
+  background-color: #d1d5db;
+  cursor: not-allowed;
+}
+
+/* Error Message */
+.errorMessage {
+  font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont,
+    system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo",
+    "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #ef4444;
+  margin-bottom: 16px;
+  text-align: center;
+  padding: 8px 12px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+}
+
 .footer {
   display: flex;
   justify-content: center; /* 가운데 정렬 */
