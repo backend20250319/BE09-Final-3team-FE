@@ -1,25 +1,100 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styles from "./Mypage.module.css";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 const MyPage = () => {
+  const router = useRouter();
+  const API_BASE = "http://localhost:8000/api/v1/mypage-service";
+
   // ✅ 컨트롤드 입력을 위한 초기 빈 값
   const [formData, setFormData] = useState({
-    name: "정승원",
-    phone: "010-1234-1234",
-    email: "petlover123@email.com",
-    instagram: "@buddytheretriever",
-    bio: "안녕하세요!골든 리트리버 ‘황금이’, 샴 고양이 ‘루나’, 푸른 마코 앵무 ‘찰리’와 함께하는 인플루언서 정승원입니다. 저는 반려동물과 함께하는 일상 속에서 다양한 상품과 서비스를 체험하고, 그 경험을 진솔하고 생생하게 전달하는 것을 주 컨텐츠로 삼고 있습니다.특히 펫 전용 제품 리뷰, 체험단 활동, 반려동물과의 라이프스타일 콘텐츠를 통해 많은 분들이 반려동물과의 삶을 더 풍성하게 즐길 수 있도록 돕고 있습니다.",
-    address: "서울특별시 강남구",
+    name: "",
+    phone: "",
+    email: "",
+    instagram: "",
+    bio: "",
+    address: "",
     detailAddress: "",
-    birthDate: "2001-08-10",
+    birthDate: "",
+    profileImageUrl: "",
+    preferredPetType: "",
+    petCount: 0,
+    isInfluencer: false,
+    influencerCategory: "",
   });
 
   const [isEditable, setIsEditable] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
   const [birthType, setBirthType] = useState("text"); // ✅ placeholder 보기 좋게: text ↔ date
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const fileInputRef = useRef(null);
+
+  // 컴포넌트 마운트 시 프로필 정보 가져오기
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  // 프로필 정보 가져오기
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("accessToken");
+
+      if (!token) {
+        router.push("/user/login");
+        return;
+      }
+
+      const response = await fetch(`${API_BASE}/api/mypage/profile`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        mode: "cors",
+        credentials: "omit",
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        const profile = result.data;
+        setFormData({
+          name: profile.name || "",
+          phone: profile.phone || "",
+          email: profile.email || "",
+          instagram: profile.instagramUsername || "",
+          bio: profile.selfIntroduction || "",
+          address: profile.roadAddress || profile.address || "",
+          detailAddress: profile.detailAddress || profile.detailedAddress || "",
+          birthDate: profile.birthDate ? profile.birthDate.toString() : "",
+          profileImageUrl: profile.profileImageUrl || "",
+          preferredPetType: profile.preferredPetType || "",
+          petCount: profile.petCount || 0,
+          isInfluencer: profile.isInfluencer || false,
+          influencerCategory: profile.influencerCategory || "",
+        });
+
+        if (profile.profileImageUrl) {
+          setProfileImage(profile.profileImageUrl);
+        }
+      } else {
+        setError(result.message || "프로필 정보를 가져오는데 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("프로필 정보 가져오기 실패:", error);
+      setError("프로필 정보를 가져오는데 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -30,11 +105,69 @@ const MyPage = () => {
   };
 
   const handleEditToggle = () => setIsEditable(true);
-  const handleSave = () => {
-    console.log("저장하기:", formData);
-    setIsEditable(false);
+
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("accessToken");
+
+      if (!token) {
+        router.push("/user/login");
+        return;
+      }
+
+      // 마이페이지 서비스에 전송할 데이터
+      const profileData = {
+        profileImageUrl: formData.profileImageUrl,
+        selfIntroduction: formData.bio,
+        instagramUsername: formData.instagram,
+        preferredPetType: formData.preferredPetType,
+        petCount: formData.petCount,
+        isInfluencer: formData.isInfluencer,
+        influencerCategory: formData.influencerCategory,
+      };
+
+      const response = await fetch(`${API_BASE}/api/mypage/profile`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        mode: "cors",
+        credentials: "omit",
+        body: JSON.stringify(profileData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        console.log("프로필 수정 성공:", result.data);
+        setIsEditable(false);
+        setError("");
+        // 수정된 프로필 정보로 다시 가져오기
+        await fetchProfile();
+      } else {
+        setError(result.message || "프로필 수정에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("프로필 수정 실패:", error);
+      setError("프로필 수정에 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
   };
-  const handleCancel = () => setIsEditable(false);
+
+  const handleCancel = () => {
+    setIsEditable(false);
+    setError("");
+    // 원래 데이터로 복원
+    fetchProfile();
+  };
+
   const handleConnect = () => console.log("연결하기");
 
   const handleFileChange = (e) => {
@@ -44,17 +177,34 @@ const MyPage = () => {
 
   const previewImage = (file) => {
     const reader = new FileReader();
-    reader.onload = () => setProfileImage(reader.result);
+    reader.onload = () => {
+      setProfileImage(reader.result);
+      setFormData((prev) => ({ ...prev, profileImageUrl: reader.result }));
+    };
     reader.readAsDataURL(file);
   };
 
   const triggerFileSelect = () => fileInputRef.current?.click();
+
+  if (loading && !formData.email) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.body}>
+          <main className={styles.main}>
+            <div className={styles.loading}>로딩 중...</div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
       <div className={styles.body}>
         <main className={styles.main}>
           <h1 className={styles.pageTitle}>마이페이지</h1>
+
+          {error && <div className={styles.errorMessage}>{error}</div>}
 
           {!isEditable && (
             <div className={styles.editSection}>
@@ -67,7 +217,10 @@ const MyPage = () => {
           <section className={styles.profileSection}>
             <div className={styles.profileContent}>
               <div className={styles.profileImageContainer}>
-                <div className={styles.profileImage} onClick={triggerFileSelect}>
+                <div
+                  className={styles.profileImage}
+                  onClick={triggerFileSelect}
+                >
                   {profileImage ? (
                     <Image
                       src={profileImage}
@@ -245,10 +398,18 @@ const MyPage = () => {
 
           {isEditable && (
             <div className={styles.buttonSection}>
-              <button className={styles.saveButton} onClick={handleSave}>
-                저장하기
+              <button
+                className={styles.saveButton}
+                onClick={handleSave}
+                disabled={loading}
+              >
+                {loading ? "저장 중..." : "저장하기"}
               </button>
-              <button className={styles.cancelButton} onClick={handleCancel}>
+              <button
+                className={styles.cancelButton}
+                onClick={handleCancel}
+                disabled={loading}
+              >
                 취소
               </button>
             </div>
