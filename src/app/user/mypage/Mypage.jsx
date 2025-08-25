@@ -4,9 +4,10 @@ import styles from "./Mypage.module.css";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
+
 const MyPage = () => {
   const router = useRouter();
-  const API_BASE = "http://localhost:8000/api/v1/mypage-service";
+  const USER_API_BASE = "http://localhost:8000/api/v1/user-service";
 
   // ✅ 컨트롤드 입력을 위한 초기 빈 값
   const [formData, setFormData] = useState({
@@ -48,7 +49,8 @@ const MyPage = () => {
         return;
       }
 
-      const response = await fetch(`${API_BASE}/api/mypage/profile`, {
+      // user-service의 /auth/me 엔드포인트 직접 호출
+      const response = await fetch(`${USER_API_BASE}/auth/me`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -63,31 +65,25 @@ const MyPage = () => {
       }
 
       const result = await response.json();
+      const userData = result.data; // ApiResponse 구조에서 실제 데이터 추출
+      
+      setFormData({
+        name: userData.name || "",
+        phone: userData.phone || "",
+        email: userData.email || "",
+        instagram: "", // user-service에는 없는 필드
+        bio: "", // user-service에는 없는 필드
+        address: "", // user-service에는 없는 필드
+        detailAddress: "", // user-service에는 없는 필드
+        birthDate: "", // user-service에는 없는 필드
+        profileImageUrl: "", // user-service에는 없는 필드
+        preferredPetType: "", // user-service에는 없는 필드
+        petCount: 0, // user-service에는 없는 필드
+        isInfluencer: false, // user-service에는 없는 필드
+        influencerCategory: "", // user-service에는 없는 필드
+      });
 
-      if (result.success) {
-        const profile = result.data;
-        setFormData({
-          name: profile.name || "",
-          phone: profile.phone || "",
-          email: profile.email || "",
-          instagram: profile.instagramUsername || "",
-          bio: profile.selfIntroduction || "",
-          address: profile.roadAddress || profile.address || "",
-          detailAddress: profile.detailAddress || profile.detailedAddress || "",
-          birthDate: profile.birthDate ? profile.birthDate.toString() : "",
-          profileImageUrl: profile.profileImageUrl || "",
-          preferredPetType: profile.preferredPetType || "",
-          petCount: profile.petCount || 0,
-          isInfluencer: profile.isInfluencer || false,
-          influencerCategory: profile.influencerCategory || "",
-        });
-
-        if (profile.profileImageUrl) {
-          setProfileImage(profile.profileImageUrl);
-        }
-      } else {
-        setError(result.message || "프로필 정보를 가져오는데 실패했습니다.");
-      }
+      setError("");
     } catch (error) {
       console.error("프로필 정보 가져오기 실패:", error);
       setError("프로필 정보를 가져오는데 실패했습니다.");
@@ -116,43 +112,19 @@ const MyPage = () => {
         return;
       }
 
-      // 마이페이지 서비스에 전송할 데이터
-      const profileData = {
-        profileImageUrl: formData.profileImageUrl,
-        selfIntroduction: formData.bio,
-        instagramUsername: formData.instagram,
-        preferredPetType: formData.preferredPetType,
-        petCount: formData.petCount,
-        isInfluencer: formData.isInfluencer,
-        influencerCategory: formData.influencerCategory,
-      };
-
-      const response = await fetch(`${API_BASE}/api/mypage/profile`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        mode: "cors",
-        credentials: "omit",
-        body: JSON.stringify(profileData),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-
-      if (result.success) {
-        console.log("프로필 수정 성공:", result.data);
-        setIsEditable(false);
-        setError("");
-        // 수정된 프로필 정보로 다시 가져오기
-        await fetchProfile();
-      } else {
-        setError(result.message || "프로필 수정에 실패했습니다.");
-      }
+      // user-service에는 기본 정보만 업데이트 가능
+      // 현재는 업데이트 기능이 없으므로 읽기 전용으로 처리
+      console.log("프로필 수정 기능은 현재 지원되지 않습니다.");
+      setIsEditable(false);
+      setError("");
+      
+      // 추후 user-service에 프로필 업데이트 엔드포인트가 추가되면 여기에 구현
+      // const profileData = {
+      //   name: formData.name,
+      //   phone: formData.phone,
+      //   nickname: formData.nickname,
+      // };
+      
     } catch (error) {
       console.error("프로필 수정 실패:", error);
       setError("프로필 수정에 실패했습니다.");
