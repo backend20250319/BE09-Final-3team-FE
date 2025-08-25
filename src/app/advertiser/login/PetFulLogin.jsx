@@ -2,22 +2,173 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./PetFulLogin.module.css";
 import Image from "next/image";
+
+// 환경변수로 게이트웨이/백엔드 베이스 URL 관리
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  "http://localhost:8000/api/v1/advertiser-service";
 
 export default function PetFulLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [modal, setModal] = useState({
+    isOpen: false,
+    message: "",
+    isSuccess: false,
+  });
+  const router = useRouter();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log("Login attempt:", { email, password });
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(`${API_BASE}/advertiser/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        mode: "cors",
+        credentials: "omit",
+        body: JSON.stringify({
+          userId: email, // 백엔드에서는 userId로 받음
+          password: password,
+        }),
+      });
+
+      let data = {};
+      try {
+        const responseText = await response.text();
+        if (responseText.trim()) {
+          data = JSON.parse(responseText);
+        }
+      } catch (parseError) {
+        console.error("로그인 JSON 파싱 에러:", parseError);
+      }
+
+      if (response.ok) {
+        // 백엔드 응답 구조 디버깅
+        console.log("백엔드 응답 전체:", data);
+        console.log("data.data 내용:", data.data);
+
+        // 로그인 성공 - 토큰 저장
+        // 백엔드 응답 구조에 따라 토큰 위치 확인
+        let token = null;
+
+        if (data.data && data.data.token) {
+          // ApiResponse 구조: { data: { token: "..." } }
+          token = data.data.token;
+        } else if (data.data && data.data.accessToken) {
+          // ApiResponse 구조: { data: { accessToken: "..." } }
+          token = data.data.accessToken;
+        } else if (data.data && data.data.access_token) {
+          // ApiResponse 구조: { data: { access_token: "..." } }
+          token = data.data.access_token;
+        } else if (data.data && data.data.jwt) {
+          // ApiResponse 구조: { data: { jwt: "..." } }
+          token = data.data.jwt;
+        } else if (data.token) {
+          // 직접 토큰 구조: { token: "..." }
+          token = data.token;
+        } else if (data.accessToken) {
+          // accessToken 구조: { accessToken: "..." }
+          token = data.accessToken;
+        } else if (data.access_token) {
+          // access_token 구조: { access_token: "..." }
+          token = data.access_token;
+        }
+
+        if (token) {
+          localStorage.setItem("advertiserToken", token);
+          localStorage.setItem("advertiserEmail", email);
+
+          // 헤더 상태 업데이트를 위한 커스텀 이벤트 발생
+          window.dispatchEvent(new Event("loginStatusChanged"));
+
+          // 로그인 성공 모달 표시
+          setModal({
+            isOpen: true,
+            message: "로그인에 성공했습니다!",
+            isSuccess: true,
+          });
+        } else {
+          console.error("토큰을 찾을 수 없습니다. 응답 구조:", data);
+          setError("로그인 응답에 토큰이 없습니다.");
+        }
+      } else {
+        // 로그인 실패
+        if (response.status === 401) {
+          setError("이메일 또는 비밀번호가 올바르지 않습니다.");
+        } else if (response.status === 400) {
+          setError(data.message || "잘못된 요청입니다.");
+        } else {
+          setError(data.message || "로그인에 실패했습니다. 다시 시도해주세요.");
+        }
+      }
+    } catch (error) {
+      console.error("Login failed:", error);
+      if (error.name === "TypeError" && error.message.includes("fetch")) {
+        setError("네트워크 연결을 확인해주세요.");
+      } else {
+        setError(
+          error.message ||
+            "로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요."
+        );
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const closeModal = () => {
+    const wasSuccess = modal.isSuccess;
+    setModal({ isOpen: false, message: "", isSuccess: false });
+
+    // 로그인 성공이었다면 광고주 대시보드로 이동
+    if (wasSuccess) {
+      router.push("/advertiser/ads-list");
+    }
   };
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
+  };
+
+  // 모달 컴포넌트
+  const SuccessModal = ({ isOpen, message, onClose }) => {
+    if (!isOpen) return null;
+
+    return (
+      <div className={styles.modalOverlay} onClick={onClose}>
+        <div
+          className={styles.modalContent}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className={styles.modalHeader}>
+            <h3 className={styles.modalTitle}>알림</h3>
+            <button className={styles.modalClose} onClick={onClose}>
+              ×
+            </button>
+          </div>
+          <div className={styles.modalBody}>
+            <p className={styles.modalMessage}>{message}</p>
+          </div>
+          <div className={styles.modalFooter}>
+            <button className={styles.modalButton} onClick={onClose}>
+              확인
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -49,6 +200,7 @@ export default function PetFulLogin() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
 
@@ -63,6 +215,7 @@ export default function PetFulLogin() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={isLoading}
               />
               <button
                 type="button"
@@ -80,9 +233,16 @@ export default function PetFulLogin() {
             </div>
           </div>
 
+          {/* Error Message */}
+          {error && <div className={styles.errorMessage}>{error}</div>}
+
           {/* Login Button */}
-          <button type="submit" className={styles.loginButton}>
-            로그인
+          <button
+            type="submit"
+            className={styles.loginButton}
+            disabled={isLoading}
+          >
+            {isLoading ? "로그인 중..." : "로그인"}
           </button>
         </form>
 
@@ -103,6 +263,13 @@ export default function PetFulLogin() {
           로그인하면 이용약관 및 개인정보처리방침에 동의하는 것으로 간주됩니다.
         </div>
       </div>
+
+      {/* 성공 모달 */}
+      <SuccessModal
+        isOpen={modal.isOpen}
+        message={modal.message}
+        onClose={closeModal}
+      />
     </div>
   );
 }
