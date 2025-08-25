@@ -59,18 +59,21 @@
   justify-content: center;
   gap: 16px;
   height: 40px;
+  position: relative;
 }
 
 .notificationButton {
   position: relative;
   display: flex;
   align-items: center;
+  justify-content: center;
   background: transparent;
   border: none;
   padding: 8px;
   height: 40px;
   width: 40px;
   cursor: pointer;
+  margin-top: 0;
 }
 
 .notificationIcon {
@@ -81,6 +84,8 @@
   height: 24px;
   font-size: 24px;
   color: #594a3e;
+  margin: 0;
+  padding: 0;
 }
 
 .notificationCount {
@@ -132,6 +137,46 @@
 
 .signupButton:hover {
   background: #e6951f;
+}
+
+.logoutButton {
+  background: transparent;
+  border: none;
+  color: #f5a623;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.19;
+  text-align: center;
+  min-width: 60px;
+  height: 40px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoutButton:hover {
+  color: #e6951f;
+}
+
+.mypageButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 8px;
+  height: 40px;
+  width: 40px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  margin: 0;
+}
+
+.mypageButton:hover {
+  opacity: 0.7;
 }
 
 @media (max-width: 1024px) {

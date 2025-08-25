@@ -313,6 +313,13 @@ export default function SignupPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // 비밀번호 유효성 검사
+    const passwordRegex = /^(?=.*[!@#$%^&*(),.?":{}|<>])/;
+    if (!passwordRegex.test(formData.password)) {
+      setPasswordError("비밀번호에 특수문자를 하나 이상 포함해주세요.");
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setErrors((prev) => ({ ...prev, passwordMatch: true }));
       return;
@@ -527,7 +534,7 @@ export default function SignupPage() {
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    placeholder="비밀번호를 입력하세요"
+                    placeholder="비밀번호를 입력하세요 (특수문자 포함)"
                     className={styles.input}
                   />
                 </div>
