@@ -63,14 +63,19 @@ const MyPage = () => {
       const result = await response.json();
       const userData = result.data; // ApiResponse 구조에서 실제 데이터 추출
 
+      // 주소 데이터 설정
+      const addressValue = userData.roadAddress || userData.address || "";
+      const detailAddressValue =
+        userData.detailAddress || userData.detailedAddress || "";
+
       setFormData({
         name: userData.name || "",
         phone: userData.phone || "",
         email: userData.email || "",
         instagram: userData.instagramUsername || "",
         bio: userData.selfIntroduction || "",
-        address: userData.roadAddress || userData.address || "",
-        detailAddress: userData.detailAddress || userData.detailedAddress || "",
+        address: addressValue,
+        detailAddress: detailAddressValue,
         birthDate: userData.birthDate ? userData.birthDate.toString() : "",
         profileImageUrl: userData.profileImageUrl || "",
         preferredPetType: userData.preferredPetType || "",
@@ -126,6 +131,12 @@ const MyPage = () => {
       };
 
       console.log("요청 본문:", profileData);
+      console.log("주소 데이터 확인:", {
+        formDataAddress: formData.address,
+        formDataDetailAddress: formData.detailAddress,
+        profileDataRoadAddress: profileData.roadAddress,
+        profileDataDetailAddress: profileData.detailAddress,
+      });
 
       const response = await fetch(`${USER_API_BASE}/auth/profile`, {
         method: "PATCH",
@@ -315,7 +326,13 @@ const MyPage = () => {
                       value={formData.address ?? ""}
                       onChange={handleInputChange}
                       className={styles.addressInput}
-                      placeholder="주소를 입력하세요"
+                      placeholder={
+                        isEditable
+                          ? "주소를 입력하세요"
+                          : formData.address
+                          ? "주소를 입력하세요"
+                          : "회원가입 시 입력한 주소가 없습니다"
+                      }
                       readOnly={!isEditable}
                     />
                     <input
@@ -324,11 +341,46 @@ const MyPage = () => {
                       value={formData.detailAddress ?? ""}
                       onChange={handleInputChange}
                       className={styles.detailAddressInput}
-                      placeholder="상세 주소를 입력하세요"
+                      placeholder={
+                        isEditable
+                          ? "상세 주소를 입력하세요"
+                          : formData.detailAddress
+                          ? "상세 주소를 입력하세요"
+                          : "회원가입 시 입력한 상세주소가 없습니다"
+                      }
                       readOnly={!isEditable}
                     />
                   </div>
                   <span className={styles.locationLabel}>거주지 위치</span>
+                  {!formData.address &&
+                    !formData.detailAddress &&
+                    !isEditable && (
+                      <div
+                        style={{
+                          color: "#f5a623",
+                          fontSize: "12px",
+                          marginTop: "4px",
+                          fontFamily: '"Pretendard Variable", sans-serif',
+                        }}
+                      >
+                        회원가입 시 입력한 주소 정보가 서버에 저장되지
+                        않았습니다. 편집 버튼을 눌러 주소를 입력해주세요.
+                      </div>
+                    )}
+                  {!formData.address &&
+                    !formData.detailAddress &&
+                    isEditable && (
+                      <div
+                        style={{
+                          color: "#4CAF50",
+                          fontSize: "12px",
+                          marginTop: "4px",
+                          fontFamily: '"Pretendard Variable", sans-serif',
+                        }}
+                      >
+                        주소 정보를 입력해주세요.
+                      </div>
+                    )}
                 </div>
               </div>
             </div>
