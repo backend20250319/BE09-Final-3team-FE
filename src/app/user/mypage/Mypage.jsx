@@ -4,7 +4,6 @@ import styles from "./Mypage.module.css";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
-
 const MyPage = () => {
   const router = useRouter();
   const USER_API_BASE = "http://localhost:8000/api/v1/user-service";
@@ -20,17 +19,16 @@ const MyPage = () => {
     detailAddress: "",
     birthDate: "",
     profileImageUrl: "",
-    preferredPetType: "",
-    petCount: 0,
     isInfluencer: false,
     influencerCategory: "",
   });
 
   const [isEditable, setIsEditable] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
-  const [birthType, setBirthType] = useState("text"); // ✅ placeholder 보기 좋게: text ↔ date
+  const [birthType, setBirthType] = useState("text");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const fileInputRef = useRef(null);
 
   // 컴포넌트 마운트 시 프로필 정보 가져오기
@@ -50,14 +48,12 @@ const MyPage = () => {
       }
 
       // user-service의 /auth/me 엔드포인트 직접 호출
-      const response = await fetch(`${USER_API_BASE}/auth/me`, {
+      const response = await fetch(`${USER_API_BASE}/auth/profile`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        mode: "cors",
-        credentials: "omit",
       });
 
       if (!response.ok) {
@@ -66,21 +62,21 @@ const MyPage = () => {
 
       const result = await response.json();
       const userData = result.data; // ApiResponse 구조에서 실제 데이터 추출
-      
+
       setFormData({
         name: userData.name || "",
         phone: userData.phone || "",
         email: userData.email || "",
-        instagram: "", // user-service에는 없는 필드
-        bio: "", // user-service에는 없는 필드
-        address: "", // user-service에는 없는 필드
-        detailAddress: "", // user-service에는 없는 필드
-        birthDate: "", // user-service에는 없는 필드
-        profileImageUrl: "", // user-service에는 없는 필드
-        preferredPetType: "", // user-service에는 없는 필드
-        petCount: 0, // user-service에는 없는 필드
-        isInfluencer: false, // user-service에는 없는 필드
-        influencerCategory: "", // user-service에는 없는 필드
+        instagram: userData.instagramUsername || "",
+        bio: userData.selfIntroduction || "",
+        address: userData.roadAddress || userData.address || "",
+        detailAddress: userData.detailAddress || userData.detailedAddress || "",
+        birthDate: userData.birthDate ? userData.birthDate.toString() : "",
+        profileImageUrl: userData.profileImageUrl || "",
+        preferredPetType: userData.preferredPetType || "",
+        petCount: userData.petCount || 0,
+        isInfluencer: userData.isInfluencer || false,
+        influencerCategory: userData.influencerCategory || "",
       });
 
       setError("");
@@ -112,22 +108,68 @@ const MyPage = () => {
         return;
       }
 
-      // user-service에는 기본 정보만 업데이트 가능
-      // 현재는 업데이트 기능이 없으므로 읽기 전용으로 처리
-      console.log("프로필 수정 기능은 현재 지원되지 않습니다.");
+      console.log("프로필 수정 시작");
+      console.log("요청 URL:", `${USER_API_BASE}/auth/profile`);
+
+      // 프로필 업데이트 데이터 준비
+      const profileData = {
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        instagramUsername: formData.instagram,
+        selfIntroduction: formData.bio,
+        roadAddress: formData.address,
+        detailAddress: formData.detailAddress,
+        // birthDate는 수정 불가능하므로 제외
+        isInfluencer: formData.isInfluencer,
+        influencerCategory: formData.influencerCategory,
+      };
+
+      console.log("요청 본문:", profileData);
+
+      const response = await fetch(`${USER_API_BASE}/auth/profile`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(profileData),
+      });
+
+      console.log(
+        "프로필 수정 응답 상태:",
+        response.status,
+        response.statusText
+      );
+
+      let data = {};
+      try {
+        const responseText = await response.text();
+        console.log("프로필 수정 응답 텍스트:", responseText);
+
+        if (responseText.trim()) {
+          data = JSON.parse(responseText);
+        }
+      } catch (parseError) {
+        console.error("응답 파싱 오류:", parseError);
+        throw new Error("서버 응답을 처리할 수 없습니다.");
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || `프로필 수정에 실패했습니다. (${response.status})`
+        );
+      }
+
+      console.log("프로필 수정 성공:", data);
+
+      // 성공 시 편집 모드 종료
       setIsEditable(false);
       setError("");
-      
-      // 추후 user-service에 프로필 업데이트 엔드포인트가 추가되면 여기에 구현
-      // const profileData = {
-      //   name: formData.name,
-      //   phone: formData.phone,
-      //   nickname: formData.nickname,
-      // };
-      
+      setShowSuccessModal(true);
     } catch (error) {
       console.error("프로필 수정 실패:", error);
-      setError("프로필 수정에 실패했습니다.");
+      setError(error.message || "프로필 수정에 실패했습니다.");
     } finally {
       setLoading(false);
     }
@@ -157,6 +199,10 @@ const MyPage = () => {
   };
 
   const triggerFileSelect = () => fileInputRef.current?.click();
+
+  const closeSuccessModal = () => {
+    setShowSuccessModal(false);
+  };
 
   if (loading && !formData.email) {
     return (
@@ -256,7 +302,7 @@ const MyPage = () => {
                     onBlur={() => {
                       if (!formData.birthDate) setBirthType("text");
                     }}
-                    readOnly={!isEditable}
+                    readOnly={true}
                   />
                 </div>
 
@@ -384,6 +430,28 @@ const MyPage = () => {
               >
                 취소
               </button>
+            </div>
+          )}
+
+          {/* 성공 모달 */}
+          {showSuccessModal && (
+            <div className={styles.modalOverlay}>
+              <div className={styles.modalContent}>
+                <div className={styles.modalHeader}>
+                  <h3>프로필 수정 완료</h3>
+                </div>
+                <div className={styles.modalBody}>
+                  <p>프로필이 성공적으로 수정되었습니다.</p>
+                </div>
+                <div className={styles.modalFooter}>
+                  <button
+                    className={styles.modalButton}
+                    onClick={closeSuccessModal}
+                  >
+                    확인
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </main>
