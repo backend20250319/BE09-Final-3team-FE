@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import styles from "./page.module.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -42,6 +42,17 @@ const SuccessModal = ({ isOpen, message, onClose }) => {
 
 export default function SignupPage() {
   const router = useRouter();
+
+  // 각 필드에 대한 ref 생성
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
+  const confirmPasswordRef = useRef(null);
+  const nameRef = useRef(null);
+  const nicknameRef = useRef(null);
+  const phoneRef = useRef(null);
+  const addressRef = useRef(null);
+  const birthRef = useRef(null);
+
   const [formData, setFormData] = useState({
     email: "",
     verificationCode: "",
@@ -160,9 +171,61 @@ export default function SignupPage() {
     setBirthError("");
   };
 
+  // 특정 필드로 스크롤하는 함수
+  const scrollToField = (fieldName) => {
+    let targetRef = null;
+
+    switch (fieldName) {
+      case "email":
+        targetRef = emailRef;
+        break;
+      case "password":
+        targetRef = passwordRef;
+        break;
+      case "confirmPassword":
+        targetRef = confirmPasswordRef;
+        break;
+      case "name":
+        targetRef = nameRef;
+        break;
+      case "nickname":
+        targetRef = nicknameRef;
+        break;
+      case "phone":
+        targetRef = phoneRef;
+        break;
+      case "address":
+        targetRef = addressRef;
+        break;
+      case "birth":
+        targetRef = birthRef;
+        break;
+      default:
+        return;
+    }
+
+    if (targetRef && targetRef.current) {
+      targetRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      // 포커스도 함께 이동
+      setTimeout(() => {
+        targetRef.current.focus();
+      }, 500);
+    }
+  };
+
   // 모달 열기 함수
-  const openModal = (message, isSignupSuccess = false) => {
+  const openModal = (message, isSignupSuccess = false, fieldName = null) => {
     setModal({ isOpen: true, message, isSignupSuccess });
+
+    // 필드명이 지정된 경우 해당 필드로 스크롤
+    if (fieldName) {
+      setTimeout(() => {
+        scrollToField(fieldName);
+      }, 100);
+    }
   };
 
   // 모달 닫기 함수
@@ -313,10 +376,44 @@ export default function SignupPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 비밀번호 유효성 검사
+    // 필수 필드 검증
+    if (!formData.email) {
+      openModal("이메일을 입력해주세요.", false, "email");
+      return;
+    }
+    if (!formData.password) {
+      openModal("비밀번호를 입력해주세요.", false, "password");
+      return;
+    }
+    if (!formData.confirmPassword) {
+      openModal("비밀번호 확인을 입력해주세요.", false, "confirmPassword");
+      return;
+    }
+    if (!formData.name) {
+      openModal("이름을 입력해주세요.", false, "name");
+      return;
+    }
+    if (!formData.nickname) {
+      openModal("닉네임을 입력해주세요.", false, "nickname");
+      return;
+    }
+    if (!formData.phone) {
+      openModal("전화번호를 입력해주세요.", false, "phone");
+      return;
+    }
+    if (!formData.address) {
+      openModal("주소를 입력해주세요.", false, "address");
+      return;
+    }
+    if (!formData.birthYear || !formData.birthMonth || !formData.birthDay) {
+      openModal("생년월일을 선택해주세요.", false, "birth");
+      return;
+    }
+
+    // 비밀번호 유효성 검사 - 특수문자 1자 이상 포함
     const passwordRegex = /^(?=.*[!@#$%^&*(),.?":{}|<>])/;
     if (!passwordRegex.test(formData.password)) {
-      setPasswordError("비밀번호에 특수문자를 하나 이상 포함해주세요.");
+      openModal("비밀번호에서 특수문자를 입력해주세요.", false, "password");
       return;
     }
 
@@ -324,10 +421,10 @@ export default function SignupPage() {
       setErrors((prev) => ({ ...prev, passwordMatch: true }));
       return;
     }
-    // (선택) 이메일 미인증 차단
+    // 이메일 인증 필수
     if (!verificationStatus.verified) {
-      if (!confirm("이메일 인증을 완료하지 않았습니다. 계속 진행할까요?"))
-        return;
+      openModal("이메일 인증을 완료해주세요.", false, "email");
+      return;
     }
 
     const birthDate =
@@ -360,6 +457,12 @@ export default function SignupPage() {
     };
 
     console.log("회원가입 요청 데이터:", payload);
+    console.log("주소 데이터 확인:", {
+      address: formData.address,
+      detailAddress: formData.detailAddress,
+      roadAddress: payload.roadAddress,
+      detailAddressPayload: payload.detailAddress,
+    });
 
     try {
       setLoading((p) => ({ ...p, signup: true }));
@@ -473,6 +576,7 @@ export default function SignupPage() {
                 <label className={styles.label}>이메일</label>
                 <div className={styles.inputGroup}>
                   <input
+                    ref={emailRef}
                     type="email"
                     name="email"
                     value={formData.email}
@@ -530,6 +634,7 @@ export default function SignupPage() {
                 <label className={styles.label}>비밀번호</label>
                 <div className={styles.inputGroup}>
                   <input
+                    ref={passwordRef}
                     type="password"
                     name="password"
                     value={formData.password}
@@ -548,6 +653,7 @@ export default function SignupPage() {
                 <label className={styles.label}>비밀번호 확인</label>
                 <div className={styles.inputGroup}>
                   <input
+                    ref={confirmPasswordRef}
                     type="password"
                     name="confirmPassword"
                     value={formData.confirmPassword}
@@ -573,6 +679,7 @@ export default function SignupPage() {
                 <label className={styles.label}>이름</label>
                 <div className={styles.inputGroup}>
                   <input
+                    ref={nameRef}
                     type="text"
                     name="name"
                     value={formData.name}
@@ -591,6 +698,7 @@ export default function SignupPage() {
                 <label className={styles.label}>닉네임</label>
                 <div className={styles.inputGroup}>
                   <input
+                    ref={nicknameRef}
                     type="text"
                     name="nickname"
                     value={formData.nickname}
@@ -609,6 +717,7 @@ export default function SignupPage() {
                 <label className={styles.label}>전화번호</label>
                 <div className={styles.inputGroup}>
                   <input
+                    ref={phoneRef}
                     type="tel"
                     name="phone"
                     value={formData.phone}
@@ -628,6 +737,7 @@ export default function SignupPage() {
                 <label className={styles.label}>주소</label>
                 <div className={styles.inputGroup}>
                   <input
+                    ref={addressRef}
                     type="text"
                     name="address"
                     value={formData.address}
@@ -657,7 +767,7 @@ export default function SignupPage() {
               </div>
 
               {/* Birth Date */}
-              <div className={styles.formGroup}>
+              <div className={styles.formGroup} ref={birthRef}>
                 <div className={styles.birthLabel}>
                   <label className={styles.label}>생년월일</label>
                 </div>
