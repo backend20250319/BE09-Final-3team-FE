@@ -3,9 +3,13 @@
 import Link from "next/link";
 import { useState } from "react";
 import Image from "next/image"; // ✅ 이미지 사용 시 필수
+import { useRouter } from "next/navigation";
 import styles from "./PasswordResetForm.module.css";
 
 export default function PasswordResetForm() {
+  const router = useRouter();
+  const USER_API_BASE = "http://localhost:8000/api/v1/user-service";
+
   const [email, setEmail] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -13,18 +17,235 @@ export default function PasswordResetForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [step, setStep] = useState(1); // 1: email verification, 2: password reset
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
+  const [showEmailSentModal, setShowEmailSentModal] = useState(false);
 
-  const handleSendVerificationCode = () => {
-    console.log("Sending verification code to:", email);
+  const handleSendVerificationCode = async () => {
+    if (!email) {
+      setError("이메일을 입력해주세요.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      console.log("비밀번호 재설정 요청 시작");
+      console.log("요청 URL:", `${USER_API_BASE}/auth/password/reset`);
+
+      const response = await fetch(`${USER_API_BASE}/auth/password/reset`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      console.log(
+        "비밀번호 재설정 요청 응답 상태:",
+        response.status,
+        response.statusText
+      );
+
+      let data = {};
+      try {
+        const responseText = await response.text();
+        console.log("비밀번호 재설정 요청 응답 텍스트:", responseText);
+        if (responseText.trim()) {
+          data = JSON.parse(responseText);
+        }
+      } catch (parseError) {
+        console.error("응답 파싱 오류:", parseError);
+        throw new Error("서버 응답을 처리할 수 없습니다.");
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+            `비밀번호 재설정 요청에 실패했습니다. (${response.status})`
+        );
+      }
+
+      console.log("비밀번호 재설정 요청 성공:", data);
+
+      // 인증번호 발송 성공 시 모달 표시
+      setShowEmailSentModal(true);
+
+      // 2초 후 모달 닫기
+      setTimeout(() => {
+        setShowEmailSentModal(false);
+      }, 2000);
+    } catch (error) {
+      console.error("비밀번호 재설정 요청 실패:", error);
+      setError(error.message || "비밀번호 재설정 요청에 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleVerifyCode = () => {
-    console.log("Verifying code:", verificationCode);
-    setStep(2);
+  const handleVerifyCode = async () => {
+    if (!verificationCode) {
+      setError("인증번호를 입력해주세요.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      console.log("인증번호 확인 시작");
+      console.log("요청 URL:", `${USER_API_BASE}/auth/password/verify`);
+      console.log("요청 데이터:", { email, verificationCode });
+
+      // 비밀번호 재설정 인증번호 확인
+      const response = await fetch(`${USER_API_BASE}/auth/password/verify`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          code: verificationCode,
+        }),
+      });
+
+      console.log(
+        "인증번호 확인 응답 상태:",
+        response.status,
+        response.statusText
+      );
+
+      let data = {};
+      try {
+        const responseText = await response.text();
+        console.log("인증번호 확인 응답 텍스트:", responseText);
+
+        if (!response.ok) {
+          // HTTP 에러인 경우 JSON 파싱 시도
+          if (responseText.trim()) {
+            data = JSON.parse(responseText);
+          }
+          throw new Error(
+            data.message || `인증번호 확인에 실패했습니다. (${response.status})`
+          );
+        }
+
+        // 성공 응답인 경우 JSON 파싱
+        if (responseText.trim()) {
+          data = JSON.parse(responseText);
+        }
+      } catch (parseError) {
+        console.error("응답 파싱 오류:", parseError);
+        if (parseError.message.includes("인증번호 확인에 실패했습니다")) {
+          throw parseError;
+        }
+        throw new Error("서버 응답을 처리할 수 없습니다.");
+      }
+
+      // 응답 확인
+      if (!data.data || !data.data.verified) {
+        throw new Error("인증번호가 일치하지 않습니다.");
+      }
+
+      console.log("인증번호 확인 성공:", data);
+
+      // 인증 성공 시 모달 표시
+      setShowVerificationModal(true);
+
+      // 2초 후 모달 닫고 다음 단계로 진행
+      setTimeout(() => {
+        setShowVerificationModal(false);
+        setStep(2);
+      }, 2000);
+    } catch (error) {
+      console.error("인증번호 확인 실패:", error);
+      setError(error.message || "인증번호 확인에 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleResetPassword = () => {
-    console.log("Resetting password:", { newPassword, confirmPassword });
+  const handleResetPassword = async () => {
+    if (!newPassword || !confirmPassword) {
+      setError("새 비밀번호를 입력해주세요.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setError("비밀번호는 8자 이상이어야 합니다.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      console.log("비밀번호 변경 시작");
+      console.log("요청 URL:", `${USER_API_BASE}/auth/password/change`);
+
+      const response = await fetch(`${USER_API_BASE}/auth/password/change`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          verificationCode,
+          newPassword,
+          confirmPassword,
+        }),
+      });
+
+      console.log(
+        "비밀번호 변경 응답 상태:",
+        response.status,
+        response.statusText
+      );
+
+      let data = {};
+      try {
+        const responseText = await response.text();
+        console.log("비밀번호 변경 응답 텍스트:", responseText);
+        if (responseText.trim()) {
+          data = JSON.parse(responseText);
+        }
+      } catch (parseError) {
+        console.error("응답 파싱 오류:", parseError);
+        throw new Error("서버 응답을 처리할 수 없습니다.");
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || `비밀번호 변경에 실패했습니다. (${response.status})`
+        );
+      }
+
+      console.log("비밀번호 변경 성공:", data);
+
+      // 비밀번호 변경 성공 시 모달 표시
+      setShowPasswordResetModal(true);
+
+      // 3초 후 모달 닫고 로그인 페이지로 이동
+      setTimeout(() => {
+        setShowPasswordResetModal(false);
+        router.push("/user/login");
+      }, 3000);
+    } catch (error) {
+      console.error("비밀번호 변경 실패:", error);
+      setError(error.message || "비밀번호 변경에 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -50,6 +271,11 @@ export default function PasswordResetForm() {
 
       {/* Form Section */}
       <div className={styles.formSection}>
+        {/* Error Message */}
+        {error && <div className={styles.errorMessage}>{error}</div>}
+
+        {/* Success Message */}
+        {success && <div className={styles.successMessage}>{success}</div>}
         {/* Step 1: Email Verification */}
         <div className={styles.stepContainer}>
           <div className={styles.stepHeader}>
@@ -76,8 +302,9 @@ export default function PasswordResetForm() {
           <button
             onClick={handleSendVerificationCode}
             className={styles.primaryButton}
+            disabled={loading}
           >
-            인증번호 발송
+            {loading ? "발송 중..." : "인증번호 발송"}
           </button>
 
           <div className={styles.verificationSection}>
@@ -89,7 +316,7 @@ export default function PasswordResetForm() {
                   placeholder="6자리 인증번호 입력"
                   value={verificationCode}
                   onChange={(e) => setVerificationCode(e.target.value)}
-                  className={`${styles.input} ${styles.disabledInput}`}
+                  className={styles.input}
                   maxLength={6}
                 />
                 <div className={styles.inputIcon}></div>
@@ -100,9 +327,10 @@ export default function PasswordResetForm() {
             </p>
             <button
               onClick={handleVerifyCode}
-              className={styles.secondaryButton}
+              className={styles.primaryButton}
+              disabled={loading}
             >
-              인증번호 확인
+              {loading ? "확인 중..." : "인증번호 확인"}
             </button>
           </div>
         </div>
@@ -111,24 +339,43 @@ export default function PasswordResetForm() {
         <div className={styles.divider}></div>
 
         {/* Step 2: Password Reset */}
-        <div className={`${styles.stepContainer} ${styles.disabledStep}`}>
+        <div
+          className={`${styles.stepContainer} ${
+            step !== 2 ? styles.disabledStep : ""
+          }`}
+          style={{ pointerEvents: step !== 2 ? "none" : "auto" }}
+        >
           <div className={styles.stepHeader}>
-            <div className={styles.stepNumberDisabled}>
+            <div
+              className={
+                step === 2 ? styles.stepNumber : styles.stepNumberDisabled
+              }
+            >
               <span>2</span>
             </div>
-            <h2 className={styles.stepTitleDisabled}>새 비밀번호 설정</h2>
+            <h2
+              className={
+                step === 2 ? styles.stepTitle : styles.stepTitleDisabled
+              }
+            >
+              새 비밀번호 설정
+            </h2>
           </div>
 
           <div className={styles.inputGroup}>
-            <label className={styles.labelDisabled}>새 비밀번호</label>
+            <label className={step === 2 ? styles.label : styles.labelDisabled}>
+              새 비밀번호
+            </label>
             <div className={styles.inputContainer}>
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="새 비밀번호를 입력하세요"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className={`${styles.input} ${styles.disabledInput}`}
-                disabled
+                className={`${styles.input} ${
+                  step !== 2 ? styles.disabledInput : ""
+                }`}
+                disabled={step !== 2}
               />
               <button
                 type="button"
@@ -139,15 +386,19 @@ export default function PasswordResetForm() {
           </div>
 
           <div className={styles.inputGroup}>
-            <label className={styles.labelDisabled}>비밀번호 확인</label>
+            <label className={step === 2 ? styles.label : styles.labelDisabled}>
+              비밀번호 확인
+            </label>
             <div className={styles.inputContainer}>
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="비밀번호를 다시 입력하세요"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className={`${styles.input} ${styles.disabledInput}`}
-                disabled
+                className={`${styles.input} ${
+                  step !== 2 ? styles.disabledInput : ""
+                }`}
+                disabled={step !== 2}
               />
               <button
                 type="button"
@@ -160,9 +411,9 @@ export default function PasswordResetForm() {
           <button
             onClick={handleResetPassword}
             className={styles.secondaryButton}
-            disabled
+            disabled={step !== 2 || loading}
           >
-            확인
+            {loading ? "변경 중..." : "확인"}
           </button>
         </div>
       </div>
@@ -176,6 +427,53 @@ export default function PasswordResetForm() {
           </Link>
         </p>
       </div>
+
+      {/* 인증 성공 모달 */}
+      {showVerificationModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <div className={styles.modalHeader}>
+              <h3>인증 완료</h3>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.successIcon}>✓</div>
+              <p>인증번호가 확인되었습니다!</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 인증번호 발송 완료 모달 */}
+      {showEmailSentModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <div className={styles.modalHeader}>
+              <h3>인증번호 발송 완료</h3>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.successIcon}>✓</div>
+              <p>인증번호를 발송하였습니다!</p>
+              <p className={styles.modalSubText}>이메일을 확인해주세요.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 비밀번호 변경 완료 모달 */}
+      {showPasswordResetModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <div className={styles.modalHeader}>
+              <h3>비밀번호 변경 완료</h3>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.successIcon}>✓</div>
+              <p>비밀번호가 수정되었습니다!</p>
+              <p className={styles.modalSubText}>로그인 페이지로 이동합니다.</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
