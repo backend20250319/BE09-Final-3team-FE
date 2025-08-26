@@ -21,10 +21,12 @@ export default function PetFulLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setPasswordError("");
     setLoading(true);
 
     try {
@@ -96,9 +98,16 @@ export default function PetFulLogin() {
       } else {
         // 로그인 실패
         if (response.status === 401) {
-          setError("이메일 또는 비밀번호가 올바르지 않습니다.");
+          setPasswordError("비밀번호가 틀렸습니다.");
         } else if (response.status === 400) {
           setError(data.message || "로그인 요청이 올바르지 않습니다.");
+        } else if (response.status === 500) {
+          // 백엔드에서 BadCredentialsException이 500으로 반환되는 경우
+          if (data.message && data.message.includes("Bad credentials")) {
+            setPasswordError("비밀번호가 틀렸습니다.");
+          } else {
+            setError("서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+          }
         } else {
           setError(data.message || "로그인에 실패했습니다. 다시 시도해주세요.");
         }
@@ -180,6 +189,10 @@ export default function PetFulLogin() {
                 />
               </button>
             </div>
+            {/* Password Error Message */}
+            {passwordError && (
+              <div className={styles.passwordErrorMessage}>{passwordError}</div>
+            )}
           </div>
 
           {/* Error Message */}
