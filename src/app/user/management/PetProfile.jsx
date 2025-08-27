@@ -1,65 +1,162 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./PetProfile.module.css";
 import Image from "next/image";
 import PetProfileRegistration from "./PetProfileRegistration";
 import PetstarModal from "./PetstarModal";
 import Link from "next/link";
 
+const PET_API_BASE = "http://localhost:8000/api/v1/pet-service";
+
 const PetProfile = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isPetstarModalOpen, setIsPetstarModalOpen] = useState(false);
   const [selectedPet, setSelectedPet] = useState(null);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [pets, setPets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const pets = [
-    {
-      id: 1,
-      name: "황금이",
-      breed: "골든 리트리버",
-      age: "3살",
-      health: "Healthy",
-      description:
-        "장난기 많고 에너지가 넘칩니다. 공놀이와 해변에서 수영하는 것을 좋아합니다.",
-      image: "/user/dog.png",
-      healthPercentage: 100,
-      healthColor: "#8BC34A",
-      isPetStar: true,
-      gender: "수컷",
-      sns: "instagram",
-    },
-    {
-      id: 2,
-      name: "루나",
-      breed: "샴 고양이",
-      age: "2살",
-      health: "Healthy",
-      description: "독립적이고 우아한 성격입니다.",
-      image: "/user/cat.png",
-      healthPercentage: 85,
-      healthColor: "#F5A623",
-      isPetStar: false,
-      gender: "암컷",
-      sns: "",
-    },
-    {
-      id: 3,
-      name: "찰리",
-      breed: "푸른 마코 앵무",
-      age: "5살",
-      health: "건강 검진 예정",
-      description: "수다스럽고 사교적인 성격입니다.",
-      image: "/user/bird.png",
-      healthPercentage: 60,
-      healthColor: "#FF7675",
-      isPetStar: false,
-      gender: "수컷",
-      sns: "",
-    },
-  ];
+  // 반려동물 목록 조회
+  const fetchPets = async () => {
+    try {
+      setLoading(true);
+
+      // 로컬 스토리지에서 토큰과 사용자 정보 가져오기
+      const token = localStorage.getItem("token");
+      const userNo = localStorage.getItem("userNo");
+
+      const response = await fetch(`${PET_API_BASE}/pets`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+          ...(userNo && { "X-User-No": userNo }),
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "반려동물 목록 조회에 실패했습니다."
+        );
+      }
+
+      const data = await response.json();
+      setPets(data.data || []);
+    } catch (error) {
+      console.error("반려동물 목록 조회 실패:", error);
+      setError(error.message);
+      setPets([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 컴포넌트 마운트 시 반려동물 목록 조회
+  useEffect(() => {
+    fetchPets();
+  }, []);
+
+  // 반려동물 삭제
+  const handleDeletePet = async (petNo) => {
+    try {
+      const token = localStorage.getItem("token");
+      const userNo = localStorage.getItem("userNo");
+
+      const response = await fetch(`${PET_API_BASE}/pets/${petNo}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+          ...(userNo && { "X-User-No": userNo }),
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "반려동물 삭제에 실패했습니다.");
+      }
+
+      // 삭제 성공 시 목록 새로고침
+      fetchPets();
+      setIsDeleteModalOpen(false);
+      showSuccessMessage("반려동물이 삭제되었습니다.");
+    } catch (error) {
+      console.error("반려동물 삭제 실패:", error);
+      showSuccessMessage(error.message);
+    }
+  };
+
+  // PetStar 신청
+  const handleApplyPetStar = async (petNo) => {
+    try {
+      const token = localStorage.getItem("token");
+      const userNo = localStorage.getItem("userNo");
+
+      const response = await fetch(
+        `${PET_API_BASE}/pets/${petNo}/petstar/apply`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && { Authorization: `Bearer ${token}` }),
+            ...(userNo && { "X-User-No": userNo }),
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        // 백엔드에서 전달된 구체적인 에러 메시지 사용
+        const errorMessage =
+          errorData.message || "PetStar 신청에 실패했습니다.";
+        throw new Error(errorMessage);
+      }
+
+      // 신청 성공 시 목록 새로고침
+      fetchPets();
+      setIsPetstarModalOpen(false);
+      showSuccessMessage("펫스타 신청이 완료되었습니다.");
+    } catch (error) {
+      console.error("PetStar 신청 실패:", error);
+      // 실패 시 PetStar 신청 모달을 닫고 구체적인 실패 사유 표시
+      setIsPetstarModalOpen(false);
+
+      // 실패 사유에 따른 메시지 구분
+      let failureMessage = "PetStar 신청에 실패했습니다.";
+
+      if (
+        error.message.includes(
+          "이미 PetStar 신청이 진행 중이거나 처리되었습니다"
+        )
+      ) {
+        failureMessage =
+          "이미 PetStar 신청이 진행 중이거나 처리되었습니다.\n\n다른 반려동물로 신청해보세요.";
+      } else if (error.message.includes("권한이 없습니다")) {
+        failureMessage =
+          "PetStar 신청 권한이 없습니다.\n\n로그인 상태를 확인해주세요.";
+      } else if (error.message.includes("존재하지 않는 반려동물")) {
+        failureMessage =
+          "존재하지 않는 반려동물입니다.\n\n반려동물 정보를 다시 확인해주세요.";
+      } else if (error.message.includes("네트워크")) {
+        failureMessage =
+          "네트워크 연결을 확인해주세요.\n\n잠시 후 다시 시도해주세요.";
+      } else {
+        // 기타 에러는 백엔드에서 전달된 메시지 그대로 사용
+        failureMessage = error.message;
+      }
+
+      showSuccessMessage(failureMessage);
+    }
+  };
 
   const hasPets = pets.length > 0;
+  console.log("pets:", pets);
+  console.log("hasPets:", hasPets);
 
   const handleEditPet = (pet) => {
     setSelectedPet(pet);
@@ -71,9 +168,23 @@ const PetProfile = () => {
     setSelectedPet(null);
   };
 
+  const showSuccessMessage = (message) => {
+    setSuccessMessage(message);
+    setIsSuccessModalOpen(true);
+  };
+
   return (
     <div className={styles.container}>
-      {!hasPets ? (
+      {loading ? (
+        <div style={{ textAlign: "center", padding: "50px" }}>
+          <p>반려동물 정보를 불러오는 중...</p>
+        </div>
+      ) : error ? (
+        <div style={{ textAlign: "center", padding: "50px", color: "red" }}>
+          <p>오류: {error}</p>
+          <button onClick={fetchPets}>다시 시도</button>
+        </div>
+      ) : !hasPets ? (
         <section className={styles.headerSectionEmpty}>
           <div className={styles.headerContent}>
             <h1 className={styles.pageTitle}>펫 프로필</h1>
@@ -120,12 +231,16 @@ const PetProfile = () => {
 
               <div className={styles.petGrid}>
                 {pets.map((pet) => (
-                  <div key={pet.id} className={styles.petCard}>
+                  <div key={pet.petNo} className={styles.petCard}>
                     <div className={styles.petImageContainer}>
-                      <Link href={`/user/portfolio?petId=${pet.id}`}>
+                      <Link href={`/user/portfolio?petId=${pet.petNo}`}>
                         <div className={styles.petImage}>
                           <Image
-                            src={pet.image}
+                            src={
+                              pet.imageUrl && !pet.imageUrl.startsWith("http")
+                                ? pet.imageUrl
+                                : "/user/dog.png"
+                            }
                             alt={pet.name}
                             width={409}
                             height={192}
@@ -139,9 +254,7 @@ const PetProfile = () => {
                       <div className={styles.petHeader}>
                         <div className={styles.petNameBreedRow}>
                           <span className={styles.petName}>{pet.name}</span>
-                          <span className={styles.breedText}>
-                            ({pet.breed})
-                          </span>
+                          <span className={styles.breedText}>({pet.type})</span>
                           {pet.isPetStar && (
                             <Image
                               src="/user/medal.svg"
@@ -154,7 +267,14 @@ const PetProfile = () => {
                         </div>
                         <div className={styles.petMetaRow}></div>
                       </div>
-                      <div className={styles.ageText}>{pet.age}</div>
+                      <div className={styles.ageText}>{pet.age}살</div>
+                      <div className={styles.genderText}>
+                        {pet.gender === "M"
+                          ? "수컷"
+                          : pet.gender === "F"
+                          ? "암컷"
+                          : pet.gender}
+                      </div>
                       <div className={styles.petDescription}>
                         {pet.description}
                       </div>
@@ -163,7 +283,10 @@ const PetProfile = () => {
                           {!pet.isPetStar && (
                             <button
                               className={styles.actionButton}
-                              onClick={() => setIsPetstarModalOpen(true)}
+                              onClick={() => {
+                                setSelectedPet(pet);
+                                setIsPetstarModalOpen(true);
+                              }}
                             >
                               <Image
                                 src={`/user/medal.png`}
@@ -186,7 +309,10 @@ const PetProfile = () => {
                           </button>
                           <button
                             className={styles.actionButton}
-                            onClick={() => setIsDeleteModalOpen(true)}
+                            onClick={() => {
+                              setSelectedPet(pet);
+                              setIsDeleteModalOpen(true);
+                            }}
                           >
                             <Image
                               src="/user/garbage.png"
@@ -231,6 +357,8 @@ const PetProfile = () => {
         onClose={handleCloseModal}
         petData={selectedPet}
         isEditMode={!!selectedPet}
+        onSuccess={fetchPets}
+        onSuccessMessage={showSuccessMessage}
       />
 
       {/* 삭제 확인 모달 */}
@@ -258,7 +386,11 @@ const PetProfile = () => {
             >
               <button
                 className={styles.deleteButton}
-                onClick={() => setIsDeleteModalOpen(false)}
+                onClick={() => {
+                  if (selectedPet) {
+                    handleDeletePet(selectedPet.petNo);
+                  }
+                }}
               >
                 삭제
               </button>
@@ -277,7 +409,43 @@ const PetProfile = () => {
       <PetstarModal
         isOpen={isPetstarModalOpen}
         onClose={() => setIsPetstarModalOpen(false)}
+        selectedPet={selectedPet}
+        onApply={handleApplyPetStar}
       />
+
+      {/* 성공 메시지 모달 */}
+      {isSuccessModalOpen && (
+        <div
+          className={styles.modalOverlay}
+          onClick={() => setIsSuccessModalOpen(false)}
+        >
+          <div
+            className={styles.modalContent}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.modalHeader}>
+              <h1 className={styles.modalTitle}>알림</h1>
+              <button
+                className={styles.modalClose}
+                onClick={() => setIsSuccessModalOpen(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <p className={styles.modalMessage}>{successMessage}</p>
+            </div>
+            <div className={styles.modalFooter}>
+              <button
+                className={styles.modalButton}
+                onClick={() => setIsSuccessModalOpen(false)}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

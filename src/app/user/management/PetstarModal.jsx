@@ -2,7 +2,7 @@ import React from "react";
 import styles from "./PetstarModal.module.css";
 import Image from "next/image";
 
-const PetstarModal = ({ isOpen, onClose }) => {
+const PetstarModal = ({ isOpen, onClose, selectedPet, onApply }) => {
   if (!isOpen) return null;
 
   return (
@@ -97,7 +97,14 @@ const PetstarModal = ({ isOpen, onClose }) => {
 
         {/* Footer Section */}
         <div className={styles.modalFooter}>
-          <button className={styles.confirmButton}>
+          <button
+            className={styles.confirmButton}
+            onClick={() => {
+              if (selectedPet && onApply) {
+                onApply(selectedPet.petNo);
+              }
+            }}
+          >
             <Image src="/user/plane.svg" alt="Plane" width={20} height={20} />
             신청하기
           </button>

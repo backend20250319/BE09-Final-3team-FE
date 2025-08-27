@@ -66,10 +66,11 @@ export default function PetFulLogin() {
         const authData = data.data; // ApiResponse 구조에서 실제 데이터 추출
 
         if (authData && authData.accessToken) {
-          localStorage.setItem("accessToken", authData.accessToken);
+          localStorage.setItem("token", authData.accessToken);
           localStorage.setItem("refreshToken", authData.refreshToken);
           localStorage.setItem("userEmail", authData.email);
           localStorage.setItem("userNickname", authData.name || ""); // 닉네임 저장
+          localStorage.setItem("userNo", authData.userNo || ""); // 사용자 번호 저장
 
           // 토큰 만료 시간 저장 (선택사항)
           if (authData.accessExpiresAt) {
