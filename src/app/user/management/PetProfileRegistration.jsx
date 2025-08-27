@@ -117,6 +117,7 @@ const PetProfileRegistration = ({
         type: formData.type,
         age: parseInt(formData.age),
         gender: formData.gender,
+        imageNo: 1,
         weight: parseFloat(formData.weight),
         imageUrl: null, // 임시로 null로 설정
         imageNo: 1, // 임시로 기본값 설정

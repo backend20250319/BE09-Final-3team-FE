@@ -129,19 +129,25 @@ const PetProfile = () => {
       // 실패 사유에 따른 메시지 구분
       let failureMessage = "PetStar 신청에 실패했습니다.";
 
-      if (
-        error.message.includes(
-          "이미 PetStar 신청이 진행 중이거나 처리되었습니다"
-        )
+      if (error.message.includes("이미 PetStar 신청이 진행 중입니다")) {
+        failureMessage =
+          "이미 PetStar 신청이 진행 중입니다.\n\n신청 결과를 기다려주세요.";
+      } else if (
+        error.message.includes("이미 PetStar로 승인되어 활성화되었습니다")
       ) {
         failureMessage =
-          "이미 PetStar 신청이 진행 중이거나 처리되었습니다.\n\n다른 반려동물로 신청해보세요.";
+          "이미 PetStar로 승인되어 활성화되었습니다.\n\n다른 반려동물로 신청해보세요.";
+      } else if (
+        error.message.includes("이전에 PetStar 신청이 거절되었습니다")
+      ) {
+        failureMessage =
+          "이전에 PetStar 신청이 거절되었습니다.\n\n다른 반려동물로 신청해보세요.";
       } else if (error.message.includes("권한이 없습니다")) {
         failureMessage =
           "PetStar 신청 권한이 없습니다.\n\n로그인 상태를 확인해주세요.";
-      } else if (error.message.includes("존재하지 않는 반려동물")) {
+      } else if (error.message.includes("반려동물을 찾을 수 없습니다")) {
         failureMessage =
-          "존재하지 않는 반려동물입니다.\n\n반려동물 정보를 다시 확인해주세요.";
+          "반려동물 정보를 찾을 수 없습니다.\n\n반려동물 정보를 다시 확인해주세요.";
       } else if (error.message.includes("네트워크")) {
         failureMessage =
           "네트워크 연결을 확인해주세요.\n\n잠시 후 다시 시도해주세요.";
