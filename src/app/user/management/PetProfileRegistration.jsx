@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import styles from "./PetProfileRegistration.module.css";
+import axios from "axios";
 
 const PET_API_BASE = "http://localhost:8000/api/v1/pet-service";
 
@@ -129,37 +130,26 @@ const PetProfileRegistration = ({
 
       if (isEditMode && petData) {
         // 수정
-        const response = await fetch(`${PET_API_BASE}/pets/${petData.petNo}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token && { Authorization: `Bearer ${token}` }),
-            ...(userNo && { "X-User-No": userNo }),
-          },
-          body: JSON.stringify(requestData),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "반려동물 수정에 실패했습니다.");
-        }
+        const response = await axios.put(
+          `${PET_API_BASE}/pets/${petData.petNo}`,
+          requestData,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              ...(token && { Authorization: `Bearer ${token}` }),
+              ...(userNo && { "X-User-No": userNo }),
+            },
+          }
+        );
       } else {
         // 등록
-        const response = await fetch(`${PET_API_BASE}/pets`, {
-          method: "POST",
+        const response = await axios.post(`${PET_API_BASE}/pets`, requestData, {
           headers: {
             "Content-Type": "application/json",
             ...(token && { Authorization: `Bearer ${token}` }),
             ...(userNo && { "X-User-No": userNo }),
           },
-          body: JSON.stringify(requestData),
         });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error("백엔드 오류 응답:", errorData);
-          throw new Error(errorData.message || "반려동물 등록에 실패했습니다.");
-        }
       }
 
       onClose();
@@ -177,8 +167,12 @@ const PetProfileRegistration = ({
       }
     } catch (error) {
       console.error("반려동물 저장 실패:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "반려동물 저장에 실패했습니다.";
       if (onSuccessMessage) {
-        onSuccessMessage(error.message);
+        onSuccessMessage(errorMessage);
       }
     }
   };

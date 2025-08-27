@@ -91,8 +91,8 @@ export default function PetFulLogin() {
           // 커스텀 이벤트 발생 (헤더 업데이트용)
           window.dispatchEvent(new Event("loginStatusChanged"));
 
-          // 메인 페이지로 리다이렉트
-          router.push("/");
+          // 강제로 페이지 새로고침하여 헤더 상태 업데이트
+          window.location.href = "/";
         } else {
           setError("로그인 응답에 토큰이 없습니다.");
         }

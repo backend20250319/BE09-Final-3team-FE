@@ -6,6 +6,7 @@ import Image from "next/image";
 import PetProfileRegistration from "./PetProfileRegistration";
 import PetstarModal from "./PetstarModal";
 import Link from "next/link";
+import axios from "axios";
 
 const PET_API_BASE = "http://localhost:8000/api/v1/pet-service";
 
@@ -29,8 +30,7 @@ const PetProfile = () => {
       const token = localStorage.getItem("token");
       const userNo = localStorage.getItem("userNo");
 
-      const response = await fetch(`${PET_API_BASE}/pets`, {
-        method: "GET",
+      const response = await axios.get(`${PET_API_BASE}/pets`, {
         headers: {
           "Content-Type": "application/json",
           ...(token && { Authorization: `Bearer ${token}` }),
@@ -38,18 +38,14 @@ const PetProfile = () => {
         },
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message || "반려동물 목록 조회에 실패했습니다."
-        );
-      }
-
-      const data = await response.json();
-      setPets(data.data || []);
+      setPets(response.data.data || []);
     } catch (error) {
       console.error("반려동물 목록 조회 실패:", error);
-      setError(error.message);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "반려동물 목록 조회에 실패했습니다.";
+      setError(errorMessage);
       setPets([]);
     } finally {
       setLoading(false);
@@ -67,8 +63,7 @@ const PetProfile = () => {
       const token = localStorage.getItem("token");
       const userNo = localStorage.getItem("userNo");
 
-      const response = await fetch(`${PET_API_BASE}/pets/${petNo}`, {
-        method: "DELETE",
+      await axios.delete(`${PET_API_BASE}/pets/${petNo}`, {
         headers: {
           "Content-Type": "application/json",
           ...(token && { Authorization: `Bearer ${token}` }),
@@ -76,18 +71,17 @@ const PetProfile = () => {
         },
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "반려동물 삭제에 실패했습니다.");
-      }
-
       // 삭제 성공 시 목록 새로고침
       fetchPets();
       setIsDeleteModalOpen(false);
       showSuccessMessage("반려동물이 삭제되었습니다.");
     } catch (error) {
       console.error("반려동물 삭제 실패:", error);
-      showSuccessMessage(error.message);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "반려동물 삭제에 실패했습니다.";
+      showSuccessMessage(errorMessage);
     }
   };
 
@@ -97,10 +91,10 @@ const PetProfile = () => {
       const token = localStorage.getItem("token");
       const userNo = localStorage.getItem("userNo");
 
-      const response = await fetch(
+      await axios.post(
         `${PET_API_BASE}/pets/${petNo}/petstar/apply`,
+        {},
         {
-          method: "POST",
           headers: {
             "Content-Type": "application/json",
             ...(token && { Authorization: `Bearer ${token}` }),
@@ -108,14 +102,6 @@ const PetProfile = () => {
           },
         }
       );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        // 백엔드에서 전달된 구체적인 에러 메시지 사용
-        const errorMessage =
-          errorData.message || "PetStar 신청에 실패했습니다.";
-        throw new Error(errorMessage);
-      }
 
       // 신청 성공 시 목록 새로고침
       fetchPets();
@@ -126,34 +112,40 @@ const PetProfile = () => {
       // 실패 시 PetStar 신청 모달을 닫고 구체적인 실패 사유 표시
       setIsPetstarModalOpen(false);
 
+      // axios 에러에서 메시지 추출
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "PetStar 신청에 실패했습니다.";
+
       // 실패 사유에 따른 메시지 구분
       let failureMessage = "PetStar 신청에 실패했습니다.";
 
-      if (error.message.includes("이미 PetStar 신청이 진행 중입니다")) {
+      if (errorMessage.includes("이미 PetStar 신청이 진행 중입니다")) {
         failureMessage =
           "이미 PetStar 신청이 진행 중입니다.\n\n신청 결과를 기다려주세요.";
       } else if (
-        error.message.includes("이미 PetStar로 승인되어 활성화되었습니다")
+        errorMessage.includes("이미 PetStar로 승인되어 활성화되었습니다")
       ) {
         failureMessage =
           "이미 PetStar로 승인되어 활성화되었습니다.\n\n다른 반려동물로 신청해보세요.";
       } else if (
-        error.message.includes("이전에 PetStar 신청이 거절되었습니다")
+        errorMessage.includes("이전에 PetStar 신청이 거절되었습니다")
       ) {
         failureMessage =
           "이전에 PetStar 신청이 거절되었습니다.\n\n다른 반려동물로 신청해보세요.";
-      } else if (error.message.includes("권한이 없습니다")) {
+      } else if (errorMessage.includes("권한이 없습니다")) {
         failureMessage =
           "PetStar 신청 권한이 없습니다.\n\n로그인 상태를 확인해주세요.";
-      } else if (error.message.includes("반려동물을 찾을 수 없습니다")) {
+      } else if (errorMessage.includes("반려동물을 찾을 수 없습니다")) {
         failureMessage =
           "반려동물 정보를 찾을 수 없습니다.\n\n반려동물 정보를 다시 확인해주세요.";
-      } else if (error.message.includes("네트워크")) {
+      } else if (errorMessage.includes("네트워크")) {
         failureMessage =
           "네트워크 연결을 확인해주세요.\n\n잠시 후 다시 시도해주세요.";
       } else {
         // 기타 에러는 백엔드에서 전달된 메시지 그대로 사용
-        failureMessage = error.message;
+        failureMessage = errorMessage;
       }
 
       showSuccessMessage(failureMessage);

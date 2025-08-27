@@ -40,7 +40,8 @@ const MyPage = () => {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("accessToken");
+      const token =
+        localStorage.getItem("token") || localStorage.getItem("accessToken");
 
       if (!token) {
         router.push("/user/login");
@@ -57,6 +58,11 @@ const MyPage = () => {
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          // 인증 실패 시 로그인 페이지로 이동
+          router.push("/user/login");
+          return;
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -106,7 +112,8 @@ const MyPage = () => {
   const handleSave = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("accessToken");
+      const token =
+        localStorage.getItem("token") || localStorage.getItem("accessToken");
 
       if (!token) {
         router.push("/user/login");
@@ -232,6 +239,11 @@ const MyPage = () => {
       <div className={styles.body}>
         <main className={styles.main}>
           <h1 className={styles.pageTitle}>마이페이지</h1>
+
+          {/* 편집 모드 알림 */}
+          {isEditable && (
+            <div className={styles.editModeAlert}>마이페이지를 수정입니다.</div>
+          )}
 
           {error && <div className={styles.errorMessage}>{error}</div>}
 

@@ -19,9 +19,10 @@ export default function Header() {
   useEffect(() => {
     const checkLoginStatus = () => {
       const accessToken = localStorage.getItem("accessToken");
+      const token = localStorage.getItem("token");
       const nickname = localStorage.getItem("userNickname");
 
-      if (accessToken) {
+      if (accessToken || token) {
         setIsLoggedIn(true);
         setUserNickname(nickname || "");
       } else {
@@ -32,6 +33,9 @@ export default function Header() {
 
     // 초기 로그인 상태 확인
     checkLoginStatus();
+
+    // 주기적으로 로그인 상태 확인 (1초마다)
+    const intervalId = setInterval(checkLoginStatus, 1000);
 
     // localStorage 변경 감지
     const handleStorageChange = () => {
@@ -44,6 +48,7 @@ export default function Header() {
     window.addEventListener("loginStatusChanged", checkLoginStatus);
 
     return () => {
+      clearInterval(intervalId);
       window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener("loginStatusChanged", checkLoginStatus);
     };
@@ -57,9 +62,11 @@ export default function Header() {
   const handleLogout = () => {
     // localStorage에서 토큰 제거
     localStorage.removeItem("accessToken");
+    localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("userEmail");
     localStorage.removeItem("userNickname");
+    localStorage.removeItem("userNo");
     localStorage.removeItem("accessTokenExpiresAt");
     localStorage.removeItem("refreshTokenExpiresAt");
 
