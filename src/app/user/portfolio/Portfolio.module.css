@@ -38,6 +38,27 @@
   width: 100%;
 }
 
+/* 포트폴리오 프롬프트 스타일 */
+.portfolioPrompt {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px;
+  text-align: center;
+  border: 1px solid #e9ecef;
+  width: 100%;
+  max-width: 800px;
+}
+
+.portfolioMessage {
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #594a3e;
+  margin: 0;
+}
+
 /* 프로필 이미지 섹션 */
 .profileImageSection {
   display: flex;

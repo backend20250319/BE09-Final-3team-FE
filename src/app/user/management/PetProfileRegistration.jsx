@@ -2,15 +2,26 @@
 
 import { useState, useRef, useEffect } from "react";
 import styles from "./PetProfileRegistration.module.css";
+import axios from "axios";
 
-const PetProfileRegistration = ({ isOpen, onClose, petData, isEditMode }) => {
+const PET_API_BASE = "http://localhost:8000/api/v1/pet-service";
+
+const PetProfileRegistration = ({
+  isOpen,
+  onClose,
+  petData,
+  isEditMode,
+  onSuccess,
+  onSuccessMessage,
+}) => {
   const [formData, setFormData] = useState({
     name: "",
-    breed: "",
+    type: "",
     age: "",
     gender: "",
-    description: "",
-    sns: "",
+    weight: "",
+    imageUrl: "",
+    snsUrl: "",
   });
 
   const [selectedImage, setSelectedImage] = useState(null);
@@ -21,22 +32,24 @@ const PetProfileRegistration = ({ isOpen, onClose, petData, isEditMode }) => {
     if (isEditMode && petData) {
       setFormData({
         name: petData.name || "",
-        breed: petData.breed || "",
+        type: petData.type || "",
         age: petData.age || "",
         gender: petData.gender || "",
-        description: petData.description || "",
-        sns: petData.sns || "",
+        weight: petData.weight || "",
+        imageUrl: petData.imageUrl || "",
+        snsUrl: petData.snsUrl || "",
       });
-      setSelectedImage(petData.image || null);
+      setSelectedImage(petData.imageUrl || null);
     } else {
       // 새로 등록할 때는 기본값으로 초기화
       setFormData({
         name: "",
-        breed: "",
+        type: "",
         age: "",
         gender: "",
-        description: "",
-        sns: "",
+        weight: "",
+        imageUrl: "",
+        snsUrl: "",
       });
       setSelectedImage(null);
     }
@@ -45,15 +58,11 @@ const PetProfileRegistration = ({ isOpen, onClose, petData, isEditMode }) => {
   // Select 요소 색상 초기화
   useEffect(() => {
     const genderSelect = document.querySelector('select[name="gender"]');
-    const snsSelect = document.querySelector('select[name="sns"]');
 
     if (genderSelect) {
       genderSelect.style.color = formData.gender ? "#000000" : "#9ca3af";
     }
-    if (snsSelect) {
-      snsSelect.style.color = formData.sns ? "#000000" : "#9ca3af";
-    }
-  }, [formData.gender, formData.sns]);
+  }, [formData.gender]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -62,7 +71,7 @@ const PetProfileRegistration = ({ isOpen, onClose, petData, isEditMode }) => {
     }));
 
     // Select 요소의 색상 변경
-    if (field === "gender" || field === "sns") {
+    if (field === "gender") {
       const selectElement = document.querySelector(`select[name="${field}"]`);
       if (selectElement) {
         if (value) {
@@ -85,14 +94,87 @@ const PetProfileRegistration = ({ isOpen, onClose, petData, isEditMode }) => {
     }
   };
 
-  const handleEdit = () => {
-    console.log("Edit profile", formData);
-    onClose();
-  };
+  const handleSubmit = async () => {
+    try {
+      // 필수 필드 검증
+      if (
+        !formData.name ||
+        !formData.type ||
+        !formData.age ||
+        !formData.gender ||
+        !formData.weight
+      ) {
+        if (onSuccessMessage) {
+          onSuccessMessage("모든 필수 필드를 입력해주세요.");
+        }
+        return;
+      }
 
-  const handleDelete = () => {
-    console.log("Delete profile");
-    onClose();
+      const token = localStorage.getItem("token");
+      const userNo = localStorage.getItem("userNo");
+
+      const requestData = {
+        name: formData.name,
+        type: formData.type,
+        age: parseInt(formData.age),
+        gender: formData.gender,
+        imageNo: 1,
+        weight: parseFloat(formData.weight),
+        imageUrl: null, // 임시로 null로 설정
+        imageNo: 1, // 임시로 기본값 설정
+        snsProfileNo: formData.snsUrl ? 1 : null, // 임시로 기본값 설정
+      };
+
+      console.log("전송할 데이터:", requestData);
+      console.log("전송할 데이터 JSON:", JSON.stringify(requestData));
+
+      if (isEditMode && petData) {
+        // 수정
+        const response = await axios.put(
+          `${PET_API_BASE}/pets/${petData.petNo}`,
+          requestData,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              ...(token && { Authorization: `Bearer ${token}` }),
+              ...(userNo && { "X-User-No": userNo }),
+            },
+          }
+        );
+      } else {
+        // 등록
+        const response = await axios.post(`${PET_API_BASE}/pets`, requestData, {
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && { Authorization: `Bearer ${token}` }),
+            ...(userNo && { "X-User-No": userNo }),
+          },
+        });
+      }
+
+      onClose();
+      // 부모 컴포넌트에서 목록 새로고침을 위해 콜백 호출
+      if (onSuccess && typeof onSuccess === "function") {
+        onSuccess();
+      }
+      // 성공 메시지 표시
+      if (onSuccessMessage) {
+        onSuccessMessage(
+          isEditMode
+            ? "펫 정보가 수정되었습니다."
+            : "반려동물이 등록되었습니다."
+        );
+      }
+    } catch (error) {
+      console.error("반려동물 저장 실패:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "반려동물 저장에 실패했습니다.";
+      if (onSuccessMessage) {
+        onSuccessMessage(errorMessage);
+      }
+    }
   };
 
   const handleClose = () => {
@@ -175,14 +257,14 @@ const PetProfileRegistration = ({ isOpen, onClose, petData, isEditMode }) => {
               />
             </div>
 
-            {/* Breed and Age Fields */}
+            {/* Type and Age Fields */}
             <div className={styles.rowGroup}>
               <div className={styles.formGroup}>
                 <label className={styles.label}>품종</label>
                 <input
                   type="text"
-                  value={formData.breed}
-                  onChange={(e) => handleInputChange("breed", e.target.value)}
+                  value={formData.type}
+                  onChange={(e) => handleInputChange("type", e.target.value)}
                   className={styles.input}
                   placeholder="품종을 입력해주세요."
                 />
@@ -191,7 +273,7 @@ const PetProfileRegistration = ({ isOpen, onClose, petData, isEditMode }) => {
               <div className={styles.formGroup}>
                 <label className={styles.label}>나이</label>
                 <input
-                  type="text"
+                  type="number"
                   value={formData.age}
                   onChange={(e) => handleInputChange("age", e.target.value)}
                   className={styles.input}
@@ -213,8 +295,8 @@ const PetProfileRegistration = ({ isOpen, onClose, petData, isEditMode }) => {
                   <option value="" disabled hidden>
                     반려동물의 성별을 선택해주세요.
                   </option>
-                  <option value="수컷">수컷</option>
-                  <option value="암컷">암컷</option>
+                  <option value="M">수컷</option>
+                  <option value="F">암컷</option>
                 </select>
                 <img
                   src="/user/dropdown-sns.svg"
@@ -224,7 +306,20 @@ const PetProfileRegistration = ({ isOpen, onClose, petData, isEditMode }) => {
               </div>
             </div>
 
-            {/* SNS Field */}
+            {/* Weight Field */}
+            <div className={styles.formGroup}>
+              <label className={styles.label}>체중 (kg)</label>
+              <input
+                type="number"
+                step="0.1"
+                value={formData.weight}
+                onChange={(e) => handleInputChange("weight", e.target.value)}
+                className={styles.input}
+                placeholder="체중을 입력해주세요"
+              />
+            </div>
+
+            {/* SNS URL Field */}
             <div className={styles.formGroup}>
               <div className={styles.snsContainer}>
                 <img
@@ -232,44 +327,21 @@ const PetProfileRegistration = ({ isOpen, onClose, petData, isEditMode }) => {
                   alt="SNS"
                   className={styles.snsIcon}
                 />
-                <div className={styles.selectContainer}>
-                  <select
-                    name="sns"
-                    value={formData.sns}
-                    onChange={(e) => handleInputChange("sns", e.target.value)}
-                    className={styles.select}
-                  >
-                    <option value="">SNS URL를 선택해주세요</option>
-                    <option value="instagram">Instagram</option>
-                  </select>
-                  <img
-                    src="/user/dropdown-sns.svg"
-                    alt="Dropdown"
-                    className={styles.dropdownIcon}
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={formData.snsUrl}
+                  onChange={(e) => handleInputChange("snsUrl", e.target.value)}
+                  className={styles.input}
+                  placeholder="SNS URL을 입력해주세요"
+                />
               </div>
-            </div>
-
-            {/* Description Field */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>반려동물 한줄평</label>
-              <textarea
-                value={formData.description}
-                onChange={(e) =>
-                  handleInputChange("description", e.target.value)
-                }
-                className={styles.textarea}
-                placeholder="반려동물을 대표하는 한 줄평을 작성해주세요."
-                rows={2}
-              />
             </div>
           </div>
         </div>
 
         {/* Action Buttons */}
         <div className={styles.buttonContainer}>
-          <button className={styles.editButton} onClick={handleEdit}>
+          <button className={styles.editButton} onClick={handleSubmit}>
             <img
               src="/user/edit-icon.svg"
               alt="Edit"
@@ -277,16 +349,6 @@ const PetProfileRegistration = ({ isOpen, onClose, petData, isEditMode }) => {
             />
             {isEditMode ? "수정 완료" : "등록"}
           </button>
-          {isEditMode && (
-            <button className={styles.deleteButton} onClick={handleDelete}>
-              <img
-                src="/user/delete-icon.svg"
-                alt="Delete"
-                className={styles.buttonIcon}
-              />
-              삭제
-            </button>
-          )}
         </div>
       </div>
     </div>
