@@ -858,3 +858,38 @@
     transform: rotate(360deg);
   }
 }
+
+/* 회원탈퇴 버튼 컨테이너 */
+.withdrawButtonContainer {
+  display: flex;
+  justify-content: flex-end;
+  width: 1020px;
+  margin: 20px 80px 0 80px;
+  padding: 0;
+}
+
+/* 회원탈퇴 버튼 */
+.withdrawButton {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+  transition: all 0.3s ease;
+  font-family: "Pretendard Variable", sans-serif;
+}
+
+.withdrawButton:hover {
+  background-color: #c0392b;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(231, 76, 60, 0.4);
+}
+
+.withdrawButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+}

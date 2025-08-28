@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import styles from "./Mypage.module.css";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
 const MyPage = () => {
   const router = useRouter();
@@ -28,6 +29,11 @@ const MyPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showWithdrawConfirmModal, setShowWithdrawConfirmModal] =
+    useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [withdrawPassword, setWithdrawPassword] = useState("");
+  const [withdrawReason, setWithdrawReason] = useState("");
   const fileInputRef = useRef(null);
 
   // 컴포넌트 마운트 시 프로필 정보 가져오기
@@ -35,38 +41,112 @@ const MyPage = () => {
     fetchProfile();
   }, []);
 
+  // 토큰 갱신 함수
+  const refreshToken = async () => {
+    const refreshToken = localStorage.getItem("refreshToken");
+    if (!refreshToken) {
+      throw new Error("리프레시 토큰이 없습니다.");
+    }
+
+    try {
+      const response = await axios.post(`${USER_API_BASE}/auth/refresh`, {
+        refreshToken,
+      });
+
+      const data = response.data;
+      if (data.code === "2000" && data.data) {
+        const authData = data.data;
+        localStorage.setItem("token", authData.accessToken);
+        if (authData.refreshToken) {
+          localStorage.setItem("refreshToken", authData.refreshToken);
+        }
+        if (authData.accessExpiresAt) {
+          localStorage.setItem(
+            "accessTokenExpiresAt",
+            authData.accessExpiresAt
+          );
+        }
+        if (authData.refreshExpiresAt) {
+          localStorage.setItem(
+            "refreshTokenExpiresAt",
+            authData.refreshExpiresAt
+          );
+        }
+        return authData.accessToken;
+      } else {
+        throw new Error(data.message || "토큰 갱신 응답이 올바르지 않습니다.");
+      }
+    } catch (error) {
+      throw new Error("토큰 갱신에 실패했습니다.");
+    }
+  };
+
+  // API 호출 함수 (토큰 갱신 포함)
+  const apiCall = async (url, options = {}) => {
+    let token =
+      localStorage.getItem("token") || localStorage.getItem("accessToken");
+
+    if (!token) {
+      router.push("/user/login");
+      return null;
+    }
+
+    const makeRequest = async (authToken) => {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          "Content-Type": "application/json",
+          ...options.headers,
+        },
+      };
+
+      if (options.method === "GET") {
+        return axios.get(url, config);
+      } else if (options.method === "POST") {
+        return axios.post(url, options.data, config);
+      } else if (options.method === "PATCH") {
+        return axios.patch(url, options.data, config);
+      } else if (options.method === "PUT") {
+        return axios.put(url, options.data, config);
+      } else if (options.method === "DELETE") {
+        return axios.delete(url, { ...config, data: options.data });
+      } else {
+        return axios.get(url, config);
+      }
+    };
+
+    try {
+      let response = await makeRequest(token);
+      return response;
+    } catch (error) {
+      // 401 에러가 발생하면 토큰 갱신 시도
+      if (error.response && error.response.status === 401) {
+        try {
+          const newToken = await refreshToken();
+          response = await makeRequest(newToken);
+          return response;
+        } catch (refreshError) {
+          console.error("토큰 갱신 실패:", refreshError);
+          localStorage.clear();
+          router.push("/user/login");
+          return null;
+        }
+      }
+      throw error;
+    }
+  };
+
   // 프로필 정보 가져오기
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const token =
-        localStorage.getItem("token") || localStorage.getItem("accessToken");
+      const response = await apiCall(`${USER_API_BASE}/auth/profile`);
 
-      if (!token) {
-        router.push("/user/login");
+      if (!response) {
         return;
       }
 
-      // user-service의 /auth/me 엔드포인트 직접 호출
-      const response = await fetch(`${USER_API_BASE}/auth/profile`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          // 인증 실패 시 로그인 페이지로 이동
-          router.push("/user/login");
-          return;
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      const userData = result.data; // ApiResponse 구조에서 실제 데이터 추출
+      const userData = response.data.data; // ApiResponse 구조에서 실제 데이터 추출
 
       // 주소 데이터 설정
       const addressValue = userData.roadAddress || userData.address || "";
@@ -95,6 +175,11 @@ const MyPage = () => {
       setError("");
     } catch (error) {
       console.error("프로필 정보 가져오기 실패:", error);
+      if (error.response && error.response.status === 401) {
+        // 인증 실패 시 로그인 페이지로 이동
+        router.push("/user/login");
+        return;
+      }
       setError("프로필 정보를 가져오는데 실패했습니다.");
     } finally {
       setLoading(false);
@@ -114,13 +199,6 @@ const MyPage = () => {
   const handleSave = async () => {
     try {
       setLoading(true);
-      const token =
-        localStorage.getItem("token") || localStorage.getItem("accessToken");
-
-      if (!token) {
-        router.push("/user/login");
-        return;
-      }
 
       // 프로필 업데이트 데이터 준비
       const profileData = {
@@ -135,30 +213,13 @@ const MyPage = () => {
         // birthDate는 수정 불가능하므로 제외
       };
 
-      const response = await fetch(`${USER_API_BASE}/auth/profile`, {
+      const response = await apiCall(`${USER_API_BASE}/auth/profile`, {
         method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(profileData),
+        data: profileData,
       });
 
-      let data = {};
-      try {
-        const responseText = await response.text();
-        if (responseText.trim()) {
-          data = JSON.parse(responseText);
-        }
-      } catch (parseError) {
-        console.error("응답 파싱 오류:", parseError);
-        throw new Error("서버 응답을 처리할 수 없습니다.");
-      }
-
-      if (!response.ok) {
-        throw new Error(
-          data.message || `프로필 수정에 실패했습니다. (${response.status})`
-        );
+      if (!response) {
+        return;
       }
 
       // 성공 시 편집 모드 종료
@@ -167,7 +228,7 @@ const MyPage = () => {
       setShowSuccessModal(true);
     } catch (error) {
       console.error("프로필 수정 실패:", error);
-      setError(error.message || "프로필 수정에 실패했습니다.");
+      setError(error.response?.data?.message || "프로필 수정에 실패했습니다.");
     } finally {
       setLoading(false);
     }
@@ -230,33 +291,19 @@ const MyPage = () => {
       formData.append("userNo", localStorage.getItem("userNo") || "");
 
       // FTP 업로드 API 호출
-      const response = await fetch(`${USER_API_BASE}/auth/profile/image`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          // Content-Type은 FormData가 자동으로 설정하므로 제거
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        let errorMessage = `이미지 업로드 실패 (${response.status})`;
-
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorData.error || errorMessage;
-        } catch (parseError) {
-          const errorText = await response.text();
-          errorMessage = errorText || errorMessage;
+      const response = await axios.post(
+        `${USER_API_BASE}/auth/profile/image`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
         }
-
-        throw new Error(errorMessage);
-      }
-
-      const result = await response.json();
+      );
 
       // 업로드된 이미지 URL로 미리보기 설정
-      const imageUrl = result.data.imageUrl;
+      const imageUrl = response.data.data.imageUrl;
       setProfileImage(imageUrl);
       setFormData((prev) => ({ ...prev, profileImageUrl: imageUrl }));
       setImageLoadError(false); // 이미지 로드 에러 상태 초기화
@@ -264,7 +311,11 @@ const MyPage = () => {
       setError("");
     } catch (error) {
       console.error("FTP 업로드 실패:", error);
-      throw error;
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "이미지 업로드에 실패했습니다.";
+      throw new Error(errorMessage);
     }
   };
 
@@ -272,6 +323,73 @@ const MyPage = () => {
 
   const closeSuccessModal = () => {
     setShowSuccessModal(false);
+    // 성공 모달 닫기 시 페이지 새로고침
+    window.location.reload();
+  };
+
+  // 회원탈퇴 확인 모달 열기
+  const openWithdrawConfirmModal = () => {
+    setShowWithdrawConfirmModal(true);
+  };
+
+  // 회원탈퇴 확인 모달 닫기
+  const closeWithdrawConfirmModal = () => {
+    setShowWithdrawConfirmModal(false);
+  };
+
+  // 회원탈퇴 모달 열기
+  const openWithdrawModal = () => {
+    setShowWithdrawModal(true);
+    setWithdrawPassword("");
+    setWithdrawReason("");
+  };
+
+  // 회원탈퇴 모달 닫기
+  const closeWithdrawModal = () => {
+    setShowWithdrawModal(false);
+    setWithdrawPassword("");
+    setWithdrawReason("");
+  };
+
+  // 회원탈퇴 처리
+  const handleWithdraw = async () => {
+    if (!withdrawPassword) {
+      setError("비밀번호를 입력해주세요.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+
+      const withdrawData = {
+        password: withdrawPassword,
+        reason: withdrawReason || "사용자 요청",
+      };
+
+      const response = await apiCall(`${USER_API_BASE}/auth/withdraw`, {
+        method: "DELETE",
+        data: withdrawData,
+      });
+
+      if (!response) {
+        return;
+      }
+
+      // 회원탈퇴 성공 시 로컬스토리지 클리어
+      localStorage.clear();
+
+      // 모달 닫기
+      closeWithdrawModal();
+
+      // 로그인 페이지로 리다이렉트
+      router.push("/user/login");
+    } catch (error) {
+      console.error("회원탈퇴 실패:", error);
+      setError(error.response?.data?.message || "회원탈퇴에 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading && !formData.email) {
@@ -341,11 +459,6 @@ const MyPage = () => {
                       height={31}
                       className={styles.cameraIcon}
                     />
-                  )}
-                  {isEditable && !loading && (
-                    <div className={styles.imageOverlay}>
-                      <span>클릭하여 이미지 변경</span>
-                    </div>
                   )}
                 </div>
 
@@ -577,6 +690,17 @@ const MyPage = () => {
             </div>
           </section>
 
+          {/* 회원탈퇴 버튼 - 소셜미디어 섹션 바깥 우측하단 */}
+          <div className={styles.withdrawButtonContainer}>
+            <button
+              className={styles.withdrawButton}
+              onClick={openWithdrawConfirmModal}
+              title="회원탈퇴"
+            >
+              회원탈퇴
+            </button>
+          </div>
+
           {isEditable && (
             <div className={styles.buttonSection}>
               <button
@@ -612,6 +736,147 @@ const MyPage = () => {
                     onClick={closeSuccessModal}
                   >
                     확인
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 회원탈퇴 확인 모달 */}
+          {showWithdrawConfirmModal && (
+            <div className={styles.modalOverlay}>
+              <div className={styles.modalContent}>
+                <div className={styles.modalHeader}>
+                  <h3>회원탈퇴 확인</h3>
+                </div>
+                <div className={styles.modalBody}>
+                  <p>회원탈퇴를 하시겠습니까?</p>
+                  <p
+                    style={{
+                      color: "#e74c3c",
+                      fontSize: "14px",
+                      marginTop: "10px",
+                    }}
+                  >
+                    ⚠️ 회원탈퇴 시 모든 데이터가 영구적으로 삭제되며 복구할 수
+                    없습니다.
+                  </p>
+                </div>
+                <div className={styles.modalFooter}>
+                  <button
+                    className={styles.modalButton}
+                    onClick={() => {
+                      closeWithdrawConfirmModal();
+                      openWithdrawModal();
+                    }}
+                    style={{
+                      backgroundColor: "#e74c3c",
+                      color: "white",
+                      marginRight: "10px",
+                    }}
+                  >
+                    확인
+                  </button>
+                  <button
+                    className={styles.modalButton}
+                    onClick={closeWithdrawConfirmModal}
+                    style={{
+                      backgroundColor: "#95a5a6",
+                      color: "white",
+                    }}
+                  >
+                    취소
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 회원탈퇴 모달 */}
+          {showWithdrawModal && (
+            <div className={styles.modalOverlay}>
+              <div className={styles.modalContent}>
+                <div className={styles.modalHeader}>
+                  <h3>회원탈퇴</h3>
+                </div>
+                <div className={styles.modalBody}>
+                  <p style={{ color: "#e74c3c", marginBottom: "20px" }}>
+                    ⚠️ 회원탈퇴 시 모든 데이터가 영구적으로 삭제되며 복구할 수
+                    없습니다.
+                  </p>
+                  <div style={{ marginBottom: "15px" }}>
+                    <label
+                      style={{
+                        display: "block",
+                        marginBottom: "5px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      비밀번호 확인 *
+                    </label>
+                    <input
+                      type="password"
+                      value={withdrawPassword}
+                      onChange={(e) => setWithdrawPassword(e.target.value)}
+                      placeholder="비밀번호를 입력하세요"
+                      style={{
+                        width: "100%",
+                        padding: "10px",
+                        border: "1px solid #ddd",
+                        borderRadius: "4px",
+                        fontSize: "14px",
+                      }}
+                    />
+                  </div>
+                  <div style={{ marginBottom: "15px" }}>
+                    <label
+                      style={{
+                        display: "block",
+                        marginBottom: "5px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      탈퇴 사유 (선택)
+                    </label>
+                    <textarea
+                      value={withdrawReason}
+                      onChange={(e) => setWithdrawReason(e.target.value)}
+                      placeholder="탈퇴 사유를 입력하세요 (선택사항)"
+                      style={{
+                        width: "100%",
+                        padding: "10px",
+                        border: "1px solid #ddd",
+                        borderRadius: "4px",
+                        fontSize: "14px",
+                        minHeight: "80px",
+                        resize: "vertical",
+                      }}
+                    />
+                  </div>
+                </div>
+                <div className={styles.modalFooter}>
+                  <button
+                    className={styles.modalButton}
+                    onClick={handleWithdraw}
+                    disabled={loading}
+                    style={{
+                      backgroundColor: "#e74c3c",
+                      color: "white",
+                      marginRight: "10px",
+                    }}
+                  >
+                    {loading ? "처리 중..." : "회원탈퇴"}
+                  </button>
+                  <button
+                    className={styles.modalButton}
+                    onClick={closeWithdrawModal}
+                    disabled={loading}
+                    style={{
+                      backgroundColor: "#95a5a6",
+                      color: "white",
+                    }}
+                  >
+                    취소
                   </button>
                 </div>
               </div>
