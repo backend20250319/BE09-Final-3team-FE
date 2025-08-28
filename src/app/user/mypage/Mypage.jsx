@@ -20,13 +20,11 @@ const MyPage = () => {
     detailAddress: "",
     birthDate: "",
     profileImageUrl: "",
-    isInfluencer: false,
-    influencerCategory: "",
   });
 
   const [isEditable, setIsEditable] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
-  const [birthType, setBirthType] = useState("text");
+  const [imageLoadError, setImageLoadError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -86,11 +84,13 @@ const MyPage = () => {
         detailAddress: detailAddressValue,
         birthDate: userData.birthDate ? userData.birthDate.toString() : "",
         profileImageUrl: userData.profileImageUrl || "",
-        preferredPetType: userData.preferredPetType || "",
-        petCount: userData.petCount || 0,
-        isInfluencer: userData.isInfluencer || false,
-        influencerCategory: userData.influencerCategory || "",
       });
+
+      // 프로필 이미지 URL이 있으면 profileImage state도 설정
+      if (userData.profileImageUrl) {
+        setProfileImage(userData.profileImageUrl);
+        setImageLoadError(false); // 이미지 로드 에러 상태 초기화
+      }
 
       setError("");
     } catch (error) {
@@ -122,9 +122,6 @@ const MyPage = () => {
         return;
       }
 
-      console.log("프로필 수정 시작");
-      console.log("요청 URL:", `${USER_API_BASE}/auth/profile`);
-
       // 프로필 업데이트 데이터 준비
       const profileData = {
         name: formData.name,
@@ -136,21 +133,7 @@ const MyPage = () => {
         roadAddress: formData.address,
         detailAddress: formData.detailAddress,
         // birthDate는 수정 불가능하므로 제외
-        isInfluencer: formData.isInfluencer,
-        influencerCategory: formData.influencerCategory,
       };
-
-      console.log("요청 본문:", profileData);
-      console.log("닉네임 데이터 확인:", {
-        formDataNickname: formData.nickname,
-        profileDataNickname: profileData.nickname,
-      });
-      console.log("주소 데이터 확인:", {
-        formDataAddress: formData.address,
-        formDataDetailAddress: formData.detailAddress,
-        profileDataRoadAddress: profileData.roadAddress,
-        profileDataDetailAddress: profileData.detailAddress,
-      });
 
       const response = await fetch(`${USER_API_BASE}/auth/profile`, {
         method: "PATCH",
@@ -161,17 +144,9 @@ const MyPage = () => {
         body: JSON.stringify(profileData),
       });
 
-      console.log(
-        "프로필 수정 응답 상태:",
-        response.status,
-        response.statusText
-      );
-
       let data = {};
       try {
         const responseText = await response.text();
-        console.log("프로필 수정 응답 텍스트:", responseText);
-
         if (responseText.trim()) {
           data = JSON.parse(responseText);
         }
@@ -185,8 +160,6 @@ const MyPage = () => {
           data.message || `프로필 수정에 실패했습니다. (${response.status})`
         );
       }
-
-      console.log("프로필 수정 성공:", data);
 
       // 성공 시 편집 모드 종료
       setIsEditable(false);
@@ -207,20 +180,92 @@ const MyPage = () => {
     fetchProfile();
   };
 
-  const handleConnect = () => console.log("연결하기");
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) previewImage(file);
+  const handleConnect = () => {
+    // 인스타그램 연결 기능 (향후 구현 예정)
   };
 
-  const previewImage = (file) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      setProfileImage(reader.result);
-      setFormData((prev) => ({ ...prev, profileImageUrl: reader.result }));
-    };
-    reader.readAsDataURL(file);
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // 파일 크기 검증 (5MB 제한)
+      if (file.size > 5 * 1024 * 1024) {
+        setError("파일 크기는 5MB 이하여야 합니다.");
+        return;
+      }
+
+      // 파일 타입 검증
+      if (!file.type.startsWith("image/")) {
+        setError("이미지 파일만 업로드 가능합니다.");
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(""); // 이전 에러 메시지 초기화
+
+        // 실제 이미지 업로드 실행
+        await uploadImageToFTP(file);
+      } catch (error) {
+        console.error("이미지 업로드 실패:", error);
+        setError(error.message || "이미지 업로드에 실패했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const uploadImageToFTP = async (file) => {
+    try {
+      const token =
+        localStorage.getItem("token") || localStorage.getItem("accessToken");
+
+      if (!token) {
+        router.push("/user/login");
+        return;
+      }
+
+      // FormData 생성
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("userNo", localStorage.getItem("userNo") || "");
+
+      // FTP 업로드 API 호출
+      const response = await fetch(`${USER_API_BASE}/auth/profile/image`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // Content-Type은 FormData가 자동으로 설정하므로 제거
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        let errorMessage = `이미지 업로드 실패 (${response.status})`;
+
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (parseError) {
+          const errorText = await response.text();
+          errorMessage = errorText || errorMessage;
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      const result = await response.json();
+
+      // 업로드된 이미지 URL로 미리보기 설정
+      const imageUrl = result.data.imageUrl;
+      setProfileImage(imageUrl);
+      setFormData((prev) => ({ ...prev, profileImageUrl: imageUrl }));
+      setImageLoadError(false); // 이미지 로드 에러 상태 초기화
+
+      setError("");
+    } catch (error) {
+      console.error("FTP 업로드 실패:", error);
+      throw error;
+    }
   };
 
   const triggerFileSelect = () => fileInputRef.current?.click();
@@ -267,14 +312,26 @@ const MyPage = () => {
               <div className={styles.profileImageContainer}>
                 <div
                   className={styles.profileImage}
-                  onClick={triggerFileSelect}
+                  onClick={isEditable ? triggerFileSelect : undefined}
+                  style={{ cursor: isEditable ? "pointer" : "default" }}
                 >
-                  {profileImage ? (
+                  {loading ? (
+                    <div className={styles.imageLoading}>
+                      <div className={styles.loadingSpinner}></div>
+                      <span>업로드 중...</span>
+                    </div>
+                  ) : (profileImage || formData.profileImageUrl) &&
+                    !imageLoadError ? (
                     <Image
-                      src={profileImage}
+                      src={profileImage || formData.profileImageUrl}
                       alt="프로필 이미지"
                       fill
+                      unoptimized
                       style={{ objectFit: "cover", borderRadius: "50%" }}
+                      onError={(e) => {
+                        console.log("이미지 로드 실패, 기본 아이콘으로 대체");
+                        setImageLoadError(true);
+                      }}
                     />
                   ) : (
                     <Image
@@ -285,7 +342,31 @@ const MyPage = () => {
                       className={styles.cameraIcon}
                     />
                   )}
+                  {isEditable && !loading && (
+                    <div className={styles.imageOverlay}>
+                      <span>클릭하여 이미지 변경</span>
+                    </div>
+                  )}
                 </div>
+
+                {/* 편집 모드에서만 이미지 업로드 버튼 표시 */}
+                {isEditable && (
+                  <div className={styles.uploadButtonContainer}>
+                    <button
+                      className={styles.uploadButton}
+                      onClick={triggerFileSelect}
+                      disabled={loading}
+                    >
+                      <Image
+                        src="/user/upload.svg"
+                        alt="업로드"
+                        width={16}
+                        height={16}
+                      />
+                      <span>이미지 업로드</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className={styles.profileInfo}>
@@ -338,16 +419,11 @@ const MyPage = () => {
                 <div className={styles.birthContainer}>
                   <label className={styles.birthLabel}>생년월일</label>
                   <input
-                    type={birthType}
+                    type="text"
                     name="birthDate"
                     value={formData.birthDate ?? ""}
-                    onChange={handleInputChange}
                     className={styles.birthInput}
-                    placeholder="생년월일을 선택하세요"
-                    onFocus={() => setBirthType("date")}
-                    onBlur={() => {
-                      if (!formData.birthDate) setBirthType("text");
-                    }}
+                    placeholder="생년월일"
                     readOnly={true}
                   />
                 </div>
