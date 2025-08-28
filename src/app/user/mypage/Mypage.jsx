@@ -11,6 +11,7 @@ const MyPage = () => {
   // ✅ 컨트롤드 입력을 위한 초기 빈 값
   const [formData, setFormData] = useState({
     name: "",
+    nickname: "",
     phone: "",
     email: "",
     instagram: "",
@@ -76,6 +77,7 @@ const MyPage = () => {
 
       setFormData({
         name: userData.name || "",
+        nickname: userData.nickname || "",
         phone: userData.phone || "",
         email: userData.email || "",
         instagram: userData.instagramUsername || "",
@@ -126,6 +128,7 @@ const MyPage = () => {
       // 프로필 업데이트 데이터 준비
       const profileData = {
         name: formData.name,
+        nickname: formData.nickname,
         phone: formData.phone,
         email: formData.email,
         instagramUsername: formData.instagram,
@@ -138,6 +141,10 @@ const MyPage = () => {
       };
 
       console.log("요청 본문:", profileData);
+      console.log("닉네임 데이터 확인:", {
+        formDataNickname: formData.nickname,
+        profileDataNickname: profileData.nickname,
+      });
       console.log("주소 데이터 확인:", {
         formDataAddress: formData.address,
         formDataDetailAddress: formData.detailAddress,
@@ -298,6 +305,22 @@ const MyPage = () => {
                   </div>
                 </div>
 
+                {/* 닉네임 */}
+                <div className={styles.nameContainer}>
+                  <label className={styles.nameLabel}>닉네임</label>
+                  <div className={styles.nameInputWrapper}>
+                    <input
+                      type="text"
+                      name="nickname"
+                      value={formData.nickname ?? ""}
+                      onChange={handleInputChange}
+                      className={styles.nameInput}
+                      placeholder="닉네임을 입력하세요"
+                      readOnly={!isEditable}
+                    />
+                  </div>
+                </div>
+
                 {/* 자기소개 */}
                 <div className={styles.bioContainer}>
                   <label className={styles.bioLabel}>자기 소개</label>
@@ -331,6 +354,7 @@ const MyPage = () => {
 
                 {/* 주소 */}
                 <div className={styles.addressContainer}>
+                  <label className={styles.addressLabel}>거주지 위치</label>
                   <div className={styles.addressRow}>
                     <input
                       type="text"
@@ -363,7 +387,6 @@ const MyPage = () => {
                       readOnly={!isEditable}
                     />
                   </div>
-                  <span className={styles.locationLabel}>거주지 위치</span>
                   {!formData.address &&
                     !formData.detailAddress &&
                     !isEditable && (

@@ -116,7 +116,6 @@
 /* 프로필 섹션 */
 .profileSection {
   width: 1020px;
-  height: 543px;
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1);
@@ -128,7 +127,6 @@
 .profileContent {
   display: flex;
   gap: 32px;
-  height: 100%;
 }
 
 /* 프로필 이미지 컨테이너 */
@@ -299,14 +297,21 @@
 
 /* 주소 컨테이너 */
 .addressContainer {
-  position: relative;
   margin-top: 20px;
+}
+
+.addressLabel {
+  display: block;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #594a3e;
+  margin-bottom: 8px;
 }
 
 .addressRow {
   display: flex;
   gap: 16px;
-  margin-bottom: 8px;
 }
 
 .addressInput,
@@ -325,14 +330,10 @@
   box-sizing: border-box;
 }
 
-.locationLabel {
-  position: absolute;
-  top: -25px;
-  left: 1px;
-  font-family: "Pretendard Variable", sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-  color: #594a3e;
+.addressInput:focus,
+.detailAddressInput:focus {
+  outline: none;
+  border-color: #6be6bd;
 }
 
 /* 생년월일 */
@@ -364,10 +365,14 @@
   box-sizing: border-box;
 }
 
+.birthInput:focus {
+  outline: none;
+  border-color: #6be6bd;
+}
+
 /* 추가 정보 섹션 */
 .additionalInfoSection {
   width: 1020px;
-  height: 194px;
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1);
@@ -426,7 +431,6 @@
 /* 소셜 미디어 섹션 */
 .socialMediaSection {
   width: 1020px;
-  height: 284px;
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1);
@@ -436,7 +440,7 @@
 }
 
 .socialMediaRow {
-  margin-top: 85px;
+  margin-top: 0;
 }
 
 .instagramContainer {
