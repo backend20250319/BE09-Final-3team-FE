@@ -39,7 +39,12 @@ const PetProfileRegistration = ({
         imageUrl: petData.imageUrl || "",
         snsUrl: petData.snsUrl || "",
       });
-      setSelectedImage(petData.imageUrl || null);
+      // 기존 이미지가 있으면 표시
+      if (petData.imageUrl && petData.imageUrl.trim() !== "") {
+        setSelectedImage(petData.imageUrl);
+      } else {
+        setSelectedImage(null);
+      }
     } else {
       // 새로 등록할 때는 기본값으로 초기화
       setFormData({
@@ -86,11 +91,34 @@ const PetProfileRegistration = ({
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
+      // 파일 크기 검증 (5MB 제한)
+      if (file.size > 5 * 1024 * 1024) {
+        if (onSuccessMessage) {
+          onSuccessMessage("파일 크기는 5MB 이하여야 합니다.");
+        }
+        return;
+      }
+
+      // 파일 타입 검증
+      if (!file.type.startsWith("image/")) {
+        if (onSuccessMessage) {
+          onSuccessMessage("이미지 파일만 업로드 가능합니다.");
+        }
+        return;
+      }
+
+      // 미리보기용으로 설정
       const reader = new FileReader();
       reader.onload = (e) => {
         setSelectedImage(e.target.result);
       };
       reader.readAsDataURL(file);
+
+      // 파일을 formData에 저장 (나중에 업로드용)
+      setFormData((prev) => ({
+        ...prev,
+        imageFile: file,
+      }));
     }
   };
 
@@ -118,19 +146,17 @@ const PetProfileRegistration = ({
         type: formData.type,
         age: parseInt(formData.age),
         gender: formData.gender,
-        imageNo: 1,
         weight: parseFloat(formData.weight),
-        imageUrl: null, // 임시로 null로 설정
-        imageNo: 1, // 임시로 기본값 설정
-        snsProfileNo: formData.snsUrl ? 1 : null, // 임시로 기본값 설정
+        imageUrl: formData.imageUrl || null,
+        snsProfileNo: formData.snsUrl ? 1 : null,
       };
 
       console.log("전송할 데이터:", requestData);
-      console.log("전송할 데이터 JSON:", JSON.stringify(requestData));
 
+      let petResponse;
       if (isEditMode && petData) {
         // 수정
-        const response = await axios.put(
+        petResponse = await axios.put(
           `${PET_API_BASE}/pets/${petData.petNo}`,
           requestData,
           {
@@ -143,7 +169,7 @@ const PetProfileRegistration = ({
         );
       } else {
         // 등록
-        const response = await axios.post(`${PET_API_BASE}/pets`, requestData, {
+        petResponse = await axios.post(`${PET_API_BASE}/pets`, requestData, {
           headers: {
             "Content-Type": "application/json",
             ...(token && { Authorization: `Bearer ${token}` }),
@@ -152,11 +178,43 @@ const PetProfileRegistration = ({
         });
       }
 
-      onClose();
-      // 부모 컴포넌트에서 목록 새로고침을 위해 콜백 호출
-      if (onSuccess && typeof onSuccess === "function") {
-        onSuccess();
+      // 반려동물 등록/수정 성공 후 이미지 업로드
+      if (formData.imageFile && petResponse.data.code === "2000") {
+        const petNo = petResponse.data.data.petNo;
+
+        const imageFormData = new FormData();
+        imageFormData.append("file", formData.imageFile);
+
+        try {
+          const imageResponse = await axios.post(
+            `${PET_API_BASE}/pets/${petNo}/image`,
+            imageFormData,
+            {
+              headers: {
+                ...(token && { Authorization: `Bearer ${token}` }),
+                ...(userNo && { "X-User-No": userNo }),
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+
+          if (imageResponse.data.code === "2000") {
+            console.log("이미지 업로드 성공:", imageResponse.data.data);
+            // 이미지 업로드 성공 시 새로운 이미지 URL로 업데이트
+            const newImageUrl = imageResponse.data.data.fileUrl;
+            setFormData((prev) => ({
+              ...prev,
+              imageUrl: newImageUrl,
+            }));
+          } else {
+            console.error("이미지 업로드 실패:", imageResponse.data.message);
+          }
+        } catch (imageError) {
+          console.error("이미지 업로드 중 오류:", imageError);
+          // 이미지 업로드 실패해도 반려동물 등록은 성공했으므로 계속 진행
+        }
       }
+
       // 성공 메시지 표시
       if (onSuccessMessage) {
         onSuccessMessage(
@@ -164,6 +222,12 @@ const PetProfileRegistration = ({
             ? "펫 정보가 수정되었습니다."
             : "반려동물이 등록되었습니다."
         );
+      }
+
+      onClose();
+      // 부모 컴포넌트에서 목록 새로고침을 위해 콜백 호출
+      if (onSuccess && typeof onSuccess === "function") {
+        onSuccess();
       }
     } catch (error) {
       console.error("반려동물 저장 실패:", error);

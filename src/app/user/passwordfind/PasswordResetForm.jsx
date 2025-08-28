@@ -5,6 +5,7 @@ import { useState } from "react";
 import Image from "next/image"; // ✅ 이미지 사용 시 필수
 import { useRouter } from "next/navigation";
 import styles from "./PasswordResetForm.module.css";
+import axios from "axios";
 
 export default function PasswordResetForm() {
   const router = useRouter();
@@ -38,33 +39,23 @@ export default function PasswordResetForm() {
       console.log("비밀번호 재설정 요청 시작");
       console.log("요청 URL:", `${USER_API_BASE}/auth/password/reset`);
 
-      const response = await fetch(`${USER_API_BASE}/auth/password/reset`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      });
+      const response = await axios.post(
+        `${USER_API_BASE}/auth/password/reset`,
+        {
+          email,
+        }
+      );
 
       console.log(
         "비밀번호 재설정 요청 응답 상태:",
         response.status,
         response.statusText
       );
+      console.log("비밀번호 재설정 요청 응답 데이터:", response.data);
 
-      let data = {};
-      try {
-        const responseText = await response.text();
-        console.log("비밀번호 재설정 요청 응답 텍스트:", responseText);
-        if (responseText.trim()) {
-          data = JSON.parse(responseText);
-        }
-      } catch (parseError) {
-        console.error("응답 파싱 오류:", parseError);
-        throw new Error("서버 응답을 처리할 수 없습니다.");
-      }
+      const data = response.data;
 
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error(
           data.message ||
             `비밀번호 재설정 요청에 실패했습니다. (${response.status})`
@@ -82,7 +73,13 @@ export default function PasswordResetForm() {
       }, 2000);
     } catch (error) {
       console.error("비밀번호 재설정 요청 실패:", error);
-      setError(error.message || "비밀번호 재설정 요청에 실패했습니다.");
+      if (error.response) {
+        // axios 에러 응답 처리
+        const { status, data } = error.response;
+        setError(data.message || "비밀번호 재설정 요청에 실패했습니다.");
+      } else {
+        setError(error.message || "비밀번호 재설정 요청에 실패했습니다.");
+      }
     } finally {
       setLoading(false);
     }
@@ -103,49 +100,22 @@ export default function PasswordResetForm() {
       console.log("요청 데이터:", { email, verificationCode });
 
       // 비밀번호 재설정 인증번호 확인
-      const response = await fetch(`${USER_API_BASE}/auth/password/verify`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const response = await axios.post(
+        `${USER_API_BASE}/auth/password/verify`,
+        {
           email,
           code: verificationCode,
-        }),
-      });
+        }
+      );
 
       console.log(
         "인증번호 확인 응답 상태:",
         response.status,
         response.statusText
       );
+      console.log("인증번호 확인 응답 데이터:", response.data);
 
-      let data = {};
-      try {
-        const responseText = await response.text();
-        console.log("인증번호 확인 응답 텍스트:", responseText);
-
-        if (!response.ok) {
-          // HTTP 에러인 경우 JSON 파싱 시도
-          if (responseText.trim()) {
-            data = JSON.parse(responseText);
-          }
-          throw new Error(
-            data.message || `인증번호 확인에 실패했습니다. (${response.status})`
-          );
-        }
-
-        // 성공 응답인 경우 JSON 파싱
-        if (responseText.trim()) {
-          data = JSON.parse(responseText);
-        }
-      } catch (parseError) {
-        console.error("응답 파싱 오류:", parseError);
-        if (parseError.message.includes("인증번호 확인에 실패했습니다")) {
-          throw parseError;
-        }
-        throw new Error("서버 응답을 처리할 수 없습니다.");
-      }
+      const data = response.data;
 
       // 응답 확인
       if (!data.data || !data.data.verified) {
@@ -164,7 +134,13 @@ export default function PasswordResetForm() {
       }, 2000);
     } catch (error) {
       console.error("인증번호 확인 실패:", error);
-      setError(error.message || "인증번호 확인에 실패했습니다.");
+      if (error.response) {
+        // axios 에러 응답 처리
+        const { status, data } = error.response;
+        setError(data.message || "인증번호 확인에 실패했습니다.");
+      } else {
+        setError(error.message || "인증번호 확인에 실패했습니다.");
+      }
     } finally {
       setLoading(false);
     }
@@ -193,38 +169,26 @@ export default function PasswordResetForm() {
       console.log("비밀번호 변경 시작");
       console.log("요청 URL:", `${USER_API_BASE}/auth/password/change`);
 
-      const response = await fetch(`${USER_API_BASE}/auth/password/change`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const response = await axios.post(
+        `${USER_API_BASE}/auth/password/change`,
+        {
           email,
           verificationCode,
           newPassword,
           confirmPassword,
-        }),
-      });
+        }
+      );
 
       console.log(
         "비밀번호 변경 응답 상태:",
         response.status,
         response.statusText
       );
+      console.log("비밀번호 변경 응답 데이터:", response.data);
 
-      let data = {};
-      try {
-        const responseText = await response.text();
-        console.log("비밀번호 변경 응답 텍스트:", responseText);
-        if (responseText.trim()) {
-          data = JSON.parse(responseText);
-        }
-      } catch (parseError) {
-        console.error("응답 파싱 오류:", parseError);
-        throw new Error("서버 응답을 처리할 수 없습니다.");
-      }
+      const data = response.data;
 
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error(
           data.message || `비밀번호 변경에 실패했습니다. (${response.status})`
         );
@@ -242,7 +206,13 @@ export default function PasswordResetForm() {
       }, 3000);
     } catch (error) {
       console.error("비밀번호 변경 실패:", error);
-      setError(error.message || "비밀번호 변경에 실패했습니다.");
+      if (error.response) {
+        // axios 에러 응답 처리
+        const { status, data } = error.response;
+        setError(data.message || "비밀번호 변경에 실패했습니다.");
+      } else {
+        setError(error.message || "비밀번호 변경에 실패했습니다.");
+      }
     } finally {
       setLoading(false);
     }

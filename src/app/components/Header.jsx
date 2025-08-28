@@ -15,6 +15,84 @@ export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userNickname, setUserNickname] = useState("");
 
+  // 토큰 갱신 함수
+  const refreshToken = async () => {
+    const refreshToken = localStorage.getItem("refreshToken");
+    if (!refreshToken) {
+      throw new Error("리프레시 토큰이 없습니다.");
+    }
+
+    const response = await fetch(
+      "http://localhost:8000/api/v1/user-service/auth/refresh",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ refreshToken }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("토큰 갱신에 실패했습니다.");
+    }
+
+    const data = await response.json();
+    if (data.code === "2000" && data.data) {
+      const authData = data.data;
+      localStorage.setItem("token", authData.accessToken);
+      if (authData.refreshToken) {
+        localStorage.setItem("refreshToken", authData.refreshToken);
+      }
+      if (authData.accessExpiresAt) {
+        localStorage.setItem("accessTokenExpiresAt", authData.accessExpiresAt);
+      }
+      if (authData.refreshExpiresAt) {
+        localStorage.setItem(
+          "refreshTokenExpiresAt",
+          authData.refreshExpiresAt
+        );
+      }
+      return authData.accessToken;
+    } else {
+      throw new Error(data.message || "토큰 갱신 응답이 올바르지 않습니다.");
+    }
+  };
+
+  // 토큰 상태 확인 및 갱신
+  const checkAndRefreshToken = async () => {
+    const token = localStorage.getItem("token");
+    const refreshTokenValue = localStorage.getItem("refreshToken");
+
+    if (token && refreshTokenValue) {
+      try {
+        // 토큰 유효성 검사
+        const response = await fetch(
+          "http://localhost:8000/api/v1/user-service/auth/validate-token",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const data = await response.json();
+        if (!data.data) {
+          // 토큰이 유효하지 않으면 갱신 시도
+          await refreshToken();
+        }
+      } catch (error) {
+        console.error("토큰 검증/갱신 실패:", error);
+        // 갱신 실패 시 로그아웃
+        localStorage.clear();
+        setIsLoggedIn(false);
+        setUserNickname("");
+      }
+    }
+  };
+
   // 로그인 상태 확인
   useEffect(() => {
     const checkLoginStatus = () => {
@@ -37,6 +115,9 @@ export default function Header() {
     // 주기적으로 로그인 상태 확인 (1초마다)
     const intervalId = setInterval(checkLoginStatus, 1000);
 
+    // 5분마다 토큰 상태 확인 및 갱신
+    const tokenCheckInterval = setInterval(checkAndRefreshToken, 5 * 60 * 1000);
+
     // localStorage 변경 감지
     const handleStorageChange = () => {
       checkLoginStatus();
@@ -49,6 +130,7 @@ export default function Header() {
 
     return () => {
       clearInterval(intervalId);
+      clearInterval(tokenCheckInterval);
       window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener("loginStatusChanged", checkLoginStatus);
     };
