@@ -2,6 +2,7 @@ import StatCard from "./StatCard";
 
 export default function StatsCards({ data }) {
   const statData = data || {};
+
   const formatChange = (value) => {
     const num = Number(value);
     if (isNaN(num)) return "";
