@@ -153,3 +153,64 @@ export async function getEngagementDistribution() {
     setTimeout(() => resolve(engagementDistributionData), 500);
   });
 }
+
+// 인스타그램 프로필 목록을 가져오는 함수
+export async function getInstagramProfiles(userNo) {
+  try {
+    
+    const response = await fetch(`http://localhost:8000/api/v1/sns-service/instagram/profiles?user_no=${userNo}`);
+    console.log('Response status:', response.status);
+    console.log('Response headers:', response.headers);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('Response data:', data);
+    
+    if (data.code === "2000") {
+      console.log('Successfully fetched profiles:', data.data);
+      return data.data;
+    } else {
+      console.error('API returned error:', data);
+      throw new Error(data.message || 'Failed to fetch Instagram profiles');
+    }
+  } catch (error) {
+    console.error('Error fetching Instagram profiles:', error);
+    console.warn('API 서버에 연결할 수 없습니다. 더미 데이터를 사용합니다.');
+    // API가 작동하지 않을 때 더미 데이터 반환
+    return [
+      {
+        id: 17841475913854291,
+        username: "petful_influencer",
+        name: "펫풀",
+        profile_picture_url: "/user-1.jpg",
+        followers_count: 245200,
+        follows_count: 1847,
+        media_count: 892,
+        auto_delete: true
+      },
+      {
+        id: 17841475913854292,
+        username: "petstar_celeb",
+        name: "펫스타 셀럽",
+        profile_picture_url: "/user-2.jpg",
+        followers_count: 156800,
+        follows_count: 1200,
+        media_count: 456,
+        auto_delete: false
+      },
+      {
+        id: 17841475913854293,
+        username: "pet_care_expert",
+        name: "펫케어 전문가",
+        profile_picture_url: "/user-3.jpg",
+        followers_count: 89200,
+        follows_count: 890,
+        media_count: 234,
+        auto_delete: true
+      }
+    ];
+  }
+}
