@@ -5,6 +5,7 @@
   box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
   padding: 25px;
   margin-bottom: 32px;
+  margin-top: 25px;
 }
 
 .profileContent {
@@ -26,6 +27,7 @@
 
 .profileInfo {
   flex: 1;
+  position: relative;
 }
 
 .username {
@@ -34,6 +36,151 @@
   color: #594a3e;
   line-height: 1.4;
   margin-bottom: 12px;
+}
+
+.profileHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.profileSelectorButton {
+  background: #60a5fa;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.profileSelectorButton:hover {
+  background: #3b82f6;
+}
+
+.profileSelectorButton.active {
+  background: #1d4ed8;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.profileSelector {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.profileOption {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.profileOption:last-child {
+  border-bottom: none;
+}
+
+.profileOption:hover {
+  background: #f9fafb;
+}
+
+.profileOption.selected {
+  background: #eff6ff;
+  border-left: 3px solid #60a5fa;
+}
+
+.profileOptionAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.profileOptionInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.profileOptionName {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profileOptionUsername {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profileOptionStats {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.profileOptionFollowers {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.loadingText {
+  padding: 16px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.errorText {
+  padding: 16px;
+  text-align: center;
+  color: #ef4444;
+  font-size: 14px;
+}
+
+.retryButton {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background-color 0.2s;
+}
+
+.retryButton:hover {
+  background: #dc2626;
+}
+
+.emptyText {
+  padding: 16px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 14px;
 }
 
 .statsContainer {

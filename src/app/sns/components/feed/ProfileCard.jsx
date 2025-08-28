@@ -1,34 +1,13 @@
 "use client";
 import Image from "next/image";
-import { useState, useEffect } from "react";
-import { getProfileData } from "../../lib/feedData";
+import { useSns } from "../../context/SnsContext";
 import styles from "../../styles/feed/ProfileCard.module.css";
 
 export default function ProfileCard() {
-  const [profileData, setProfileData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { selectedInstagramProfile } = useSns();
 
-  useEffect(() => {
-    const fetchProfileData = async () => {
-      try {
-        const data = await getProfileData();
-        setProfileData(data);
-      } catch (error) {
-        console.error("Failed to fetch profile data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfileData();
-  }, []);
-
-  if (loading) {
-    return <div className={styles.profileCard}>Loading...</div>;
-  }
-
-  if (!profileData) {
-    return <div className={styles.profileCard}>Error loading profile data</div>;
+  if (!selectedInstagramProfile) {
+    return <div className={styles.profileCard}>No profile selected</div>;
   }
 
   return (
@@ -36,7 +15,7 @@ export default function ProfileCard() {
       <div className={styles.profileContent}>
         <div className={styles.avatarContainer}>
           <Image
-            src="/user-1.jpg"
+            src={selectedInstagramProfile?.profile_picture_url || "/user-1.jpg"}
             alt="Profile Avatar"
             width={80}
             height={80}
@@ -44,22 +23,29 @@ export default function ProfileCard() {
           />
         </div>
         <div className={styles.profileInfo}>
-          <h2 className={styles.username}>{profileData.username}</h2>
+          <div className={styles.profileHeader}>
+            <h2 className={styles.username}>
+              {selectedInstagramProfile?.username || "Unknown User"}
+            </h2>
+          </div>
+
           <div className={styles.statsContainer}>
             <div className={styles.statItem}>
               <div className={styles.statNumber}>
-                {profileData.stats.followers}
+                {selectedInstagramProfile?.followers_count || 0}
               </div>
               <div className={styles.statLabel}>팔로워</div>
             </div>
             <div className={styles.statItem}>
               <div className={styles.statNumber}>
-                {profileData.stats.following}
+                {selectedInstagramProfile?.follows_count || 0}
               </div>
               <div className={styles.statLabel}>팔로잉</div>
             </div>
             <div className={styles.statItem}>
-              <div className={styles.statNumber}>{profileData.stats.posts}</div>
+              <div className={styles.statNumber}>
+                {(selectedInstagramProfile?.media_count || 0).toLocaleString()}
+              </div>
               <div className={styles.statLabel}>게시물</div>
             </div>
           </div>
