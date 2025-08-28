@@ -235,7 +235,7 @@ const PetProfile = () => {
                         <div className={styles.petImage}>
                           <Image
                             src={
-                              pet.imageUrl && !pet.imageUrl.startsWith("http")
+                              pet.imageUrl && pet.imageUrl.trim() !== ""
                                 ? pet.imageUrl
                                 : "/user/dog.png"
                             }
@@ -243,6 +243,14 @@ const PetProfile = () => {
                             width={409}
                             height={192}
                             className={styles.petImage}
+                            unoptimized
+                            onError={(e) => {
+                              console.log(
+                                "이미지 로드 실패, 기본 이미지로 대체:",
+                                pet.imageUrl
+                              );
+                              e.target.src = "/user/dog.png";
+                            }}
                           />
                         </div>
                       </Link>
