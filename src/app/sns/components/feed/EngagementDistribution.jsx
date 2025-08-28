@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import styles from "../../styles/feed/EngagementDistribution.module.css";
 import { getEngagementDistribution } from "../../lib/feedData";
+import { useSns } from "../../context/SnsContext";
 import {
   PieChart,
   Pie,
@@ -14,11 +15,16 @@ import {
 export default function EngagementDistribution() {
   const [engagementData, setEngagementData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { selectedInstagramProfile } = useSns();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getEngagementDistribution();
+        if (!selectedInstagramProfile?.id) {
+          setEngagementData([]);
+          return;
+        }
+        const data = await getEngagementDistribution(selectedInstagramProfile.id);
         setEngagementData(data);
       } catch (error) {
         console.error("참여 분포 데이터 로딩 실패:", error);
@@ -28,7 +34,7 @@ export default function EngagementDistribution() {
     };
 
     fetchData();
-  }, []);
+  }, [selectedInstagramProfile]);
 
   if (loading) {
     return (
@@ -62,7 +68,7 @@ export default function EngagementDistribution() {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value, name) => [`${value}%`, name]}
+              formatter={(value, name) => [`${Number(value).toFixed(1)}%`, name]}
               contentStyle={{
                 backgroundColor: "#ffffff",
                 border: "1px solid #e5e7eb",

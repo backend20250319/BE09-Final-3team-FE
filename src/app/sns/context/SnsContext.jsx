@@ -5,15 +5,18 @@ const SnsContext = createContext();
 
 export function SnsProvider({ children }) {
   const [activeTab, setActiveTab] = useState("feed");
-  const [selectedInstagramProfile, setSelectedInstagramProfile] = useState(null);
+  const [selectedInstagramProfile, setSelectedInstagramProfile] =
+    useState(null);
 
   return (
-    <SnsContext.Provider value={{ 
-      activeTab, 
-      setActiveTab, 
-      selectedInstagramProfile, 
-      setSelectedInstagramProfile 
-    }}>
+    <SnsContext.Provider
+      value={{
+        activeTab,
+        setActiveTab,
+        selectedInstagramProfile,
+        setSelectedInstagramProfile,
+      }}
+    >
       {children}
     </SnsContext.Provider>
   );

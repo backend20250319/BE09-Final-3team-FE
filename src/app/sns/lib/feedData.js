@@ -1,5 +1,7 @@
 // Feed 페이지 관련 더미 데이터
 
+import api from "@/app/api/api";
+
 // 프로필 데이터
 export const profileData = {
   username: "@Petful_influencer",
@@ -11,41 +13,7 @@ export const profileData = {
   },
 };
 
-// 피드 통계 데이터
-export const feedStatsData = [
-  {
-    id: 1,
-    value: "8,247",
-    label: "게시물 별 평균 좋아요",
-    change: "+12.5%",
-    iconType: "heart",
-    borderColor: "#F5A623",
-  },
-  {
-    id: 2,
-    value: "342",
-    label: "게시물 별 평균 댓글",
-    change: "+8.3%",
-    iconType: "comment",
-    borderColor: "#8BC34A",
-  },
-  {
-    id: 3,
-    value: "3.4%",
-    label: "삭제 비율",
-    change: "+15.7%",
-    iconType: "engagement",
-    borderColor: "#FF7675",
-  },
-  {
-    id: 4,
-    value: "156.8K",
-    label: "게시물 별 평균 조회 수",
-    change: "+22.1%",
-    iconType: "reach",
-    borderColor: "#60A5FA",
-  },
-];
+
 
 // 인기 게시물 데이터
 export const topPerformingPostsData = [
@@ -111,106 +79,84 @@ export const engagementDistributionData = [
   { name: "공유", value: 25, color: "#FF7675" },
 ];
 
-// API 호출 함수들
-export async function getProfileData() {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(profileData), 500);
-  });
+
+
+export async function getTopPerformingPosts(instagram_id) {
+  const params = { instagram_id: instagram_id };
+  const response = await api.get("/sns-service/instagram/medias/top-media", { params });
+  const raw = response?.data?.data || response?.data || [];
+  const posts = Array.isArray(raw)
+    ? raw.map((item) => ({
+        id: item.id,
+        image: item.media_url,
+        title: item.caption || "",
+        likes: Number(item.like_count) || 0,
+        comments: Number(item.comments_count) || 0,
+        permalink: item.permalink,
+      }))
+    : [];
+  return posts;
 }
 
-export async function getFeedStats() {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(feedStatsData), 500);
+
+
+export async function getFollowerData(instagram_id) {
+  const params = { instagram_id: instagram_id };
+  const response = await api.get("/sns-service/instagram/insights/follower-history", { params });
+  const monthly = response?.data?.data || response?.data || [];
+  const normalized = Array.isArray(monthly)
+    ? monthly
+        .map((row) => ({
+          month: typeof row.stat_month === "string" ? row.stat_month.slice(0, 7) : row.stat_month,
+          followers: Number(row.total_followers) || 0,
+        }))
+        .sort((a, b) => (a.month < b.month ? -1 : 1))
+    : [];
+
+  const withDelta = normalized.map((item, idx, arr) => {
+    const prev = idx > 0 ? arr[idx - 1].followers : item.followers;
+    return {
+      month: item.month,
+      followers: item.followers,
+      newFollowers: Math.max(item.followers - prev, 0),
+    };
   });
+
+  return withDelta;
 }
 
-export async function getTopPerformingPosts() {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(topPerformingPostsData), 500);
-  });
+export async function getEngagementDistribution(instagram_id) {
+  const params = { instagram_id: instagram_id };
+  const response = await api.get("/sns-service/instagram/insights/engagement", { params });
+  const body = response?.data?.data || response?.data || {};
+  const like = Number(body.like_rate) || 0;
+  const comment = Number(body.comment_rate) || 0;
+  const share = Number(body.share_rate) || 0;
+  return [
+    { name: "좋아요", value: like, color: "#F5A623" },
+    { name: "댓글", value: comment, color: "#8BC34A" },
+    { name: "공유", value: share, color: "#FF7675" },
+  ];
 }
 
-export async function getEngagementData() {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(engagementData), 500);
-  });
+
+
+export async function getEngagementAndReachData(instagram_id) {
+  const params = { instagram_id: instagram_id };
+  const response = await api.get("/sns-service/instagram/insights/analysis-data", { params });
+  return response.data;
 }
 
-export async function getReachData() {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(reachData), 500);
-  });
-}
 
-export async function getFollowerData() {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(followerData), 500);
-  });
-}
+export async function getFeedStats(instagram_id) {
+  const params = { instagram_id:instagram_id };
 
-export async function getEngagementDistribution() {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(engagementDistributionData), 500);
-  });
+  const response = await api.get("/sns-service/instagram/medias/analysis", {params});
+  return response.data;
 }
 
 // 인스타그램 프로필 목록을 가져오는 함수
-export async function getInstagramProfiles(userNo) {
-  try {
-    
-    const response = await fetch(`http://localhost:8000/api/v1/sns-service/instagram/profiles?user_no=${userNo}`);
-    console.log('Response status:', response.status);
-    console.log('Response headers:', response.headers);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    console.log('Response data:', data);
-    
-    if (data.code === "2000") {
-      console.log('Successfully fetched profiles:', data.data);
-      return data.data;
-    } else {
-      console.error('API returned error:', data);
-      throw new Error(data.message || 'Failed to fetch Instagram profiles');
-    }
-  } catch (error) {
-    console.error('Error fetching Instagram profiles:', error);
-    console.warn('API 서버에 연결할 수 없습니다. 더미 데이터를 사용합니다.');
-    // API가 작동하지 않을 때 더미 데이터 반환
-    return [
-      {
-        id: 17841475913854291,
-        username: "petful_influencer",
-        name: "펫풀",
-        profile_picture_url: "/user-1.jpg",
-        followers_count: 245200,
-        follows_count: 1847,
-        media_count: 892,
-        auto_delete: true
-      },
-      {
-        id: 17841475913854292,
-        username: "petstar_celeb",
-        name: "펫스타 셀럽",
-        profile_picture_url: "/user-2.jpg",
-        followers_count: 156800,
-        follows_count: 1200,
-        media_count: 456,
-        auto_delete: false
-      },
-      {
-        id: 17841475913854293,
-        username: "pet_care_expert",
-        name: "펫케어 전문가",
-        profile_picture_url: "/user-3.jpg",
-        followers_count: 89200,
-        follows_count: 890,
-        media_count: 234,
-        auto_delete: true
-      }
-    ];
-  }
+export async function getInstagramProfiles() {
+  const response = await api.get("/sns-service/instagram/profiles");
+  return response.data;
 }
