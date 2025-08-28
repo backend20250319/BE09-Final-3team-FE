@@ -3,16 +3,25 @@ import React, { useState, useEffect } from "react";
 import styles from "../../styles/feed/StatsGrid.module.css";
 import { getFeedStats } from "../../lib/feedData";
 import StatCard from "./StatCard";
+import StatsCards from "./StatsCards";
+import { useSns } from "../../context/SnsContext";
 
 export default function StatsGrid() {
   const [statsData, setStatsData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { selectedInstagramProfile } = useSns();
 
   useEffect(() => {
     const fetchStatsData = async () => {
       try {
-        const data = await getFeedStats();
-        setStatsData(data);
+        if (!selectedInstagramProfile?.id) {
+          setStatsData([]);
+          return;
+        }
+
+        const data = await getFeedStats(selectedInstagramProfile.id);
+        setStatsData(data?.data || {});
+        
       } catch (error) {
         console.error("Failed to fetch stats data:", error);
       } finally {
@@ -21,7 +30,7 @@ export default function StatsGrid() {
     };
 
     fetchStatsData();
-  }, []);
+  }, [selectedInstagramProfile]);
 
   if (loading) {
     return <div className={styles.statsGrid}>Loading...</div>;
@@ -29,9 +38,7 @@ export default function StatsGrid() {
 
   return (
     <div className={styles.statsGrid}>
-      {statsData.map((stat) => (
-        <StatCard key={stat.id} {...stat} />
-      ))}
+      <StatsCards data={statsData} />
     </div>
   );
 }

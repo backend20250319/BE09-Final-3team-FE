@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import styles from "../../styles/feed/FollowerGrowthChart.module.css";
 import { getFollowerData } from "../../lib/feedData";
+import { useSns } from "../../context/SnsContext";
 import {
   LineChart,
   Line,
@@ -20,21 +21,27 @@ import {
 export default function FollowerGrowthChart() {
   const [followerData, setFollowerData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { selectedInstagramProfile } = useSns();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getFollowerData();
-        setFollowerData(data);
+        if (!selectedInstagramProfile?.id) {
+          setFollowerData([]);
+          return;
+        }
+        const rows = await getFollowerData(selectedInstagramProfile.id);
+        setFollowerData(rows);
       } catch (error) {
         console.error("팔로워 데이터 로딩 실패:", error);
+        setFollowerData([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [selectedInstagramProfile]);
 
   if (loading) {
     return (
@@ -66,8 +73,7 @@ export default function FollowerGrowthChart() {
             yAxisId="left"
             tick={{ fontSize: 12, fill: "#6b7280" }}
             axisLine={{ stroke: "#e5e7eb" }}
-            tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
-            domain={[210000, 250000]}
+            tickFormatter={(value) => (value >= 1000 ? `${(value / 1000).toFixed(1)}K` : `${value.toLocaleString()}`)}
           />
           <YAxis
             yAxisId="right"
@@ -85,7 +91,9 @@ export default function FollowerGrowthChart() {
             }}
             formatter={(value, name) => [
               name === "총 팔로워"
-                ? `${(value / 1000).toFixed(1)}K`
+                ? value >= 1000
+                  ? `${(value / 1000).toFixed(1)}K`
+                  : `${value.toLocaleString()}`
                 : value.toLocaleString(),
               name,
             ]}

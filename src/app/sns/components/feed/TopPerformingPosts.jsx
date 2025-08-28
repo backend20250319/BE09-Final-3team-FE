@@ -4,15 +4,21 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import styles from "../../styles/feed/TopPerformingPosts.module.css";
 import { getTopPerformingPosts } from "../../lib/feedData";
+import { useSns } from "../../context/SnsContext";
 
 export default function TopPerformingPosts() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { selectedInstagramProfile } = useSns();
 
   useEffect(() => {
     const fetchPostsData = async () => {
       try {
-        const data = await getTopPerformingPosts();
+        if (!selectedInstagramProfile?.id) {
+          setPosts([]);
+          return;
+        }
+        const data = await getTopPerformingPosts(selectedInstagramProfile.id);
         setPosts(data);
       } catch (error) {
         console.error("Failed to fetch posts data:", error);
@@ -22,7 +28,7 @@ export default function TopPerformingPosts() {
     };
 
     fetchPostsData();
-  }, []);
+  }, [selectedInstagramProfile]);
 
   if (loading) {
     return <div className={styles.topPostsCard}>Loading...</div>;
@@ -35,13 +41,7 @@ export default function TopPerformingPosts() {
         {posts.map((post) => (
           <div key={post.id} className={styles.postCard}>
             <div className={styles.imageContainer}>
-              <Image
-                src={post.image}
-                alt={post.title}
-                width={64}
-                height={64}
-                className={styles.postImage}
-              />
+              <Image src={post.image} alt={post.title} width={64} height={64} className={styles.postImage} />
             </div>
             <div className={styles.postContent}>
               <h4 className={styles.postTitle}>{post.title}</h4>

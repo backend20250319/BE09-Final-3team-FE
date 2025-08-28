@@ -1,5 +1,6 @@
 import styles from "../../styles/feed/FeedAnalysis.module.css";
 import ProfileCard from "./ProfileCard";
+import ProfileSelector from "../ProfileSelector";
 import StatsGrid from "./StatsGrid";
 import ChartsSection from "./ChartsSection";
 import FollowerGrowthChart from "./FollowerGrowthChart";
@@ -9,6 +10,9 @@ import EngagementDistribution from "./EngagementDistribution";
 export default function FeedAnalysis() {
   return (
     <>
+
+
+
       {/* Profile Card */}
       <ProfileCard />
 
