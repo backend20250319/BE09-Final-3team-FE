@@ -116,7 +116,6 @@
 /* 프로필 섹션 */
 .profileSection {
   width: 1020px;
-  height: 543px;
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1);
@@ -128,7 +127,6 @@
 .profileContent {
   display: flex;
   gap: 32px;
-  height: 100%;
 }
 
 /* 프로필 이미지 컨테이너 */
@@ -149,12 +147,65 @@
   justify-content: center;
   position: relative;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  overflow: hidden;
 }
 
 .profileImage:hover {
-  border-color: #f5a623;
-  transform: scale(1.02);
+  border-color: #6be6bd;
+  transform: scale(1.05);
+}
+
+.imageLoading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  color: #594a3e;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: "Pretendard Variable", sans-serif;
+}
+
+.loadingSpinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e9ecef;
+  border-top: 2px solid #6be6bd;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 8px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.imageOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  font-size: 10px;
+  padding: 4px 8px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  font-family: "Pretendard Variable", sans-serif;
+}
+
+.profileImage:hover .imageOverlay {
+  opacity: 1;
 }
 
 .cameraIcon {
@@ -168,27 +219,37 @@
 .uploadButtonContainer {
   display: flex;
   justify-content: center;
-  margin-top: 20px;
+  margin-top: 12px;
+  width: 100%;
 }
 
 .uploadButton {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #f5a623;
+  background: #6be6bd;
   border: none;
   border-radius: 8px;
-  padding: 12px 24px;
+  padding: 10px 20px;
   font-family: "Pretendard Variable", sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: #ffffff;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
+  min-width: 140px;
+  justify-content: center;
 }
 
 .uploadButton:hover {
-  background: #e0941a;
+  background: #5dd4a8;
+  transform: translateY(-1px);
+}
+
+.uploadButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .uploadButton:active {
@@ -299,14 +360,21 @@
 
 /* 주소 컨테이너 */
 .addressContainer {
-  position: relative;
   margin-top: 20px;
+}
+
+.addressLabel {
+  display: block;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #594a3e;
+  margin-bottom: 8px;
 }
 
 .addressRow {
   display: flex;
   gap: 16px;
-  margin-bottom: 8px;
 }
 
 .addressInput,
@@ -325,14 +393,10 @@
   box-sizing: border-box;
 }
 
-.locationLabel {
-  position: absolute;
-  top: -25px;
-  left: 1px;
-  font-family: "Pretendard Variable", sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-  color: #594a3e;
+.addressInput:focus,
+.detailAddressInput:focus {
+  outline: none;
+  border-color: #6be6bd;
 }
 
 /* 생년월일 */
@@ -364,10 +428,14 @@
   box-sizing: border-box;
 }
 
+.birthInput:focus {
+  outline: none;
+  border-color: #6be6bd;
+}
+
 /* 추가 정보 섹션 */
 .additionalInfoSection {
   width: 1020px;
-  height: 194px;
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1);
@@ -426,7 +494,6 @@
 /* 소셜 미디어 섹션 */
 .socialMediaSection {
   width: 1020px;
-  height: 284px;
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1);
@@ -436,7 +503,7 @@
 }
 
 .socialMediaRow {
-  margin-top: 85px;
+  margin-top: 0;
 }
 
 .instagramContainer {
