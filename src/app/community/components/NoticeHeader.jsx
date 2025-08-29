@@ -4,8 +4,10 @@ import styles from "../styles/NoticeHeader.module.css";
 import {useRouter} from "next/navigation";
 import SubHeader from "@/app/components/SubHeader";
 
-export default function NoticeHeader({activeTab,setActiveTab}) {
+export default function NoticeHeader({activeType,activeTab,onChangeType,mineOnly,onToggleMine}) {
   const router = useRouter();
+
+  const current = activeType ?? activeTab;
 
   const handleAdd = () => {
     router.push('/community/new');
@@ -17,18 +19,23 @@ export default function NoticeHeader({activeTab,setActiveTab}) {
         <div className={styles.tabContainer}>
           <div className={styles.tabs}>
             <button
-              className={`${styles.tab} ${
-                activeTab === "정보 공유" ? styles.active : ""
-              }`}
-              onClick={() => setActiveTab("정보 공유")}
+                type="button"
+                className={`${styles.tab} ${
+                    current === "INFORMATION" ? styles.active : ""
+                }`}
+                aria-selected={current === "INFORMATION"}
+                onClick={() => onChangeType?.("INFORMATION")}
             >
               정보 공유
             </button>
+
             <button
-              className={`${styles.tab} ${
-                activeTab === "Q&A" ? styles.active : ""
-              }`}
-              onClick={() => setActiveTab("Q&A")}
+                type="button"
+                className={`${styles.tab} ${
+                    current === "QUESTION" ? styles.active : ""
+                }`}
+                aria-selected={current === "QUESTION"}
+                onClick={() => onChangeType?.("QUESTION")}
             >
               Q&A
             </button>
@@ -36,7 +43,9 @@ export default function NoticeHeader({activeTab,setActiveTab}) {
         </div>
 
         <div className={styles.buttonContainer}>
-          <button className={styles.myPostsBtn}>
+          <button className={`${styles.myPostsBtn} ${mineOnly ? styles.active : ""}`}
+                  onClick={onToggleMine}
+                  aria-pressed={mineOnly}>
             <svg width="16" height="20" viewBox="0 0 16 20" fill="none">
               <path
                 d="M8 10C10.2091 10 12 8.20914 12 6C12 3.79086 10.2091 2 8 2C5.79086 2 4 3.79086 4 6C4 8.20914 5.79086 10 8 10Z"

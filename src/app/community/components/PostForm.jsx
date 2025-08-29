@@ -2,6 +2,8 @@
 import styles from "../styles/NewPost.module.css";
 import React, { useState } from 'react';
 import { useRouter } from "next/navigation";
+import {registNewPost} from "@/api/postApi";
+import axios from "axios";
 
 export default function PostForm() {
     const router = useRouter();
@@ -9,6 +11,8 @@ export default function PostForm() {
     const [selected, setSelected] = useState('');
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
+    const [submitting,setSubmitting] = useState(false);
+    const [err,setErr] = useState(null);
 
     const handleCancel = () => {
         const confirmCancel = window.confirm("게시글 작성을 취소하시겠습니까?");
@@ -16,10 +20,43 @@ export default function PostForm() {
             router.push('/community');
         }
     };
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!selected)       return alert("게시판을 선택해주세요.");
+        if (!title.trim())   return alert("제목을 입력해주세요.");
+        if (!content.trim()) return alert("내용을 입력해주세요.");
+
+        const ALLOWED_TYPES = ["INFORMATION", "QUESTION"];
+        const type = ALLOWED_TYPES.includes(selected) ? selected : null;
+        if (!type) return alert("게시판 유형이 올바르지 않습니다.");
+        try {
+            await registNewPost({ title, content, type });
+
+            alert("등록 완료!");
+            router.replace("/community");
+        } catch (err) {
+            console.error("[registNewPost] fail:", err);
+            const status = err?.response?.status;
+            const msg =
+                err?.response?.data?.message ??
+                err?.response?.data?.msg ??
+                err?.message ??
+                "요청 중 오류가 발생했습니다.";
+
+            if (status === 401) {
+                alert("로그인이 필요합니다. 다시 로그인 후 시도해주세요.");
+            } else if (status === 400) {
+                alert(`입력값을 확인해주세요.\n- ${msg}`);
+            } else {
+                alert(`등록에 실패했습니다. 잠시 후 다시 시도해주세요.\n- ${msg}`);
+            }
+        }
+    };
 
     const options = [
-        { label: '정보 공유', value: 'notice' },
-        { label: 'Q&A', value: 'QandA' },
+        { label: '정보 공유', value: 'INFORMATION' },
+        { label: 'Q&A', value: 'QUESTION' },
     ];
 
     return (
@@ -85,6 +122,7 @@ export default function PostForm() {
                    placeholder="제목을 입력해주세요."
                    value={title}
                    onChange={e => setTitle(e.target.value)}
+                   disabled={submitting}
                />
            </div>
            <div className={styles.content}>
@@ -94,11 +132,15 @@ export default function PostForm() {
                    placeholder="게시글 내용을 입력해주세요."
                    value={content}
                    onChange={e => setContent(e.target.value)}
+                   disabled={submitting}
                />
+               {err && (
+                   <div style={{ color: "red", marginTop: 8 }}>{err}</div>
+               )}
            </div>
            <div className={styles.btnarea}>
-               <button  onClick={handleCancel}  className={styles.cancelButton}>취소</button>
-               <button className={styles.submitButton}>게시글 등록</button>
+               <button  onClick={handleCancel}  className={styles.cancelButton} disabled={submitting}>취소</button>
+               <button className={styles.submitButton} onClick={handleSubmit} disabled={submitting}>{submitting ? "등록 중..." : "게시글 등록"}</button>
            </div>
        </div>
         </div>

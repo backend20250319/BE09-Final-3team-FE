@@ -1,52 +1,65 @@
 "use client";
-import React, {useEffect, useMemo, useState} from "react";
+import React, { useEffect, useState } from "react";
 import NoticeCard from "./NoticeCard";
 import styles from "../styles/NoticeList.module.css";
-import {useRouter} from "next/navigation";
-import {getAllPost} from "@/app/api/postApi";
+import { useRouter } from "next/navigation";
+import { getAllPost, getMyPost } from "@/api/postApi";
+import { POST_TYPE_TABS } from "@/app/community/constants/post";
 
+export default function NoticeList({ activeTab, mineOnly = false, onLoaded }) {
+    const router = useRouter();
+    const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [err, setErr] = useState(null);
 
-export default function NoticeList({activeTab, page=0,size = 5,onLoaded}) {
-  const router = useRouter();
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [err,setErr] = useState(null);
+    // 탭 값(라벨/enum 모두 허용) → enum 값으로 정규화
+    const resolvedType =
+        POST_TYPE_TABS.find(t => t.value === activeTab || t.label === activeTab)?.value || null;
 
-  const abortCtrl = useMemo(()=>new AbortController(),[activeTab,page,size]);
+    useEffect(() => {
+        const ac = new AbortController();
+        setLoading(true);
+        setErr(null);
 
-  useEffect(()=> {
-    setLoading(true);
-    setErr(null);
+        const fetcher = mineOnly ? getMyPost : getAllPost;
 
-    getAllPost({category:activeTab,page,size,signal:abortCtrl.signal})
-        .then((data) => {
-          const items = Array.isArray(data) ? data:data.content ?? [];
-          setPosts(items);
-          onLoaded?.(data);
-        })
-        .catch((e) => {
-          if (e.name === "CanceledError" || e.code === "ERR_CANCELED") return;
-          setErr(e?.response?.data?.message ?? "목록을 불러오지 못했습니다.");
-        })
-        .finally(() => setLoading(false));
-    return () => abortCtrl.abort();
-  }, [activeTab, page, size, abortCtrl, onLoaded]);
+        fetcher({ signal: ac.signal })
+            .then((data) => {
+                const list = Array.isArray(data) ? data : data?.content ?? [];
 
-  const handleClick = (id) => {
-    router.push(`/community/${id}`);
-  };
+                // 백엔드에서 타입 필터를 받지 않으니 프론트에서 필터
+                const filtered = resolvedType
+                    ? list.filter(p => (p.type ?? p.postType ?? p.category) === resolvedType)
+                    : list;
 
-  if (loading) return <div className={styles.container}>불러오는 중…</div>;
-  if (err) return <div className={styles.container} style={{ color: "red" }}>{err}</div>;
-  if (!posts.length) return <div className={styles.container}>게시글이 없습니다.</div>;
+                setPosts(filtered);
+                onLoaded?.(data);
+            })
+            .catch((e) => {
+                if (e?.name === "CanceledError" || e?.code === "ERR_CANCELED") return;
+                setErr(e?.response?.data?.message ?? "목록을 불러오지 못했습니다.");
+            })
+            .finally(() => setLoading(false));
 
-  return (
-    <div className={styles.container}>
-      {posts.map((post) => (
-          <div key={post.id} onClick={() => handleClick(post.id)}>
-            <NoticeCard post={post} />
-          </div>
-      ))}
-    </div>
-  );
+        return () => ac.abort();
+    }, [mineOnly, resolvedType, onLoaded]);
+
+    const handleClick = (id) => router.push(`/community/${id}`);
+
+    if (loading) return <div className={styles.container}>불러오는 중…</div>;
+    if (err) return <div className={styles.container} style={{ color: "red" }}>{err}</div>;
+    if (!posts.length) return <div className={styles.container}>게시글이 없습니다.</div>;
+
+    return (
+        <div className={styles.container}>
+            {posts.map((post) => {
+                const pid = post.id ?? post.postId;
+                return (
+                    <div key={pid} onClick={() => handleClick(pid)}>
+                        <NoticeCard post={post} />
+                    </div>
+                );
+            })}
+        </div>
+    );
 }
