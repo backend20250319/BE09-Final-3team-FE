@@ -12,8 +12,8 @@ function toCardModel(api) {
     author: api.author
         ? {
           id: api.author.id ?? null,
-          name: api.author.name ?? "익명",
-          avatarUrl: api.author.profileUrl ?? null,
+          name: api.author.nickname ?? "익명",
+          avatarUrl: api.author.profileImageUrl ?? null,
         }
         : null,
     commentCount: api.commentCount ?? api.comments ?? 0,
@@ -56,8 +56,8 @@ export default function NoticeCard({ post }) {
               <div className={styles.authorInfo}>
                   {m.author?.avatarUrl && (
                       <img
-                          src={m.author.avatarUrl}                // ✅ AuthorDto.avatarUrl
-                          alt={m.author?.name ?? "작성자"}        // ✅ AuthorDto.name
+                          src={m.author.avatarUrl ?? "/user/avatar-placeholder.jpg"}
+                          alt={m.author?.name ?? "작성자"}
                           className={styles.avatar}
                       />
                   )}

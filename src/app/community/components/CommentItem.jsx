@@ -22,32 +22,45 @@ export default function CommentItem({
     // AuthorDto or legacy fields 안전 매핑
     const hasAuthorObj = comment.author && typeof comment.author === "object";
     const authorName =
-        (hasAuthorObj && (comment.author.name || "익명")) ||
+        (hasAuthorObj && (comment.author.nickname || "익명")) ||
         comment.authorName ||
         comment.nickname ||
         (typeof comment.author === "string" ? comment.author : "익명");
 
     const avatar =
-        (hasAuthorObj && (comment.author.avatarUrl || comment.author.profileUrl)) ||
+        (hasAuthorObj && (comment.author.profileImageUrl || comment.author.avatarUrl)) ||
         comment.avatar ||
         comment.profileImage ||
-        "/images/avatar-placeholder.png";
+        "/user/avatar-placeholder.jpg";
 
     const timeText = comment.time ?? formatRelative(comment.createdAt);
 
-    const handleSubmitReply = async ({ content }) => {
-        await onReply?.({ content, parentId: comment.id });
+    const handleSubmitReply = async ({content}) => {
+        await onReply?.({content, parentId: comment.id});
         setOpenReply(false);
     };
 
     const canReply = depth < MAX_DEPTH;
     const hasChildren = Array.isArray(comment.children) && comment.children.length > 0;
 
-    // 상태/권한
-    const isDeleted = comment.status === "DELETED";
-    const isOwner =
-        currentUserNo != null && String(currentUserNo) === String(comment.userId);
-    const canDelete = !isDeleted && isOwner; // ✅ 본인 & 미삭제만 삭제 가능
+// 내 userNo (prop 우선, 없으면 localStorage 백업)
+    const meNo =
+        currentUserNo ??
+        (typeof window !== "undefined"
+            ? localStorage.getItem("userNo") || localStorage.getItem("userId")
+            : null);
+
+// 댓글 소유자 id를 여러 필드에서 안전하게 추출
+    const ownerId =
+        comment.userNo ??
+        comment.userId ??
+        comment.author?.id;
+
+// 문자열/숫자 섞여도 동일 비교
+    const isOwner = meNo != null && ownerId != null && String(meNo) === String(ownerId);
+    const isDeleted = (comment.commentStatus || comment.status) === "DELETED";
+// 본인 & 미삭제만 삭제 가능
+    const canDelete = !isDeleted && isOwner;
 
     // 상태에 따라 내용 대체
     const contentText = isDeleted ? "삭제된 댓글입니다." : (comment.content ?? "");
@@ -57,6 +70,13 @@ export default function CommentItem({
             await onDelete?.(comment.id); // ✅ 상위에서 optimistic + 폴백 재조회
         }
     };
+    console.log("[CommentItem] meNo =", meNo,
+        "ownerId =", ownerId,
+        "isDeleted =", isDeleted,
+        "isOwner =", isOwner,
+        "canDelete =", canDelete,
+        "comment =", comment);
+
 
     return (
         <div className={styles.container} data-id={comment.id}>
@@ -68,20 +88,53 @@ export default function CommentItem({
                 referrerPolicy="no-referrer"
                 onError={(e) => {
                     e.currentTarget.onerror = null;
-                    e.currentTarget.src = "/images/avatar-placeholder.png";
+                    e.currentTarget.src = "/user/avatar-placeholder.jpg";
                 }}
             />
 
             <div className={styles.content}>
-                <div className={styles.header}>
+                {/* 상단 헤더: 닉네임(왼쪽) / 신고 + (내 댓글이면) 삭제(오른쪽) */}
+                <div
+                    className={styles.header}
+                    style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}
+                >
                     <span className={styles.author}>{isDeleted ? "(삭제됨)" : authorName}</span>
-                    <span className={styles.time}>{timeText}</span>
+
+                    <div style={{display: "flex", gap: 8, alignItems: "center"}}>
+                        {!isDeleted && (
+                            <button
+                                className={styles.sirenButton}
+                                onClick={() => setIsReportModalOpen(true)}
+                                style={{backgroundColor: "white"}}
+                                aria-label="신고"
+                                title="신고"
+                            >
+                                <Image src="/siren.png" alt="siren.png" width={30} height={30}/>
+                            </button>
+                        )}
+                        {canDelete && (
+                            <button
+                                className={styles.deleteButton ?? styles.replyButton}
+                                onClick={handleClickDelete}
+                                aria-label="댓글 삭제"
+                                title="댓글 삭제"
+                            >
+                                삭제
+                            </button>
+                        )}
+                    </div>
                 </div>
 
+                {/* 본문 */}
                 <p className={styles.text}>{contentText}</p>
 
-                {/* 액션 라인: 왼쪽은 답글, 오른쪽은 삭제/신고 */}
-                <div className={styles.actionsRow} style={{ display: "flex", justifyContent: "space-between" }}>
+                {/* 하단 푸터: 시간(왼쪽) / 답글달기(오른쪽) */}
+                <div
+                    className={styles.actionsRow}
+                    style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}
+                >
+                    <span className={styles.time}>{timeText}</span>
+
                     {canReply ? (
                         <button
                             className={styles.replyButton}
@@ -104,37 +157,12 @@ export default function CommentItem({
                             답글 달기
                         </button>
                     ) : (
-                        <span />
+                        <span/>
                     )}
-
-                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                        {canDelete && (
-                            <button
-                                className={styles.deleteButton ?? styles.replyButton} // ✅ 없으면 replyButton 재사용
-                                onClick={handleClickDelete}
-                                aria-label="댓글 삭제"
-                                title="댓글 삭제"
-                            >
-                                삭제
-                            </button>
-                        )}
-
-                        {!isDeleted && (
-                            <button
-                                className={styles.sirenButton}
-                                onClick={() => setIsReportModalOpen(true)}
-                                style={{ backgroundColor: "white" }}
-                                aria-label="신고"
-                                title="신고"
-                            >
-                                <Image src="/siren.png" alt="siren.png" width={30} height={30} />
-                            </button>
-                        )}
-                    </div>
                 </div>
 
                 {openReply && canReply && !isDeleted && (
-                    <div style={{ marginTop: 8 }}>
+                    <div style={{marginTop: 8}}>
                         <CommentForm
                             parentId={comment.id}
                             onAddComment={handleSubmitReply}
@@ -144,16 +172,16 @@ export default function CommentItem({
                     </div>
                 )}
 
-                {/* 자식은 깊이 1까지만 렌더링 */}
+                {/* 자식 댓글 */}
                 {hasChildren && depth < MAX_DEPTH && (
-                    <div style={{ marginLeft: 48, marginTop: 8 }}>
+                    <div style={{marginLeft: 48, marginTop: 8}}>
                         {comment.children.map((child) => (
                             <CommentItem
                                 key={child.id}
                                 comment={child}
                                 onReply={onReply}
-                                onDelete={onDelete}           // ✅ 하위에도 전달
-                                currentUserNo={currentUserNo} // ✅ 하위에도 전달
+                                onDelete={onDelete}
+                                currentUserNo={currentUserNo}
                                 depth={depth + 1}
                             />
                         ))}
@@ -170,7 +198,7 @@ export default function CommentItem({
     );
 }
 
-/** "방금 전 / 5분 전 / 2시간 전 ..." 상대시간 */
+    /** "방금 전 / 5분 전 / 2시간 전 ..." 상대시간 */
 function formatRelative(v) {
     if (!v) return "";
     const d = new Date(v);

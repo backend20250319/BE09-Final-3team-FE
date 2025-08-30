@@ -3,13 +3,13 @@ import React, { useEffect, useState } from "react";
 import CommentItem from "./CommentItem";
 import CommentForm from "./CommentForm";
 import styles from "../styles/CommentSection.module.css";
-import { getComments, createComment } from "@/api/commentApi";
-import {deletePost} from "@/api/postApi";
+import { getComments, createComment, deleteComment } from "@/api/commentApi";
 
 export default function CommentSection({ postId, autoRefresh = false }) {
     const [comments, setComments] = useState([]);
     const [loading, setLoading] = useState(false);
     const [err, setErr] = useState(null);
+    const [currentUserNo, setCurrentUserNo] = React.useState(null);
 
     // 댓글 불러오기
     useEffect(() => {
@@ -48,7 +48,7 @@ export default function CommentSection({ postId, autoRefresh = false }) {
     const handleDeleteComment = async (commentId) => {
         setComments(prev=>markDeleted(prev,commentId));
         try{
-            await deletePost(commentId);
+            await deleteComment(commentId);
             const fresh = await getComments(postId);
             setComments((normalizeList(fresh)));
         } catch (err){
@@ -58,6 +58,44 @@ export default function CommentSection({ postId, autoRefresh = false }) {
         }
     }
 
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const lsUserNo = localStorage.getItem("userNo");   // "" 인 상태
+        const lsUserId = localStorage.getItem("userId");
+
+        // 1) localStorage에 숫자값이 제대로 있으면 바로 사용
+        const pick = (v) => (v != null && v !== "" ? Number(v) : null);
+        const fromLS = pick(lsUserNo) ?? pick(lsUserId);
+        if (fromLS != null) {
+            setCurrentUserNo(fromLS);
+            console.log("[CommentSection] currentUserNo(from LS) =", fromLS);
+            return;
+        }
+
+        // 2) 없거나 "" 이면 JWT에서 복구
+        const token = localStorage.getItem("accessToken") || localStorage.getItem("token");
+        if (token && token.split(".").length === 3) {
+            try {
+                const payloadStr = atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"));
+                const p = JSON.parse(payloadStr);
+                const claim = p.userNo ?? p.userId ?? p.id ?? p.sub;
+                if (claim != null && `${claim}` !== "") {
+                    const n = Number(claim);
+                    setCurrentUserNo(n);
+                    // 캐시해두면 다음엔 LS에서 바로 읽힘
+                    localStorage.setItem("userNo", String(n));
+                    localStorage.setItem("userId", String(n));
+                    console.log("[CommentSection] currentUserNo(from JWT) =", n);
+                    return;
+                }
+            } catch (e) {
+                console.warn("[CommentSection] JWT decode 실패", e);
+            }
+        }
+
+        console.warn("[CommentSection] user id를 찾지 못했습니다.");
+    }, []);
 
     if (err) return <div className={styles.commentList} style={{ color: "red" }}>{err}</div>;
 
@@ -80,6 +118,8 @@ export default function CommentSection({ postId, autoRefresh = false }) {
                             key={comment.id}
                             comment={comment}
                             onReply={handleAddComment}
+                            onDelete={handleDeleteComment}
+                            currentUserNo={currentUserNo}
                         />
                     ))
                 )}
@@ -110,12 +150,14 @@ function toNode(n = {}, depth = 0) {
         author: n.author
             ? {
                 id: n.author.id,
-                name: n.author.name ?? "익명",
-                avatarUrl: n.author.profileUrl ?? null,
+                name: n.author.nickname ?? "익명",
+                avatarUrl: n.author.profileImageUrl?? null,
             }
             : { id: null, name: "익명", avatarUrl: null },
         content: n.content ?? "",
         createdAt: n.createdAt ?? null,
+        status: n.commentStatus ?? n.status ?? null,
+        commentStatus: n.commentStatus ?? n.status ?? null,
         children,
     };
 }
@@ -144,8 +186,6 @@ const markDeleted = (list, targetId) => {
                 ...item,
                 status: "DELETED",
                 content: "",         // 서버 규칙에 맞춰 내용 비움
-                // 필요한 경우 author를 익명 처리하고 싶다면 아래처럼:
-                // author: { ...item.author, name: "익명", avatarUrl: null },
             };
         }
         return { ...item, children: markDeleted(item.children || [], targetId) };

@@ -41,6 +41,15 @@ export default function PostContent({ post = {} }) {
 
               <span className={styles.author}>{author}</span>
 
+              {post.mine && (
+                  <span
+                      className={styles.deleteText}
+                      onClick={onDelete}
+                      role="button"
+                  >
+              게시글 삭제
+              </span>
+              )}
               <button
                   type="button"
                   aria-label="신고하기"
