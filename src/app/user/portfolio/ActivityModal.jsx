@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import styles from "./ActivityModal.module.css";
 import Image from "next/image";
+import axios from "axios";
 
 const ActivityModal = ({
   isOpen,
@@ -10,6 +11,17 @@ const ActivityModal = ({
   isEditMode,
   editingData,
 }) => {
+  // API 기본 URL
+  const PET_API_BASE = "http://localhost:8000/api/v1/pet-service";
+
+  // URL 파라미터에서 petNo 가져오기
+  const getPetNo = () => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get("petId");
+    }
+    return null;
+  };
   const [formData, setFormData] = useState({
     title: "",
     startDate: "",
@@ -54,22 +66,43 @@ const ActivityModal = ({
 
       // 기존 이미지들을 모두 불러오기
       if (editingData.images && editingData.images.length > 0) {
-        // images 배열이 있는 경우
-        const existingImages = editingData.images.map((image, index) => ({
-          id: Date.now() + index,
-          file: null,
-          preview: image.startsWith("/") ? image : `/${image}`,
-        }));
+        // images 배열이 있는 경우 (이미 객체 형태로 되어 있음)
+        const existingImages = editingData.images
+          .filter((image) => {
+            if (typeof image === "string") {
+              return image && image.trim() !== "" && image !== "undefined";
+            }
+            return image && (image.preview || image.url);
+          })
+          .map((image, index) => ({
+            id: image.id || Date.now() + index,
+            file: image.file || null,
+            preview:
+              typeof image === "string"
+                ? image.startsWith("http")
+                  ? image
+                  : image.startsWith("/")
+                  ? image
+                  : `http://dev.macacolabs.site:8008/3/pet/${image}`
+                : image.preview || image.url || image,
+          }));
         setUploadedImages(existingImages);
-      } else if (editingData.image && editingData.image !== "/campaign-1.jpg") {
+      } else if (
+        editingData.image &&
+        editingData.image !== "/campaign-1.jpg" &&
+        editingData.image.trim() !== "" &&
+        editingData.image !== "undefined"
+      ) {
         // 단일 image가 있는 경우
         setUploadedImages([
           {
             id: Date.now(),
             file: null,
-            preview: editingData.image.startsWith("/")
+            preview: editingData.image.startsWith("http")
               ? editingData.image
-              : `/${editingData.image}`,
+              : editingData.image.startsWith("/")
+              ? editingData.image
+              : `http://dev.macacolabs.site:8008/3/pet/${editingData.image}`,
           },
         ]);
       } else {
@@ -354,20 +387,153 @@ const ActivityModal = ({
     setShowConfirmModal(true);
   };
 
-  const handleConfirmSave = () => {
-    // period를 startDate와 endDate를 조합하여 생성
-    const period = `${formData.startDate} ~ ${formData.endDate}`;
+  // 인증 헤더 가져오기
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+    const accessToken = localStorage.getItem("accessToken");
+    const userNo = localStorage.getItem("userNo");
 
-    const activityData = {
-      ...formData,
-      period: period, // 기존 period 형식으로 변환
-      images: uploadedImages,
-      id: isEditMode && editingData ? editingData.id : Date.now(),
+    const headers = {
+      "Content-Type": "application/json",
     };
 
-    onSave(activityData);
-    handleClose();
-    setShowConfirmModal(false);
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    } else if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
+
+    if (userNo) {
+      headers["X-User-No"] = userNo;
+    }
+
+    return headers;
+  };
+
+  // History 생성 및 이미지 업로드
+  const createHistoryWithImages = async (historyData, images) => {
+    try {
+      const petNo = getPetNo();
+      if (!petNo) {
+        throw new Error("반려동물 정보를 찾을 수 없습니다.");
+      }
+
+      // 1. History 생성 또는 수정
+      const historyRequest = {
+        historyStart: historyData.startDate,
+        historyEnd: historyData.endDate,
+        content: historyData.content,
+      };
+
+      let historyResponse;
+      let historyNo;
+
+      if (isEditMode && editingData && editingData.historyNo) {
+        // 수정 모드
+        console.log("History 수정 요청:", historyRequest);
+        historyResponse = await axios.put(
+          `${PET_API_BASE}/pets/${petNo}/histories/${editingData.historyNo}`,
+          historyRequest,
+          {
+            headers: getAuthHeaders(),
+          }
+        );
+        historyNo = editingData.historyNo;
+      } else {
+        // 생성 모드
+        console.log("History 생성 요청:", historyRequest);
+        historyResponse = await axios.post(
+          `${PET_API_BASE}/pets/${petNo}/histories`,
+          historyRequest,
+          {
+            headers: getAuthHeaders(),
+          }
+        );
+        historyNo = historyResponse.data.data.historyNo;
+      }
+
+      if (historyResponse.data.code !== "2000") {
+        throw new Error(
+          isEditMode
+            ? "History 수정에 실패했습니다."
+            : "History 생성에 실패했습니다."
+        );
+      }
+
+      console.log(
+        isEditMode ? "History 수정 성공" : "History 생성 성공, historyNo:",
+        historyNo
+      );
+
+      // 2. 이미지 업로드 (이미지가 있는 경우)
+      if (images && images.length > 0) {
+        const imageFiles = images.filter((img) => img.file); // 실제 파일만 필터링
+
+        if (imageFiles.length > 0) {
+          const imageFormData = new FormData();
+          imageFiles.forEach((image, index) => {
+            imageFormData.append("files", image.file);
+          });
+
+          console.log("이미지 업로드 시작:", imageFiles.length, "개");
+
+          const imageResponse = await axios.post(
+            `${PET_API_BASE}/pets/${petNo}/histories/${historyNo}/images`,
+            imageFormData,
+            {
+              headers: {
+                ...getAuthHeaders(),
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+
+          if (imageResponse.data.code === "2000") {
+            console.log("이미지 업로드 성공:", imageResponse.data.data);
+          } else {
+            console.error("이미지 업로드 실패:", imageResponse.data.message);
+          }
+        }
+      }
+
+      return historyResponse.data.data;
+    } catch (error) {
+      console.error("History 생성/수정 및 이미지 업로드 실패:", error);
+      throw error;
+    }
+  };
+
+  const handleConfirmSave = async () => {
+    try {
+      // period를 startDate와 endDate를 조합하여 생성
+      const period = `${formData.startDate} ~ ${formData.endDate}`;
+
+      // History 생성 및 이미지 업로드
+      const historyResult = await createHistoryWithImages(
+        formData,
+        uploadedImages
+      );
+
+      const activityData = {
+        ...formData,
+        period: period, // 기존 period 형식으로 변환
+        images: uploadedImages,
+        id: isEditMode && editingData ? editingData.id : Date.now(),
+        historyNo:
+          isEditMode && editingData
+            ? editingData.historyNo
+            : historyResult.historyNo, // 수정 모드에서는 기존 historyNo 유지
+      };
+
+      onSave(activityData);
+      handleClose();
+      setShowConfirmModal(false);
+    } catch (error) {
+      console.error("활동 이력 저장 실패:", error);
+      setValidationMessage("활동 이력 저장에 실패했습니다. 다시 시도해주세요.");
+      setShowValidationModal(true);
+      setShowConfirmModal(false);
+    }
   };
 
   const handleClose = () => {
@@ -447,13 +613,30 @@ const ActivityModal = ({
             <div className={styles.imagePreviewGrid}>
               {uploadedImages.map((image) => (
                 <div key={image.id} className={styles.imagePreview}>
-                  <Image
-                    src={image.preview}
-                    alt="Preview"
-                    width={70}
-                    height={70}
-                    className={styles.previewImage}
-                  />
+                  {image.preview &&
+                  image.preview.trim() !== "" &&
+                  image.preview !== "undefined" ? (
+                    <Image
+                      src={image.preview}
+                      alt="Preview"
+                      width={70}
+                      height={70}
+                      className={styles.previewImage}
+                      onError={(e) => {
+                        // 이미지 로드 실패 시 기본 이미지로 대체
+                        e.target.src = "/user/upload.svg";
+                      }}
+                    />
+                  ) : (
+                    <div className={styles.previewPlaceholder}>
+                      <Image
+                        src="/user/upload.svg"
+                        alt="Preview Placeholder"
+                        width={40}
+                        height={33}
+                      />
+                    </div>
+                  )}
                   <button
                     className={styles.removeImageButton}
                     onClick={() => removeImage(image.id)}

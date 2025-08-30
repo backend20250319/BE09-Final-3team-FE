@@ -78,23 +78,39 @@ export default function ActivityCardCarousel({
               style={{ cursor: "pointer" }}
             >
               <div className={styles.cardImage}>
-                {card.image ? (
+                {card.image &&
+                card.image.trim() !== "" &&
+                card.image !== "undefined" ? (
                   <Image
                     src={card.image}
                     alt={`활동 이미지 ${card.id}`}
                     layout="fill"
                     objectFit="cover"
+                    onError={(e) => {
+                      // 이미지 로드 실패 시 기본 이미지로 대체
+                      e.target.style.display = "none";
+                      e.target.nextSibling.style.display = "flex";
+                    }}
                   />
-                ) : (
-                  <div className={styles.imagePlaceholder}>
-                    <Image
-                      src="/user/upload.svg"
-                      alt="이미지 업로드"
-                      width={43}
-                      height={31}
-                    />
-                  </div>
-                )}
+                ) : null}
+                <div
+                  className={styles.imagePlaceholder}
+                  style={{
+                    display:
+                      !card.image ||
+                      card.image.trim() === "" ||
+                      card.image === "undefined"
+                        ? "flex"
+                        : "none",
+                  }}
+                >
+                  <Image
+                    src="/user/upload.svg"
+                    alt="이미지 업로드"
+                    width={43}
+                    height={31}
+                  />
+                </div>
               </div>
 
               <div className={styles.cardContent}>

@@ -70,18 +70,39 @@ const ActivityDetailModal = ({ isOpen, onClose, activityData }) => {
         {/* 이미지 영역 */}
         <div className={styles.imageSection}>
           <div className={styles.imageContainer}>
-            <Image
-              src={
+            {(() => {
+              const imageSrc =
+                activityData.images?.[currentImageIndex]?.preview ||
                 activityData.images?.[currentImageIndex] ||
                 activityData.image ||
-                "/campaign-1.jpg"
-              }
-              alt="Activity Image"
-              layout="fill"
-              objectFit="cover"
-              onClick={handleImageClick}
-              style={{ cursor: "pointer" }}
-            />
+                "/campaign-1.jpg";
+
+              return imageSrc &&
+                imageSrc.trim() !== "" &&
+                imageSrc !== "undefined" ? (
+                <Image
+                  src={imageSrc}
+                  alt="Activity Image"
+                  layout="fill"
+                  objectFit="cover"
+                  onClick={handleImageClick}
+                  style={{ cursor: "pointer" }}
+                  onError={(e) => {
+                    // 이미지 로드 실패 시 기본 이미지로 대체
+                    e.target.src = "/campaign-1.jpg";
+                  }}
+                />
+              ) : (
+                <div className={styles.imagePlaceholder}>
+                  <Image
+                    src="/campaign-1.jpg"
+                    alt="Default Activity Image"
+                    layout="fill"
+                    objectFit="cover"
+                  />
+                </div>
+              );
+            })()}
 
             {/* 이미지 네비게이션 버튼 */}
             <div className={styles.imageNavigation}>
@@ -198,16 +219,37 @@ const ActivityDetailModal = ({ isOpen, onClose, activityData }) => {
               </button>
             </div>
 
-            <Image
-              src={
+            {(() => {
+              const imageSrc =
+                activityData.images?.[currentImageIndex]?.preview ||
                 activityData.images?.[currentImageIndex] ||
                 activityData.image ||
-                "/campaign-1.jpg"
-              }
-              alt="Activity Image Fullscreen"
-              layout="fill"
-              objectFit="contain"
-            />
+                "/campaign-1.jpg";
+
+              return imageSrc &&
+                imageSrc.trim() !== "" &&
+                imageSrc !== "undefined" ? (
+                <Image
+                  src={imageSrc}
+                  alt="Activity Image Fullscreen"
+                  layout="fill"
+                  objectFit="contain"
+                  onError={(e) => {
+                    // 이미지 로드 실패 시 기본 이미지로 대체
+                    e.target.src = "/campaign-1.jpg";
+                  }}
+                />
+              ) : (
+                <div className={styles.imagePlaceholder}>
+                  <Image
+                    src="/campaign-1.jpg"
+                    alt="Default Activity Image Fullscreen"
+                    layout="fill"
+                    objectFit="contain"
+                  />
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}
