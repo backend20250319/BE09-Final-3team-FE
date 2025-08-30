@@ -8,7 +8,7 @@ import {
 import styles from "../../styles/comment/BannedWords.module.css";
 import { IoSearchOutline } from "react-icons/io5";
 
-export default function BannedWords() {
+export default function BannedWords({ instagram_id }) {
   const [bannedWords, setBannedWords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,9 +19,16 @@ export default function BannedWords() {
 
   useEffect(() => {
     const fetchBannedWords = async () => {
+      if (!instagram_id) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const data = await getBannedWords();
-        setBannedWords(data);
+        const data = await getBannedWords(instagram_id);
+        // API 응답에서 word 필드만 추출
+        const words = data.map(item => item.word);
+        setBannedWords(words);
       } catch (error) {
         console.error("Failed to fetch banned words:", error);
       } finally {
@@ -30,7 +37,7 @@ export default function BannedWords() {
     };
 
     fetchBannedWords();
-  }, []);
+  }, [instagram_id]);
 
   const handleAddBannedWord = async () => {
     setIsModalOpen(true);
@@ -43,10 +50,14 @@ export default function BannedWords() {
       !bannedWords.includes(newWord.toLowerCase())
     ) {
       try {
-        await addBannedWord(newWord.toLowerCase());
-        setBannedWords([...bannedWords, newWord.toLowerCase()]);
-        setNewWord("");
-        setIsModalOpen(false);
+        const result = await addBannedWord(instagram_id, newWord.toLowerCase());
+        if (result.success) {
+          setBannedWords([...bannedWords, newWord.toLowerCase()]);
+          setNewWord("");
+          setIsModalOpen(false);
+        } else {
+          alert(result.message || "금지어 추가에 실패했습니다.");
+        }
       } catch (error) {
         console.error("Failed to add banned word:", error);
         alert("금지어 추가에 실패했습니다.");
@@ -71,10 +82,14 @@ export default function BannedWords() {
 
   const handleConfirmDelete = async () => {
     try {
-      await removeBannedWord(wordToRemove);
-      setBannedWords(bannedWords.filter((word) => word !== wordToRemove));
-      setIsConfirmModalOpen(false);
-      setWordToRemove("");
+              const result = await removeBannedWord(instagram_id, wordToRemove);
+      if (result.success) {
+        setBannedWords(bannedWords.filter((word) => word !== wordToRemove));
+        setIsConfirmModalOpen(false);
+        setWordToRemove("");
+      } else {
+        alert(result.message || "금지어 삭제에 실패했습니다.");
+      }
     } catch (error) {
       console.error("Failed to remove banned word:", error);
       alert("금지어 삭제에 실패했습니다.");
@@ -88,6 +103,21 @@ export default function BannedWords() {
 
   if (loading) {
     return <div className={styles.bannedWordsSection}>Loading...</div>;
+  }
+
+  if (!instagram_id) {
+    return (
+      <div className={styles.bannedWordsSection}>
+        <div className={styles.header}>
+          <h3 className={styles.title}>금지어</h3>
+        </div>
+        <div className={styles.wordsContainer}>
+          <p style={{ textAlign: 'center', color: '#6B7280', padding: '20px' }}>
+            Instagram 프로필을 선택해주세요.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -2,17 +2,6 @@
 
 import api from "@/api/api"
 
-// 프로필 데이터
-export const profileData = {
-  username: "@Petful_influencer",
-  avatar: "/user-1",
-  stats: {
-    followers: "245.2K",
-    following: "1,847",
-    posts: "892",
-  },
-};
-
 export async function getTopPerformingPosts(instagram_id) {
   const params = { instagram_id: instagram_id };
   const response = await api.get("/sns-service/instagram/medias/top-media", { params });
