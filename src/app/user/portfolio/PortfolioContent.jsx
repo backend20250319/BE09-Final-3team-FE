@@ -196,8 +196,8 @@ const PortfolioContent = () => {
     }
   };
 
-  // 활동 이력 등록
-  const createHistory = async (historyData) => {
+  // 활동 이력 등록 (이미지 포함)
+  const createHistory = async (historyData, images = []) => {
     try {
       console.log(
         "활동 이력 등록 요청 데이터:",
@@ -228,6 +228,7 @@ const PortfolioContent = () => {
         );
       }
 
+      // 1. History 생성
       const response = await axios.post(
         `${PET_API_BASE}/pets/${petNo}/histories`,
         historyData,
@@ -236,6 +237,39 @@ const PortfolioContent = () => {
         }
       );
       console.log("활동 이력 등록 성공:", response.data);
+
+      // 2. 이미지 업로드 (이미지가 있는 경우)
+      if (images && images.length > 0) {
+        const historyNo = response.data.data.historyNo;
+        const imageFiles = images.filter((img) => img.file); // 실제 파일만 필터링
+
+        if (imageFiles.length > 0) {
+          const imageFormData = new FormData();
+          imageFiles.forEach((image, index) => {
+            imageFormData.append("files", image.file);
+          });
+
+          console.log("이미지 업로드 시작:", imageFiles.length, "개");
+
+          const imageResponse = await axios.post(
+            `${PET_API_BASE}/pets/${petNo}/histories/${historyNo}/images`,
+            imageFormData,
+            {
+              headers: {
+                ...getAuthHeaders(),
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+
+          if (imageResponse.data.code === "2000") {
+            console.log("이미지 업로드 성공:", imageResponse.data.data);
+          } else {
+            console.error("이미지 업로드 실패:", imageResponse.data.message);
+          }
+        }
+      }
+
       return response.data;
     } catch (error) {
       console.error("활동 이력 등록 실패:", error);
@@ -385,21 +419,46 @@ const PortfolioContent = () => {
           try {
             const histories = await fetchHistories(petNo);
             if (histories && histories.length > 0) {
-              const activityCardsData = histories.map((history, index) => ({
-                id: history.historyNo || index + 1,
-                image: `/campaign-${(index % 4) + 1}.jpg`,
-                images: [
-                  `/campaign-${(index % 4) + 1}.jpg`,
-                  `/campaign-${((index + 1) % 4) + 1}.jpg`,
-                  `/campaign-${((index + 2) % 4) + 1}.jpg`,
-                  `/campaign-${((index + 3) % 4) + 1}.jpg`,
-                ],
-                title: `활동 ${index + 1}`,
-                period: `${history.historyStart} - ${history.historyEnd}`,
-                content: history.content,
-                detailedContent: history.content,
-                progress: 100,
-              }));
+              const activityCardsData = histories.map((history, index) => {
+                // 이미지 URL 처리
+                let images = [];
+                if (history.imageUrls && history.imageUrls.length > 0) {
+                  // 백엔드에서 받은 파일명들을 실제 URL로 변환
+                  images = history.imageUrls
+                    .filter((filename) => filename && filename.trim() !== "")
+                    .map((filename) => ({
+                      id: Date.now() + index,
+                      file: null,
+                      preview: `http://dev.macacolabs.site:8008/3/pet/${filename}`,
+                    }));
+                }
+
+                // 이미지가 없거나 빈 배열인 경우 기본 이미지 사용
+                if (images.length === 0) {
+                  images = [
+                    {
+                      id: Date.now() + index,
+                      file: null,
+                      preview: `/campaign-${(index % 4) + 1}.jpg`,
+                    },
+                  ];
+                }
+
+                return {
+                  id: history.historyNo || index + 1,
+                  historyNo: history.historyNo, // 백엔드에서 받은 historyNo 저장
+                  image:
+                    images.length > 0
+                      ? images[0].preview
+                      : `/campaign-${(index % 4) + 1}.jpg`,
+                  images: images,
+                  title: `활동 ${index + 1}`,
+                  period: `${history.historyStart} - ${history.historyEnd}`,
+                  content: history.content,
+                  detailedContent: history.content,
+                  progress: 100,
+                };
+              });
               setActivityCards(activityCardsData);
             }
           } catch (historyError) {
@@ -681,7 +740,9 @@ const PortfolioContent = () => {
           console.log("변환된 활동 이력 데이터:", historyData);
 
           try {
-            await createHistory(historyData);
+            // 이미지 데이터 추출 (activity.images가 있는 경우)
+            const images = activity.images || [];
+            await createHistory(historyData, images);
             console.log("활동 이력 저장 성공:", activity.title);
           } catch (historyError) {
             console.error("활동 이력 저장 실패:", activity.title, historyError);
