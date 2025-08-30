@@ -6,7 +6,6 @@ import SubHeader from "@/app/components/SubHeader";
 
 export default function NoticeHeader({activeType,activeTab,onChangeType,mineOnly,onToggleMine}) {
   const router = useRouter();
-
   const current = activeType ?? activeTab;
 
   const handleAdd = () => {

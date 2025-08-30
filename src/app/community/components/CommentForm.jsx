@@ -9,45 +9,31 @@ export default function CommentForm({
                                         autoFocus = false,// (optional) textarea 자동 포커스
                                         onCancel,         // (optional) 취소 버튼 동작
                                     }) {
+    const PLACEHOLDER = "/user/avatar-placeholder.jpg";
     const [comment, setComment] = useState("");
     const [submitting, setSubmitting] = useState(false);
-    const [avatarSrc, setAvatarSrc] = useState("/default-avatar.png");
+    const [avatarSrc, setAvatarSrc] = useState(PLACEHOLDER);
+    const [nickname, setNickname] = useState("익명");
 
     // 아바타 로딩
     useEffect(() => {
-        let mounted = true;
-
         (async () => {
-            try {
-                // 1) 현재 사용자 정보 조회 (/users/me)
-                const me = await api.get("/users/me");
-                if (mounted && me?.data?.profileImage) {
-                    setAvatarSrc(me.data.profileImage);
-                    return;
-                }
-            } catch (_) {}
+            if (typeof window === "undefined") return;
+            const userId = localStorage.getItem("userId");
+            if (!userId) return;
 
             try {
-                // 2) localStorage 기반 fallback
-                if (typeof window !== "undefined") {
-                    const uid = localStorage.getItem("userId");
-                    if (uid) {
-                        const res = await api.get(`/users/${uid}`);
-                        if (mounted && res?.data?.profileImage) {
-                            setAvatarSrc(res.data.profileImage);
-                            return;
-                        }
-                    }
+                const res = await api.get(`/user-service/auth/profile/simple?userNo=${userId}`);
+                if (res?.data) {
+                    if (res.data.profileImage) setAvatarSrc(res.data.profileImage);
+                    if (res.data.nickname) setNickname(res.data.nickname);
                 }
-            } catch (_) {}
-
-            if (mounted) setAvatarSrc("/default-avatar.png");
+            } catch (err) {
+                console.error("프로필 불러오기 실패", err);
+            }
         })();
-
-        return () => {
-            mounted = false;
-        };
     }, []);
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -73,18 +59,17 @@ export default function CommentForm({
     return (
         <div className={styles.container}>
             <h3 className={styles.title}>댓글 남기기</h3>
-
             <form className={styles.form} onSubmit={handleSubmit}>
                 <img
                     src={avatarSrc}
                     alt="User"
                     className={styles.avatar}
-                    onError={() => setAvatarSrc("/default-avatar.png")}
+                    onError={() => setAvatarSrc(PLACEHOLDER)}
                     loading="lazy"
                     referrerPolicy="no-referrer"
                 />
-
                 <div className={styles.content}>
+
           <textarea
               className={styles.textarea}
               placeholder="댓글을 작성하세요"

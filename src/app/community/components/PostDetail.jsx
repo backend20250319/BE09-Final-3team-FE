@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import PostContent from "./PostContent";
 import CommentSection from "./CommentSection";
 import styles from "../styles/PostDetail.module.css";
-import { getPostDetail } from "@/api/postApi";
+import {deletePost, getPostDetail} from "@/api/postApi";
 
 export default function PostDetail({ postId }) {
     const [data, setData] = useState(null);
@@ -68,7 +68,31 @@ export default function PostDetail({ postId }) {
         try { return v ? new Date(v).toLocaleString() : ""; } catch { return String(v); }
     }
 
+    function toVM(dto = {}) {
+        return {
+            postId: dto.postId,
+            userId: dto.userId,
+            title: dto.title,
+            content: dto.content,
+            type: dto.type,
+            createdAt: dto.createdAt,
+            mine: !!dto.mine,
+            commentCount: dto.commentCount ?? 0,
+        };
+    }
+
     const vm = toVM(data);
+
+    const handleDelete = async () => {
+        if(!confirm("정말 게시글을 삭제하시겠습니까?")) return;
+        try {
+            await deletePost(vm.postId);
+            alert("삭제되었습니다.");
+            window.history.back(); // 목록으로
+        } catch (e) {
+            alert(e?.response?.data?.message ?? "삭제에 실패했습니다.");
+        }
+    };
 
     return (
         <div className={styles.container}>
@@ -82,7 +106,7 @@ export default function PostDetail({ postId }) {
                 <article className={styles.postCard}>
                     <PostContent
                         post={{
-                            id: vm.postId,
+                            Id: vm.postId,
                             title: vm.title,
                             author: vm.userId ? `작성자 #${vm.userId}` : "익명",
                             date: formatRelativeKo(vm.createdAt),
@@ -90,6 +114,7 @@ export default function PostDetail({ postId }) {
                             mine: vm.mine,
                             content: [vm.content ?? ""],
                         }}
+                        onDelete={handleDelete}
                     />
                 </article>
 
@@ -104,17 +129,5 @@ export default function PostDetail({ postId }) {
     );
 }
 
-/* ---------- DTO → ViewModel ---------- */
-function toVM(dto = {}) {
-    return {
-        postId: dto.postId,
-        userId: dto.userId,
-        title: dto.title,
-        content: dto.content,
-        type: dto.type,
-        createdAt: dto.createdAt,
-        mine: !!dto.mine,
-        commentCount: dto.commentCount ?? 0,
-    };
-}
+
 
