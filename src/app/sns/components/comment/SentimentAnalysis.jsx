@@ -3,15 +3,40 @@ import { useState, useEffect } from "react";
 import styles from "../../styles/comment/SentimentAnalysis.module.css";
 import { getSentimentAnalysis } from "../../lib/commentData";
 
-export default function SentimentAnalysis() {
+export default function SentimentAnalysis({ instagram_id }) {
   const [sentimentData, setSentimentData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchSentimentData = async () => {
+      if (!instagram_id) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const data = await getSentimentAnalysis();
-        setSentimentData(data);
+        const data = await getSentimentAnalysis(instagram_id);
+        if (data) {
+          // API 응답 형식에 맞게 데이터 변환
+          const transformedData = [
+            { 
+              sentiment: "긍정", 
+              percentage: Math.round(data.positive_ratio), 
+              color: "#22C55E" 
+            },
+            { 
+              sentiment: "중립", 
+              percentage: Math.round(data.neutral_ratio), 
+              color: "#6B7280" 
+            },
+            { 
+              sentiment: "부정", 
+              percentage: Math.round(data.negative_ratio), 
+              color: "#EF4444" 
+            }
+          ];
+          setSentimentData(transformedData);
+        }
       } catch (error) {
         console.error("Failed to fetch sentiment data:", error);
       } finally {
@@ -20,10 +45,23 @@ export default function SentimentAnalysis() {
     };
 
     fetchSentimentData();
-  }, []);
+  }, [instagram_id]);
 
   if (loading) {
     return <div className={styles.sentimentSection}>Loading...</div>;
+  }
+
+  if (!instagram_id) {
+    return (
+      <div className={styles.sentimentSection}>
+        <h3 className={styles.title}>감정 분석</h3>
+        <div className={styles.sentimentCards}>
+          <p style={{ textAlign: 'center', color: '#6B7280', padding: '20px' }}>
+            Instagram 프로필을 선택해주세요.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   const getSentimentIcon = (sentiment) => {

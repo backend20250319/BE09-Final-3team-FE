@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getCommentStats } from "../../lib/commentData";
+import { getCommentStats, updateAutoDeleteSetting } from "../../lib/commentData";
+import { useSns } from "../../context/SnsContext";
 import styles from "../../styles/comment/CommentAnalytics.module.css";
 import StatsCard from "./StatsCard";
 import BannedWords from "./BannedWords";
@@ -15,6 +16,7 @@ export default function CommentAnalytics() {
   const [showTooltip, setShowTooltip] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [pendingToggleState, setPendingToggleState] = useState(false);
+  const { selectedInstagramProfile } = useSns();
 
   const handleToggleChange = () => {
     const newState = !autoManageEnabled;
@@ -22,9 +24,22 @@ export default function CommentAnalytics() {
     setIsConfirmModalOpen(true);
   };
 
-  const handleConfirmToggle = () => {
-    setAutoManageEnabled(pendingToggleState);
-    setIsConfirmModalOpen(false);
+  const handleConfirmToggle = async () => {
+    try {
+      if (selectedInstagramProfile?.id) {
+        await updateAutoDeleteSetting(selectedInstagramProfile.id, pendingToggleState);
+        setAutoManageEnabled(pendingToggleState);
+        console.log("Auto delete setting updated successfully");
+      } else {
+        console.warn("No Instagram profile selected");
+      }
+    } catch (error) {
+      console.error("Failed to update auto delete setting:", error);
+      // 에러 발생 시 원래 상태로 되돌리기
+      setPendingToggleState(autoManageEnabled);
+    } finally {
+      setIsConfirmModalOpen(false);
+    }
   };
 
   const handleCancelToggle = () => {
@@ -35,17 +50,52 @@ export default function CommentAnalytics() {
   useEffect(() => {
     const fetchStatsData = async () => {
       try {
-        const data = await getCommentStats();
-        setStatsData(data);
+        setLoading(true);
+        
+        if (!selectedInstagramProfile?.id) {
+          console.log("No Instagram profile selected");
+          // 기본 통계 카드 표시
+          const defaultData = [
+            { id: 1, label: "총 댓글 수", value: "0" },
+            { id: 2, label: "자동 삭제된 댓글", value: "0" },
+            { id: 3, label: "자동 삭제율", value: "0%" },
+            { id: 4, label: "금지어 댓글", value: "0" }
+          ];
+          setStatsData(defaultData);
+          setLoading(false);
+          return;
+        }
+        
+        console.log("Fetching stats for profile:", selectedInstagramProfile.id);
+        const apiData = await getCommentStats(selectedInstagramProfile.id);
+        console.log("API response:", apiData);
+        
+        if (apiData) {
+          setAutoManageEnabled(selectedInstagramProfile.auto_delete);
+          // API 응답 데이터를 간단하게 변환
+          const transformedData = [
+            { id: 1, label: "총 댓글 수", value: apiData.total_comments || "0" },
+            { id: 2, label: "자동 삭제된 댓글", value: apiData.auto_deleted_comments || "0" },
+            { id: 3, label: "자동 삭제율", value: apiData.auto_delete_rate ? `${Number(apiData.auto_delete_rate).toFixed(1)}%` : "0%" },
+            { id: 4, label: "금지어 댓글", value: apiData.banned_word_comments || "0" }
+          ];
+          
+          console.log("Transformed data:", transformedData);
+          setStatsData(transformedData);
+        } else {
+          console.warn("No stats data received");
+          setStatsData([]);
+        }
       } catch (error) {
         console.error("Failed to fetch comment stats:", error);
+        setStatsData([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchStatsData();
-  }, []);
+  }, [selectedInstagramProfile]);
 
   if (loading) {
     return <div className={styles.analyticsSection}>Loading...</div>;
@@ -91,10 +141,10 @@ export default function CommentAnalytics() {
       </div>
 
       {/* 금지어 관리 */}
-      <BannedWords />
+              <BannedWords instagram_id={selectedInstagramProfile?.id} />
 
-      {/* 감정 분석 */}
-      <SentimentAnalysis />
+             {/* 감정 분석 */}
+       <SentimentAnalysis instagram_id={selectedInstagramProfile?.id} />
 
       {/* 토글 확인 모달 */}
       {isConfirmModalOpen && (
