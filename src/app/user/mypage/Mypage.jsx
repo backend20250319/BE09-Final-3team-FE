@@ -4,6 +4,7 @@ import styles from "./Mypage.module.css";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { config } from "../../../config/env";
 
 const MyPage = () => {
   const router = useRouter();
@@ -27,18 +28,47 @@ const MyPage = () => {
   const [profileImage, setProfileImage] = useState(null);
   const [imageLoadError, setImageLoadError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [connectedProfiles, setConnectedProfiles] = useState([]);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showWithdrawConfirmModal, setShowWithdrawConfirmModal] =
     useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [withdrawPassword, setWithdrawPassword] = useState("");
   const [withdrawReason, setWithdrawReason] = useState("");
+  const [accessToken, setAccessToken] = useState("");
+  const [userInfo, setUserInfo] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Facebook SDK 초기화
+  useEffect(() => {
+    window.fbAsyncInit = function () {
+      window.FB.init({
+        appId: config.facebook.appId, // 환경변수에서 Facebook App ID 가져오기
+        cookie: true,
+        xfbml: true,
+        version: "v23.0",
+      });
+    };
+
+    // Facebook SDK 스크립트 동적 로드
+    (function (d, s, id) {
+      var js,
+        fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s);
+      js.id = id;
+      js.src = "https://connect.facebook.net/ko_KR/sdk.js";
+      fjs.parentNode.insertBefore(js, fjs);
+    })(document, "script", "facebook-jssdk");
+  }, []);
 
   // 컴포넌트 마운트 시 프로필 정보 가져오기
   useEffect(() => {
     fetchProfile();
+    fetchConnectedProfiles();
   }, []);
 
   // 토큰 갱신 함수
@@ -186,6 +216,29 @@ const MyPage = () => {
     }
   };
 
+  // 연결된 인스타그램 프로필 가져오기
+  const fetchConnectedProfiles = async () => {
+    try {
+      const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+      if (!token) {
+        return;
+      }
+
+      const response = await axios.get("http://localhost:8000/api/v1/sns-service/instagram/profiles", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.data.code === "2000") {
+        setConnectedProfiles(response.data.data || []);
+      }
+    } catch (error) {
+      
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -242,7 +295,68 @@ const MyPage = () => {
   };
 
   const handleConnect = () => {
-    // 인스타그램 연결 기능 (향후 구현 예정)
+    setIsLoading(true);
+
+    window.FB.login(
+      function (response) {
+        if (response.authResponse) {
+          const token = response.authResponse.accessToken;
+          const userId = response.authResponse.userID;
+
+          console.log("Login successful!");
+          console.log("Access Token:", token);
+          console.log("User ID:", userId);
+
+   
+          connectInstagramToServer(token);
+        } else {
+          console.log("User cancelled login or did not fully authorize.");
+          setIsLoading(false);
+          setError("Instagram 계정 연결이 취소되었습니다.");
+        }
+      },
+      {
+        scope: "email,pages_read_engagement,pages_show_list", // 필요한 권한 설정
+      }
+    );
+  };
+
+  // Instagram 연결 API 호출 함수
+  const connectInstagramToServer = async (accessToken) => {
+    try {
+      const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+      
+      if (!token) {
+        setError("사용자 인증 토큰이 없습니다.");
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await axios.post(
+        "http://localhost:8000/api/v1/sns-service/instagram/auth/connect",
+        {
+          access_token: accessToken
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Instagram 연결 API 응답:", response.data);
+      setSuccess("Instagram 계정이 성공적으로 연결되었습니다!");
+      setIsLoading(false);
+      
+      // 연결된 프로필 목록 새로고침
+      await fetchConnectedProfiles();
+      
+    } catch (error) {
+      console.error("Instagram 연결 API 호출 실패:", error);
+      setError(error.response?.data?.message || "Instagram 계정 연결에 실패했습니다.");
+      setIsLoading(false);
+    }
   };
 
   const handleFileChange = async (e) => {
@@ -653,6 +767,7 @@ const MyPage = () => {
           <section className={styles.socialMediaSection}>
             <h3 className={styles.sectionTitle}>소셜 미디어</h3>
             <div className={styles.socialMediaRow}>
+              {/* 인스타그램 계정 연결 */}
               <div className={styles.instagramContainer}>
                 <div className={styles.instagramIcon}>
                   <Image
@@ -662,19 +777,16 @@ const MyPage = () => {
                     height={31}
                   />
                 </div>
-                <input
-                  type="text"
-                  name="instagram"
-                  value={formData.instagram ?? ""}
-                  onChange={handleInputChange}
-                  className={styles.instagramInput}
-                  placeholder="인스타그램 계정을 입력하세요"
-                  readOnly={!isEditable}
-                />
+                <div className={styles.instagramInfo}>
+                  <span className={styles.instagramLabel}>인스타그램</span>
+                  <span className={styles.instagramValue}>
+                    {formData.instagram || ""}
+                  </span>
+                </div>
                 <button
                   className={styles.connectButton}
                   onClick={handleConnect}
-                  disabled={!formData.instagram}
+                  disabled={isLoading}
                 >
                   <div className={styles.connectIcon}>
                     <Image
@@ -684,11 +796,94 @@ const MyPage = () => {
                       height={21}
                     />
                   </div>
-                  <span>연결 하기</span>
+                  <span>{isLoading ? "연결 중..." : userInfo ? "연결 해제" : "연결 하기"}</span>
                 </button>
               </div>
             </div>
+            
+
+
+            {/* 연결된 Instagram 계정 정보 */}
+            {userInfo && (
+              <div className={styles.connectedProfilesContainer}>
+                <h4 className={styles.connectedProfilesTitle}>연결된 Instagram 계정</h4>
+                <div className={styles.connectedProfilesList}>
+                  <div className={styles.connectedProfileItem}>
+                    <div className={styles.profileAvatar}>
+                      <Image
+                        src="/user/instagram.svg"
+                        alt="Instagram"
+                        width={40}
+                        height={40}
+                      />
+                    </div>
+                    <div className={styles.profileInfo}>
+                      <div className={styles.profileName}>
+                        {userInfo.name}
+                      </div>
+                      <div className={styles.profileUsername}>
+                        {userInfo.email || "이메일 정보 없음"}
+                      </div>
+                      <div className={styles.profileStats}>
+                        <span>Access Token: {accessToken.substring(0, 20)}...</span>
+                      </div>
+                    </div>
+                    <div className={styles.profileStatus}>
+                      <span className={styles.connectedBadge}>연결됨</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 연결된 인스타그램 계정 리스트 */}
+            {connectedProfiles.length > 0 && (
+              <div className={styles.connectedProfilesContainer}>
+                <h4 className={styles.connectedProfilesTitle}>연결된 인스타그램 계정</h4>
+                <div className={styles.connectedProfilesList}>
+                  {connectedProfiles.map((profile) => (
+                    <div key={profile.id} className={styles.connectedProfileItem}>
+                      <div className={styles.profileAvatar}>
+                        <Image
+                          src={profile.profile_picture_url || "/user-1.jpg"}
+                          alt={profile.username}
+                          width={40}
+                          height={40}
+                          className={styles.avatarImage}
+                        />
+                      </div>
+                      <div className={styles.profileInfo}>
+                        <div className={styles.profileName}>
+                          {profile.name || profile.username}
+                        </div>
+                        <div className={styles.profileUsername}>@{profile.username}</div>
+                        <div className={styles.profileStats}>
+                          <span>팔로워 {profile.followers_count || 0}</span>
+                          <span>팔로잉 {profile.follows_count || 0}</span>
+                          <span>게시물 {profile.media_count || 0}</span>
+                        </div>
+                      </div>
+                      <div className={styles.profileStatus}>
+                        <span className={styles.connectedBadge}>연결됨</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </section>
+
+          {/* 에러 및 성공 메시지 표시 */}
+          {error && (
+            <div className={styles.errorMessage}>
+              <p>{error}</p>
+            </div>
+          )}
+          {success && (
+            <div className={styles.successMessage}>
+              <p>{success}</p>
+            </div>
+          )}
 
           {/* 회원탈퇴 버튼 - 소셜미디어 섹션 바깥 우측하단 */}
           <div className={styles.withdrawButtonContainer}>
