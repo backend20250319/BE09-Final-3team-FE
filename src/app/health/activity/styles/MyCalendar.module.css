@@ -276,3 +276,15 @@
     font-size: 12px;
   }
 }
+
+.noPetContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  color: #6b7280;
+  font-size: 16px;
+}

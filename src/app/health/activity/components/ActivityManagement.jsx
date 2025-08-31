@@ -1,18 +1,19 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Select from "./ClientOnlySelect";
 import styles from "../styles/ActivityManagement.module.css";
 import { useSelectedPet } from "../../context/SelectedPetContext";
 import {
-  activityOptions,
-  validActivityLevels,
   initialFormData,
   initialCalculated,
   formatNumber,
-  getTodayKey,
-  STORAGE_KEYS,
 } from "../../data/mockData";
+import {
+  saveActivityData,
+  getActivityData,
+  getActivityLevels,
+} from "../../../../api/activityApi";
 import SaveCompleteModal from "./SaveCompleteModal";
 import SaveConfirmModal from "./SaveConfirmModal";
 
@@ -20,21 +21,39 @@ export default function ActivityManagement() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const toggleCalendar = () => setIsCalendarOpen((prev) => !prev);
 
-  const { selectedPetName } = useSelectedPet();
+  const { selectedPetName, selectedPetNo } = useSelectedPet();
 
-  const [formData, setFormData] = useState(initialFormData);
+  const [formData, setFormData] = useState({
+    ...initialFormData,
+    mealType: "BREAKFAST", // 기본값 추가
+  });
 
   // 다중 식사 관리
   const [meals, setMeals] = useState([]);
   const [showMealInfo, setShowMealInfo] = useState(false);
 
+  // 식사 타입 옵션
+  const mealTypeOptions = [
+    { value: "BREAKFAST", label: "아침" },
+    { value: "LUNCH", label: "점심" },
+    { value: "DINNER", label: "저녁" },
+    { value: "SNACK", label: "간식" },
+  ];
+
+  // 활동량 옵션
+  const [activityOptions, setActivityOptions] = useState([]);
+  const [validActivityLevels, setValidActivityLevels] = useState([]);
+
   // 산책 정보 안내
   const [showWalkInfo, setShowWalkInfo] = useState(false);
 
-  // 펫 이름별로 저장했는지 상태 관리 (오늘 날짜 key 사용)
-  const [submittedPets, setSubmittedPets] = useState({});
-
   const [calculated, setCalculated] = useState(initialCalculated);
+
+  // 칼로리 계산 결과 상태 추가
+  const [calorieCalculations, setCalorieCalculations] = useState({
+    walkingCalorie: 0,
+    recommendedCalorie: 0,
+  });
 
   // 저장 완료 모달 상태
   const [showSaveComplete, setShowSaveComplete] = useState(false);
@@ -44,70 +63,183 @@ export default function ActivityManagement() {
   // 유효성 검사 오류 상태
   const [validationErrors, setValidationErrors] = useState({});
 
-  // 저장 여부 판단용 키
-  const todayKey = useMemo(() => getTodayKey(), []);
-  const storageKey = useMemo(
-    () => STORAGE_KEYS.ACTIVITY_DATA(selectedPetName, todayKey),
-    [selectedPetName, todayKey]
-  );
+  // 현재 선택된 펫이 오늘 저장했는지 여부 (백엔드 데이터 존재 여부로 판단)
+  const [isSubmittedToday, setIsSubmittedToday] = useState(false);
 
-  // 현재 선택된 펫이 오늘 저장했는지 여부 (localStorage 기준)
-  const isSubmittedToday = !!submittedPets[storageKey];
+  // 활동량 옵션을 백엔드에서 가져오기
+  useEffect(() => {
+    const fetchActivityLevels = async () => {
+      try {
+        const levels = await getActivityLevels();
+        setActivityOptions(levels);
+        setValidActivityLevels(levels.map((level) => level.value));
+      } catch (error) {
+        console.error("활동량 옵션 로딩 실패:", error);
+        // 에러 시 기본값 설정
+        const defaultLevels = [
+          { value: "LOW", label: "거의 안 움직여요" },
+          { value: "MEDIUM_LOW", label: "가끔 산책해요" },
+          { value: "MEDIUM_HIGH", label: "자주 뛰어놀아요" },
+          { value: "HIGH", label: "매우 활동적이에요" },
+        ];
+        setActivityOptions(defaultLevels);
+        setValidActivityLevels(defaultLevels.map((level) => level.value));
+      }
+    };
+
+    fetchActivityLevels();
+  }, []);
 
   // 선택된 펫 혹은 오늘 날짜 바뀌면 저장된 데이터 불러오기
   useEffect(() => {
-    if (!selectedPetName) return;
+    if (!selectedPetName || !selectedPetNo) return;
 
-    const savedDataJson = localStorage.getItem(storageKey);
-    if (savedDataJson) {
-      const savedData = JSON.parse(savedDataJson);
-      setFormData({
-        walkingDistance: savedData.walkingDistance || "",
-        activityLevel: savedData.activityLevel || "",
-        totalFoodWeight: savedData.totalFoodWeight || "",
-        totalCaloriesInFood: savedData.totalCaloriesInFood || "",
-        feedingAmount: savedData.feedingAmount || "",
-        weight: savedData.weight || "",
-        sleepTime: savedData.sleepTime || "",
-        urineCount: savedData.urineCount || "",
-        fecesCount: savedData.fecesCount || "",
-        memo: savedData.memo || "",
-      });
-      // 저장된 식사 목록 보정 (섭취 칼로리 필드가 없을 수 있음)
-      const loadedMeals = Array.isArray(savedData.meals) ? savedData.meals : [];
-      const normalizedMeals = loadedMeals.map((m) => {
-        const w = parseFloat(m.totalFoodWeight);
-        const c = parseFloat(m.totalCaloriesInFood);
-        const a = parseFloat(m.feedingAmount);
-        const intake =
-          !isNaN(w) && w > 0 && !isNaN(c) && !isNaN(a) ? a * (c / w) : 0;
-        return {
-          totalFoodWeight: m.totalFoodWeight,
-          totalCaloriesInFood: m.totalCaloriesInFood,
-          feedingAmount: m.feedingAmount,
-          intakeKcal: typeof m.intakeKcal === "number" ? m.intakeKcal : intake,
-        };
-      });
-      setMeals(normalizedMeals);
-      setSubmittedPets((prev) => ({ ...prev, [storageKey]: true }));
-    } else {
-      // 저장된 데이터 없으면 초기화
-      setFormData({
-        walkingDistance: "",
-        activityLevel: "",
-        totalFoodWeight: "",
-        totalCaloriesInFood: "",
-        feedingAmount: "",
-        weight: "",
-        sleepTime: "",
-        urineCount: "",
-        fecesCount: "",
-        memo: "",
-      });
-      setMeals([]);
-      setSubmittedPets((prev) => ({ ...prev, [storageKey]: false }));
+    const fetchActivityData = async () => {
+      try {
+        const today = new Date().toISOString().split("T")[0];
+        if (!selectedPetNo) return;
+        const savedData = await getActivityData(today, selectedPetNo);
+
+        if (savedData && savedData.activityNo) {
+          setFormData({
+            walkingDistance: savedData.walkingDistanceKm?.toString() || "",
+            activityLevel: savedData.activityLevel?.toString() || "",
+            totalFoodWeight: "", // 백엔드에서 별도로 관리
+            totalCaloriesInFood: "", // 백엔드에서 별도로 관리
+            feedingAmount: "", // 백엔드에서 별도로 관리
+            weight: savedData.weightKg?.toString() || "",
+            sleepTime: savedData.sleepHours?.toString() || "",
+            urineCount: savedData.peeCount?.toString() || "",
+            fecesCount: savedData.poopCount?.toString() || "",
+            memo: savedData.memo || "",
+          });
+          // 저장된 식사 목록 보정 (백엔드에서 meals 배열로 제공)
+          const loadedMeals = Array.isArray(savedData.meals)
+            ? savedData.meals
+            : [];
+          const normalizedMeals = loadedMeals.map((m) => {
+            return {
+              mealType: m.mealType || "BREAKFAST",
+              totalFoodWeight: m.totalWeightG || "",
+              totalCaloriesInFood: m.totalCalories || "",
+              feedingAmount: m.consumedWeightG || "",
+              intakeKcal: m.consumedCalories || 0,
+            };
+          });
+          setMeals(normalizedMeals);
+          setIsSubmittedToday(true);
+        } else {
+          // 저장된 데이터 없으면 초기화
+          setFormData({
+            walkingDistance: "",
+            activityLevel: "",
+            mealType: "BREAKFAST",
+            totalFoodWeight: "",
+            totalCaloriesInFood: "",
+            feedingAmount: "",
+            weight: "",
+            sleepTime: "",
+            urineCount: "",
+            fecesCount: "",
+            memo: "",
+          });
+          setMeals([]);
+          setIsSubmittedToday(false);
+        }
+      } catch (error) {
+        console.error("활동 데이터 조회 실패:", error);
+        // 에러 발생 시 초기화
+        setFormData({
+          walkingDistance: "",
+          activityLevel: "",
+          mealType: "BREAKFAST",
+          totalFoodWeight: "",
+          totalCaloriesInFood: "",
+          feedingAmount: "",
+          weight: "",
+          sleepTime: "",
+          urineCount: "",
+          fecesCount: "",
+          memo: "",
+        });
+        setMeals([]);
+        setIsSubmittedToday(false);
+      }
+    };
+
+    fetchActivityData();
+  }, [selectedPetName, selectedPetNo]);
+
+  // 칼로리 계산 함수 (useEffect보다 먼저 정의)
+  const calculateCalories = useCallback(() => {
+    if (
+      !formData.walkingDistance ||
+      !formData.activityLevel ||
+      !formData.weight
+    ) {
+      setCalorieCalculations({ walkingCalorie: 0, recommendedCalorie: 0 });
+      return;
     }
-  }, [selectedPetName, storageKey]);
+
+    const walkingDistance = parseFloat(formData.walkingDistance);
+    const weight = parseFloat(formData.weight);
+
+    // 백엔드에서 가져온 활동량 옵션에서 numericValue 사용
+    const selectedActivityLevel = activityOptions.find(
+      (opt) => opt.value === formData.activityLevel
+    );
+    const activityLevelNum = selectedActivityLevel?.numericValue || 1.5;
+
+    // 산책 소모 칼로리 계산
+    const walkingCalorie = (walkingDistance * activityLevelNum * 5).toFixed(1);
+
+    // 권장 소모 칼로리 계산 (몸무게 기반)
+    const recommendedCalorie = Math.round(weight * 30);
+
+    setCalorieCalculations({
+      walkingCalorie: parseFloat(walkingCalorie),
+      recommendedCalorie,
+    });
+  }, [
+    formData.walkingDistance,
+    formData.activityLevel,
+    formData.weight,
+    activityOptions,
+  ]);
+
+  // 식사 칼로리 계산 함수
+  const calculateMealCalories = useCallback(() => {
+    if (!formData.weight || !formData.activityLevel) {
+      return { actualIntake: 0, recommendedIntake: 0 };
+    }
+
+    const weight = parseFloat(formData.weight);
+
+    // 백엔드에서 가져온 활동량 옵션에서 numericValue 사용
+    const selectedActivityLevel = activityOptions.find(
+      (opt) => opt.value === formData.activityLevel
+    );
+    const activityLevelNum = selectedActivityLevel?.numericValue || 1.5;
+
+    // 저장된 식사들의 총 섭취 칼로리 합산
+    const mealsIntake = meals.reduce((sum, m) => {
+      const intake = typeof m.intakeKcal === "number" ? m.intakeKcal : 0;
+      return sum + intake;
+    }, 0);
+
+    // 권장 섭취 칼로리 계산 (몸무게 × 활동계수 × 100)
+    const recommendedIntake = Math.round(weight * activityLevelNum * 100);
+
+    return {
+      actualIntake: mealsIntake,
+      recommendedIntake,
+    };
+  }, [formData.weight, formData.activityLevel, meals, activityOptions]);
+
+  // 폼 데이터 변경 시 칼로리 계산
+  useEffect(() => {
+    calculateCalories();
+  }, [calculateCalories]);
 
   useEffect(() => {
     const weight = parseFloat(formData.weight);
@@ -180,7 +312,7 @@ export default function ActivityManagement() {
     setShowSaveConfirm(false);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const walkingDistanceNum = parseFloat(formData.walkingDistance);
     const activityLevelVal = formData.activityLevel;
     const weightNum = parseFloat(formData.weight);
@@ -249,11 +381,14 @@ export default function ActivityManagement() {
       return;
     }
 
-    const walkingCalorie = (
-      walkingDistanceNum *
-      parseFloat(activityLevelVal) *
-      5
-    ).toFixed(1);
+    // 백엔드에서 가져온 활동량 옵션에서 numericValue 사용
+    const selectedActivityLevel = activityOptions.find(
+      (opt) => opt.value === activityLevelVal
+    );
+    const activityLevelNum = selectedActivityLevel?.numericValue || 1.5;
+    const walkingCalorie = (walkingDistanceNum * activityLevelNum * 5).toFixed(
+      1
+    );
 
     // 저장용 식사 목록 구성: 추가된 식사들이 우선, 없고 현재 입력이 유효하면 현재 입력 1건 포함
     let mealsToSave = meals;
@@ -271,6 +406,7 @@ export default function ActivityManagement() {
         (currentTotalCaloriesInFoodNum / currentTotalFoodWeightNum);
       mealsToSave = [
         {
+          mealType: "BREAKFAST", // 기본값
           totalFoodWeight: currentTotalFoodWeightNum,
           totalCaloriesInFood: currentTotalCaloriesInFoodNum,
           feedingAmount: currentFeedingAmountNum,
@@ -299,34 +435,36 @@ export default function ActivityManagement() {
       return sum + intake;
     }, 0);
 
-    // 저장할 데이터에 formData 원본 값도 같이 저장 (불러올 때 사용)
+    // 백엔드 API 형식에 맞게 데이터 변환
     const dataToSave = {
-      petName: selectedPetName,
-      walkingDistance: formData.walkingDistance,
-      activityLevel: formData.activityLevel,
-      totalFoodWeight: formData.totalFoodWeight,
-      totalCaloriesInFood: formData.totalCaloriesInFood,
-      feedingAmount: formData.feedingAmount,
-      meals: mealsToSave,
-      weight: formData.weight,
-      sleepTime: formData.sleepTime,
-      urineCount: formData.urineCount,
-      fecesCount: formData.fecesCount,
+      petNo: selectedPetNo,
+      activityDate: new Date().toISOString().split("T")[0],
+      walkingDistanceKm: parseFloat(formData.walkingDistance),
+      activityLevel: formData.activityLevel, // enum 문자열 그대로 전송 (LOW, MEDIUM_LOW, MEDIUM_HIGH, HIGH)
+      weightKg: parseFloat(formData.weight),
+      sleepHours: parseInt(formData.sleepTime),
+      poopCount: parseInt(formData.fecesCount),
+      peeCount: parseInt(formData.urineCount),
       memo: formData.memo,
-      // 아래는 계산값 (필요 시)
-      weightNum,
-      walk_calories: parseInt(walkingCalorie, 10),
-      eat_calories: parseInt(feedingCalorieTotal.toFixed(1), 10),
-      sleep_time: sleepTimeNum,
-      urine_count: urineCountNum,
-      feces_count: fecesCountNum,
-      activity_level: parseFloat(activityLevelVal),
+      meals: mealsToSave.map((meal) => ({
+        mealType: meal.mealType,
+        totalWeightG: parseFloat(meal.totalFoodWeight), // 백엔드 필드명에 맞춤
+        totalCalories: parseFloat(meal.totalCaloriesInFood),
+        consumedWeightG: parseFloat(meal.feedingAmount), // 백엔드 필드명에 맞춤
+        consumedCalories: parseFloat(meal.intakeKcal),
+      })),
     };
 
     try {
-      localStorage.setItem(storageKey, JSON.stringify(dataToSave));
-      setSubmittedPets((prev) => ({ ...prev, [storageKey]: true }));
+      // 백엔드 API로 저장
+      await saveActivityData(dataToSave);
+      setIsSubmittedToday(true);
       setShowSaveComplete(true);
+
+      // 저장 완료 후 자동 새로고침 제거 - 사용자가 확인 버튼을 눌러야 함
+      // setTimeout(() => {
+      //   window.location.reload();
+      // }, 1500);
     } catch (error) {
       alert("저장 중 오류가 발생했습니다.");
       console.error(error);
@@ -346,6 +484,13 @@ export default function ActivityManagement() {
 
     const errs = { ...validationErrors };
     let hasError = false;
+    if (!formData.mealType || formData.mealType.trim() === "") {
+      errs.mealType = "식사 타입을 선택해주세요.";
+      hasError = true;
+    } else {
+      delete errs.mealType;
+    }
+
     if (formData.totalFoodWeight.trim() === "" || isNaN(w) || w <= 0) {
       errs.totalFoodWeight = "0보다 큰 값을 입력해주세요.";
       hasError = true;
@@ -375,6 +520,7 @@ export default function ActivityManagement() {
     setMeals((prev) => [
       ...prev,
       {
+        mealType: formData.mealType || "BREAKFAST",
         totalFoodWeight: w,
         totalCaloriesInFood: c,
         feedingAmount: a,
@@ -387,6 +533,7 @@ export default function ActivityManagement() {
       totalFoodWeight: "",
       totalCaloriesInFood: "",
       feedingAmount: "",
+      mealType: "BREAKFAST", // 기본값으로 리셋
     }));
   };
 
@@ -395,19 +542,45 @@ export default function ActivityManagement() {
     setMeals((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // 펫이 선택되지 않았을 때 메시지 표시
+  if (!selectedPetName || !selectedPetNo) {
+    return (
+      <div className={styles.noPetContainer}>
+        <p>반려동물을 선택해주세요.</p>
+      </div>
+    );
+  }
+
   return (
     <div
       className={`${styles.activitySection} ${
         isSubmittedToday ? styles.saved : ""
       }`}
+      suppressHydrationWarning
     >
       {/* 폼 */}
       <div className={styles.activityContent}>
+        {/* 전체 페이지 저장 상태 헤더 */}
+        {isSubmittedToday && (
+          <div className={styles.pageSavedHeader}>
+            <div className={styles.savedHeaderContent}>
+              <span className={styles.savedHeaderIcon}>✓</span>
+              <span className={styles.savedHeaderText}>
+                오늘의 활동 기록이 저장되었습니다
+              </span>
+            </div>
+          </div>
+        )}
+
         <div className={styles.activityGrid}>
           {/* 왼쪽 박스 */}
           <div className={styles.leftColumn}>
             {/* 산책 활동 */}
-            <div className={`${styles.activityCard} ${styles.walking}`}>
+            <div
+              className={`${styles.activityCard} ${styles.walking} ${
+                isSubmittedToday ? styles.saved : ""
+              }`}
+            >
               <div className={styles.activityHeader}>
                 <div className={styles.activityIcon}>
                   <img
@@ -432,7 +605,11 @@ export default function ActivityManagement() {
                 )}
               </div>
               <div className={styles.activityForm}>
-                <div className={styles.formGroup}>
+                <div
+                  className={`${styles.formGroup} ${
+                    isSubmittedToday ? styles.saved : ""
+                  }`}
+                >
                   <label
                     htmlFor="walkingDistance"
                     className={
@@ -555,16 +732,20 @@ export default function ActivityManagement() {
                   <div className={styles.calorieItem}>
                     <p>소모 칼로리</p>
                     <p className={styles.calorieValue}>
-                      {calculated.actualBurn > 0
-                        ? `${formatNumber(calculated.actualBurn)} kcal`
+                      {calorieCalculations.walkingCalorie > 0
+                        ? `${formatNumber(
+                            calorieCalculations.walkingCalorie
+                          )} kcal`
                         : "--"}
                     </p>
                   </div>
                   <div className={styles.calorieItem}>
                     <p>권장 소모 칼로리</p>
                     <p className={styles.calorieValue}>
-                      {calculated.recommendedBurn > 0
-                        ? `${formatNumber(calculated.recommendedBurn)} kcal`
+                      {calorieCalculations.recommendedCalorie > 0
+                        ? `${formatNumber(
+                            calorieCalculations.recommendedCalorie
+                          )} kcal`
                         : "--"}
                     </p>
                   </div>
@@ -573,7 +754,11 @@ export default function ActivityManagement() {
             </div>
 
             {/* 식사 활동 */}
-            <div className={`${styles.activityCard} ${styles.feeding}`}>
+            <div
+              className={`${styles.activityCard} ${styles.feeding} ${
+                isSubmittedToday ? styles.saved : ""
+              }`}
+            >
               <div className={styles.activityHeader}>
                 <div className={styles.activityIcon}>
                   <img src="/health/meal.png" alt="식사 아이콘" />
@@ -607,79 +792,118 @@ export default function ActivityManagement() {
                 )}
               </div>
               <div className={styles.activityForm}>
-                <div className={styles.horizontalInputs}>
-                  <div className={styles.formGroup}>
-                    <label
-                      htmlFor="totalFoodWeight"
-                      className={
-                        validationErrors.totalFoodWeight
-                          ? styles.errorLabel
-                          : ""
-                      }
-                    >
-                      총 그람수 (g)
-                    </label>
-                    <input
-                      type="number"
-                      id="totalFoodWeight"
-                      value={formData.totalFoodWeight}
-                      onChange={handleChange}
-                      min={0}
-                      disabled={isSubmittedToday}
-                      className={
-                        validationErrors.totalFoodWeight
-                          ? styles.errorInput
-                          : ""
-                      }
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label
-                      htmlFor="totalCaloriesInFood"
-                      className={
-                        validationErrors.totalCaloriesInFood
-                          ? styles.errorLabel
-                          : ""
-                      }
-                    >
-                      총 칼로리 (kcal)
-                    </label>
-                    <input
-                      type="number"
-                      id="totalCaloriesInFood"
-                      value={formData.totalCaloriesInFood}
-                      onChange={handleChange}
-                      min={0}
-                      disabled={isSubmittedToday}
-                      className={
-                        validationErrors.totalCaloriesInFood
-                          ? styles.errorInput
-                          : ""
-                      }
-                    />
-                  </div>
-                </div>
-                <div className={styles.formGroup}>
-                  <label
-                    htmlFor="feedingAmount"
-                    className={
-                      validationErrors.feedingAmount ? styles.errorLabel : ""
-                    }
-                  >
-                    섭취량 (g)
-                  </label>
-                  <input
-                    type="number"
-                    id="feedingAmount"
-                    value={formData.feedingAmount}
-                    onChange={handleChange}
-                    min={0}
-                    disabled={isSubmittedToday}
-                    className={
-                      validationErrors.feedingAmount ? styles.errorInput : ""
-                    }
-                  />
-                </div>
+                {/* 식사 입력 폼 - 저장된 데이터가 아닐 때만 표시 */}
+                {!isSubmittedToday && (
+                  <>
+                    <div className={styles.horizontalInputs}>
+                      <div className={styles.formGroup}>
+                        <label
+                          htmlFor="mealType"
+                          className={
+                            validationErrors.mealType ? styles.errorLabel : ""
+                          }
+                        >
+                          식사 타입
+                        </label>
+                        <select
+                          id="mealType"
+                          value={formData.mealType}
+                          onChange={(e) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              mealType: e.target.value,
+                            }));
+                          }}
+                          className={
+                            validationErrors.mealType ? styles.errorSelect : ""
+                          }
+                          disabled={isSubmittedToday}
+                        >
+                          {mealTypeOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label
+                          htmlFor="totalFoodWeight"
+                          className={
+                            validationErrors.totalFoodWeight
+                              ? styles.errorLabel
+                              : ""
+                          }
+                        >
+                          총 그람수 (g)
+                        </label>
+                        <input
+                          type="number"
+                          id="totalFoodWeight"
+                          value={formData.totalFoodWeight}
+                          onChange={handleChange}
+                          min={0}
+                          disabled={isSubmittedToday}
+                          className={
+                            validationErrors.totalFoodWeight
+                              ? styles.errorInput
+                              : ""
+                          }
+                        />
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label
+                          htmlFor="totalCaloriesInFood"
+                          className={
+                            validationErrors.totalCaloriesInFood
+                              ? styles.errorLabel
+                              : ""
+                          }
+                        >
+                          총 칼로리 (kcal)
+                        </label>
+                        <input
+                          type="number"
+                          id="totalCaloriesInFood"
+                          value={formData.totalCaloriesInFood}
+                          onChange={handleChange}
+                          min={0}
+                          disabled={isSubmittedToday}
+                          className={
+                            validationErrors.totalCaloriesInFood
+                              ? styles.errorInput
+                              : ""
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label
+                        htmlFor="feedingAmount"
+                        className={
+                          validationErrors.feedingAmount
+                            ? styles.errorLabel
+                            : ""
+                        }
+                      >
+                        섭취량 (g)
+                      </label>
+                      <input
+                        type="number"
+                        id="feedingAmount"
+                        value={formData.feedingAmount}
+                        onChange={handleChange}
+                        min={0}
+                        disabled={isSubmittedToday}
+                        className={
+                          validationErrors.feedingAmount
+                            ? styles.errorInput
+                            : ""
+                        }
+                      />
+                    </div>
+                  </>
+                )}
                 {meals.length > 0 && (
                   <ul className={styles.mealList}>
                     {meals.map((m, idx) => {
@@ -688,6 +912,11 @@ export default function ActivityManagement() {
                       return (
                         <li key={idx} className={styles.mealItem}>
                           <div className={styles.mealSummary}>
+                            <span className={styles.mealType}>
+                              {mealTypeOptions.find(
+                                (opt) => opt.value === m.mealType
+                              )?.label || "아침"}
+                            </span>
                             <span>
                               총 {m.totalFoodWeight}g / {m.totalCaloriesInFood}
                               kcal
@@ -713,17 +942,25 @@ export default function ActivityManagement() {
                   <div className={styles.calorieItem}>
                     <p>섭취 칼로리</p>
                     <p className={styles.calorieValue}>
-                      {calculated.actualIntake > 0
-                        ? `${formatNumber(calculated.actualIntake)} kcal`
-                        : "--"}
+                      {(() => {
+                        const mealCalories = calculateMealCalories();
+                        return mealCalories.actualIntake > 0
+                          ? `${formatNumber(mealCalories.actualIntake)} kcal`
+                          : "--";
+                      })()}
                     </p>
                   </div>
                   <div className={styles.calorieItem}>
                     <p>권장 섭취 칼로리</p>
                     <p className={styles.calorieValue}>
-                      {calculated.recommendedIntake > 0
-                        ? `${formatNumber(calculated.recommendedIntake)} kcal`
-                        : "--"}
+                      {(() => {
+                        const mealCalories = calculateMealCalories();
+                        return mealCalories.recommendedIntake > 0
+                          ? `${formatNumber(
+                              mealCalories.recommendedIntake
+                            )} kcal`
+                          : "--";
+                      })()}
                     </p>
                   </div>
                 </div>
@@ -734,7 +971,11 @@ export default function ActivityManagement() {
           {/* 오른쪽 박스 */}
           <div className={styles.rightColumn}>
             {/* 무게 */}
-            <div className={`${styles.activityCard} ${styles.weight}`}>
+            <div
+              className={`${styles.activityCard} ${styles.weight} ${
+                isSubmittedToday ? styles.saved : ""
+              }`}
+            >
               <div className={styles.activityHeader}>
                 <div className={styles.activityIcon}>
                   <img src="/health/weight.png" alt="무게 아이콘" />
@@ -764,7 +1005,11 @@ export default function ActivityManagement() {
             </div>
 
             {/* 수면시간 */}
-            <div className={`${styles.activityCard} ${styles.sleep}`}>
+            <div
+              className={`${styles.activityCard} ${styles.sleep} ${
+                isSubmittedToday ? styles.saved : ""
+              }`}
+            >
               <div className={styles.activityHeader}>
                 <div className={styles.activityIcon}>
                   <img src="/health/sleep.png" alt="수면 아이콘" />
@@ -798,7 +1043,11 @@ export default function ActivityManagement() {
             </div>
 
             {/* 배변 활동 */}
-            <div className={`${styles.activityCard} ${styles.bathroom}`}>
+            <div
+              className={`${styles.activityCard} ${styles.bathroom} ${
+                isSubmittedToday ? styles.saved : ""
+              }`}
+            >
               <div className={styles.activityHeader}>
                 <div className={styles.activityIcon}>
                   <img src="/health/bathroom.png" alt="배변 활동 아이콘" />
@@ -856,7 +1105,11 @@ export default function ActivityManagement() {
             </div>
 
             {/* 메모 */}
-            <div className={`${styles.activityCard} ${styles.notes}`}>
+            <div
+              className={`${styles.activityCard} ${styles.notes} ${
+                isSubmittedToday ? styles.saved : ""
+              }`}
+            >
               <div className={styles.activityHeader}>
                 <div className={styles.activityIcon}>
                   <img src="/health/pencil.png" alt="메모 아이콘" />
@@ -899,8 +1152,16 @@ export default function ActivityManagement() {
       <SaveCompleteModal
         isOpen={showSaveComplete}
         onClose={handleCloseSaveComplete}
+        onConfirm={() => {
+          // 저장 완료 후 캘린더 상태 업데이트를 위한 콜백
+          handleCloseSaveComplete();
+          // 부모 컴포넌트에 저장 완료 알림
+          if (window.parent && window.parent.postMessage) {
+            window.parent.postMessage({ type: "ACTIVITY_SAVED" }, "*");
+          }
+        }}
         petName={selectedPetName}
-        date={todayKey}
+        date={new Date().toISOString().split("T")[0]}
       />
 
       {/* 저장 확인 모달 */}
@@ -909,7 +1170,7 @@ export default function ActivityManagement() {
         onClose={handleSaveCancel}
         onConfirm={handleSaveConfirm}
         petName={selectedPetName}
-        date={todayKey}
+        date={new Date().toISOString().split("T")[0]}
       />
     </div>
   );

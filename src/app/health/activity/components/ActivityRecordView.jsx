@@ -1,6 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
+import { useSelectedPet } from "../../context/SelectedPetContext";
+import { activityOptions } from "../../data/mockData";
 import styles from "../styles/ActivityRecordView.module.css";
 
 export default function ActivityRecordView({
@@ -8,7 +10,18 @@ export default function ActivityRecordView({
   onClose,
   recordData,
   date,
+  selectedPetName,
 }) {
+  const { pets } = useSelectedPet();
+  const [showMealDetails, setShowMealDetails] = useState(false);
+
+  const ACTIVITY_LEVEL_MAP = {
+    LOW: "거의 안 움직여요",
+    MEDIUM_LOW: "가끔 산책해요",
+    MEDIUM_HIGH: "자주 뛰어놀아요",
+    HIGH: "매우 활동적이에요",
+  };
+
   if (!isOpen || !recordData) return null;
 
   const formatDate = (dateString) => {
@@ -21,17 +34,13 @@ export default function ActivityRecordView({
     });
   };
 
-  // 프로필 이미지 매핑 (선택된 펫에 맞춰 표시)
-  const petImageMap = {
-    몽글이: "/user/dog.png",
-    초코: "/user/cat.png",
-    차차: "/user/bird.png",
-  };
-  const petName = recordData?.petName || "";
-  const avatarSrc = petImageMap[petName] || "/user/dog.png";
+  // 선택된 펫의 이미지 가져오기
+  const selectedPet = pets.find((pet) => pet.name === selectedPetName);
+  const petName = selectedPetName || "";
+  const avatarSrc = selectedPet?.imageUrl || "/user/dog.png";
 
   return (
-    <div className={styles.overlay}>
+    <div className={styles.overlay} suppressHydrationWarning>
       <div className={styles.modal}>
         <div className={styles.header}>
           <div className={styles.headerLeft}>
@@ -66,17 +75,25 @@ export default function ActivityRecordView({
               <div className={styles.dataItem}>
                 <span className={styles.label}>산책 거리</span>
                 <span className={styles.value}>
-                  {recordData.walkingDistance} km
+                  {recordData.walkingDistanceKm ||
+                    recordData.walkingDistance ||
+                    0}{" "}
+                  km
                 </span>
               </div>
               <div className={styles.dataItem}>
                 <span className={styles.label}>활동량</span>
-                <span className={styles.value}>{recordData.activityLevel}</span>
+                <span className={styles.value}>
+                  {recordData.activityLevel
+                    ? ACTIVITY_LEVEL_MAP[recordData.activityLevel] ||
+                      `${recordData.activityLevel} (알 수 없는 활동 수준)`
+                    : "설정되지 않음"}
+                </span>
               </div>
               <div className={styles.dataItem}>
                 <span className={styles.label}>소모 칼로리</span>
                 <span className={styles.value}>
-                  {recordData.walk_calories} kcal
+                  {recordData.caloriesBurned || 0} kcal
                 </span>
               </div>
             </div>
@@ -91,33 +108,110 @@ export default function ActivityRecordView({
                 className={styles.sectionIcon}
               />
               <h3>식사 활동</h3>
+              <button
+                className={styles.mealCountButton}
+                onClick={() => setShowMealDetails(!showMealDetails)}
+                title="개별 식사 상세 보기/숨기기"
+              >
+                <span className={styles.mealCountText}>
+                  {recordData.meals?.length || 0}개
+                </span>
+                <span className={styles.mealCountIcon}>
+                  {showMealDetails ? "⌄" : "⌃"}
+                </span>
+              </button>
             </div>
+
+            {/* 식사 요약 정보 */}
             <div className={styles.dataGrid}>
               <div className={styles.dataItem}>
                 <span className={styles.label}>총 그람수</span>
                 <span className={styles.value}>
-                  {recordData.totalFoodWeight} g
+                  {recordData.meals?.reduce(
+                    (sum, meal) => sum + (meal.totalWeightG || 0),
+                    0
+                  )}{" "}
+                  g
                 </span>
               </div>
               <div className={styles.dataItem}>
                 <span className={styles.label}>총 칼로리</span>
                 <span className={styles.value}>
-                  {recordData.totalCaloriesInFood} kcal
+                  {recordData.meals?.reduce(
+                    (sum, meal) => sum + (meal.totalCalories || 0),
+                    0
+                  )}{" "}
+                  kcal
                 </span>
               </div>
               <div className={styles.dataItem}>
                 <span className={styles.label}>섭취량</span>
                 <span className={styles.value}>
-                  {recordData.feedingAmount} g
+                  {recordData.meals?.reduce(
+                    (sum, meal) => sum + (meal.consumedWeightG || 0),
+                    0
+                  )}{" "}
+                  g
                 </span>
               </div>
               <div className={styles.dataItem}>
                 <span className={styles.label}>섭취 칼로리</span>
                 <span className={styles.value}>
-                  {recordData.eat_calories} kcal
+                  {recordData.meals?.reduce(
+                    (sum, meal) => sum + (meal.consumedCalories || 0),
+                    0
+                  )}{" "}
+                  kcal
                 </span>
               </div>
             </div>
+
+            {/* 개별 식사 상세 정보 */}
+            {recordData.meals && recordData.meals.length > 0 && (
+              <div className={styles.mealDetails}>
+                {showMealDetails && (
+                  <div className={styles.mealList}>
+                    {recordData.meals.map((meal, index) => (
+                      <div
+                        key={meal.mealNo || index}
+                        className={styles.mealItem}
+                      >
+                        <div className={styles.mealItemHeader}>
+                          <span className={styles.mealType}>
+                            {meal.mealType === "BREAKFAST" && "아침"}
+                            {meal.mealType === "LUNCH" && "점심"}
+                            {meal.mealType === "DINNER" && "저녁"}
+                            {meal.mealType === "SNACK" && "간식"}
+                            {!meal.mealType && "아침"}
+                          </span>
+                          <span className={styles.mealNumber}>
+                            #{index + 1}
+                          </span>
+                        </div>
+                        <div className={styles.mealItemData}>
+                          <div className={styles.mealDataRow}>
+                            <span>총 그람수:</span>
+                            <span>{meal.totalWeightG || 0} g</span>
+                          </div>
+                          <div className={styles.mealDataRow}>
+                            <span>총 칼로리:</span>
+                            <span>{meal.totalCalories || 0} kcal</span>
+                          </div>
+                          <div className={styles.mealDataRow}>
+                            <span>섭취량:</span>
+                            <span>{meal.consumedWeightG || 0} g</span>
+                          </div>
+                          <div className={styles.mealDataRow}>
+                            <span>섭취 칼로리:</span>
+                            <span>{meal.consumedCalories || 0} kcal</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* 기타 활동 */}
@@ -133,21 +227,27 @@ export default function ActivityRecordView({
             <div className={styles.dataGrid}>
               <div className={styles.dataItem}>
                 <span className={styles.label}>몸무게</span>
-                <span className={styles.value}>{recordData.weight} kg</span>
+                <span className={styles.value}>
+                  {recordData.weightKg || recordData.weight || 0} kg
+                </span>
               </div>
               <div className={styles.dataItem}>
                 <span className={styles.label}>수면 시간</span>
                 <span className={styles.value}>
-                  {recordData.sleepTime} 시간
+                  {recordData.sleepHours || recordData.sleepTime || 0} 시간
                 </span>
               </div>
               <div className={styles.dataItem}>
                 <span className={styles.label}>소변 횟수</span>
-                <span className={styles.value}>{recordData.urineCount} 회</span>
+                <span className={styles.value}>
+                  {recordData.peeCount || recordData.urineCount || 0} 회
+                </span>
               </div>
               <div className={styles.dataItem}>
                 <span className={styles.label}>대변 횟수</span>
-                <span className={styles.value}>{recordData.fecesCount} 회</span>
+                <span className={styles.value}>
+                  {recordData.poopCount || recordData.fecesCount || 0} 회
+                </span>
               </div>
             </div>
           </div>
