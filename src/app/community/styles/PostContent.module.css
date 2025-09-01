@@ -2,6 +2,12 @@
   padding: 32px;
 }
 
+.top{
+  display: flex;
+  justify-content: space-between; /* 양 끝 배치 */
+  align-items: center;
+}
+
 .header {
   margin-bottom: 32px;
 }

@@ -41,7 +41,7 @@ export const getPostDetail = async (postId, { signal } = {}) => {
 
 // 게시글 삭제
 export const deletePost = async (postId) => {
-    const res = await api.patch(`community/posts/${postId}/delete`);
+    const res = await api.patch(`${COMMUNITY_PREFIX}/posts/${postId}/delete`);
     return res.data;
 };
 
