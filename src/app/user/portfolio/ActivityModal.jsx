@@ -33,11 +33,12 @@ const ActivityModal = ({
   const [showTempSaveModal, setShowTempSaveModal] = useState(false);
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showFileTypeModal, setShowFileTypeModal] = useState(false);
   const [validationMessage, setValidationMessage] = useState("");
+  const [fileTypeMessage, setFileTypeMessage] = useState("");
   const [showStartCalendar, setShowStartCalendar] = useState(false);
   const [showEndCalendar, setShowEndCalendar] = useState(false);
   const fileInputRef = useRef(null);
-  const imageIdCounter = useRef(0);
 
   // 수정 모드일 때 기존 데이터를 폼에 불러오기
   useEffect(() => {
@@ -47,20 +48,52 @@ const ActivityModal = ({
       let endDate = "";
 
       if (editingData.period) {
-        const periodParts = editingData.period.split(" ~ ");
+        const periodParts = editingData.period.split(" - ");
         if (periodParts.length === 2) {
-          startDate = periodParts[0];
-          endDate = periodParts[1];
+          startDate = periodParts[0].trim();
+          endDate = periodParts[1].trim();
         } else {
-          startDate = editingData.period;
-          endDate = editingData.period;
+          startDate = editingData.period.trim();
+          endDate = editingData.period.trim();
         }
       }
 
+      // 날짜 형식 검증 및 변환
+      const formatDateForInput = (dateStr) => {
+        if (!dateStr) return "";
+
+        // YYYY-MM-DD 형식인지 확인
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (dateRegex.test(dateStr)) {
+          return dateStr;
+        }
+
+        // 다른 형식의 날짜인 경우 Date 객체로 변환 시도
+        const date = new Date(dateStr);
+        if (!isNaN(date.getTime())) {
+          // YYYY-MM-DD 형식으로 변환
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const day = String(date.getDate()).padStart(2, "0");
+          return `${year}-${month}-${day}`;
+        }
+
+        return "";
+      };
+
+      const formattedStartDate = formatDateForInput(startDate);
+      const formattedEndDate = formatDateForInput(endDate);
+
+      console.log("원본 period:", editingData.period);
+      console.log("파싱된 startDate:", startDate);
+      console.log("파싱된 endDate:", endDate);
+      console.log("변환된 startDate:", formattedStartDate);
+      console.log("변환된 endDate:", formattedEndDate);
+
       setFormData({
         title: editingData.title || "",
-        startDate: startDate,
-        endDate: endDate,
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
         content: editingData.content || "",
         detailedContent: editingData.detailedContent || "",
       });
@@ -71,12 +104,28 @@ const ActivityModal = ({
         const existingImages = editingData.images
           .filter((image) => {
             if (typeof image === "string") {
-              return image && image.trim() !== "" && image !== "undefined";
+              return (
+                image &&
+                image.trim() !== "" &&
+                image !== "undefined" &&
+                !image.toLowerCase().endsWith(".webp") && // .webp 파일 제외
+                !image.toLowerCase().endsWith(".gif") // .gif 파일 제외
+              );
+            }
+            // 객체 형태인 경우 preview나 url에서 .webp 파일 제외
+            const imageUrl = image.preview || image.url || image;
+            if (typeof imageUrl === "string") {
+              return (
+                image &&
+                (image.preview || image.url) &&
+                !imageUrl.toLowerCase().endsWith(".webp") && // .webp 파일 제외
+                !imageUrl.toLowerCase().endsWith(".gif") // .gif 파일 제외
+              );
             }
             return image && (image.preview || image.url);
           })
           .map((image, index) => ({
-            id: image.id || generateUniqueId(),
+            id: image.id || Date.now() + index,
             file: image.file || null,
             preview:
               typeof image === "string"
@@ -92,12 +141,14 @@ const ActivityModal = ({
         editingData.image &&
         editingData.image !== "/campaign-1.jpg" &&
         editingData.image.trim() !== "" &&
-        editingData.image !== "undefined"
+        editingData.image !== "undefined" &&
+        !editingData.image.toLowerCase().endsWith(".webp") && // .webp 파일 제외
+        !editingData.image.toLowerCase().endsWith(".gif") // .gif 파일 제외
       ) {
         // 단일 image가 있는 경우
         setUploadedImages([
           {
-            id: generateUniqueId(),
+            id: Date.now(),
             file: null,
             preview: editingData.image.startsWith("http")
               ? editingData.image
@@ -158,12 +209,33 @@ const ActivityModal = ({
 
   const formatDateForDisplay = (dateString) => {
     if (!dateString) return "";
+
+    // YYYY-MM-DD 형식인지 확인
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (dateRegex.test(dateString)) {
+      const date = new Date(dateString);
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleDateString("ko-KR", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        });
+      }
+    }
+
+    // 다른 형식의 날짜인 경우 변환 시도
     const date = new Date(dateString);
-    return date.toLocaleDateString("ko-KR", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
+    if (!isNaN(date.getTime())) {
+      return date.toLocaleDateString("ko-KR", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+    }
+
+    // 날짜 변환에 실패한 경우 원본 문자열 반환
+    console.warn("날짜 변환 실패:", dateString);
+    return dateString;
   };
 
   const generateCalendarDays = (year, month) => {
@@ -316,22 +388,44 @@ const ActivityModal = ({
     );
   };
 
-  const generateUniqueId = () => {
-    imageIdCounter.current += 1;
-    return `image-${Date.now()}-${imageIdCounter.current}`;
-  };
-
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
-    const validFiles = files.filter((file) => file.size <= 10 * 1024 * 1024); // 10MB 이하
+
+    // 지원하는 이미지 파일 확장자
+    const supportedExtensions = ["jpg", "jpeg", "png"];
+
+    // 파일 확장자 검증
+    const invalidFiles = files.filter((file) => {
+      const extension = file.name.split(".").pop().toLowerCase();
+      return !supportedExtensions.includes(extension);
+    });
+
+    if (invalidFiles.length > 0) {
+      const invalidExtensions = [
+        ...new Set(
+          invalidFiles.map((file) => file.name.split(".").pop().toLowerCase())
+        ),
+      ].join(", ");
+
+      setFileTypeMessage(
+        `지원하지 않는 파일확장자입니다.\n(지원하는 파일확장자: ${supportedExtensions.join(
+          ", "
+        )})`
+      );
+      setShowFileTypeModal(true);
+      return;
+    }
+
+    // 파일 크기 검증 (10MB 이하)
+    const validFiles = files.filter((file) => file.size <= 10 * 1024 * 1024);
 
     if (uploadedImages.length + validFiles.length > 10) {
       alert("최대 10장까지만 업로드 가능합니다.");
       return;
     }
 
-    const newImages = validFiles.map((file) => ({
-      id: generateUniqueId(),
+    const newImages = validFiles.map((file, index) => ({
+      id: Date.now() + index,
       file: file,
       preview: URL.createObjectURL(file),
     }));
@@ -343,14 +437,80 @@ const ActivityModal = ({
     fileInputRef.current.click();
   };
 
-  const removeImage = (id) => {
-    setUploadedImages((prev) => {
-      const imageToRemove = prev.find((img) => img.id === id);
-      if (imageToRemove) {
-        URL.revokeObjectURL(imageToRemove.preview);
+  // 이미지 삭제 (백엔드 API 호출)
+  const removeImage = async (id) => {
+    try {
+      const imageToRemove = uploadedImages.find((img) => img.id === id);
+      if (!imageToRemove) return;
+
+      // 새로 업로드된 이미지인 경우 (아직 백엔드에 저장되지 않음)
+      if (imageToRemove.file) {
+        setUploadedImages((prev) => {
+          const imageToRemove = prev.find((img) => img.id === id);
+          if (imageToRemove) {
+            URL.revokeObjectURL(imageToRemove.preview);
+          }
+          return prev.filter((img) => img.id !== id);
+        });
+        return;
       }
-      return prev.filter((img) => img.id !== id);
-    });
+
+      // 기존 이미지인 경우 백엔드에서 삭제
+      if (isEditMode && editingData?.historyNo) {
+        const petNo = getPetNo();
+        if (!petNo) {
+          alert("반려동물 정보를 찾을 수 없습니다.");
+          return;
+        }
+
+        // 이미지 ID 추출 (백엔드에서 받은 imageId 사용)
+        let imageId = null;
+        if (imageToRemove.imageId) {
+          imageId = imageToRemove.imageId;
+        } else if (typeof imageToRemove.preview === "string") {
+          // preview에서 파일명을 추출하여 임시로 사용
+          if (imageToRemove.preview.startsWith("http")) {
+            imageId = imageToRemove.preview.split("/").pop();
+          } else {
+            imageId = imageToRemove.preview;
+          }
+        }
+
+        if (!imageId) {
+          alert("이미지 ID를 찾을 수 없습니다.");
+          return;
+        }
+
+        // 백엔드에서 이미지 삭제 (개별 이미지 삭제)
+        const response = await axios.delete(
+          `${PET_API_BASE}/pets/${petNo}/histories/${editingData.historyNo}/images/${imageId}`,
+          {
+            headers: getAuthHeaders(),
+          }
+        );
+
+        if (response.data.code === "2000") {
+          console.log("이미지 삭제 성공:", imageId);
+          // 프론트엔드에서도 이미지 제거
+          setUploadedImages((prev) => prev.filter((img) => img.id !== id));
+        } else {
+          console.error("이미지 삭제 실패:", response.data.message);
+          alert("이미지 삭제에 실패했습니다.");
+        }
+      } else {
+        // 편집 모드가 아닌 경우 프론트엔드에서만 제거
+        setUploadedImages((prev) => {
+          const imageToRemove = prev.find((img) => img.id === id);
+          if (imageToRemove) {
+            URL.revokeObjectURL(imageToRemove.preview);
+          }
+          return prev.filter((img) => img.id !== id);
+        });
+      }
+    } catch (error) {
+      console.error("이미지 삭제 실패:", error);
+      alert("이미지 삭제 중 오류가 발생했습니다.");
+    }
   };
 
   const handleTempSave = () => {
@@ -428,13 +588,39 @@ const ActivityModal = ({
       console.log("historyData.startDate:", historyData.startDate);
       console.log("historyData.endDate:", historyData.endDate);
 
+      // 기존 이미지 정보 추출 (수정 모드에서만)
+      let existingImageUrls = [];
+      if (isEditMode && editingData && editingData.images) {
+        existingImageUrls = editingData.images
+          .filter((img) => img && img.preview && !img.file) // 새로 업로드되지 않은 기존 이미지만
+          .map((img) => {
+            // preview가 전체 URL인지 파일명인지 확인
+            if (typeof img.preview === "string") {
+              if (img.preview.startsWith("http")) {
+                // 전체 URL에서 파일명만 추출
+                return img.preview.split("/").pop();
+              } else if (img.preview.startsWith("/")) {
+                // 로컬 경로는 제외
+                return null;
+              } else {
+                // 파일명 그대로 사용
+                return img.preview;
+              }
+            }
+            return null;
+          })
+          .filter((url) => url); // null 값 제거
+      }
+
       const historyRequest = {
         title: historyData.title, // 제목 필드 추가
         historyStart: historyData.startDate, // YYYY-MM-DD 형식 (예: "2025-09-21")
         historyEnd: historyData.endDate, // YYYY-MM-DD 형식 (예: "2025-09-28")
         content: historyData.content,
+        image_urls: existingImageUrls, // 기존 이미지 URL들 추가
       };
 
+      console.log("기존 이미지 URL들:", existingImageUrls);
       console.log("전송할 History 데이터:", historyRequest);
 
       let historyResponse;
@@ -526,7 +712,7 @@ const ActivityModal = ({
   const handleConfirmSave = async () => {
     try {
       // period를 startDate와 endDate를 조합하여 생성
-      const period = `${formData.startDate} ~ ${formData.endDate}`;
+      const period = `${formData.startDate} - ${formData.endDate}`;
 
       // History 생성 및 이미지 업로드
       const historyResult = await createHistoryWithImages(
@@ -612,7 +798,61 @@ const ActivityModal = ({
 
         {/* 이미지 업로드 영역 */}
         <div className={styles.imageUploadSection}>
-          <div className={styles.uploadArea} onClick={handleImageUpload}>
+          <div
+            className={styles.uploadArea}
+            onClick={handleImageUpload}
+            onDrop={(e) => {
+              e.preventDefault();
+              const files = Array.from(e.dataTransfer.files);
+
+              // 지원하는 이미지 파일 확장자
+              const supportedExtensions = ["jpg", "jpeg", "png"];
+
+              // 파일 확장자 검증
+              const invalidFiles = files.filter((file) => {
+                const extension = file.name.split(".").pop().toLowerCase();
+                return !supportedExtensions.includes(extension);
+              });
+
+              if (invalidFiles.length > 0) {
+                const invalidExtensions = [
+                  ...new Set(
+                    invalidFiles.map((file) =>
+                      file.name.split(".").pop().toLowerCase()
+                    )
+                  ),
+                ].join(", ");
+
+                setFileTypeMessage(
+                  `지원하지 않는 파일확장자입니다.\n(지원하는 파일확장자: ${supportedExtensions.join(
+                    ", "
+                  )})`
+                );
+                setShowFileTypeModal(true);
+                return;
+              }
+
+              // 파일 크기 검증 (10MB 이하)
+              const validFiles = files.filter(
+                (file) => file.size <= 10 * 1024 * 1024
+              );
+
+              if (uploadedImages.length + validFiles.length > 10) {
+                alert("최대 10장까지만 업로드 가능합니다.");
+                return;
+              }
+
+              const newImages = validFiles.map((file, index) => ({
+                id: Date.now() + index,
+                file: file,
+                preview: URL.createObjectURL(file),
+              }));
+
+              setUploadedImages((prev) => [...prev, ...newImages]);
+            }}
+            onDragOver={(e) => e.preventDefault()}
+            onDragEnter={(e) => e.preventDefault()}
+          >
             <div className={styles.uploadIcon}>
               <Image
                 src="/user/upload.svg"
@@ -659,7 +899,7 @@ const ActivityModal = ({
                   )}
                   <button
                     className={styles.removeImageButton}
-                    onClick={() => removeImage(image.id)}
+                    onClick={async () => await removeImage(image.id)}
                   >
                     ×
                   </button>
@@ -890,6 +1130,34 @@ const ActivityModal = ({
                     취소
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 파일 확장자 검증 모달 */}
+        {showFileTypeModal && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.alertModal}>
+              <div className={styles.alertContent}>
+                <div className={`${styles.alertIcon} ${styles.warningIcon}`}>
+                  ⚠
+                </div>
+                <h3 className={styles.alertTitle}>
+                  지원하지 않는 파일확장자입니다.
+                </h3>
+                <p
+                  className={styles.alertMessage}
+                  style={{ whiteSpace: "pre-line", textAlign: "center" }}
+                >
+                  {fileTypeMessage}
+                </p>
+                <button
+                  className={styles.alertButton}
+                  onClick={() => setShowFileTypeModal(false)}
+                >
+                  확인
+                </button>
               </div>
             </div>
           </div>

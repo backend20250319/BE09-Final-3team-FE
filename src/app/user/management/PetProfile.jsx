@@ -157,8 +157,10 @@ const PetProfile = () => {
   console.log("hasPets:", hasPets);
 
   const handleEditPet = (pet) => {
+    console.log("모달 열기 시도:", pet);
     setSelectedPet(pet);
     setIsModalOpen(true);
+    console.log("isModalOpen 상태:", true);
   };
 
   const handleCloseModal = () => {
@@ -196,7 +198,11 @@ const PetProfile = () => {
             </p>
             <button
               className={styles.createButton}
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => {
+                console.log("첫 번째 프로필 만들기 버튼 클릭");
+                setIsModalOpen(true);
+                console.log("isModalOpen 상태:", true);
+              }}
             >
               첫 번째 프로필 만들기
             </button>
@@ -335,7 +341,11 @@ const PetProfile = () => {
 
                 <div
                   className={styles.addPetCard}
-                  onClick={() => setIsModalOpen(true)}
+                  onClick={() => {
+                    console.log("반려동물 등록하기 카드 클릭");
+                    setIsModalOpen(true);
+                    console.log("isModalOpen 상태:", true);
+                  }}
                   style={{ cursor: "pointer" }}
                 >
                   <div className={styles.addPetIcon}>
