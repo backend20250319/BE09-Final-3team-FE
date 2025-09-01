@@ -78,6 +78,13 @@ export default function PostDetail({ postId }) {
             createdAt: dto.createdAt,
             mine: !!dto.mine,
             commentCount: dto.commentCount ?? 0,
+            author: dto.author
+                ? {
+                    id: dto.author.id ?? null,
+                    name: dto.author.nickname ?? "익명",
+                    avatarUrl: dto.author.profileImageUrl ?? null,
+                }
+                : null,
         };
     }
 
@@ -108,7 +115,7 @@ export default function PostDetail({ postId }) {
                         post={{
                             Id: vm.postId,
                             title: vm.title,
-                            author: vm.userId ? `작성자 #${vm.userId}` : "익명",
+                            author: vm.userId ? `${vm.author.name}` : "익명",
                             date: formatRelativeKo(vm.createdAt),
                             commentCount: vm.commentCount,
                             mine: vm.mine,
