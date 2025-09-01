@@ -1,15 +1,17 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import styles from '../styles/CampaignDetail.module.css';
 import PetstarList from './PetstarList';
 import ApplicantList from './ApplicantList';
+import { getAdvertiser } from '@/api/advertiserApi';
+import { getImageByAdNo } from '@/api/advertisementApi';
 
 export default function CampaignDetail({ campaignData, adNo }) {
 
-  const router = useRouter();
+  const router = useRouter(); 
   const [applicantPage, setApplicantPage] = useState(1);
   const [petstarPage, setPetstarPage] = useState(1);
   const [sortBy, setSortBy] = useState('name');
@@ -107,6 +109,20 @@ export default function CampaignDetail({ campaignData, adNo }) {
     setSortBy(value);
   };
 
+  const [adImage, setAdImage] = useState(null);
+  const [advertiser, setAdvertiser] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const advertiserData = await getAdvertiser();
+      setAdvertiser(advertiserData);
+          
+      const adImageData = await getImageByAdNo(campaignData.adNo);
+      setAdImage(adImageData);
+    };
+    fetchData();
+  }, [campaignData.adNo]);
+
   return (
     <div className={styles.container}>
       {/* Navigation */}
@@ -150,36 +166,36 @@ export default function CampaignDetail({ campaignData, adNo }) {
         <div className={styles.campaignContent}>
           {/* Campaign Image */}
           <div className={styles.campaignImageSection}>
-            <Image 
-              src={campaignData.image} 
+            {adImage && (<Image 
+              src={adImage.filePath} 
               alt={campaignData.title}
               width={500}
               height={500}
               className={styles.campaignImage}
-            />
+            />)}
 
             
             {/* Campaign Stats */}
             <div className={styles.statsSection}>
               <div className={styles.statItem}>
-                <div className={styles.statValue}>{campaignData.announce_start} ~ {campaignData.announce_end}</div>
+                <div className={styles.statValue}>{campaignData.announceStart} ~ {campaignData.announceEnd}</div>
                 <div className={styles.statLabel}>체험단 모집 기간</div>
               </div>
               <div className={styles.statItem}>
-                <div className={styles.statValue}>{campaignData.campaign_start} ~ {campaignData.campaign_end}</div>
+                <div className={styles.statValue}>{campaignData.campaignStart} ~ {campaignData.campaignEnd}</div>
                 <div className={styles.statLabel}>체험단 참여 기간</div>
               </div>
               <div className={styles.statsGrid}>
                 <div className={styles.statItem}>
-                  <div className={styles.statValue}>{campaignData.campaign_select}</div>
+                  <div className={styles.statValue}>{campaignData.campaignSelect}</div>
                   <div className={styles.statLabel}>체험단 선정일</div>
                 </div>
                 <div className={styles.statItem}>
-                  <div className={styles.statValue}>{campaignData.currentApplicants}</div>
+                  <div className={styles.statValue}>{campaignData.applicants}</div>
                   <div className={styles.statLabel}>참여자 수</div>
                 </div>
                 <div className={styles.statItem}>
-                  <div className={styles.statValue}>{campaignData.totalApplicants}</div>
+                  <div className={styles.statValue}>{campaignData.members}</div>
                   <div className={styles.statLabel}>모집 인원수</div>
                 </div>
               </div>
@@ -210,13 +226,13 @@ export default function CampaignDetail({ campaignData, adNo }) {
               <p className={styles.missionDescription}>{campaignData.objective}</p>
               <div className={styles.tasksList}>
                 {campaignData.mission.map((task, index) => (
-                  <div key={index} className={styles.taskItem}>
+                  <div key={task.missionNo || index} className={styles.taskItem}>
                     <Image 
                       src="/campaign/check.png"
                       alt="check.png"
                       width={16}
                       height={16} />
-                    <span>{task}</span>
+                    <span>{task.content}</span>
                   </div>
                 ))}
               </div>
@@ -227,7 +243,7 @@ export default function CampaignDetail({ campaignData, adNo }) {
               <h3 className={styles.sectionTitle}>필수 키워드</h3>
               <div className={styles.keywordsList}>
                 {campaignData.keyword.map((keyword, index) => (
-                  <span key={index} className={styles.keyword}>{keyword}</span>
+                  <span key={keyword.keywordNo || index} className={styles.keyword}>{keyword.content}</span>
                 ))}
               </div>
             </div>
@@ -237,13 +253,13 @@ export default function CampaignDetail({ campaignData, adNo }) {
               <h3 className={styles.sectionTitle}>필수 요건</h3>
               <div className={styles.requirementsList}>
                 {campaignData.requirement.map((requirement, index) => (
-                  <div key={index} className={styles.requirementItem}>
+                  <div key={requirement.reqNo || index} className={styles.requirementItem}>
                     <Image 
                       src="/campaign/info.png"
                       alt="info.png"
                       width={16}
                       height={16} />
-                    <span>{requirement}</span>
+                    <span>{requirement.content}</span>
                   </div>
                 ))}
               </div>
@@ -253,13 +269,13 @@ export default function CampaignDetail({ campaignData, adNo }) {
             <div className={styles.section}>
               <h3 className={styles.sectionTitle}>상품 링크</h3>
               <div className={styles.productLink}>  
-                <a href="#" className={styles.storeLink}>
+                <a href={campaignData.adUrl} className={styles.storeLink}>
                   <Image 
                     src="/campaign/link.png"
                     alt="link.png"
                     width={16}
                     height={16}/>
-                  Visit {campaignData.brand} Store
+                  Visit {advertiser?.name} Store
                 </a>
               </div>
             </div>

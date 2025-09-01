@@ -1,18 +1,20 @@
 import Image from 'next/image';
 import styles from '../../styles/FormSections/ImageUploadSection.module.css';
 
-export default function ImageUploadSection({ formData, setFormData }) {
+export default function ImageUploadSection({ adImage, setAdImage, previewImage, setPreviewImage }) {
+  
   const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
+    const image = event.target.files[0];
+    if (image) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setFormData(prev => ({ ...prev, mainImage: e.target.result }));
+        setPreviewImage(prev => ({ ...prev, previewImage: e.target.result}));
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(image);
     }
+    setAdImage(image);
   };
-
+  
   return (
     <div className={styles.formSection}>
       <label className={styles.label}>
@@ -20,11 +22,11 @@ export default function ImageUploadSection({ formData, setFormData }) {
       </label>
 
       <div className={styles.imageUploadArea}>
-        {formData.mainImage ? (
+        {previewImage ? (
           <div className={styles.imagePreview}>
             <label htmlFor="imageUpload">
               <Image 
-                src={formData.mainImage} 
+                src={previewImage.previewImage || previewImage.filePath}
                 alt="Preview" 
                 width={200} 
                 height={200}

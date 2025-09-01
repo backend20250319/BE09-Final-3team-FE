@@ -5,14 +5,15 @@ export default function KeywordsSection({ formData, setFormData }) {
   const handleArrayFieldChange = (field, index, value) => {
     setFormData(prev => ({
       ...prev,
-      [field]: prev[field].map((item, i) => i === index ? value : item)
+      [field]: prev[field].map((item, i) => 
+        i === index ? { ...item, content: value } : item)
     }));
   };
 
   const addArrayField = (field) => {
     setFormData(prev => ({
       ...prev,
-      [field]: [...prev[field], '']
+      [field]: [...prev[field], { content: "" }]
     }));
   };
 
@@ -28,19 +29,19 @@ export default function KeywordsSection({ formData, setFormData }) {
       <label className={styles.label}>
         키워드 <span className={styles.required}>*</span>
       </label>
-      {formData.keywords.map((keyword, index) => (
+      {formData.keyword.map((keyword, index) => (
         <div key={index} className={styles.arrayFieldContainer}>
           <input
             type="text"
-            value={keyword}
-            onChange={(e) => handleArrayFieldChange('keywords', index, e.target.value)}
+            value={keyword.content}
+            onChange={(e) => handleArrayFieldChange('keyword', index, e.target.value)}
             placeholder="키워드를 입력해주세요"
             className={styles.input}
           />
-          {formData.keywords.length > 1 && (
+          {formData.keyword.length > 1 && (
             <button
               type="button"
-              onClick={() => removeArrayField('keywords', index)}
+              onClick={() => removeArrayField('keyword', index)}
               className={styles.removeButton}
             >
               ✕
@@ -50,7 +51,7 @@ export default function KeywordsSection({ formData, setFormData }) {
       ))}
       <button
         type="button"
-        onClick={() => addArrayField('keywords')}
+        onClick={() => addArrayField('keyword')}
         className={styles.addButton}
       >
         + 키워드 추가

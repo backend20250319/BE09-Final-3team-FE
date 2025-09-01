@@ -189,15 +189,11 @@ export default function SignupPage() {
       setLoading((prev) => ({ ...prev, signup: true }));
 
       const signupData = {
-        email: formData.email, // 백엔드에서 email 필드 요구
-        userId: formData.email, // 백엔드에서 userId 필드도 요구할 수 있음
+        userId: formData.email,
         password: formData.password,
         name: formData.name,
         phone: formData.phone,
-        address: formData.address,
-        description: "", // 백엔드에서 요구할 수 있는 필드
-        imageUrl: "", // 백엔드에서 요구할 수 있는 필드
-        docUrl: "", // 백엔드에서 요구할 수 있는 필드
+        businessNumber: formData.address
       };
 
       const res = await fetch(`${API_BASE}/advertiser/signup`, {
@@ -562,7 +558,7 @@ export default function SignupPage() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    placeholder="010-1234-5678"
+                    placeholder="전화번호를 입력하세요"
                     maxLength={13}
                     className={styles.input}
                     disabled={
