@@ -1,13 +1,14 @@
 /* eslint-env node */
 import axios from "axios";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+const BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 console.log("[ENV] BASE_URL =", BASE_URL);
 
 const api = axios.create({
-    baseURL: BASE_URL,
-    headers: { "Content-Type": "application/json" },
+  baseURL: BASE_URL,
+  headers: { "Content-Type": "application/json" },
 });
 
 api.interceptors.request.use(

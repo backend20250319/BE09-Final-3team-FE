@@ -32,6 +32,21 @@
   border: 2px solid rgba(255, 255, 255, 0.85);
 }
 
+.petAvatarPlaceholder {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px dashed rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: -5px;
+}
+
 .calendarSubtitle {
   font-size: 14px;
   margin: 0;
@@ -275,4 +290,16 @@
     padding: 12px 4px;
     font-size: 12px;
   }
+}
+
+.noPetContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  color: #6b7280;
+  font-size: 16px;
 }

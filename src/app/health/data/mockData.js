@@ -410,14 +410,15 @@ export const defaultVaccinationSchedules = [
 // 3. 활동 관리 (ActivityManagement)
 // ========================================
 
-export const activityOptions = [
-  { value: "1.2", label: "거의 안 움직여요" },
-  { value: "1.5", label: "가끔 산책해요" },
-  { value: "1.7", label: "자주 뛰어놀아요" },
-  { value: "1.9", label: "매우 활동적이에요" },
-];
+// 백엔드에서 enum으로 관리하므로 더미데이터 제거
+// export const activityOptions = [
+//   { value: "LOW", label: "거의 안 움직여요" },
+//   { value: "MEDIUM_LOW", label: "가끔 산책해요" },
+//   { value: "MEDIUM_HIGH", label: "자주 뛰어놀아요" },
+//   { value: "HIGH", label: "매우 활동적이에요" },
+// };
 
-export const validActivityLevels = ["1.2", "1.5", "1.7", "1.9"];
+// export const validActivityLevels = ["LOW", "MEDIUM_LOW", "MEDIUM_HIGH", "HIGH"];
 
 // 초기 폼 데이터
 export const initialFormData = {
@@ -445,122 +446,8 @@ export const initialCalculated = {
 // 4. 활동 리포트 (ActivityReport)
 // ========================================
 
-export const activityMetrics = [
-  {
-    id: 1,
-    title: "산책 소모 칼로리",
-    icon: "/health/footprint.png",
-    colorActual: "#8BC34A",
-    colorRecommended: "#AED581",
-    type: "bar",
-    hasRecommended: true,
-  },
-  {
-    id: 2,
-    title: "섭취 칼로리",
-    icon: "/health/meal.png",
-    colorActual: "#F5A623",
-    colorRecommended: "#F8C471",
-    type: "bar",
-    hasRecommended: true,
-  },
-  {
-    id: 3,
-    title: "배변 횟수",
-    icon: "/health/bathroom.png",
-    colorActual: "#FF7675",
-    colorRecommended: null,
-    type: "line",
-    hasRecommended: false,
-  },
-  {
-    id: 4,
-    title: "수면 시간",
-    icon: "/health/sleep.png",
-    colorActual: "#de74ffff",
-    colorRecommended: null,
-    type: "area",
-    hasRecommended: false,
-  },
-];
 
-// actualValue Bar의 이름 매핑
-export const actualNameMap = {
-  "산책 소모 칼로리": "소모량",
-  "섭취 칼로리": "식사량",
-};
 
-// 일별 데이터
-export const dailyData = {
-  common: [
-    { day: "월", actualValue: 85, recommendedValue: 100 },
-    { day: "화", actualValue: 65, recommendedValue: 100 },
-    { day: "수", actualValue: 45, recommendedValue: 100 },
-    { day: "목", actualValue: 25, recommendedValue: 100 },
-    { day: "금", actualValue: 20, recommendedValue: 100 },
-    { day: "토", actualValue: 35, recommendedValue: 100 },
-    { day: "일", actualValue: 30, recommendedValue: 100 },
-  ],
-  poop: [
-    { day: "월", 소변: 3, 대변: 1 },
-    { day: "화", 소변: 2, 대변: 1 },
-    { day: "수", 소변: 4, 대변: 2 },
-    { day: "목", 소변: 3, 대변: 1 },
-    { day: "금", 소변: 2, 대변: 1 },
-    { day: "토", 소변: 1, 대변: 1 },
-    { day: "일", 소변: 3, 대변: 2 },
-  ],
-};
-
-// 주별 데이터
-export const weeklyData = {
-  common: [
-    { week: "1주", actualValue: 450, recommendedValue: 500 },
-    { week: "2주", actualValue: 500, recommendedValue: 500 },
-    { week: "3주", actualValue: 480, recommendedValue: 500 },
-    { week: "4주", actualValue: 520, recommendedValue: 500 },
-  ],
-  poop: [
-    { week: "1주", 소변: 18, 대변: 7 },
-    { week: "2주", 소변: 20, 대변: 8 },
-    { week: "3주", 소변: 19, 대변: 9 },
-    { week: "4주", 소변: 22, 대변: 7 },
-  ],
-};
-
-// 월별 데이터
-export const monthlyData = {
-  common: [
-    { month: "1월", actualValue: 1800, recommendedValue: 2000 },
-    { month: "2월", actualValue: 1900, recommendedValue: 2000 },
-    { month: "3월", actualValue: 2100, recommendedValue: 2000 },
-    { month: "4월", actualValue: 1950, recommendedValue: 2000 },
-    { month: "5월", actualValue: 2200, recommendedValue: 2000 },
-    { month: "6월", actualValue: 1850, recommendedValue: 2000 },
-  ],
-  poop: [
-    { month: "1월", 소변: 75, 대변: 30 },
-    { month: "2월", 소변: 80, 대변: 32 },
-    { month: "3월", 소변: 85, 대변: 35 },
-    { month: "4월", 소변: 78, 대변: 31 },
-    { month: "5월", 소변: 90, 대변: 38 },
-    { month: "6월", 소변: 82, 대변: 33 },
-  ],
-};
-
-// 연별 데이터
-export const yearlyData = {
-  common: [
-    { year: "2022", actualValue: 24000, recommendedValue: 25000 },
-    { year: "2023", actualValue: 25000, recommendedValue: 25000 },
-    { year: "2024", actualValue: 26000, recommendedValue: 25000 },
-  ],
-  poop: [
-    { year: "2022", 소변: 900, 대변: 400 },
-    { year: "2023", 소변: 920, 대변: 410 },
-    { year: "2024", 소변: 940, 대변: 420 },
-  ],
-};
 
 // ========================================
 // 5. 공통 설정 및 상수
