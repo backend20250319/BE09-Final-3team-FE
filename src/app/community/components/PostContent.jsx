@@ -5,7 +5,7 @@ import styles from "../styles/PostContent.module.css";
 import Image from "next/image";
 import ReportModal from "@/app/advertiser/ads-list/[ad_no]/components/ReportModal";
 
-export default function PostContent({ post = {} }) {
+export default function PostContent({ post = {} , onDelete}) {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const title = post.title ?? "";
@@ -24,10 +24,20 @@ export default function PostContent({ post = {} }) {
   }, [post.content]);
 
   return (
-      <div className={styles.container}>
+      <div className={styles.container} >
         <header className={styles.header}>
+          <div className={styles.top}>
           <h1 className={styles.title}>{title}</h1>
-
+          {post.mine && (
+              <span
+                  className={styles.deleteText}
+                  onClick={onDelete}
+                  role="button"
+              >
+              게시글 삭제
+              </span>
+          )}
+          </div>
           <div className={styles.meta}>
             <span className={styles.date}>{date}</span>
 
@@ -41,15 +51,7 @@ export default function PostContent({ post = {} }) {
 
               <span className={styles.author}>{author}</span>
 
-              {post.mine && (
-                  <span
-                      className={styles.deleteText}
-                      onClick={onDelete}
-                      role="button"
-                  >
-              게시글 삭제
-              </span>
-              )}
+
               <button
                   type="button"
                   aria-label="신고하기"
