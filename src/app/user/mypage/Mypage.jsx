@@ -46,7 +46,7 @@ const MyPage = () => {
   useEffect(() => {
     window.fbAsyncInit = function () {
       window.FB.init({
-        appId: config.facebook.appId, // 환경변수에서 Facebook App ID 가져오기
+        appId: 1691923471518629, // 환경변수에서 Facebook App ID 가져오기
         cookie: true,
         xfbml: true,
         version: "v23.0",
@@ -358,6 +358,8 @@ const MyPage = () => {
       setIsLoading(false);
     }
   };
+
+
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
