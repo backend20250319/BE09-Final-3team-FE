@@ -1,31 +1,56 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from "next/image";
 import Link from "next/link";
 import styles from "../styles/CampaignCard.module.css";
 import { useCampaign } from "../context/CampaignContext";
 import RejectionModal from "./RejectionModal";
+import { getImageByAdNo } from '@/api/advertisementApi';
+import { getAdvertiser, getFileByAdvertiserNo } from '@/api/advertiserApi';
 
 export default function CampaignCard({ campaign }) {
 
   const { activeTab } = useCampaign();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [advertiser, setAdvertiser] = useState(null);
+  const [advImage, setAdvImage] = useState(null);
+  const [adImage, setAdImage] = useState(null);
 
-  const showRejectedButton = campaign.ad_status === "rejected";
+  useEffect(() => {
+    const fetchData = async () => {
+      const advertiserData = await getAdvertiser();
+      setAdvertiser(advertiserData);
+
+      const advImageData = await getFileByAdvertiserNo();
+      setAdvImage(advImageData[0]);
+
+      const adImageData = await getImageByAdNo(campaign.adNo);
+      setAdImage(adImageData);
+
+    };
+
+    fetchData();
+  }, [campaign.adNo]);
+
+  const showRejectedButton = campaign.adStatus === "REJECTED";
 
   const COLORS = {
     approved: "#FF8484",  
-    pending: "#8BC34A",
-    rejected: "#9CA3AF",
+    closed: "#FFCD17",
+    trial: "#8BC34A",
     ended: "#6B7280", 
+    pending: "#9CA3AF",
+    rejected: "#9CA3AF",
     default: "#000000"
   };
 
   const STATUSTEXT = {
     approved: "삭제",
-    pending: "취소",
-    ended: "삭제"
+    closed: "선정",
+    trial: "리뷰 URL 관리",
+    ended: "삭제",
+    pending: "취소"
   };
 
   const getStatusStyle = (status) => {
@@ -42,9 +67,13 @@ export default function CampaignCard({ campaign }) {
     switch (status) {
       case "approved":
         return { ...baseStyle, backgroundColor: "#FF8484", color: "#FFFFFF" };
-      case "pending":
+      case "closed":
+        return { ...baseStyle, backgroundColor: "#FFCD17", color: "#FFFFFF" };  
+      case "trial":
         return { ...baseStyle, backgroundColor: "#8BC34A", color: "#FFFFFF" };
       case "rejected":
+        return { ...baseStyle, backgroundColor: "#9CA3AF", color: "#FFFFFF" };
+      case "pending":
         return { ...baseStyle, backgroundColor: "#9CA3AF", color: "#FFFFFF" };
       case "ended":
         return { ...baseStyle, backgroundColor: "#6B7280", color: "#FFFFFF" };
@@ -61,14 +90,14 @@ export default function CampaignCard({ campaign }) {
     setIsModalOpen(false);
   };
   
-  const cardContent = (
+  const cardContent = advImage && adImage && (
     <div
       className={styles.campaignCard}
       style={{ borderTopColor: COLORS[activeTab] || COLORS.default }}>
       <div className={styles.imageContainer}>
         <Image  
-          src={campaign.image}
-          alt={campaign.title}
+          src={adImage.filePath}
+          alt={campaign?.title || ""}
           width={410}
           height={160}
           className={styles.campaignImage}
@@ -80,21 +109,25 @@ export default function CampaignCard({ campaign }) {
         <p className={styles.description}>{campaign.objective}</p>
         <div className={styles.brandSection}>
           <div className={styles.brandInfo}>
-            <Image  
-              src={campaign.brand_url}
-              alt={campaign.brand}
-              width={25}
-              height={25}
-              className={styles.brandIcon}
-            />
-            <span className={styles.brandName}>{campaign.brand}</span>
+            <Image
+                src={advImage?.filePath}
+                alt={campaign?.brand || ""}
+                width={25}
+                height={25}
+                className={styles.brandIcon}
+              />
+            <span className={styles.brandName}>{advertiser?.name}</span>
           </div>
           {showRejectedButton ? (
             <div className={styles.actionButtons}>
               <button 
                 style={getStatusStyle("rejected")} 
                 className={styles.actionBtn}
-                onClick={handleRejectionClick}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleRejectionClick();
+                }}
               >
                 반려 사유
               </button>
@@ -104,14 +137,14 @@ export default function CampaignCard({ campaign }) {
             </div>
           ) : (
             <button
-              style={getStatusStyle(campaign.ad_status)}
+              style={getStatusStyle(campaign.adStatus.toLowerCase())}
               className={styles.statusButton}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
               }}
             >
-              {STATUSTEXT[campaign.ad_status]}
+              {STATUSTEXT[campaign.adStatus.toLowerCase()]}
             </button>
           )}
         </div>
@@ -123,7 +156,7 @@ export default function CampaignCard({ campaign }) {
                 fill="#6B7280"
               />
             </svg>
-            <span className={styles.period}>{campaign.announce_start}~{campaign.announce_end}</span>
+            <span className={styles.period}>{campaign.announceStart}~{campaign.announceEnd}</span>
           </div>
           <span className={styles.applicants}>신청자 수 : {campaign.applicants}</span>
         </div>
@@ -132,23 +165,15 @@ export default function CampaignCard({ campaign }) {
   );
 
   const rejectionData = {
-    reason: "잘못된 상품 판매 페이지 기입",
+    reason: campaign.reason,
     campaignTitle: campaign.title
   };
 
-  if (campaign.ad_no === 1) {
-    return (
-      <>
-        <Link href={`/advertiser/ads-list/${campaign.ad_no}`} className={styles.campaignCardLink}>
-          {cardContent}
-        </Link>
-      </>
-    );
-  }
-
   return (
     <>
-      <div className={styles.campaignCardLink}>{cardContent}</div>
+      <Link href={`/advertiser/ads-list/${campaign.adNo}`} className={styles.campaignCardLink}>
+        {cardContent}
+      </Link>
       <RejectionModal 
         isOpen={isModalOpen}
         onClose={handleCloseModal}
