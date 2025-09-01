@@ -43,6 +43,10 @@ const PortfolioContent = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [validationMessage, setValidationMessage] = useState("");
   const [hasPortfolio, setHasPortfolio] = useState(false);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [pendingDeleteActivity, setPendingDeleteActivity] = useState(null);
+  const [showDeleteResultModal, setShowDeleteResultModal] = useState(false);
+  const [deleteResultMessage, setDeleteResultMessage] = useState("");
 
   // API 호출 함수들
   const getAuthHeaders = () => {
@@ -286,15 +290,34 @@ const PortfolioContent = () => {
   // 활동 이력 조회
   const fetchHistories = async (petNo) => {
     try {
+      console.log("활동 이력 조회 시작 - petNo:", petNo);
       const response = await axios.get(
         `${PET_API_BASE}/pets/${petNo}/histories`,
         {
           headers: getAuthHeaders(),
         }
       );
+      console.log("활동 이력 조회 응답:", response.data);
+      console.log("활동 이력 데이터:", response.data.data);
       return response.data.data;
     } catch (error) {
       console.error("활동 이력 조회 실패:", error);
+      throw error;
+    }
+  };
+
+  // 활동 이력 삭제
+  const deleteHistory = async (petNo, historyNo) => {
+    try {
+      const response = await axios.delete(
+        `${PET_API_BASE}/pets/${petNo}/histories/${historyNo}`,
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("활동 이력 삭제 실패:", error);
       throw error;
     }
   };
@@ -419,17 +442,40 @@ const PortfolioContent = () => {
           try {
             const histories = await fetchHistories(petNo);
             if (histories && histories.length > 0) {
+              console.log("백엔드에서 받은 원본 활동 이력:", histories);
+
               const activityCardsData = histories.map((history, index) => {
+                console.log(`활동 이력 ${index + 1} 매핑:`, history);
+
                 // 이미지 URL 처리
                 let images = [];
-                if (history.imageUrls && history.imageUrls.length > 0) {
-                  // 백엔드에서 받은 파일명들을 실제 URL로 변환
+                if (history.images && history.images.length > 0) {
+                  // 백엔드에서 받은 이미지 정보를 사용 (고유 ID 포함)
+                  images = history.images
+                    .filter(
+                      (imageInfo) =>
+                        imageInfo &&
+                        imageInfo.fileName &&
+                        imageInfo.fileName.trim() !== ""
+                    )
+                    .map((imageInfo) => ({
+                      id:
+                        imageInfo.imageId ||
+                        `${history.historyNo}-${Date.now()}-${Math.random()}`, // 백엔드에서 제공하는 고유 ID 사용
+                      file: null,
+                      preview: `http://dev.macacolabs.site:8008/3/pet/${imageInfo.fileName}`,
+                      imageId: imageInfo.imageId, // 백엔드 이미지 ID 저장
+                      fileName: imageInfo.fileName, // 파일명 저장
+                    }));
+                } else if (history.imageUrls && history.imageUrls.length > 0) {
+                  // 기존 imageUrls 형식 지원 (하위 호환성)
                   images = history.imageUrls
                     .filter((filename) => filename && filename.trim() !== "")
-                    .map((filename) => ({
-                      id: Date.now() + index,
+                    .map((filename, imgIndex) => ({
+                      id: `${history.historyNo}-${imgIndex}-${Date.now()}`,
                       file: null,
                       preview: `http://dev.macacolabs.site:8008/3/pet/${filename}`,
+                      fileName: filename, // 파일명 저장
                     }));
                 }
 
@@ -444,7 +490,7 @@ const PortfolioContent = () => {
                   ];
                 }
 
-                return {
+                const mappedCard = {
                   id: history.historyNo || index + 1,
                   historyNo: history.historyNo, // 백엔드에서 받은 historyNo 저장
                   image:
@@ -452,13 +498,18 @@ const PortfolioContent = () => {
                       ? images[0].preview
                       : `/campaign-${(index % 4) + 1}.jpg`,
                   images: images,
-                  title: `활동 ${index + 1}`,
+                  title: history.title || `활동 ${index + 1}`, // 백엔드에서 받은 제목 사용
                   period: `${history.historyStart} - ${history.historyEnd}`,
                   content: history.content,
                   detailedContent: history.content,
                   progress: 100,
                 };
+
+                console.log(`매핑된 카드 ${index + 1}:`, mappedCard);
+                return mappedCard;
               });
+
+              console.log("최종 매핑된 활동 카드들:", activityCardsData);
               setActivityCards(activityCardsData);
             }
           } catch (historyError) {
@@ -539,30 +590,82 @@ const PortfolioContent = () => {
   };
 
   const handleCardClick = (card) => {
+    console.log("활동이력 카드 클릭 - 선택된 카드:", card);
+    console.log("카드 상세 정보:", {
+      id: card.id,
+      historyNo: card.historyNo,
+      title: card.title,
+      period: card.period,
+      content: card.content,
+      detailedContent: card.detailedContent,
+    });
     setSelectedActivity(card);
     setIsDetailModalOpen(true);
+  };
+
+  // 상세 모달 내 삭제 처리
+  const handleDeleteActivity = async (activity) => {
+    if (!activity?.historyNo || !petNo) return;
+    setPendingDeleteActivity(activity);
+    setShowDeleteConfirmModal(true);
+  };
+
+  const confirmDeleteActivity = async () => {
+    if (!pendingDeleteActivity || !petNo) return;
+    try {
+      await deleteHistory(petNo, pendingDeleteActivity.historyNo);
+      setActivityCards((prev) =>
+        prev.filter(
+          (card) => card.historyNo !== pendingDeleteActivity.historyNo
+        )
+      );
+      setIsDetailModalOpen(false);
+      setSelectedActivity(null);
+      setShowDeleteConfirmModal(false);
+      setPendingDeleteActivity(null);
+      setDeleteResultMessage("삭제가 완료되었습니다.");
+      setShowDeleteResultModal(true);
+      setTimeout(() => setShowDeleteResultModal(false), 1500);
+    } catch (error) {
+      setShowDeleteConfirmModal(false);
+      setDeleteResultMessage("삭제에 실패했습니다. 다시 시도해주세요.");
+      setShowDeleteResultModal(true);
+    }
+  };
+
+  const cancelDeleteActivity = () => {
+    setShowDeleteConfirmModal(false);
+    setPendingDeleteActivity(null);
   };
 
   const handleSaveActivity = (activityData) => {
     if (isEditMode && editingActivity) {
       // 수정 모드: 기존 활동이력 업데이트
+      const updatedCard = {
+        ...editingActivity,
+        image:
+          activityData.images && activityData.images.length > 0
+            ? activityData.images[0].preview
+            : editingActivity.image,
+        title: activityData.title,
+        period: activityData.period,
+        content: activityData.content,
+        detailedContent: activityData.detailedContent,
+      };
+
       setActivityCards((prev) =>
         prev.map((card) =>
-          card.id === editingActivity.id
-            ? {
-                ...card,
-                image:
-                  activityData.images && activityData.images.length > 0
-                    ? activityData.images[0].preview
-                    : card.image,
-                title: activityData.title,
-                period: activityData.period,
-                content: activityData.content,
-                detailedContent: activityData.detailedContent,
-              }
-            : card
+          card.id === editingActivity.id ? updatedCard : card
         )
       );
+
+      // 상세 모달이 열려있다면 선택된 활동도 업데이트
+      if (
+        selectedActivity &&
+        selectedActivity.historyNo === editingActivity.historyNo
+      ) {
+        setSelectedActivity(updatedCard);
+      }
     } else {
       // 새로 등록 모드: 새로운 활동이력 추가
       const newCard = {
@@ -706,54 +809,8 @@ const PortfolioContent = () => {
       await submitPortfolio(portfolioData);
       console.log("포트폴리오 저장 완료");
 
-      // 활동 이력들도 저장
-      if (activityCards.length > 0) {
-        console.log("활동 이력 저장 시작:", activityCards.length, "개");
-        console.log(
-          "활동 카드 데이터:",
-          JSON.stringify(activityCards, null, 2)
-        );
-
-        for (const activity of activityCards) {
-          console.log("처리 중인 활동:", activity);
-
-          // 기간 데이터 검증 (하이픈 또는 물결표 모두 지원)
-          if (
-            !activity.period ||
-            (!activity.period.includes(" - ") &&
-              !activity.period.includes(" ~ "))
-          ) {
-            console.error("활동 기간 형식 오류:", activity.period);
-            continue;
-          }
-
-          // 하이픈 또는 물결표로 분리
-          const [startDate, endDate] = activity.period.includes(" - ")
-            ? activity.period.split(" - ")
-            : activity.period.split(" ~ ");
-          const historyData = {
-            historyStart: startDate,
-            historyEnd: endDate,
-            content: activity.content || "",
-          };
-
-          console.log("변환된 활동 이력 데이터:", historyData);
-
-          try {
-            // 이미지 데이터 추출 (activity.images가 있는 경우)
-            const images = activity.images || [];
-            await createHistory(historyData, images);
-            console.log("활동 이력 저장 성공:", activity.title);
-          } catch (historyError) {
-            console.error("활동 이력 저장 실패:", activity.title, historyError);
-            console.error("실패한 활동 데이터:", activity);
-            console.error("실패한 이력 데이터:", historyData);
-            // 개별 활동 이력 저장 실패는 전체 프로세스를 중단하지 않음
-          }
-        }
-      } else {
-        console.log("저장할 활동 이력이 없습니다.");
-      }
+      // 활동 이력은 ActivityModal에서 개별적으로 저장되므로 여기서는 저장하지 않음
+      console.log("활동 이력은 이미 개별적으로 저장되었습니다.");
 
       console.log("포트폴리오 등록 완료:", formData);
       setShowConfirmModal(false);
@@ -1045,6 +1102,7 @@ const PortfolioContent = () => {
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         activityData={selectedActivity}
+        onDelete={handleDeleteActivity}
       />
 
       {/* 임시저장 완료 모달 */}
@@ -1104,6 +1162,62 @@ const PortfolioContent = () => {
                   취소
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 삭제 확인 모달 */}
+      {showDeleteConfirmModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.alertModal}>
+            <div className={styles.alertContent}>
+              <div className={`${styles.alertIcon} ${styles.questionIcon}`}>
+                ?
+              </div>
+              <h3 className={styles.alertTitle}>
+                해당 활동 이력을 삭제하시겠습니까?
+              </h3>
+              <div className={styles.confirmButtons}>
+                <button
+                  className={styles.confirmButton}
+                  onClick={confirmDeleteActivity}
+                >
+                  삭제
+                </button>
+                <button
+                  className={styles.cancelButton}
+                  onClick={cancelDeleteActivity}
+                >
+                  취소
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 삭제 결과 모달 */}
+      {showDeleteResultModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.alertModal}>
+            <div className={styles.alertContent}>
+              <div
+                className={`${styles.alertIcon} ${
+                  deleteResultMessage.includes("완료")
+                    ? styles.successIcon
+                    : styles.warningIcon
+                }`}
+              >
+                {deleteResultMessage.includes("완료") ? "✓" : "⚠"}
+              </div>
+              <h3 className={styles.alertTitle}>{deleteResultMessage}</h3>
+              <button
+                className={styles.alertButton}
+                onClick={() => setShowDeleteResultModal(false)}
+              >
+                확인
+              </button>
             </div>
           </div>
         </div>
