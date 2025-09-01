@@ -37,6 +37,7 @@ const ActivityModal = ({
   const [showStartCalendar, setShowStartCalendar] = useState(false);
   const [showEndCalendar, setShowEndCalendar] = useState(false);
   const fileInputRef = useRef(null);
+  const imageIdCounter = useRef(0);
 
   // 수정 모드일 때 기존 데이터를 폼에 불러오기
   useEffect(() => {
@@ -75,7 +76,7 @@ const ActivityModal = ({
             return image && (image.preview || image.url);
           })
           .map((image, index) => ({
-            id: image.id || Date.now() + index,
+            id: image.id || generateUniqueId(),
             file: image.file || null,
             preview:
               typeof image === "string"
@@ -96,7 +97,7 @@ const ActivityModal = ({
         // 단일 image가 있는 경우
         setUploadedImages([
           {
-            id: Date.now(),
+            id: generateUniqueId(),
             file: null,
             preview: editingData.image.startsWith("http")
               ? editingData.image
@@ -315,6 +316,11 @@ const ActivityModal = ({
     );
   };
 
+  const generateUniqueId = () => {
+    imageIdCounter.current += 1;
+    return `image-${Date.now()}-${imageIdCounter.current}`;
+  };
+
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     const validFiles = files.filter((file) => file.size <= 10 * 1024 * 1024); // 10MB 이하
@@ -325,7 +331,7 @@ const ActivityModal = ({
     }
 
     const newImages = validFiles.map((file) => ({
-      id: Date.now() + Math.random(),
+      id: generateUniqueId(),
       file: file,
       preview: URL.createObjectURL(file),
     }));
@@ -419,11 +425,17 @@ const ActivityModal = ({
       }
 
       // 1. History 생성 또는 수정
+      console.log("historyData.startDate:", historyData.startDate);
+      console.log("historyData.endDate:", historyData.endDate);
+
       const historyRequest = {
-        historyStart: historyData.startDate,
-        historyEnd: historyData.endDate,
+        title: historyData.title, // 제목 필드 추가
+        historyStart: historyData.startDate, // YYYY-MM-DD 형식 (예: "2025-09-21")
+        historyEnd: historyData.endDate, // YYYY-MM-DD 형식 (예: "2025-09-28")
         content: historyData.content,
       };
+
+      console.log("전송할 History 데이터:", historyRequest);
 
       let historyResponse;
       let historyNo;
@@ -490,6 +502,14 @@ const ActivityModal = ({
 
           if (imageResponse.data.code === "2000") {
             console.log("이미지 업로드 성공:", imageResponse.data.data);
+
+            // 백엔드에서 반환한 이미지 정보를 로그로 확인
+            if (imageResponse.data.data && imageResponse.data.data.images) {
+              console.log(
+                "업로드된 이미지 정보:",
+                imageResponse.data.data.images
+              );
+            }
           } else {
             console.error("이미지 업로드 실패:", imageResponse.data.message);
           }

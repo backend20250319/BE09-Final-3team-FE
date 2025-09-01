@@ -3,9 +3,11 @@ import React, { useState } from "react";
 import styles from "./ActivityDetailModal.module.css";
 import Image from "next/image";
 
-const ActivityDetailModal = ({ isOpen, onClose, activityData }) => {
+const ActivityDetailModal = ({ isOpen, onClose, activityData, onDelete }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [isImageSelectionMode, setIsImageSelectionMode] = useState(false);
 
   if (!isOpen || !activityData) return null;
 
@@ -32,6 +34,79 @@ const ActivityDetailModal = ({ isOpen, onClose, activityData }) => {
 
   const handleFullscreenClose = () => {
     setIsFullscreen(false);
+  };
+
+  // 이미지 선택 모드 토글
+  const toggleImageSelectionMode = () => {
+    setIsImageSelectionMode(!isImageSelectionMode);
+    if (!isImageSelectionMode) {
+      setSelectedImages([]);
+    }
+  };
+
+  // 이미지 선택/해제
+  const handleImageSelect = (imageId) => {
+    setSelectedImages((prev) =>
+      prev.includes(imageId)
+        ? prev.filter((id) => id !== imageId)
+        : [...prev, imageId]
+    );
+  };
+
+  // 선택된 이미지들 삭제
+  const handleDeleteSelectedImages = async () => {
+    if (selectedImages.length === 0) return;
+
+    const confirmDelete = window.confirm(
+      `선택된 ${selectedImages.length}개의 이미지를 삭제하시겠습니까?`
+    );
+    if (!confirmDelete) return;
+
+    try {
+      // 백엔드 이미지 ID들을 추출
+      const backendImageIds = selectedImages
+        .map((imageId) => {
+          const image = activityData.images?.find((img) => img.id === imageId);
+          return image?.imageId || image?.fileName; // 백엔드 ID 또는 파일명 사용
+        })
+        .filter((id) => id); // null/undefined 제거
+
+      if (backendImageIds.length === 0) {
+        alert("삭제할 이미지를 찾을 수 없습니다.");
+        return;
+      }
+
+      const imageIdsParam = backendImageIds.join(",");
+      console.log("삭제할 백엔드 이미지 ID들:", backendImageIds);
+
+      const response = await fetch(
+        `/api/pets/${activityData.petNo}/histories/${activityData.historyNo}/images?imageIds=${imageIdsParam}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "X-User-No": localStorage.getItem("userNo"),
+          },
+        }
+      );
+
+      if (response.ok) {
+        alert("선택된 이미지가 삭제되었습니다.");
+        setSelectedImages([]);
+        setIsImageSelectionMode(false);
+        // 부모 컴포넌트에 이미지 삭제 완료 알림
+        if (onDelete) {
+          onDelete(activityData);
+        }
+      } else {
+        const errorData = await response.json();
+        console.error("이미지 삭제 실패:", errorData);
+        alert("이미지 삭제에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("이미지 삭제 실패:", error);
+      alert("이미지 삭제 중 오류가 발생했습니다.");
+    }
   };
 
   return (
@@ -140,6 +215,31 @@ const ActivityDetailModal = ({ isOpen, onClose, activityData }) => {
                 )
               )}
             </div>
+
+            {/* 이미지 선택 체크박스들 */}
+            {isImageSelectionMode && (
+              <div className={styles.imageCheckboxes}>
+                {activityData.images?.map((image, index) => {
+                  const uniqueKey = `${activityData.historyNo}-${index}`;
+                  const imageId = image.id || uniqueKey;
+
+                  return (
+                    <div key={uniqueKey} className={styles.imageCheckbox}>
+                      <input
+                        type="checkbox"
+                        id={`image-${uniqueKey}`}
+                        checked={selectedImages.includes(imageId)}
+                        onChange={() => handleImageSelect(imageId)}
+                      />
+                      <label htmlFor={`image-${uniqueKey}`}>
+                        이미지 {index + 1}
+                        {image.imageId && ` (ID: ${image.imageId})`}
+                      </label>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
@@ -179,6 +279,38 @@ const ActivityDetailModal = ({ isOpen, onClose, activityData }) => {
               placeholder="활동에 대한 자세한 설명을 입력하세요"
               rows={4}
             />
+          </div>
+        </div>
+
+        {/* 액션 버튼 영역 */}
+        <div className={styles.actionSection}>
+          <div className={styles.buttonRow}>
+            <div className={styles.leftButtons}>
+              <button
+                className={styles.selectionModeButton}
+                onClick={toggleImageSelectionMode}
+              >
+                {isImageSelectionMode ? "선택 모드 해제" : "이미지 선택"}
+              </button>
+
+              {isImageSelectionMode && selectedImages.length > 0 && (
+                <button
+                  className={styles.deleteImagesButton}
+                  onClick={handleDeleteSelectedImages}
+                >
+                  선택된 이미지 삭제 ({selectedImages.length}개)
+                </button>
+              )}
+            </div>
+
+            {onDelete && (
+              <button
+                className={styles.deleteButton}
+                onClick={() => onDelete(activityData)}
+              >
+                활동이력 삭제
+              </button>
+            )}
           </div>
         </div>
       </div>
