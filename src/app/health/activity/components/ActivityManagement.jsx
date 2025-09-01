@@ -835,7 +835,7 @@ export default function ActivityManagement() {
                               : ""
                           }
                         >
-                          총 그람수 (g)
+                          총 용량 (g)
                         </label>
                         <input
                           type="number"

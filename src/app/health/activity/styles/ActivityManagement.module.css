@@ -166,7 +166,8 @@
 }
 
 .formGroup input,
-.formGroup textarea {
+.formGroup textarea,
+.formGroup select {
   padding: 12px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
@@ -178,6 +179,16 @@
   transition: all 0.3s ease;
   resize: none;
   overflow-y: auto;
+}
+
+.formGroup select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
 }
 
 /* Unify react-select height and spacing with inputs */
@@ -203,7 +214,8 @@
 }
 
 .formGroup input:focus,
-.formGroup textarea:focus {
+.formGroup textarea:focus,
+.formGroup select:focus {
   outline: none;
   color: #374151;
 }
@@ -280,6 +292,17 @@
 }
 
 .errorSelect :global(.react-select__control):focus {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2) !important;
+}
+
+/* 일반 select 요소에 대한 error 스타일 */
+.errorSelect {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+.errorSelect:focus {
   border-color: #dc2626 !important;
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2) !important;
 }

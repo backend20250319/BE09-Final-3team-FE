@@ -332,7 +332,6 @@ const MyCalendar = () => {
 
   // 선택된 펫의 정보 가져오기
   const selectedPet = pets.find((pet) => pet.name === selectedPetName);
-  const headerAvatarSrc = selectedPet?.imageUrl || "/user/dog.png";
 
   // 펫이 선택되지 않았을 때 메시지 표시
   if (!isClient) {
@@ -355,11 +354,17 @@ const MyCalendar = () => {
     <div className={styles.calendarContainer} suppressHydrationWarning>
       <div className={styles.calendarHeader}>
         <div className={styles.titleRow}>
-          <img
-            src={headerAvatarSrc}
-            alt={`${selectedPetName} 프로필`}
-            className={styles.headerAvatar}
-          />
+          {selectedPet?.imageUrl ? (
+            <img
+              src={selectedPet.imageUrl}
+              alt={`${selectedPetName} 프로필`}
+              className={styles.headerAvatar}
+            />
+          ) : (
+            <div className={styles.petAvatarPlaceholder}>
+              <span>?</span>
+            </div>
+          )}
           <h3 className={styles.calendarTitle}>
             {selectedPetName}의 활동 기록
           </h3>
@@ -461,6 +466,12 @@ const MyCalendar = () => {
         recordData={selectedRecord}
         date={selectedDate}
         selectedPetName={selectedPetName}
+        onUpdate={() => {
+          // 활동 데이터 수정 후 캘린더 새로고침
+          if (selectedPetNo) {
+            fetchActivityDates();
+          }
+        }}
       />
 
       {showToast && (
