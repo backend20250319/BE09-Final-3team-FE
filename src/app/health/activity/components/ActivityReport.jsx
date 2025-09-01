@@ -16,10 +16,13 @@ import {
   ComposedChart,
 } from "recharts";
 import styles from "../styles/ActivityReport.module.css";
-import { getActivityReport } from "../../../../api/activityApi";
+import {
+  getActivityReport,
+  getActivitySummary,
+} from "../../../../api/activityApi";
 import { useSelectedPet } from "../../context/SelectedPetContext";
 
-// 메트릭 설정 - 더미데이터 제거하고 직접 정의
+// 메트릭 설정 - 사용자가 자주 볼 것 같은 핵심 차트만
 const activityMetrics = [
   {
     id: 1,
@@ -32,15 +35,6 @@ const activityMetrics = [
   },
   {
     id: 2,
-    title: "섭취 칼로리",
-    icon: "/health/meal.png",
-    colorActual: "#F5A623",
-    colorRecommended: "#F8C471",
-    type: "bar",
-    hasRecommended: true,
-  },
-  {
-    id: 3,
     title: "배변 횟수",
     icon: "/health/bathroom.png",
     colorActual: "#FF7675",
@@ -48,19 +42,13 @@ const activityMetrics = [
     type: "line",
     hasRecommended: false,
   },
-  {
-    id: 4,
-    title: "수면 시간",
-    icon: "/health/sleep.png",
-    colorActual: "#de74ffff",
-    colorRecommended: null,
-    type: "area",
-    hasRecommended: false,
-  },
 ];
 
 export default function ActivityReport() {
-  const [selectedPeriod, setSelectedPeriod] = useState("일");
+  const [mainPeriod, setMainPeriod] = useState("선택");
+  const [subPeriod, setSubPeriod] = useState("");
+  const [showMainDropdown, setShowMainDropdown] = useState(false);
+  const [showSubDropdown, setShowSubDropdown] = useState(false);
   const [reportData, setReportData] = useState({
     daily: { common: [], poop: [] },
     weekly: { common: [], poop: [] },
@@ -69,7 +57,74 @@ export default function ActivityReport() {
   });
   const [loading, setLoading] = useState(false);
   const [noData, setNoData] = useState(false);
+  const [summaryData, setSummaryData] = useState(null);
+  const [customStartDate, setCustomStartDate] = useState("");
+  const [customEndDate, setCustomEndDate] = useState("");
+  const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
   const { selectedPetName, selectedPetNo } = useSelectedPet();
+
+  // 데이터 상태 구분을 위한 상태 추가
+  const [hasSelectedPeriod, setHasSelectedPeriod] = useState(false);
+
+  // 외부 클릭 시 드롭다운 닫기
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest(`.${styles.dropdownContainer}`)) {
+        setShowMainDropdown(false);
+        setShowSubDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // 2단계 드롭다운을 위한 기간 옵션 구조
+  const periodOptions = {
+    일별: [
+      { key: "TODAY", label: "오늘", periodType: "TODAY", apiType: "summary" },
+      {
+        key: "LAST_3_DAYS",
+        label: "최근 3일",
+        periodType: "LAST_3_DAYS",
+        apiType: "summary",
+      },
+      {
+        key: "LAST_7_DAYS",
+        label: "최근 7일",
+        periodType: "LAST_7_DAYS",
+        apiType: "summary",
+      },
+    ],
+    주별: [
+      {
+        key: "THIS_WEEK",
+        label: "이번 주",
+        periodType: "THIS_WEEK",
+        apiType: "summary",
+      },
+      { key: "WEEK", label: "주간별", periodType: "WEEK", apiType: "chart" },
+    ],
+    월별: [
+      {
+        key: "THIS_MONTH",
+        label: "이번 달",
+        periodType: "THIS_MONTH",
+        apiType: "summary",
+      },
+      { key: "MONTH", label: "월별", periodType: "MONTH", apiType: "chart" },
+    ],
+    "사용자 지정": [
+      {
+        key: "CUSTOM",
+        label: "날짜 선택",
+        periodType: "CUSTOM",
+        apiType: "summary",
+      },
+    ],
+  };
 
   // 건강 점수 계산 함수 - 반려동물 맞춤 기준
   const calculateHealthScore = (count, type) => {
@@ -214,6 +269,75 @@ export default function ActivityReport() {
         return;
       }
 
+      // 새로운 요약 API 호출 함수
+      const fetchActivitySummary = async () => {
+        if (!selectedPetNo) return;
+
+        try {
+          const summary = await getActivitySummary(
+            selectedPetNo,
+            selectedPeriod
+          );
+          console.log("활동 요약 데이터:", summary);
+          setSummaryData(summary);
+        } catch (error) {
+          console.error("활동 요약 데이터 조회 실패:", error);
+        }
+      };
+
+      // 사용자 지정 기간 데이터 조회 함수
+      const fetchCustomPeriodData = async () => {
+        if (!selectedPetNo || !customStartDate || !customEndDate) return;
+
+        try {
+          setLoading(true);
+          const summary = await getActivitySummary(
+            selectedPetNo,
+            "CUSTOM",
+            customStartDate,
+            customEndDate
+          );
+          console.log("사용자 지정 기간 요약 데이터:", summary);
+
+          if (summary && summary.data) {
+            setSummaryData(summary);
+            // 차트 데이터도 함께 설정
+            if (summary.data.activities) {
+              const chartData = {
+                chartData: summary.data.activities,
+                periodType: "CUSTOM",
+              };
+              // 차트 데이터 처리 로직 호출
+              processChartData(chartData);
+            }
+          }
+        } catch (error) {
+          console.error("사용자 지정 기간 데이터 조회 실패:", error);
+          alert("데이터 조회 중 오류가 발생했습니다.");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      // 차트 데이터 처리 함수
+      const processChartData = (chartData) => {
+        if (!chartData || !chartData.chartData) return;
+
+        // 기존 차트 데이터 처리 로직과 동일하게 처리
+        const data = chartData;
+        const chartDataArray = data.chartData || [];
+
+        if (chartDataArray.length === 0) {
+          setNoData(true);
+          return;
+        }
+
+        // 데이터 유효성 검사 및 변환 로직은 기존과 동일
+        // 여기서 차트 데이터를 reportData에 설정
+        setNoData(false);
+        // 추가적인 차트 데이터 처리 로직...
+      };
+
       if (!selectedPetName || !selectedPetNo) {
         console.log("펫이 선택되지 않음:", { selectedPetName, selectedPetNo });
         if (isMounted) {
@@ -240,23 +364,82 @@ export default function ActivityReport() {
         });
         // noData를 즉시 true로 설정하여 차트 렌더링 차단
         setNoData(true);
+        // 기간 선택 상태도 초기화
+        setHasSelectedPeriod(false);
+        // 로딩 상태도 초기화
+        setLoading(false);
         console.log("noData를 true로 설정 (펫 변경 시)");
       }
 
+      // 메인 드롭다운이 선택되지 않았을 때는 API 호출하지 않음
+      if (mainPeriod === "선택") {
+        console.log("기간이 선택되지 않음:", mainPeriod);
+        if (isMounted) {
+          setNoData(true);
+          setLoading(false);
+          setHasSelectedPeriod(false);
+        }
+        return;
+      }
+
       try {
-        const periodMap = { 일: "DAY", 주: "WEEK", 월: "MONTH", 년: "YEAR" };
-        const period = periodMap[selectedPeriod];
+        // 선택된 기간 옵션 찾기
+        const selectedOption = periodOptions[mainPeriod]?.find(
+          (option) => option.key === subPeriod
+        );
+
+        if (!selectedOption) {
+          console.error("선택된 기간을 찾을 수 없습니다:", subPeriod);
+          return;
+        }
 
         console.log(
           "선택된 기간:",
-          selectedPeriod,
+          mainPeriod,
+          "→",
+          subPeriod,
           "→ 백엔드 periodType:",
-          period
+          selectedOption.periodType,
+          "→ API 타입:",
+          selectedOption.apiType
         );
 
-        const data = await getActivityReport(selectedPetNo, period);
+        let data = null;
+        let summary = null;
+
+        // API 타입에 따라 적절한 API 호출
+        if (selectedOption.apiType === "chart") {
+          // 기존 차트 API 호출
+          data = await getActivityReport(
+            selectedPetNo,
+            selectedOption.periodType
+          );
+          console.log("차트 API 응답:", data);
+        } else if (selectedOption.apiType === "summary") {
+          // 새로운 요약 API 호출
+          summary = await getActivitySummary(
+            selectedPetNo,
+            selectedOption.periodType
+          );
+          console.log("요약 API 응답:", summary);
+
+          // 요약 API에서 차트 데이터도 함께 제공하는 경우
+          if (summary && summary.data && summary.data.activities) {
+            data = {
+              chartData: summary.data.activities,
+              periodType: selectedOption.periodType,
+            };
+          }
+        }
 
         console.log("백엔드 API 응답:", data);
+
+        // 요약 데이터 설정
+        if (summary && summary.data) {
+          setSummaryData(summary);
+        } else {
+          setSummaryData(null);
+        }
 
         if (data && data.chartData) {
           // 백엔드 데이터를 프론트엔드 형식에 맞게 변환
@@ -377,7 +560,7 @@ export default function ActivityReport() {
           console.log("백엔드 응답 periodType:", responsePeriodType);
           console.log(
             "요청 vs 응답 periodType:",
-            period,
+            selectedOption?.periodType,
             "vs",
             responsePeriodType
           );
@@ -506,81 +689,20 @@ export default function ActivityReport() {
             console.log("백엔드 데이터로 noData를 false로 설정했습니다.");
           }
         } else {
-          // 백엔드에서 데이터가 없을 경우 기본 구조 제공
+          // 백엔드에서 데이터가 없을 경우
           console.log("백엔드에서 데이터 없음");
 
-          // 임시 테스트 데이터 (백엔드 연결 후 제거)
-          const testData = {
-            daily: {
-              common: [
-                { day: "월", actualValue: 85, recommendedValue: 100 },
-                { day: "화", actualValue: 65, recommendedValue: 100 },
-                { day: "수", actualValue: 45, recommendedValue: 100 },
-                { day: "목", actualValue: 25, recommendedValue: 100 },
-                { day: "금", actualValue: 20, recommendedValue: 100 },
-                { day: "토", actualValue: 35, recommendedValue: 100 },
-                { day: "일", actualValue: 30, recommendedValue: 100 },
-              ],
-              poop: [
-                { day: "월", 소변: 3, 대변: 1 },
-                { day: "화", 소변: 2, 대변: 1 },
-                { day: "수", 소변: 4, 대변: 2 },
-                { day: "목", 소변: 3, 대변: 1 },
-                { day: "금", 소변: 2, 대변: 1 },
-                { day: "토", 소변: 1, 대변: 1 },
-                { day: "일", 소변: 3, 대변: 2 },
-              ],
-            },
-            weekly: {
-              common: [
-                { week: "1주", actualValue: 450, recommendedValue: 500 },
-                { week: "2주", actualValue: 500, recommendedValue: 500 },
-                { week: "3주", actualValue: 480, recommendedValue: 500 },
-                { week: "4주", actualValue: 520, recommendedValue: 500 },
-              ],
-              poop: [
-                { week: "1주", 소변: 18, 대변: 7 },
-                { week: "2주", 소변: 20, 대변: 8 },
-                { week: "3주", 소변: 19, 대변: 9 },
-                { week: "4주", 소변: 22, 대변: 7 },
-              ],
-            },
-            monthly: {
-              common: [
-                { month: "1월", actualValue: 1800, recommendedValue: 2000 },
-                { month: "2월", actualValue: 1900, recommendedValue: 2000 },
-                { month: "3월", actualValue: 2100, recommendedValue: 2000 },
-                { month: "4월", actualValue: 1950, recommendedValue: 2000 },
-                { month: "5월", actualValue: 2200, recommendedValue: 2000 },
-                { month: "6월", actualValue: 1850, recommendedValue: 2000 },
-              ],
-              poop: [
-                { month: "1월", 소변: 75, 대변: 30 },
-                { month: "2월", 소변: 80, 대변: 32 },
-                { month: "3월", 소변: 85, 대변: 35 },
-                { month: "4월", 소변: 78, 대변: 31 },
-                { month: "5월", 소변: 90, 대변: 38 },
-                { month: "6월", 소변: 82, 대변: 33 },
-              ],
-            },
-            yearly: {
-              common: [
-                { year: "2022", actualValue: 24000, recommendedValue: 25000 },
-                { year: "2023", actualValue: 25000, recommendedValue: 25000 },
-                { year: "2024", actualValue: 26000, recommendedValue: 25000 },
-              ],
-              poop: [
-                { year: "2022", 소변: 900, 대변: 400 },
-                { year: "2023", 소변: 920, 대변: 410 },
-                { year: "2024", 소변: 940, 대변: 420 },
-              ],
-            },
-          };
+          // 빈 데이터 구조로 설정
+          setReportData({
+            daily: { common: [], poop: [] },
+            weekly: { common: [], poop: [] },
+            monthly: { common: [], poop: [] },
+            yearly: { common: [], poop: [] },
+          });
 
-          setReportData(testData);
           if (isMounted) {
-            setNoData(false);
-            console.log("유효한 데이터로 noData를 false로 설정했습니다.");
+            setNoData(true);
+            console.log("데이터 없음으로 noData를 true로 설정했습니다.");
           }
         }
       } catch (error) {
@@ -609,7 +731,7 @@ export default function ActivityReport() {
     return () => {
       isMounted = false;
     };
-  }, [selectedPetName, selectedPetNo, selectedPeriod]);
+  }, [selectedPetName, selectedPetNo, subPeriod]);
 
   function getDataAndKey(metric) {
     // noData 상태이거나 reportData가 아직 초기화되지 않았거나 undefined인 경우 빈 배열 반환
@@ -625,13 +747,18 @@ export default function ActivityReport() {
       };
     }
 
+    // subPeriod 기반으로 period 매핑
     const periodMap = {
-      일: "daily",
-      주: "weekly",
-      월: "monthly",
-      년: "yearly",
+      TODAY: "daily",
+      LAST_3_DAYS: "daily",
+      LAST_7_DAYS: "daily",
+      THIS_WEEK: "weekly",
+      WEEK: "weekly",
+      THIS_MONTH: "monthly",
+      MONTH: "monthly",
+      CUSTOM: "daily", // 사용자 지정은 일별로 처리
     };
-    const period = periodMap[selectedPeriod];
+    const period = periodMap[subPeriod];
 
     // 안전하게 데이터에 접근
     const getData = (periodKey, dataType) => {
@@ -692,8 +819,11 @@ export default function ActivityReport() {
       }
     };
 
-    switch (selectedPeriod) {
-      case "일":
+    switch (subPeriod) {
+      case "TODAY":
+      case "LAST_3_DAYS":
+      case "LAST_7_DAYS":
+      case "CUSTOM":
         return {
           data:
             metric.title === "산책 소모 칼로리"
@@ -707,7 +837,8 @@ export default function ActivityReport() {
               : getData("daily", "common"),
           xKey: metric.title === "배변 횟수" ? "date" : "date",
         };
-      case "주":
+      case "THIS_WEEK":
+      case "WEEK":
         return {
           data:
             metric.type === "line"
@@ -717,7 +848,8 @@ export default function ActivityReport() {
               : getData("weekly", "common"),
           xKey: "week",
         };
-      case "월":
+      case "THIS_MONTH":
+      case "MONTH":
         return {
           data:
             metric.type === "line"
@@ -726,16 +858,6 @@ export default function ActivityReport() {
               ? getData("monthly", "sleep")
               : getData("monthly", "common"),
           xKey: "month",
-        };
-      case "년":
-        return {
-          data:
-            metric.type === "line"
-              ? getData("yearly", "poop")
-              : metric.type === "area"
-              ? getData("yearly", "sleep")
-              : getData("yearly", "common"),
-          xKey: "year",
         };
       default:
         return {
@@ -788,47 +910,261 @@ export default function ActivityReport() {
       <div className={styles.dateRangeContainer}>
         <div className={styles.dateRangeHeader}>
           <span className={styles.dateRangeLabel}></span>
-          <div className={styles.periodButtons}>
-            {["일", "주", "월", "년"].map((period) => (
+          {/* 2단계 드롭다운 기간 선택 */}
+          <div className={styles.periodDropdowns}>
+            {/* 메인 드롭다운 */}
+            <div className={styles.dropdownContainer}>
               <button
-                key={period}
-                className={`${styles.periodButton} ${
-                  selectedPeriod === period ? styles.active : ""
-                }`}
-                onClick={() => setSelectedPeriod(period)}
+                className={styles.dropdownButton}
+                onClick={() => {
+                  setShowMainDropdown(!showMainDropdown);
+                  setShowSubDropdown(false);
+                }}
               >
-                {period}
+                <span>{mainPeriod}</span>
+                <svg
+                  className={`${styles.dropdownArrow} ${
+                    showMainDropdown ? styles.rotated : ""
+                  }`}
+                  width="12"
+                  height="12"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                >
+                  <path
+                    d="M3 4.5L6 7.5L9 4.5"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               </button>
-            ))}
+
+              {showMainDropdown && (
+                <div className={styles.dropdownMenu}>
+                  {Object.keys(periodOptions).map((period) => (
+                    <div
+                      key={period}
+                      className={styles.dropdownItem}
+                      onClick={() => {
+                        setMainPeriod(period);
+                        setShowMainDropdown(false);
+
+                        // 첫 번째 서브 옵션을 기본값으로 설정
+                        const firstSubOption = periodOptions[period][0];
+                        setSubPeriod(firstSubOption.key);
+
+                        // 기간 선택 상태 업데이트
+                        setHasSelectedPeriod(true);
+
+                        // 사용자 지정이 아닌 경우에만 서브 드롭다운 표시
+                        if (firstSubOption.key !== "CUSTOM") {
+                          setShowSubDropdown(true);
+                          setShowCustomDatePicker(false);
+                        } else {
+                          setShowSubDropdown(false);
+                          setShowCustomDatePicker(true);
+                        }
+                      }}
+                    >
+                      {period}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 서브 드롭다운 - 메인 선택 후에만 표시 */}
+            {mainPeriod !== "선택" && (
+              <div className={styles.dropdownContainer}>
+                <button
+                  className={`${styles.dropdownButton} ${
+                    mainPeriod === "선택" ? styles.disabled : ""
+                  }`}
+                  onClick={() => {
+                    if (mainPeriod !== "선택") {
+                      setShowSubDropdown(!showSubDropdown);
+                    }
+                  }}
+                  disabled={mainPeriod === "선택"}
+                >
+                  <span>
+                    {mainPeriod === "선택"
+                      ? "선택"
+                      : periodOptions[mainPeriod]?.find(
+                          (opt) => opt.key === subPeriod
+                        )?.label || "선택"}
+                  </span>
+                  <svg
+                    className={`${styles.dropdownArrow} ${
+                      showSubDropdown ? styles.rotated : ""
+                    }`}
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                  >
+                    <path
+                      d="M3 4.5L6 7.5L9 4.5"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+
+                {showSubDropdown && mainPeriod !== "선택" && (
+                  <div className={styles.dropdownMenu}>
+                    {periodOptions[mainPeriod]?.map((option) => (
+                      <div
+                        key={option.key}
+                        className={`${styles.dropdownItem} ${
+                          subPeriod === option.key ? styles.selected : ""
+                        }`}
+                        onClick={() => {
+                          setSubPeriod(option.key);
+                          setShowSubDropdown(false);
+                          // 기간 선택 상태 업데이트
+                          setHasSelectedPeriod(true);
+                          if (option.key === "CUSTOM") {
+                            setShowCustomDatePicker(true);
+                          } else {
+                            setShowCustomDatePicker(false);
+                          }
+                        }}
+                      >
+                        {option.label}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
+
+          {/* 사용자 지정 기간 날짜 선택기 */}
+          {showCustomDatePicker && (
+            <div className={styles.customDatePicker}>
+              <div className={styles.dateInputGroup}>
+                <label htmlFor="startDate">시작일:</label>
+                <input
+                  type="date"
+                  id="startDate"
+                  value={customStartDate}
+                  onChange={(e) => setCustomStartDate(e.target.value)}
+                  className={styles.dateInput}
+                />
+              </div>
+              <div className={styles.dateInputGroup}>
+                <label htmlFor="endDate">종료일:</label>
+                <input
+                  type="date"
+                  id="endDate"
+                  value={customEndDate}
+                  onChange={(e) => setCustomEndDate(e.target.value)}
+                  className={styles.dateInput}
+                />
+              </div>
+              <button
+                className={styles.applyButton}
+                onClick={async () => {
+                  if (customStartDate && customEndDate) {
+                    // 날짜 유효성 검증
+                    if (new Date(customStartDate) > new Date(customEndDate)) {
+                      alert("시작일은 종료일보다 이전이어야 합니다.");
+                      return;
+                    }
+                    // 데이터 조회
+                    await fetchCustomPeriodData();
+                  } else {
+                    alert("시작일과 종료일을 모두 선택해주세요.");
+                  }
+                }}
+                disabled={!customStartDate || !customEndDate}
+              >
+                적용
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      {loading ? (
-        <div className={styles.loadingContainer}>
-          <p>데이터를 불러오는 중...</p>
+      {/* 요약 통계 표시 영역 */}
+      {summaryData && summaryData.data && (
+        <div className={styles.summaryStats}>
+          <div className={styles.summaryCard}>
+            <h4>총 활동 횟수</h4>
+            <span>{summaryData.data.summaryStats?.totalActivities || 0}회</span>
+          </div>
+          <div className={styles.summaryCard}>
+            <h4>총 산책 거리</h4>
+            <span>
+              {summaryData.data.summaryStats?.totalWalkingDistance || 0}km
+            </span>
+          </div>
+          <div className={styles.summaryCard}>
+            <h4>소모 칼로리 달성률</h4>
+            <span>
+              {summaryData.data.summaryStats?.caloriesBurnedAchievementRate ||
+                0}
+              %
+            </span>
+          </div>
+          <div className={styles.summaryCard}>
+            <h4>평균 체중</h4>
+            <span>{summaryData.data.summaryStats?.averageWeight || 0}kg</span>
+          </div>
+          <div className={styles.summaryCard}>
+            <h4>기간</h4>
+            <span>
+              {summaryData.data.startDate} ~ {summaryData.data.endDate}
+            </span>
+          </div>
         </div>
-      ) : !selectedPetName || !selectedPetNo ? (
+      )}
+
+      {!selectedPetName || !selectedPetNo ? (
         <div className={styles.noPetContainer}>
           <p>반려동물을 선택해주세요.</p>
+        </div>
+      ) : loading && hasSelectedPeriod ? (
+        <div className={styles.loadingContainer}>
+          <p>데이터를 불러오는 중...</p>
         </div>
       ) : noData ? (
         <div className={styles.noDataContainer}>
           <div className={styles.noDataIcon}>📊</div>
-          <h3>데이터가 없습니다</h3>
-          <p>{selectedPetName}의 활동 데이터가 아직 기록되지 않았습니다.</p>
-          <p>활동을 기록하면 여기에 차트가 표시됩니다.</p>
+          {!hasSelectedPeriod ? (
+            <>
+              <h3>기간을 설정하면 리포트를 볼 수 있습니다!</h3>
+              <p>위의 드롭다운에서 원하는 기간을 선택해주세요.</p>
+              <p>선택한 기간에 맞는 활동 리포트가 표시됩니다.</p>
+            </>
+          ) : (
+            <>
+              <h3>기록된 데이터가 없습니다!</h3>
+              <p>
+                {selectedPetName}의 선택한 기간에 활동 데이터가 기록되지
+                않았습니다.
+              </p>
+              <p>다른 기간을 선택하거나 활동을 기록해보세요.</p>
+            </>
+          )}
         </div>
       ) : (
         <div className={styles.metricsGrid}>
           {console.log(
             "차트 렌더링 시작 - noData:",
             noData,
+            "hasSelectedPeriod:",
+            hasSelectedPeriod,
             "reportData:",
             reportData
           )}
-          {noData
-            ? // noData 상태일 때는 모든 메트릭에 "데이터 없음" 메시지 표시
+          {noData || !hasSelectedPeriod
+            ? // noData 상태이거나 기간이 선택되지 않았을 때는 모든 메트릭에 "데이터 없음" 메시지 표시
               activityMetrics.map((metric) => (
                 <div key={metric.id} className={styles.metricCard}>
                   <div className={styles.metricHeader}>
@@ -843,7 +1179,11 @@ export default function ActivityReport() {
                     <span className={styles.metricTitle}>{metric.title}</span>
                   </div>
                   <div className={styles.noDataMessage}>
-                    <p>데이터가 없습니다</p>
+                    <p>
+                      {!hasSelectedPeriod
+                        ? "기간을 선택해주세요"
+                        : "데이터가 없습니다"}
+                    </p>
                   </div>
                 </div>
               ))
@@ -871,9 +1211,11 @@ export default function ActivityReport() {
                   }))
                 );
 
-                // noData 상태일 때는 차트를 완전히 차단 (이미 getDataAndKey에서 빈 배열 반환됨)
-                if (noData) {
-                  console.log(`${metric.title} - noData 상태로 차트 차단`);
+                // noData 상태이거나 기간이 선택되지 않았을 때는 차트를 완전히 차단
+                if (noData || !hasSelectedPeriod) {
+                  console.log(
+                    `${metric.title} - noData 또는 기간 미선택 상태로 차트 차단`
+                  );
                   return (
                     <div key={metric.id} className={styles.metricCard}>
                       <div className={styles.metricHeader}>
