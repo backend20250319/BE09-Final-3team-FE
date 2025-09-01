@@ -51,7 +51,7 @@ export default function PostContent({ post = {} , onDelete}) {
 
               <span className={styles.author}>{author}</span>
 
-
+              {post.mine ||(
               <button
                   type="button"
                   aria-label="신고하기"
@@ -61,7 +61,7 @@ export default function PostContent({ post = {} , onDelete}) {
               >
                 <Image src="/siren.png" alt="신고" width={30} height={30} />
               </button>
-
+              )}
               <ReportModal
                   isOpen={isReportModalOpen}
                   onClose={() => setIsReportModalOpen(false)}
