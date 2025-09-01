@@ -71,47 +71,61 @@ const PetFulNotification = () => {
 
                 {/* Notification List */}
                 <div className="notification-list">
-                    {notifications.map((notification, index) => {
-                        const cfg = ICON_MAP[notification.type] || DEFAULT_ICON;
-                        const iconFile = cfg.icon;
-                        const colorClass = cfg.color;
+                    {notifications.length === 0 ? (
+                        <p className="no-notifications" style={{marginLeft:"20px" ,  fontSize:"20px"}}>받은 알림이 없습니다.</p>
+                    ) : (
+                        notifications.map((notification, index) => {
+                            const cfg = ICON_MAP[notification.type] || DEFAULT_ICON;
+                            const iconFile = cfg.icon;
+                            const colorClass = cfg.color;
 
-                        const id = notification.id ?? notification.notificationId ?? `${notification.type}-${index}`;
-                        const title = notification.title ?? "새로운 알림";
-                        const content = notification.content ?? "";
-                        const time = notification.createdAt ?? notification.time ?? "";
+                            const id =
+                                notification.id ??
+                                notification.notificationId ??
+                                `${notification.type}-${index}`;
+                            const title = notification.title ?? "새로운 알림";
+                            const content = notification.content ?? "";
+                            const time = notification.createdAt ?? notification.time ?? "";
 
-                        return (
-                            <div
-                                key={id}
-                                className={`notification-item ${index === 0 ? "first-item" : ""}`}
-                            >
-                                <div className="notification-content">
-                                    <div className={`icon-container ${colorClass}`}>
-                                        <img
-                                            src={`${iconBasePath}${iconFile}`}
-                                            alt={notification.type}
-                                            className="icon"
-                                        />
-                                    </div>
-
-                                    <div className="text-content">
-                                        <h3 className="notification-title">{title}</h3>
-                                        <p className="notification-message">{content}</p>
-                                        {time ? <span className="notification-time">{time}</span> : null}
-                                    </div>
-                                </div>
-
-                                <button
-                                    className="close-btn"
-                                    onClick={() => handleCloseNotification(id)}
-                                    aria-label="알림 닫기"
+                            return (
+                                <div
+                                    key={id}
+                                    className={`notification-item ${
+                                        index === 0 ? "first-item" : ""
+                                    }`}
                                 >
-                                    <img src={`${iconBasePath}close-icon.svg`} alt="닫기" />
-                                </button>
-                            </div>
-                        );
-                    })}
+                                    <div className="notification-content">
+                                        <div className={`icon-container ${colorClass}`}>
+                                            <img
+                                                src={`${iconBasePath}${iconFile}`}
+                                                alt={notification.type}
+                                                className="icon"
+                                            />
+                                        </div>
+
+                                        <div className="text-content">
+                                            <h3 className="notification-title">{title}</h3>
+                                            <p className="notification-message">{content}</p>
+                                            {time ? (
+                                                <span className="notification-time">{time}</span>
+                                            ) : null}
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        className="close-btn"
+                                        onClick={() => handleCloseNotification(id)}
+                                        aria-label="알림 닫기"
+                                    >
+                                        <img
+                                            src={`${iconBasePath}close-icon.svg`}
+                                            alt="닫기"
+                                        />
+                                    </button>
+                                </div>
+                            );
+                        })
+                    )}
                 </div>
 
                 {/* Footer */}
