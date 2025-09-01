@@ -4,7 +4,7 @@ import styles from "./Mypage.module.css";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { config } from "../../../config/env";
+
 
 const MyPage = () => {
   const router = useRouter();
