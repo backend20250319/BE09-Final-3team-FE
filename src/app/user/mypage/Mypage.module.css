@@ -511,6 +511,7 @@
   align-items: center;
   gap: 16px;
   height: 50px;
+  margin-bottom: 20px;
 }
 
 .instagramIcon {
@@ -573,6 +574,128 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* 인스타그램 정보 표시 */
+.instagramInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.instagramLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #594a3e;
+}
+
+.instagramValue {
+  font-size: 16px;
+  color: #adaebc;
+  font-weight: 400;
+}
+
+/* 연결된 프로필 리스트 */
+.connectedProfilesContainer {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.connectedProfilesTitle {
+  font-size: 16px;
+  font-weight: 500;
+  color: #594a3e;
+  margin-bottom: 16px;
+}
+
+.connectedProfilesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.connectedProfileItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.profileAvatar {
+  flex-shrink: 0;
+}
+
+.avatarImage {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profileInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profileName {
+  font-size: 16px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.profileUsername {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.profileStats {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.profileStatus {
+  flex-shrink: 0;
+}
+
+.connectedBadge {
+  display: inline-flex;
+  align-items: center;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+/* 에러 및 성공 메시지 스타일 */
+.errorMessage {
+  margin: 20px 80px 0 80px;
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.successMessage {
+  margin: 20px 80px 0 80px;
+  padding: 12px 16px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  color: #16a34a;
+  font-size: 14px;
+  font-weight: 400;
 }
 
 /* 버튼 섹션 */
@@ -857,4 +980,39 @@
   100% {
     transform: rotate(360deg);
   }
+}
+
+/* 회원탈퇴 버튼 컨테이너 */
+.withdrawButtonContainer {
+  display: flex;
+  justify-content: flex-end;
+  width: 1020px;
+  margin: 20px 80px 0 80px;
+  padding: 0;
+}
+
+/* 회원탈퇴 버튼 */
+.withdrawButton {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+  transition: all 0.3s ease;
+  font-family: "Pretendard Variable", sans-serif;
+}
+
+.withdrawButton:hover {
+  background-color: #c0392b;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(231, 76, 60, 0.4);
+}
+
+.withdrawButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
 }

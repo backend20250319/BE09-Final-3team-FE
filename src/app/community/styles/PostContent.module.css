@@ -122,3 +122,11 @@
     font-size: 14px;
   }
 }
+
+.deleteText {
+  color: #f0ad4e;   /* 노란색 */
+  cursor: pointer;
+}
+.deleteText:hover {
+  text-decoration: underline;
+}

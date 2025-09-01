@@ -45,6 +45,7 @@
   gap: 12px;
 }
 
+
 .myPostsBtn {
   display: flex;
   align-items: center;
@@ -65,6 +66,12 @@
 .myPostsBtn:hover {
   background: #f9fafb;
   border-color: #d1d5db;
+}
+
+.myPostsBtn.active {
+  background-color: #7f8c8d;
+  color: white;
+  border-color: #7f8c8d;
 }
 
 .myPostsBtn svg {

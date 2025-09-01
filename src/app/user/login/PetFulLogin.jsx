@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./PetFulLogin.module.css";
 import Image from "next/image";
+import axios from "axios";
 
 // 환경변수로 게이트웨이/백엔드 베이스 URL 관리
 const API_BASE =
@@ -32,36 +33,17 @@ export default function PetFulLogin() {
     try {
       console.log("로그인 시도:", { email });
 
-      const response = await fetch(`${API_BASE}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        mode: "cors",
-        credentials: "omit",
-        body: JSON.stringify({
-          email: email,
-          password: password,
-        }),
+      const response = await axios.post(`${API_BASE}/auth/login`, {
+        email: email,
+        password: password,
       });
 
       console.log("로그인 응답 상태:", response.status, response.statusText);
+      console.log("로그인 응답 데이터:", response.data);
 
-      let data = {};
-      try {
-        const responseText = await response.text();
-        console.log("로그인 응답 텍스트:", responseText);
+      const data = response.data;
 
-        if (responseText.trim()) {
-          data = JSON.parse(responseText);
-        }
-      } catch (parseError) {
-        console.error("로그인 JSON 파싱 에러:", parseError);
-      }
-
-      console.log("로그인 응답 데이터:", data);
-
-      if (response.ok) {
+      if (response.status === 200) {
         // 로그인 성공 - 토큰 저장
         const authData = data.data; // ApiResponse 구조에서 실제 데이터 추출
 
@@ -115,7 +97,26 @@ export default function PetFulLogin() {
       }
     } catch (error) {
       console.error("로그인 에러:", error);
-      if (error.name === "TypeError" && error.message.includes("fetch")) {
+      if (error.response) {
+        // axios 에러 응답 처리
+        const { status, data } = error.response;
+        if (status === 401) {
+          setPasswordError("비밀번호가 틀렸습니다.");
+        } else if (status === 400) {
+          setError(data.message || "로그인 요청이 올바르지 않습니다.");
+        } else if (status === 500) {
+          if (data.message && data.message.includes("Bad credentials")) {
+            setPasswordError("비밀번호가 틀렸습니다.");
+          } else {
+            setError("서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+          }
+        } else {
+          setError(data.message || "로그인에 실패했습니다. 다시 시도해주세요.");
+        }
+      } else if (
+        error.name === "TypeError" &&
+        error.message.includes("fetch")
+      ) {
         setError("네트워크 연결을 확인해주세요.");
       } else {
         setError("로그인 중 오류가 발생했습니다. 다시 시도해주세요.");

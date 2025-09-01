@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import styles from "./page.module.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
 // 환경변수로 게이트웨이/백엔드 베이스 URL 관리
 const API_BASE =
@@ -255,36 +256,14 @@ export default function SignupPage() {
       const requestBody = { email: formData.email };
       console.log("요청 데이터:", requestBody);
 
-      const res = await fetch(`${API_BASE}/auth/email/send`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        mode: "cors",
-        credentials: "omit",
-        body: JSON.stringify(requestBody), // EmailVerificationRequest { email }
-      });
+      const res = await axios.post(`${API_BASE}/auth/email/send`, requestBody);
 
       console.log("응답 상태:", res.status, res.statusText);
-      console.log("응답 헤더:", Object.fromEntries(res.headers.entries()));
+      console.log("응답 데이터:", res.data);
 
-      // 응답 데이터 확인
-      let data = {};
-      try {
-        const responseText = await res.text();
-        console.log("응답 텍스트:", responseText);
+      const data = res.data;
 
-        if (responseText.trim()) {
-          data = JSON.parse(responseText);
-        }
-      } catch (parseError) {
-        console.error("JSON 파싱 에러:", parseError);
-        console.error("응답 텍스트:", responseText);
-      }
-
-      console.log("응답 데이터:", data);
-
-      if (res.ok) {
+      if (res.status === 200) {
         setVerificationStatus((prev) => ({
           ...prev,
           codeSent: true,
@@ -312,7 +291,23 @@ export default function SignupPage() {
       console.error("에러 타입:", e.name);
       console.error("에러 메시지:", e.message);
 
-      if (e.name === "TypeError" && e.message.includes("fetch")) {
+      if (e.response) {
+        // axios 에러 응답 처리
+        const { status, data } = e.response;
+        if (status === 409) {
+          setEmailError(
+            data.message ||
+              "이미 가입된 이메일입니다. 다른 이메일을 사용해주세요."
+          );
+          setVerificationStatus((prev) => ({
+            ...prev,
+            codeSent: false,
+            verified: false,
+          }));
+        } else {
+          alert(data.message || "인증번호 발송 실패");
+        }
+      } else if (e.name === "TypeError" && e.message.includes("fetch")) {
         alert("네트워크 연결을 확인해주세요.");
       } else {
         alert(e.message || "인증번호 발송 실패");
@@ -330,22 +325,14 @@ export default function SignupPage() {
     }
     try {
       setLoading((p) => ({ ...p, verifyCode: true }));
-      const res = await fetch(`${API_BASE}/auth/email/verify`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        mode: "cors",
-        credentials: "omit",
-        body: JSON.stringify({
-          email: formData.email,
-          code: formData.verificationCode, // EmailVerificationConfirmRequest { email, code }
-        }),
+      const res = await axios.post(`${API_BASE}/auth/email/verify`, {
+        email: formData.email,
+        code: formData.verificationCode, // EmailVerificationConfirmRequest { email, code }
       });
 
-      const data = await res.json().catch(() => ({}));
+      const data = res.data;
 
-      if (res.ok) {
+      if (res.status === 200) {
         // 백엔드 응답 형식에 따라 처리
         const isVerified =
           data === true || data.verified === true || data.success === true;
@@ -361,7 +348,11 @@ export default function SignupPage() {
       }
     } catch (e) {
       console.error("인증 확인 에러:", e);
-      if (e.name === "TypeError" && e.message.includes("fetch")) {
+      if (e.response) {
+        // axios 에러 응답 처리
+        const { status, data } = e.response;
+        alert(data.message || "인증 확인 실패");
+      } else if (e.name === "TypeError" && e.message.includes("fetch")) {
         alert("네트워크 연결을 확인해주세요.");
       } else {
         alert(e.message || "인증 확인 실패");
@@ -466,31 +457,12 @@ export default function SignupPage() {
 
     try {
       setLoading((p) => ({ ...p, signup: true }));
-      const res = await fetch(`${API_BASE}/auth/signup`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        mode: "cors",
-        credentials: "omit",
-        body: JSON.stringify(payload),
-      });
+      const res = await axios.post(`${API_BASE}/auth/signup`, payload);
 
       console.log("회원가입 응답 상태:", res.status, res.statusText);
+      console.log("회원가입 응답 데이터:", res.data);
 
-      let data = {};
-      try {
-        const responseText = await res.text();
-        console.log("회원가입 응답 텍스트:", responseText);
-
-        if (responseText.trim()) {
-          data = JSON.parse(responseText);
-        }
-      } catch (parseError) {
-        console.error("회원가입 JSON 파싱 에러:", parseError);
-      }
-
-      console.log("회원가입 응답 데이터:", data);
+      const data = res.data;
 
       if (res.status === 201) {
         clearAllErrors(); // 성공 시 모든 에러 초기화
@@ -550,8 +522,55 @@ export default function SignupPage() {
         );
       }
     } catch (e) {
-      console.error(e);
-      alert("서버 오류");
+      console.error("회원가입 에러:", e);
+      if (e.response) {
+        // axios 에러 응답 처리
+        const { status, data } = e.response;
+        if (status === 409) {
+          setEmailError(data.message ?? "이미 존재하는 이메일입니다.");
+        } else if (status === 400 && data.data) {
+          // 검증 에러 처리
+          clearAllErrors();
+          const validationErrors = data.data;
+
+          if (validationErrors.email) {
+            setEmailError(validationErrors.email);
+          }
+          if (validationErrors.password) {
+            setPasswordError(validationErrors.password);
+          }
+          if (validationErrors.confirmPassword) {
+            setConfirmPasswordError(validationErrors.confirmPassword);
+          }
+          if (validationErrors.name) {
+            setNameError(validationErrors.name);
+          }
+          if (validationErrors.nickname) {
+            setNicknameError(validationErrors.nickname);
+          }
+          if (validationErrors.phone) {
+            setPhoneError(validationErrors.phone);
+          }
+          if (validationErrors.address) {
+            setAddressError(validationErrors.address);
+          }
+          if (
+            validationErrors.birthYear ||
+            validationErrors.birthMonth ||
+            validationErrors.birthDay
+          ) {
+            setBirthError(
+              validationErrors.birthYear ||
+                validationErrors.birthMonth ||
+                validationErrors.birthDay
+            );
+          }
+        } else {
+          setEmailError(data.message ?? "회원가입 실패");
+        }
+      } else {
+        alert("서버 오류");
+      }
     } finally {
       setLoading((p) => ({ ...p, signup: false }));
     }

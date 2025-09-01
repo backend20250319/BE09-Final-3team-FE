@@ -1,16 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import { FaInstagram } from "react-icons/fa";
+import { deleteComment } from "../../lib/commentData";
+import Toast from "./Toast";
 import styles from "../../styles/comment/CommentCard.module.css";
 
-export default function CommentCard({ comment }) {
-  const username = comment.username;
-  const avatar = comment.avatar;
+export default function CommentCard({ comment, onCommentDeleted }) {
+  const username = comment.username || comment.author || "사용자";
+  const avatar = comment.avatar || comment.profile_image || null;
   const sentiment = comment.sentiment;
-  const text = comment.content; // content를 text로 매핑
-  const timeAgo = comment.timestamp || comment.timeAgo; // timestamp를 timeAgo로 매핑
+  const text = comment.content || comment.text || "내용 없음"; // content를 text로 매핑
+  const timeAgo = comment.timestamp || comment.timeAgo || comment.created_at || "시간 정보 없음"; // timestamp를 timeAgo로 매핑
 
-  // 삭제 상태 관리
-  const [isDeleted, setIsDeleted] = useState(comment.isDeleted || false);
+  // 삭제 상태 관리 - API 응답의 is_deleted 필드 사용 + 로컬 삭제 상태
+  const [localIsDeleted, setLocalIsDeleted] = useState(comment.is_deleted || comment.isDeleted || false);
+  const isDeleted = localIsDeleted;
+  
+  // 디버깅용 로그 (개발 완료 후 제거)
+  // useEffect(() => {
+  //   console.log("Comment data:", comment);
+  //   console.log("isDeleted:", isDeleted);
+  // }, [comment, isDeleted]);
 
   // 부정댓글 내용 표시 상태 관리
   const [isNegativeContentVisible, setIsNegativeContentVisible] =
@@ -18,18 +28,62 @@ export default function CommentCard({ comment }) {
 
   // 삭제 모달 상태 관리
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Toast 상태 관리
+  const [toast, setToast] = useState(null);
 
-  const isNegativeComment = sentiment === "부정";
+  // 감정을 한글로 변환
+  const getSentimentDisplay = (sentiment) => {
+    switch (sentiment?.toUpperCase()) {
+      case "POSITIVE":
+        return "긍정";
+      case "NEGATIVE":
+        return "부정";
+      case "NEUTRAL":
+        return "중립";
+      default:
+        return sentiment || "중립";
+    }
+  };
+
+  const displaySentiment = getSentimentDisplay(sentiment);
+  const isNegativeComment = displaySentiment === "부정";
 
   const handleDelete = () => {
     setIsDeleteModalOpen(true);
   };
 
-  const confirmDelete = () => {
-    // 실제 구현에서는 API 호출 등의 삭제 로직이 들어갑니다
-    setIsDeleted(true); // 삭제 상태로 변경
-    setIsDeleteModalOpen(false);
-  };
+  const confirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const result = await deleteComment(comment.id);
+      
+            if (result.success) {
+        // 삭제 성공 시 즉시 로컬 상태 업데이트
+        console.log("댓글 삭제 성공:", result.message);
+        setToast({ message: result.message, type: "success" });
+        setLocalIsDeleted(true); // 로컬에서 삭제 상태로 변경
+        // 부모 컴포넌트에 삭제 완료 알림 (새로고침 대신 상태 업데이트)
+        if (onCommentDeleted) {
+          onCommentDeleted();
+        }
+        // 성공 시에만 모달 닫기
+        setIsDeleteModalOpen(false);
+      } else {
+        // 삭제 실패 시 에러 메시지 표시
+        console.error("댓글 삭제 실패:", result.message);
+        setToast({ message: `삭제 실패: ${result.message}`, type: "error" });
+        // 실패 시에는 모달 유지 (사용자가 다시 시도할 수 있도록)
+      }
+    } catch (error) {
+      console.error("댓글 삭제 중 오류:", error);
+      setToast({ message: "삭제 중 오류가 발생했습니다.", type: "error" });
+      // 에러 시에도 모달 유지
+    } finally {
+      setIsDeleting(false);
+    }
+   };
 
   const cancelDelete = () => {
     setIsDeleteModalOpen(false);
@@ -86,26 +140,31 @@ export default function CommentCard({ comment }) {
       <div className={styles.commentContent}>
         <div className={styles.commentHeader}>
           <div className={styles.userInfo}>
-            <div className={styles.avatar}>
-              {avatar && avatar.startsWith("/") ? (
-                <img
-                  src={avatar}
-                  alt={username}
-                  style={{ width: "18px", height: "18px", borderRadius: "50%" }}
-                />
-              ) : (
-                avatar || username.charAt(0).toUpperCase()
-              )}
-            </div>
+                         <div className={styles.avatar}>
+               {avatar && avatar.startsWith("/") ? (
+                 <img
+                   src={avatar}
+                   alt={username}
+                   style={{ width: "18px", height: "18px", borderRadius: "50%" }}
+                 />
+               ) : avatar ? (
+                 avatar
+               ) : (
+                 <FaInstagram 
+                   size={18} 
+                   style={{ color: "#E4405F" }} 
+                 />
+               )}
+             </div>
             <span className={styles.username}>{username}</span>
             <span
               className={styles.sentimentTag}
               style={{
-                backgroundColor: getSentimentBgColor(sentiment),
-                color: getSentimentTextColor(sentiment),
+                backgroundColor: getSentimentBgColor(displaySentiment),
+                color: getSentimentTextColor(displaySentiment),
               }}
             >
-              {sentiment}
+              {displaySentiment}
             </span>
             <span
               className={styles.statusTag}
@@ -293,32 +352,46 @@ export default function CommentCard({ comment }) {
               >
                 취소
               </button>
-              <button
-                onClick={confirmDelete}
-                style={{
-                  padding: "8px 16px",
-                  borderRadius: "6px",
-                  border: "none",
-                  backgroundColor: "#DC2626",
-                  color: "white",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  cursor: "pointer",
-                  transition: "background-color 0.2s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = "#B91C1C";
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = "#DC2626";
-                }}
-              >
-                삭제
-              </button>
+                             <button
+                 onClick={confirmDelete}
+                 disabled={isDeleting}
+                 style={{
+                   padding: "8px 16px",
+                   borderRadius: "6px",
+                   border: "none",
+                   backgroundColor: isDeleting ? "#9CA3AF" : "#DC2626",
+                   color: "white",
+                   fontSize: "14px",
+                   fontWeight: "500",
+                   cursor: isDeleting ? "not-allowed" : "pointer",
+                   transition: "background-color 0.2s ease",
+                 }}
+                 onMouseEnter={(e) => {
+                   if (!isDeleting) {
+                     e.target.style.backgroundColor = "#B91C1C";
+                   }
+                 }}
+                 onMouseLeave={(e) => {
+                   if (!isDeleting) {
+                     e.target.style.backgroundColor = "#DC2626";
+                   }
+                 }}
+               >
+                 {isDeleting ? "삭제 중..." : "삭제"}
+               </button>
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
-}
+                 </div>
+       )}
+       
+       {/* Toast 메시지 */}
+       {toast && (
+         <Toast
+           message={toast.message}
+           type={toast.type}
+           onClose={() => setToast(null)}
+         />
+       )}
+     </div>
+   );
+ }
