@@ -45,6 +45,7 @@ export default function PrescriptionResultModal({
     return date.toLocaleTimeString("ko-KR", {
       hour: "2-digit",
       minute: "2-digit",
+      second: undefined, // 초는 표시하지 않음
     });
   };
 
@@ -138,7 +139,14 @@ export default function PrescriptionResultModal({
             <div className={styles.infoRow}>
               <span className={styles.label}>처리 시간:</span>
               <span className={styles.value}>
-                {new Date().toLocaleString("ko-KR")}
+                {new Date().toLocaleString("ko-KR", {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: undefined, // 초는 표시하지 않음
+                })}
               </span>
             </div>
           </div>

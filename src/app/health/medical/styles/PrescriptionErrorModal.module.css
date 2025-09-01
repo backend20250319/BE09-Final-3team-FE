@@ -41,17 +41,6 @@
   flex: 1;
 }
 
-.headerIcon {
-  width: 48px;
-  height: 48px;
-  background: #fef2f2;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
 .headerText h3 {
   font-size: 18px;
   font-weight: 600;
@@ -92,20 +81,7 @@
 
 /* 에러 섹션 */
 .errorSection {
-  display: flex;
-  gap: 16px;
   margin-bottom: 24px;
-}
-
-.errorIcon {
-  width: 40px;
-  height: 40px;
-  background: #fef2f2;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
 }
 
 .errorContent {
