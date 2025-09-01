@@ -14,8 +14,8 @@
 
 /* 모달 */
 .modal {
-  width: 700px;
-  max-height: 80vh;
+  width: 600px;
+  max-height: 70vh;
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1);
@@ -125,32 +125,6 @@
   color: #594a3e;
 }
 
-/* 원본 텍스트 섹션 */
-.originalTextSection {
-  margin-bottom: 24px;
-}
-
-.originalTextSection h4 {
-  font-family: "Pretendard Variable", sans-serif;
-  font-size: 16px;
-  font-weight: 500;
-  color: #594a3e;
-  margin: 0 0 12px 0;
-}
-
-.originalText {
-  background: #f8f9fa;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 16px;
-  font-family: "Pretendard Variable", sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-  color: #594a3e;
-  line-height: 1.5;
-  white-space: pre-wrap;
-}
-
 /* 약물 섹션 */
 .medicationsSection {
   margin-bottom: 24px;
@@ -255,6 +229,23 @@
 
 .statusBadge svg {
   flex-shrink: 0;
+}
+
+/* 빈 약물 목록 */
+.emptyMedications {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+}
+
+.emptyMedications p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.emptyMedications p:first-of-type {
+  font-weight: 500;
+  color: #374151;
 }
 
 /* 알림 설정 정보 */

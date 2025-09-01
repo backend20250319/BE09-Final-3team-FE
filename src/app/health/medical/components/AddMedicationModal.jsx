@@ -14,6 +14,8 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
 
   const [formData, setFormData] = useState({
     name: "",
+    dosage: "", // 용량
+    instructions: "", // 복용법
     frequency: "",
     type: "",
     duration: "", // 복용 기간 (일수)
@@ -48,6 +50,14 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
 
     if (!formData.name.trim()) {
       newErrors.name = "약 이름을 입력해주세요";
+    }
+
+    if (!formData.dosage.trim()) {
+      newErrors.dosage = "용량을 입력해주세요";
+    }
+
+    if (!formData.instructions.trim()) {
+      newErrors.instructions = "복용법을 입력해주세요";
     }
 
     if (!formData.frequency) {
@@ -93,6 +103,8 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
       const newMedication = {
         id: Date.now(),
         name: formData.name,
+        dosage: formData.dosage,
+        instructions: formData.instructions,
         type: formData.type,
         frequency: formData.frequency,
         duration: Number(formData.duration),
@@ -114,6 +126,8 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
   const handleClose = () => {
     setFormData({
       name: "",
+      dosage: "",
+      instructions: "",
       frequency: "",
       type: "",
       duration: "",
@@ -175,6 +189,48 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
               />
             </div>
             {errors.name && <span className={styles.error}>{errors.name}</span>}
+          </div>
+
+          {/* 용량 */}
+          <div className={styles.formGroup}>
+            <div className={styles.labelContainer}>
+              <label className={styles.label}>용량</label>
+              <span className={styles.required}>*</span>
+            </div>
+            <div className={styles.inputContainer}>
+              <input
+                type="text"
+                className={styles.input}
+                placeholder="예: 500mg, 1정"
+                value={formData.dosage}
+                onChange={(e) => handleInputChange("dosage", e.target.value)}
+              />
+            </div>
+            {errors.dosage && (
+              <span className={styles.error}>{errors.dosage}</span>
+            )}
+          </div>
+
+          {/* 복용법 */}
+          <div className={styles.formGroup}>
+            <div className={styles.labelContainer}>
+              <label className={styles.label}>복용법</label>
+              <span className={styles.required}>*</span>
+            </div>
+            <div className={styles.inputContainer}>
+              <input
+                type="text"
+                className={styles.input}
+                placeholder="예: 식후 30분, 공복에"
+                value={formData.instructions}
+                onChange={(e) =>
+                  handleInputChange("instructions", e.target.value)
+                }
+              />
+            </div>
+            {errors.instructions && (
+              <span className={styles.error}>{errors.instructions}</span>
+            )}
           </div>
 
           {/* 복용 빈도 */}

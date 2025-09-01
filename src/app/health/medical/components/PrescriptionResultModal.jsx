@@ -18,6 +18,19 @@ export default function PrescriptionResultModal({
   // props로 받은 데이터 없으면 mockPrescriptionData 사용
   const data = prescriptionData || mockPrescriptionData;
 
+  // OCR API 응답 구조 디버깅
+  console.log("PrescriptionResultModal - prescriptionData:", prescriptionData);
+  console.log("PrescriptionResultModal - data:", data);
+
+  // 백엔드 DTO 구조에 맞게 수정: medications 배열 사용
+  const extractedMedications =
+    data.medications || data.extractedMedications || [];
+
+  console.log(
+    "PrescriptionResultModal - extractedMedications:",
+    extractedMedications
+  );
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("ko-KR", {
@@ -35,17 +48,48 @@ export default function PrescriptionResultModal({
     });
   };
 
+  // 약물명에 따라 이모지를 결정하는 함수
+  const getMedicationIcon = (medicationName) => {
+    if (!medicationName) return "💊";
+
+    const name = medicationName.toLowerCase();
+
+    // 항생제
+    if (name.includes("amoxicillin") || name.includes("항생제")) {
+      return "💊";
+    }
+    // 소염진통제
+    if (
+      name.includes("firocoxib") ||
+      name.includes("소염") ||
+      name.includes("진통")
+    ) {
+      return "💊";
+    }
+    // 심장약
+    if (name.includes("heart") || name.includes("심장")) {
+      return "💊";
+    }
+    // 비타민/영양제
+    if (
+      name.includes("vitamin") ||
+      name.includes("비타민") ||
+      name.includes("영양")
+    ) {
+      return "💊";
+    }
+    // 알레르기약
+    if (name.includes("allergy") || name.includes("알레르기")) {
+      return "💊";
+    }
+    // 기본 약물 이모지
+    return "💊";
+  };
+
   const handleConfirm = () => {
     // OCR 추출된 약물들을 실제 투약 목록에 추가
-    if (onAddMedications && data.extractedMedications) {
-      data.extractedMedications.forEach((medication) => {
-        // 선택된 펫 이름을 추가하여 투약 목록에 등록
-        const medicationWithPet = {
-          ...medication,
-          petName: selectedPetName,
-        };
-        onAddMedications(medicationWithPet);
-      });
+    if (onAddMedications && extractedMedications.length > 0) {
+      onAddMedications(extractedMedications);
     }
     onClose();
   };
@@ -83,72 +127,86 @@ export default function PrescriptionResultModal({
 
         {/* 내용 */}
         <div className={styles.content}>
-          {/* 업로드 정보 */}
+          {/* 처리 정보 */}
           <div className={styles.uploadInfo}>
             <div className={styles.infoRow}>
-              <span className={styles.label}>파일명:</span>
-              <span className={styles.value}>{data.fileName}</span>
+              <span className={styles.label}>템플릿:</span>
+              <span className={styles.value}>
+                {data.templateName || "처방전4"}
+              </span>
             </div>
             <div className={styles.infoRow}>
-              <span className={styles.label}>업로드 시간:</span>
+              <span className={styles.label}>처리 시간:</span>
               <span className={styles.value}>
-                {formatDate(data.uploadTime)} {formatTime(data.uploadTime)}
+                {new Date().toLocaleString("ko-KR")}
               </span>
             </div>
           </div>
 
-          {/* 원본 텍스트 */}
-          <div className={styles.originalTextSection}>
-            <h4>추출된 원본 텍스트</h4>
-            <div className={styles.originalText}>{data.originalText}</div>
-          </div>
-
           {/* 등록된 약물 목록 */}
           <div className={styles.medicationsSection}>
-            <h4>자동 등록된 약물 ({data.extractedMedications.length}개)</h4>
+            <h4>자동 등록된 약물 ({extractedMedications.length}개)</h4>
             <div className={styles.medicationsList}>
-              {data.extractedMedications.map((medication) => (
-                <div key={medication.id} className={styles.medicationCard}>
-                  <div className={styles.medicationInfo}>
-                    <div
-                      className={styles.medicationIcon}
-                      style={{ backgroundColor: medication.color }}
-                    >
-                      {medication.icon}
-                    </div>
-                    <div className={styles.medicationDetails}>
-                      <h5>{medication.name}</h5>
-                      <p className={styles.medicationType}>{medication.type}</p>
-                      <p className={styles.medicationSchedule}>
-                        {medication.frequency} • {medication.duration}일간
-                      </p>
-                      <p className={styles.medicationPeriod}>
-                        {formatDate(medication.startDate)} ~{" "}
-                        {formatDate(medication.endDate)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className={styles.medicationStatus}>
-                    <div className={styles.statusBadge}>
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 12 12"
-                        fill="none"
+              {extractedMedications.length > 0 ? (
+                extractedMedications.map((medication, index) => (
+                  <div
+                    key={medication.id || `medication-${index}`}
+                    className={styles.medicationCard}
+                  >
+                    <div className={styles.medicationInfo}>
+                      <div
+                        className={styles.medicationIcon}
+                        style={{
+                          backgroundColor: medication.color || "#E3F2FD",
+                        }}
                       >
-                        <path
-                          d="M10 3L4.5 8.5L2 6"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      자동 등록됨
+                        {medication.icon ||
+                          getMedicationIcon(
+                            medication.drugName || medication.name
+                          )}
+                      </div>
+                      <div className={styles.medicationDetails}>
+                        <h5>{medication.drugName || medication.name}</h5>
+                        <p className={styles.medicationType}>
+                          용량: {medication.dosage || medication.amount}
+                        </p>
+                        <p className={styles.medicationSchedule}>
+                          복용법:{" "}
+                          {medication.administration || medication.instructions}
+                        </p>
+                        <p className={styles.medicationPeriod}>
+                          {medication.frequency} •{" "}
+                          {medication.prescriptionDays || medication.duration}
+                        </p>
+                      </div>
+                    </div>
+                    <div className={styles.medicationStatus}>
+                      <div className={styles.statusBadge}>
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 12 12"
+                          fill="none"
+                        >
+                          <path
+                            d="M10 3L4.5 8.5L2 6"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        자동 등록됨
+                      </div>
                     </div>
                   </div>
+                ))
+              ) : (
+                <div className={styles.emptyMedications}>
+                  <p>추출된 약물 정보가 없습니다.</p>
+                  <p>처방전을 다시 확인해주세요.</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
 

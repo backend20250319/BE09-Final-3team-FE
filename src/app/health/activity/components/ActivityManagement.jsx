@@ -71,8 +71,24 @@ export default function ActivityManagement() {
     const fetchActivityLevels = async () => {
       try {
         const levels = await getActivityLevels();
-        setActivityOptions(levels);
-        setValidActivityLevels(levels.map((level) => level.value));
+        console.log("활동량 옵션 API 응답:", levels);
+
+        // levels가 배열인지 확인
+        if (Array.isArray(levels)) {
+          setActivityOptions(levels);
+          setValidActivityLevels(levels.map((level) => level.value));
+        } else {
+          console.warn("활동량 옵션이 배열이 아닙니다:", levels);
+          // 기본값 설정
+          const defaultLevels = [
+            { value: "LOW", label: "거의 안 움직여요" },
+            { value: "MEDIUM_LOW", label: "가끔 산책해요" },
+            { value: "MEDIUM_HIGH", label: "자주 뛰어놀아요" },
+            { value: "HIGH", label: "매우 활동적이에요" },
+          ];
+          setActivityOptions(defaultLevels);
+          setValidActivityLevels(defaultLevels.map((level) => level.value));
+        }
       } catch (error) {
         console.error("활동량 옵션 로딩 실패:", error);
         // 에러 시 기본값 설정

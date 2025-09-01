@@ -11,8 +11,6 @@ import EditScheduleModal from "./EditScheduleModal";
 import ScheduleDetailModal from "./ScheduleDetailModal";
 import Select from "../../activity/components/ClientOnlySelect";
 import {
-  defaultCareSchedules,
-  defaultVaccinationSchedules,
   careSubTypeOptions,
   vaccinationSubTypeOptions,
 } from "../../data/mockData";

@@ -9,11 +9,6 @@ import ActivityReport from "./activity/components/ActivityReport";
 import MedicalNavTabs from "./medical/components/MedicalNavTabs";
 import MedicationManagement from "./medical/components/MedicationManagement";
 import CareManagement from "./medical/components/CareManagement";
-import {
-  defaultMedications,
-  defaultCareSchedules,
-  defaultVaccinationSchedules,
-} from "./data/mockData";
 
 export default function HealthPage() {
   const { selectedPetName, setSelectedPetName, pets, loading } =
@@ -33,11 +28,9 @@ export default function HealthPage() {
   const [allCalendarEvents, setAllCalendarEvents] = useState([]);
 
   // 통합된 데이터 상태 (모든 컴포넌트에서 공유)
-  const [medications, setMedications] = useState(defaultMedications);
-  const [careSchedules, setCareSchedules] = useState(defaultCareSchedules);
-  const [vaccinationSchedules, setVaccinationSchedules] = useState(
-    defaultVaccinationSchedules
-  );
+  const [medications, setMedications] = useState([]);
+  const [careSchedules, setCareSchedules] = useState([]);
+  const [vaccinationSchedules, setVaccinationSchedules] = useState([]);
 
   // 특정 날짜와 "HH:MM" 문자열로 Date 만들기
   const dateAtTime = useCallback((baseDate, hm) => {
