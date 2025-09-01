@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import styles from "../styles/AddScheduleModal.module.css";
 import {
   medicationTypeOptions,
@@ -36,6 +38,153 @@ export default function EditScheduleModal({
 
   const [errors, setErrors] = useState({});
 
+  // 복용 빈도에 따른 기본 시간 설정
+  const getDefaultTimes = (frequency) => {
+    switch (frequency) {
+      case "하루에 한 번":
+        return ["09:00"];
+      case "하루에 두 번":
+        return ["08:00", "20:00"];
+      case "하루에 세 번":
+        return ["08:00", "12:00", "20:00"];
+      default:
+        return ["09:00"];
+    }
+  };
+
+  // 복용 빈도에 따른 시간 입력 칸 개수
+  const getTimeInputCount = (frequency) => {
+    switch (frequency) {
+      case "하루에 한 번":
+        return 1;
+      case "하루에 두 번":
+        return 2;
+      case "하루에 세 번":
+        return 3;
+      default:
+        return 1;
+    }
+  };
+
+  // 시간 옵션 생성 (30분 간격)
+  const generateTimeOptions = () => {
+    const options = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeString = `${hour.toString().padStart(2, "0")}:${minute
+          .toString()
+          .padStart(2, "0")}`;
+        const displayTime = `${hour < 12 ? "오전" : "오후"} ${
+          hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
+        }:${minute.toString().padStart(2, "0")}`;
+        options.push({ value: timeString, label: displayTime });
+      }
+    }
+    return options;
+  };
+
+  const timeOptions = generateTimeOptions();
+
+  // 시간 선택을 위한 커스텀 드롭다운
+  const TimePicker = ({ value, onChange, placeholder }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const listRef = React.useRef(null);
+
+    // 외부 클릭 시 드롭다운 닫기
+    React.useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (isOpen && !event.target.closest(`.${styles.timePickerContainer}`)) {
+          setIsOpen(false);
+        }
+      };
+
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }, [isOpen]);
+
+    // 드롭다운이 열릴 때 선택된 시간 위치로 스크롤
+    React.useEffect(() => {
+      if (isOpen && value && listRef.current) {
+        const selectedIndex = timeOptions.findIndex((time) => time === value);
+        if (selectedIndex !== -1) {
+          const itemHeight = 48; // 각 시간 항목의 높이 (padding 포함)
+          const containerHeight = 200; // 드롭다운 컨테이너 높이
+          const scrollTop = Math.max(
+            0,
+            selectedIndex * itemHeight - containerHeight / 2
+          );
+          listRef.current.scrollTop = scrollTop;
+        }
+      }
+    }, [isOpen, value]);
+
+    const handleTimeSelect = (timeString) => {
+      onChange(timeString);
+      setIsOpen(false);
+    };
+
+    const formatTime = (timeString) => {
+      if (!timeString) return "";
+      const [hours, minutes] = timeString.split(":");
+      const hour = parseInt(hours);
+      const ampm = hour < 12 ? "오전" : "오후";
+      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+      return `${ampm} ${displayHour}:${minutes}`;
+    };
+
+    // 30분 간격 시간 옵션 생성
+    const timeOptions = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeString = `${hour.toString().padStart(2, "0")}:${minute
+          .toString()
+          .padStart(2, "0")}`;
+        timeOptions.push(timeString);
+      }
+    }
+
+    return (
+      <div className={styles.timePickerContainer}>
+        <div
+          className={styles.timePickerInput}
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <span className={value ? styles.timeValue : styles.timePlaceholder}>
+            {value ? formatTime(value) : placeholder}
+          </span>
+          <div className={styles.timePickerIcon}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="#9CA3AF" strokeWidth="2" />
+              <polyline
+                points="12,6 12,12 16,14"
+                stroke="#9CA3AF"
+                strokeWidth="2"
+              />
+            </svg>
+          </div>
+        </div>
+        {isOpen && (
+          <div className={styles.timePickerDropdown}>
+            <div className={styles.timePickerList} ref={listRef}>
+              {timeOptions.map((time) => (
+                <div
+                  key={time}
+                  className={`${styles.timePickerItem} ${
+                    value === time ? styles.timePickerItemSelected : ""
+                  }`}
+                  onClick={() => handleTimeSelect(time)}
+                >
+                  {formatTime(time)}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // 기존 데이터로 폼 초기화
   useEffect(() => {
     if (scheduleData) {
@@ -55,10 +204,21 @@ export default function EditScheduleModal({
   }, [scheduleData]);
 
   const handleInputChange = (field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    // 복용 빈도가 변경되면 기본 시간도 함께 설정
+    if (field === "frequency") {
+      const defaultTimes = getDefaultTimes(value);
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value,
+        scheduleTime: defaultTimes.join(", "),
+      }));
+    } else {
+      // 다른 필드는 일반적으로 업데이트
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    }
 
     if (errors[field]) {
       setErrors((prev) => ({
@@ -431,15 +591,47 @@ export default function EditScheduleModal({
                 <label className={styles.label}>일정 시간</label>
                 <span className={styles.required}>*</span>
               </div>
-              <div className={styles.inputContainer}>
-                <input
-                  type="time"
-                  className={styles.input}
-                  value={formData.scheduleTime}
-                  onChange={(e) =>
-                    handleInputChange("scheduleTime", e.target.value)
-                  }
-                />
+              <div className={styles.timeInputsContainer}>
+                {formData.frequency ? (
+                  Array.from(
+                    { length: getTimeInputCount(formData.frequency) },
+                    (_, index) => (
+                      <div key={index} className={styles.timeInputGroup}>
+                        <label className={styles.timeLabel}>
+                          {formData.frequency === "하루에 두 번"
+                            ? index === 0
+                              ? "아침"
+                              : "저녁"
+                            : formData.frequency === "하루에 세 번"
+                            ? index === 0
+                              ? "아침"
+                              : index === 1
+                              ? "점심"
+                              : "저녁"
+                            : "시간"}
+                        </label>
+                        <TimePicker
+                          value={
+                            formData.scheduleTime.split(",")[index]?.trim() ||
+                            ""
+                          }
+                          onChange={(time) => {
+                            const times = formData.scheduleTime
+                              .split(",")
+                              .map((t) => t.trim());
+                            times[index] = time;
+                            handleInputChange("scheduleTime", times.join(", "));
+                          }}
+                          placeholder="시간을 선택하세요"
+                        />
+                      </div>
+                    )
+                  )
+                ) : (
+                  <div className={styles.noFrequencyMessage}>
+                    복용 빈도를 먼저 선택해주세요
+                  </div>
+                )}
               </div>
               {errors.scheduleTime && (
                 <span className={styles.error}>{errors.scheduleTime}</span>
@@ -469,24 +661,26 @@ export default function EditScheduleModal({
             )}
           </div>
 
-          {/* 종료 날짜 */}
-          <div className={styles.formGroup}>
-            <div className={styles.labelContainer}>
-              <label className={styles.label}>종료 날짜</label>
-              <span className={styles.required}>*</span>
+          {/* 종료 날짜 (돌봄/접종 일정에서만 표시) */}
+          {type !== "medication" && (
+            <div className={styles.formGroup}>
+              <div className={styles.labelContainer}>
+                <label className={styles.label}>종료 날짜</label>
+                <span className={styles.required}>*</span>
+              </div>
+              <div className={styles.inputContainer}>
+                <input
+                  type="date"
+                  className={styles.input}
+                  value={formData.endDate}
+                  onChange={(e) => handleInputChange("endDate", e.target.value)}
+                />
+              </div>
+              {errors.endDate && (
+                <span className={styles.error}>{errors.endDate}</span>
+              )}
             </div>
-            <div className={styles.inputContainer}>
-              <input
-                type="date"
-                className={styles.input}
-                value={formData.endDate}
-                onChange={(e) => handleInputChange("endDate", e.target.value)}
-              />
-            </div>
-            {errors.endDate && (
-              <span className={styles.error}>{errors.endDate}</span>
-            )}
-          </div>
+          )}
 
           {/* 일정 시간 */}
           <div className={styles.formGroup}>

@@ -330,7 +330,7 @@ export default function CareManagement({
     const parseDateTime = (d, t) => {
       const [y, m, day] = d.split("-").map(Number);
       const [hh = 9, mm = 0] = (t || "09:00").split(":").map(Number);
-      return new Date(y, m - 1, day, hh, mm, 0);
+      return new Date(y, m - 1, day, hh, mm, 0, 0); // 초와 밀리초는 0으로 설정
     };
 
     // 투약 이벤트 - 선택된 펫의 투약만 필터링
@@ -341,14 +341,22 @@ export default function CareManagement({
         if (med.startDate && med.endDate) {
           const start = new Date(med.startDate);
           const end = new Date(med.endDate);
-          const times = (med.scheduleTime || "09:00")
-            .split(",")
-            .map((t) => t.trim());
+          const times = (med.scheduleTime || "09:00").split(",").map((t) => {
+            // 시간 문자열에서 초 제거 (예: "09:00:00" -> "09:00")
+            const trimmed = t.trim();
+            if (trimmed.includes(":")) {
+              const parts = trimmed.split(":");
+              if (parts.length >= 2) {
+                return `${parts[0]}:${parts[1]}`;
+              }
+            }
+            return trimmed;
+          });
           const current = new Date(start);
           while (current <= end) {
             times.forEach((hm) => {
               const s = parseDateTime(current.toISOString().slice(0, 10), hm);
-              const e = new Date(s.getTime() + 60 * 60 * 1000);
+              const e = new Date(s.getTime() + 60 * 60 * 1000); // 1시간 후
               medEvents.push({
                 id: `med-${med.id}-${current.toISOString().slice(0, 10)}-${hm}`,
                 title: `${med.icon || "💊"} ${med.name}`,

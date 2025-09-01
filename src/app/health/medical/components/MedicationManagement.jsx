@@ -97,7 +97,20 @@ export default function MedicationManagement({
         endDate: med.endDate
           ? new Date(med.endDate).toISOString().split("T")[0]
           : "",
-        scheduleTime: med.times ? med.times.join(", ") : med.time || "09:00",
+        scheduleTime: med.times
+          ? med.times
+              .map((t) => {
+                // 시간 문자열에서 초 제거 (예: "09:00:00" -> "09:00")
+                if (typeof t === "string" && t.includes(":")) {
+                  const parts = t.split(":");
+                  if (parts.length >= 2) {
+                    return `${parts[0]}:${parts[1]}`;
+                  }
+                }
+                return t;
+              })
+              .join(", ")
+          : med.time || "09:00",
         notificationTiming: med.reminderDaysBefore
           ? `${med.reminderDaysBefore}일 전`
           : "당일",
@@ -144,7 +157,8 @@ export default function MedicationManagement({
       baseDate.getDate(),
       hh,
       mm,
-      0
+      0, // 초는 항상 0으로 설정
+      0 // 밀리초도 0으로 설정
     );
   }, []);
 
@@ -160,14 +174,22 @@ export default function MedicationManagement({
         if (med.startDate && med.endDate) {
           const start = new Date(med.startDate);
           const end = new Date(med.endDate);
-          const times = (med.scheduleTime || "09:00")
-            .split(",")
-            .map((t) => t.trim());
+          const times = (med.scheduleTime || "09:00").split(",").map((t) => {
+            // 시간 문자열에서 초 제거 (예: "09:00:00" -> "09:00")
+            const trimmed = t.trim();
+            if (trimmed.includes(":")) {
+              const parts = trimmed.split(":");
+              if (parts.length >= 2) {
+                return `${parts[0]}:${parts[1]}`;
+              }
+            }
+            return trimmed;
+          });
           const current = new Date(start);
           while (current <= end) {
             times.forEach((hm) => {
               const s = dateAtTime(current, hm);
-              const e = new Date(s.getTime() + 60 * 60 * 1000);
+              const e = new Date(s.getTime() + 60 * 60 * 1000); // 1시간 후
               events.push({
                 id: `med-${med.id}-${current.toISOString().slice(0, 10)}-${hm}`,
                 title: `${med.icon || "💊"} ${med.name}`,
@@ -300,25 +322,25 @@ export default function MedicationManagement({
 
       const newAlarmStatus = await toggleAlarm(medication.calNo);
 
-      const updated = medications.map((med) =>
+    const updated = medications.map((med) =>
         med.id === id ? { ...med, isNotified: newAlarmStatus } : med
-      );
-      onMedicationsUpdate(updated);
+    );
+    onMedicationsUpdate(updated);
 
-      const updatedStatus = updated.reduce((acc, med) => {
-        acc[med.id] = med.isNotified;
-        return acc;
-      }, {});
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedStatus));
+    const updatedStatus = updated.reduce((acc, med) => {
+      acc[med.id] = med.isNotified;
+      return acc;
+    }, {});
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedStatus));
 
-      const updatedMed = updated.find((med) => med.id === id);
-      setToastMessage(
-        `${updatedMed.name} 일정 알림이 ${
-          updatedMed.isNotified ? "활성화" : "비활성화"
-        } 되었습니다.`
-      );
-      setToastType(updatedMed.isNotified ? "active" : "inactive");
-      setShowToast(true);
+    const updatedMed = updated.find((med) => med.id === id);
+    setToastMessage(
+      `${updatedMed.name} 일정 알림이 ${
+        updatedMed.isNotified ? "활성화" : "비활성화"
+      } 되었습니다.`
+    );
+    setToastType(updatedMed.isNotified ? "active" : "inactive");
+    setShowToast(true);
     } catch (error) {
       console.error("알림 토글 실패:", error);
       setToastMessage("알림 설정 변경에 실패했습니다.");
@@ -337,7 +359,7 @@ export default function MedicationManagement({
         // 성공적인 응답인지 확인
         if (result && (result.medications || result.extractedMedications)) {
           setOcrResult(result);
-          setShowResultModal(true);
+      setShowResultModal(true);
         } else {
           // OCR 처리는 성공했지만 약물 정보가 없는 경우
           setErrorMessage("처방전에서 약물 정보를 찾을 수 없습니다.");
@@ -361,7 +383,11 @@ export default function MedicationManagement({
           switch (status) {
             case 400:
               message = "처방전 형식이 올바르지 않습니다.";
-              details = data?.message || "이미지 파일을 확인해주세요.";
+              details = "이미지 파일을 확인해주세요.";
+              break;
+            case 401:
+              message = "로그인이 필요하거나 권한이 없습니다.";
+              details = "로그인 상태를 확인하고 다시 시도해주세요.";
               break;
             case 413:
               message = "파일 크기가 너무 큽니다.";
@@ -369,11 +395,11 @@ export default function MedicationManagement({
               break;
             case 500:
               message = "서버에서 처방전을 처리하는데 실패했습니다.";
-              details = data?.message || "잠시 후 다시 시도해주세요.";
+              details = "잠시 후 다시 시도해주세요.";
               break;
             default:
-              message = `처방전 처리 중 오류가 발생했습니다. (${status})`;
-              details = data?.message || error.message;
+              message = "처방전 처리 중 오류가 발생했습니다.";
+              details = `오류 코드: ${status}. 잠시 후 다시 시도해주세요.`;
           }
         } else if (error.request) {
           // 네트워크 에러
@@ -399,6 +425,20 @@ export default function MedicationManagement({
   };
 
   const handleAddMedication = () => setShowAddModal(true);
+
+  // 복용 빈도에 따른 기본 시간 설정
+  const getDefaultTimes = (frequency) => {
+    switch (frequency) {
+      case "하루 1회":
+        return ["09:00"];
+      case "하루 2회":
+        return ["08:00", "20:00"];
+      case "하루 3회":
+        return ["08:00", "12:00", "20:00"];
+      default:
+        return ["09:00"];
+    }
+  };
 
   // 약물명에 따라 이모지를 결정하는 함수
   const getMedicationIcon = (medicationName) => {
@@ -458,7 +498,7 @@ export default function MedicationManagement({
             medicationFrequency: medication.frequency || "하루 1회",
             times: medication.times
               ? medication.times.map((t) => t.toString())
-              : ["09:00"],
+              : getDefaultTimes(medication.frequency || "하루 1회"),
             reminderDaysBefore: 0, // 당일 알림
           };
 
@@ -478,7 +518,7 @@ export default function MedicationManagement({
             frequency: medication.frequency || "하루 1회",
             scheduleTime: medication.times
               ? medication.times.map((t) => t.toString()).join(", ")
-              : "09:00",
+              : getDefaultTimes(medication.frequency || "하루 1회").join(", "),
             notificationTiming: "당일",
             petName: selectedPetName,
             icon:
@@ -556,15 +596,15 @@ export default function MedicationManagement({
       };
 
       onMedicationsUpdate((prev) => [...prev, updatedMedication]);
-      setToastMessage(`${newMedication.name}이(가) 추가되었습니다.`);
-      setToastType("active");
-      setShowToast(true);
+    setToastMessage(`${newMedication.name}이(가) 추가되었습니다.`);
+    setToastType("active");
+    setShowToast(true);
 
-      // 캘린더 이벤트 즉시 업데이트
-      const events = buildCalendarEvents();
-      setCalendarEvents(events);
-      if (onCalendarEventsChange) {
-        onCalendarEventsChange(events);
+    // 캘린더 이벤트 즉시 업데이트
+    const events = buildCalendarEvents();
+    setCalendarEvents(events);
+    if (onCalendarEventsChange) {
+      onCalendarEventsChange(events);
       }
     } catch (error) {
       console.error("투약 추가 실패:", error);
@@ -619,20 +659,20 @@ export default function MedicationManagement({
       await updateMedication(medication.calNo, updateData);
 
       // 성공 시 로컬 상태 업데이트
-      onMedicationsUpdate((prev) =>
-        prev.map((med) =>
-          med.id === updatedMedication.id ? updatedMedication : med
-        )
-      );
-      setToastMessage(`${updatedMedication.name}이(가) 수정되었습니다.`);
-      setToastType("active");
-      setShowToast(true);
+    onMedicationsUpdate((prev) =>
+      prev.map((med) =>
+        med.id === updatedMedication.id ? updatedMedication : med
+      )
+    );
+    setToastMessage(`${updatedMedication.name}이(가) 수정되었습니다.`);
+    setToastType("active");
+    setShowToast(true);
 
-      // 캘린더 이벤트 즉시 업데이트
-      const events = buildCalendarEvents();
-      setCalendarEvents(events);
-      if (onCalendarEventsChange) {
-        onCalendarEventsChange(events);
+    // 캘린더 이벤트 즉시 업데이트
+    const events = buildCalendarEvents();
+    setCalendarEvents(events);
+    if (onCalendarEventsChange) {
+      onCalendarEventsChange(events);
       }
     } catch (error) {
       console.error("투약 수정 실패:", error);
@@ -662,23 +702,23 @@ export default function MedicationManagement({
         await deleteMedication(medication.calNo);
 
         // 성공 시 로컬 상태에서 제거
-        const updated = medications.filter((med) => med.id !== toDeleteId);
-        onMedicationsUpdate(updated);
+      const updated = medications.filter((med) => med.id !== toDeleteId);
+      onMedicationsUpdate(updated);
 
-        // 로컬 스토리지에서도 삭제
-        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          delete parsed[toDeleteId];
-          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(parsed));
-        }
+      // 로컬 스토리지에서도 삭제
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        delete parsed[toDeleteId];
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(parsed));
+      }
 
-        // 토스트 메시지 표시
-        const deletedMed = medications.find((med) => med.id === toDeleteId);
-        if (deletedMed) {
-          setToastMessage(`${deletedMed.name}이(가) 삭제되었습니다.`);
-          setToastType("delete");
-          setShowToast(true);
+      // 토스트 메시지 표시
+      const deletedMed = medications.find((med) => med.id === toDeleteId);
+      if (deletedMed) {
+        setToastMessage(`${deletedMed.name}이(가) 삭제되었습니다.`);
+        setToastType("delete");
+        setShowToast(true);
         }
       } catch (error) {
         console.error("투약 삭제 실패:", error);
@@ -847,22 +887,22 @@ export default function MedicationManagement({
           await deleteMedication(medication.calNo);
 
           // 성공 시 로컬 상태에서 제거
-          const updated = medications.filter((med) => med.id !== scheduleId);
-          onMedicationsUpdate(updated);
+        const updated = medications.filter((med) => med.id !== scheduleId);
+        onMedicationsUpdate(updated);
 
-          // 로컬 스토리지에서도 삭제
-          const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            delete parsed[scheduleId];
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(parsed));
-          }
+        // 로컬 스토리지에서도 삭제
+        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          delete parsed[scheduleId];
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(parsed));
+        }
 
-          setToastMessage(
-            `${
-              selectedSchedule.name || selectedSchedule.title
-            }이(가) 삭제되었습니다.`
-          );
+        setToastMessage(
+          `${
+            selectedSchedule.name || selectedSchedule.title
+          }이(가) 삭제되었습니다.`
+        );
         } catch (error) {
           console.error("투약 삭제 실패:", error);
           setToastMessage("투약 삭제에 실패했습니다.");
@@ -973,64 +1013,64 @@ export default function MedicationManagement({
             </div>
           ) : (
             paginatedMedications.map((medication) => (
-              <div key={medication.id} className={styles.medicationCard}>
-                <div className={styles.medicationInfo}>
-                  <div
-                    className={styles.medicationIcon}
-                    style={{ backgroundColor: medication.color }}
-                  >
-                    {medication.icon}
-                  </div>
-                  <div className={styles.medicationDetails}>
-                    <h4>{medication.name}</h4>
-                    <p>
-                      {medication.type} • {medication.frequency}
-                    </p>
-                    <p className={styles.scheduleTime}>
-                      {medication.scheduleTime}
-                    </p>
-                  </div>
+            <div key={medication.id} className={styles.medicationCard}>
+              <div className={styles.medicationInfo}>
+                <div
+                  className={styles.medicationIcon}
+                  style={{ backgroundColor: medication.color }}
+                >
+                  {medication.icon}
                 </div>
-                <div className={styles.medicationActions}>
-                  <button
-                    className={styles.actionButton}
-                    onClick={() => handleEditMedication(medication.id)}
-                  >
-                    <img
-                      src="/health/note.png"
-                      alt="수정"
-                      width={22}
-                      height={22}
-                    />
-                  </button>
-                  <button
-                    className={styles.actionButton}
-                    onClick={() => requestDeleteMedication(medication.id)}
-                  >
-                    <img
-                      src="/health/trash.png"
-                      alt="삭제"
-                      width={24}
-                      height={24}
-                    />
-                  </button>
-                  <button
-                    className={styles.actionButton}
-                    onClick={() => toggleNotification(medication.id)}
-                  >
-                    <img
-                      src={
-                        medication.isNotified
-                          ? "/health/notifi.png"
-                          : "/health/notifi2.png"
-                      }
-                      alt="알림"
-                      width={24}
-                      height={24}
-                    />
-                  </button>
+                <div className={styles.medicationDetails}>
+                  <h4>{medication.name}</h4>
+                  <p>
+                    {medication.type} • {medication.frequency}
+                  </p>
+                  <p className={styles.scheduleTime}>
+                    {medication.scheduleTime}
+                  </p>
                 </div>
               </div>
+              <div className={styles.medicationActions}>
+                <button
+                  className={styles.actionButton}
+                  onClick={() => handleEditMedication(medication.id)}
+                >
+                  <img
+                    src="/health/note.png"
+                    alt="수정"
+                    width={22}
+                    height={22}
+                  />
+                </button>
+                <button
+                  className={styles.actionButton}
+                  onClick={() => requestDeleteMedication(medication.id)}
+                >
+                  <img
+                    src="/health/trash.png"
+                    alt="삭제"
+                    width={24}
+                    height={24}
+                  />
+                </button>
+                <button
+                  className={styles.actionButton}
+                  onClick={() => toggleNotification(medication.id)}
+                >
+                  <img
+                    src={
+                      medication.isNotified
+                        ? "/health/notifi.png"
+                        : "/health/notifi2.png"
+                    }
+                    alt="알림"
+                    width={24}
+                    height={24}
+                  />
+                </button>
+              </div>
+            </div>
             ))
           )}
         </div>
