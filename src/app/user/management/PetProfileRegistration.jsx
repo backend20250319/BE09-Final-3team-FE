@@ -26,6 +26,8 @@ const PetProfileRegistration = ({
 
   const [selectedImage, setSelectedImage] = useState(null);
   const fileInputRef = useRef(null);
+  const [showFileTypeModal, setShowFileTypeModal] = useState(false);
+  const [fileTypeMessage, setFileTypeMessage] = useState("");
 
   // 수정 모드일 때 기존 데이터를 폼에 불러오기
   useEffect(() => {
@@ -90,36 +92,51 @@ const PetProfileRegistration = ({
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
-    if (file) {
-      // 파일 크기 검증 (5MB 제한)
-      if (file.size > 5 * 1024 * 1024) {
-        if (onSuccessMessage) {
-          onSuccessMessage("파일 크기는 5MB 이하여야 합니다.");
-        }
-        return;
-      }
+    if (!file) return;
 
-      // 파일 타입 검증
-      if (!file.type.startsWith("image/")) {
-        if (onSuccessMessage) {
-          onSuccessMessage("이미지 파일만 업로드 가능합니다.");
-        }
-        return;
-      }
+    // 지원하는 이미지 파일 확장자
+    const supportedExtensions = ["jpg", "jpeg", "png"];
 
-      // 미리보기용으로 설정
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setSelectedImage(e.target.result);
-      };
-      reader.readAsDataURL(file);
-
-      // 파일을 formData에 저장 (나중에 업로드용)
-      setFormData((prev) => ({
-        ...prev,
-        imageFile: file,
-      }));
+    // 파일 확장자 검증
+    const extension = file.name.split(".").pop().toLowerCase();
+    if (!supportedExtensions.includes(extension)) {
+      setFileTypeMessage(
+        `지원하지 않는 파일확장자입니다.\n(지원하는 파일확장자: ${supportedExtensions.join(
+          ", "
+        )})`
+      );
+      setShowFileTypeModal(true);
+      return;
     }
+
+    // 파일 크기 검증 (5MB 제한)
+    if (file.size > 5 * 1024 * 1024) {
+      if (onSuccessMessage) {
+        onSuccessMessage("파일 크기는 5MB 이하여야 합니다.");
+      }
+      return;
+    }
+
+    // 파일 타입 검증
+    if (!file.type.startsWith("image/")) {
+      if (onSuccessMessage) {
+        onSuccessMessage("이미지 파일만 업로드 가능합니다.");
+      }
+      return;
+    }
+
+    // 미리보기용으로 설정
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setSelectedImage(e.target.result);
+    };
+    reader.readAsDataURL(file);
+
+    // 파일을 formData에 저장 (나중에 업로드용)
+    setFormData((prev) => ({
+      ...prev,
+      imageFile: file,
+    }));
   };
 
   const handleSubmit = async () => {
@@ -245,6 +262,11 @@ const PetProfileRegistration = ({
     onClose();
   };
 
+  console.log("PetProfileRegistration 렌더링:", {
+    isOpen,
+    isEditMode,
+    petData,
+  });
   if (!isOpen) return null;
 
   return (
@@ -415,6 +437,34 @@ const PetProfileRegistration = ({
           </button>
         </div>
       </div>
+
+      {/* 파일 타입 검증 모달 */}
+      {showFileTypeModal && (
+        <div className={styles.fileTypeModalOverlay}>
+          <div
+            className={styles.fileTypeModalContainer}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.fileTypeModalContent}>
+              <div className={styles.fileTypeWarningIcon}>
+                <span>⚠️</span>
+              </div>
+              <h3 className={styles.fileTypeModalTitle}>
+                지원하지 않는 파일 형식
+              </h3>
+              <p className={styles.fileTypeModalMessage}>{fileTypeMessage}</p>
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <button
+                onClick={() => setShowFileTypeModal(false)}
+                className={styles.fileTypeModalButton}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
