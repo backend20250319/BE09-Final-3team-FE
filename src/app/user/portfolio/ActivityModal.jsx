@@ -622,21 +622,20 @@ const ActivityModal = ({
 
       console.log("기존 이미지 URL들:", existingImageUrls);
       console.log("전송할 History 데이터:", historyRequest);
+      console.log("=== ActivityModal 디버깅 ===");
+      console.log("isEditMode:", isEditMode);
+      console.log("editingData:", editingData);
+      console.log("editingData.historyNo:", editingData?.historyNo);
 
       let historyResponse;
       let historyNo;
 
       if (isEditMode && editingData && editingData.historyNo) {
-        // 수정 모드
-        console.log("History 수정 요청:", historyRequest);
-        historyResponse = await axios.put(
-          `${PET_API_BASE}/pets/${petNo}/histories/${editingData.historyNo}`,
-          historyRequest,
-          {
-            headers: getAuthHeaders(),
-          }
-        );
+        // 수정 모드: API 호출하지 않고 historyNo만 설정
+        console.log("수정 모드: API 호출 건너뛰기, PortfolioContent에서 처리");
         historyNo = editingData.historyNo;
+        // 수정 모드에서는 API 응답을 시뮬레이션
+        historyResponse = { data: { code: "2000", data: { historyNo } } };
       } else {
         // 생성 모드
         console.log("History 생성 요청:", historyRequest);

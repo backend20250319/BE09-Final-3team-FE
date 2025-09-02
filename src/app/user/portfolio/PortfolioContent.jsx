@@ -195,50 +195,39 @@ const PortfolioContent = () => {
     }
   };
 
-  // 활동 이력 등록
-  const createHistory = async (historyData) => {
+  // 활동 이력 등록/수정
+  const createHistory = async (
+    historyData,
+    isEdit = false,
+    historyNo = null
+  ) => {
     try {
+      const url =
+        isEdit && historyNo
+          ? `${PET_API_BASE}/pets/${petNo}/histories/${historyNo}`
+          : `${PET_API_BASE}/pets/${petNo}/histories`;
+
+      const method = isEdit && historyNo ? "put" : "post";
+
       console.log(
-        "활동 이력 등록 요청 데이터:",
+        `활동 이력 ${isEdit ? "수정" : "등록"} 요청 데이터:`,
         JSON.stringify(historyData, null, 2)
       );
+      console.log(`활동 이력 ${isEdit ? "수정" : "등록"} URL:`, url);
       console.log(
-        "활동 이력 등록 URL:",
-        `${PET_API_BASE}/pets/${petNo}/histories`
-      );
-      console.log(
-        "활동 이력 등록 헤더:",
-        JSON.stringify(getAuthHeaders(), null, 2)
+        `활동 이력 ${isEdit ? "수정" : "등록"} 메서드:`,
+        method.toUpperCase()
       );
 
-      // 먼저 GET 요청으로 API가 작동하는지 테스트
-      try {
-        const testResponse = await axios.get(
-          `${PET_API_BASE}/pets/${petNo}/histories`,
-          {
-            headers: getAuthHeaders(),
-          }
-        );
-        console.log("활동 이력 조회 테스트 성공:", testResponse.data);
-      } catch (testError) {
-        console.error(
-          "활동 이력 조회 테스트 실패:",
-          testError.response?.status
-        );
-      }
+      const response = await axios[method](url, historyData, {
+        headers: getAuthHeaders(),
+      });
 
-      const response = await axios.post(
-        `${PET_API_BASE}/pets/${petNo}/histories`,
-        historyData,
-        {
-          headers: getAuthHeaders(),
-        }
-      );
-      console.log("활동 이력 등록 성공:", response.data);
+      console.log(`활동 이력 ${isEdit ? "수정" : "등록"} 성공:`, response.data);
       return response.data;
     } catch (error) {
-      console.error("활동 이력 등록 실패:", error);
-      console.error("활동 이력 등록 실패 상세:", {
+      console.error(`활동 이력 ${isEdit ? "수정" : "등록"} 실패:`, error);
+      console.error(`활동 이력 ${isEdit ? "수정" : "등록"} 실패 상세:`, {
         status: error.response?.status,
         statusText: error.response?.statusText,
         data: error.response?.data,
@@ -411,7 +400,13 @@ const PortfolioContent = () => {
   };
 
   const handleEditActivity = (activity) => {
-    setEditingActivity(activity);
+    // activity 객체에 historyNo 필드 추가 (id를 historyNo로 사용)
+    const activityWithHistoryNo = {
+      ...activity,
+      historyNo: activity.id,
+    };
+    console.log("수정할 활동 데이터:", activityWithHistoryNo);
+    setEditingActivity(activityWithHistoryNo);
     setIsModalOpen(true);
     setIsEditMode(true);
   };
@@ -421,43 +416,87 @@ const PortfolioContent = () => {
     setIsDetailModalOpen(true);
   };
 
-  const handleSaveActivity = (activityData) => {
-    if (isEditMode && editingActivity) {
-      // 수정 모드: 기존 활동이력 업데이트
-      setActivityCards((prev) =>
-        prev.map((card) =>
-          card.id === editingActivity.id
-            ? {
-                ...card,
-                image:
-                  activityData.images && activityData.images.length > 0
-                    ? activityData.images[0].preview
-                    : card.image,
-                title: activityData.title,
-                period: activityData.period,
-                content: activityData.content,
-                detailedContent: activityData.detailedContent,
-                images: activityData.images || editingActivity.images,
-              }
-            : card
-        )
-      );
-    } else {
-      // 새로 등록 모드: 새로운 활동이력 추가
-      const newCard = {
-        id: Date.now(),
-        image:
-          activityData.images && activityData.images.length > 0
-            ? activityData.images[0].preview
-            : "/campaign-1.jpg",
-        title: activityData.title,
-        period: activityData.period,
-        content: activityData.content,
-        detailedContent: activityData.detailedContent,
-        images: activityData.images || [],
-        progress: 100,
-      };
-      setActivityCards((prev) => [...prev, newCard]);
+  const handleSaveActivity = async (activityData) => {
+    try {
+      console.log("=== handleSaveActivity 디버깅 ===");
+      console.log("isEditMode:", isEditMode);
+      console.log("editingActivity:", editingActivity);
+      console.log("activityData:", activityData);
+
+      if (isEditMode && editingActivity) {
+        // 수정 모드: 기존 활동이력 업데이트 (PUT 요청)
+        const [startDate, endDate] = activityData.period.includes(" - ")
+          ? activityData.period.split(" - ")
+          : activityData.period.split(" ~ ");
+
+        const historyData = {
+          historyStart: startDate,
+          historyEnd: endDate,
+          content: activityData.content || "",
+          title: activityData.title || "",
+        };
+
+        console.log("활동 이력 수정 데이터:", historyData);
+        await createHistory(historyData, true, editingActivity.historyNo);
+
+        // 로컬 상태 업데이트
+        setActivityCards((prev) =>
+          prev.map((card) =>
+            card.id === editingActivity.id
+              ? {
+                  ...card,
+                  image:
+                    activityData.images && activityData.images.length > 0
+                      ? activityData.images[0].preview
+                      : card.image,
+                  title: activityData.title,
+                  period: activityData.period,
+                  content: activityData.content,
+                  detailedContent: activityData.detailedContent,
+                  images: activityData.images || editingActivity.images,
+                }
+              : card
+          )
+        );
+
+        console.log("활동 이력 수정 완료");
+      } else {
+        // 새로 등록 모드: 새로운 활동이력 추가 (POST 요청)
+        const [startDate, endDate] = activityData.period.includes(" - ")
+          ? activityData.period.split(" - ")
+          : activityData.period.split(" ~ ");
+
+        const historyData = {
+          historyStart: startDate,
+          historyEnd: endDate,
+          content: activityData.content || "",
+          title: activityData.title || "",
+        };
+
+        console.log("새 활동 이력 등록 데이터:", historyData);
+        const response = await createHistory(historyData, false);
+
+        // 새로 생성된 활동 이력의 ID를 사용
+        const newCard = {
+          id: response.data.historyNo || Date.now(),
+          image:
+            activityData.images && activityData.images.length > 0
+              ? activityData.images[0].preview
+              : "/campaign-1.jpg",
+          title: activityData.title,
+          period: activityData.period,
+          content: activityData.content,
+          detailedContent: activityData.detailedContent,
+          images: activityData.images || [],
+          progress: 100,
+        };
+        setActivityCards((prev) => [...prev, newCard]);
+
+        console.log("새 활동 이력 등록 완료");
+      }
+    } catch (error) {
+      console.error("활동 이력 저장 실패:", error);
+      // 에러 처리 (사용자에게 알림 등)
     }
   };
 
