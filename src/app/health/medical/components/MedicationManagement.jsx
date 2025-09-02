@@ -18,7 +18,11 @@ import {
   deleteMedication,
   processPrescription,
 } from "../../../../api/medicationApi";
-import { STORAGE_KEYS, mockPrescriptionData } from "../../data/mockData";
+import {
+  STORAGE_KEYS,
+  mockPrescriptionData,
+  frequencyMapping,
+} from "../../data/mockData";
 
 export default function MedicationManagement({
   medications,
@@ -89,7 +93,7 @@ export default function MedicationManagement({
         id: med.scheduleNo,
         name: med.medicationName || med.title,
         type: med.subType === "PILL" ? "복용약" : "영양제",
-        frequency: med.frequency,
+        frequency: frequencyMapping[med.frequency] || med.frequency, // 영어 enum을 한글로 변환
         duration: med.durationDays,
         startDate: med.startDate
           ? new Date(med.startDate).toISOString().split("T")[0]
@@ -427,11 +431,11 @@ export default function MedicationManagement({
   // 복용 빈도에 따른 기본 시간 설정
   const getDefaultTimes = (frequency) => {
     switch (frequency) {
-      case "하루 1회":
+      case "DAILY_ONCE":
         return ["09:00"];
-      case "하루 2회":
+      case "DAILY_TWICE":
         return ["08:00", "20:00"];
-      case "하루 3회":
+      case "DAILY_THREE_TIMES":
         return ["08:00", "12:00", "20:00"];
       default:
         return ["09:00"];
@@ -491,13 +495,15 @@ export default function MedicationManagement({
             startDate: new Date().toISOString().split("T")[0], // 오늘 날짜
             durationDays: parseInt(medication.prescriptionDays) || 7,
             medicationFrequency:
-              medication.frequency || medication.administration || "하루 1회",
+              frequencyMapping[medication.frequency] ||
+              frequencyMapping[medication.administration] ||
+              "DAILY_ONCE", // OCR에서 받은 값을 영어 enum으로 변환
             times: medication.times
               ? medication.times.map((t) => t.toString())
               : getDefaultTimes(
-                  medication.frequency ||
-                    medication.administration ||
-                    "하루 1회"
+                  frequencyMapping[medication.frequency] ||
+                    frequencyMapping[medication.administration] ||
+                    "DAILY_ONCE"
                 ),
             reminderDaysBefore: 0, // 당일 알림
           };
@@ -570,7 +576,7 @@ export default function MedicationManagement({
         name: newMedication.name,
         startDate: newMedication.startDate,
         durationDays: newMedication.duration,
-        medicationFrequency: newMedication.frequency,
+        medicationFrequency: newMedication.frequency, // 이미 영어 enum 값
         times: newMedication.scheduleTime
           ? newMedication.scheduleTime.split(",").map((t) => t.trim())
           : ["09:00"],
@@ -635,7 +641,7 @@ export default function MedicationManagement({
       // 백엔드 형식으로 데이터 변환
       const updateData = {
         medicationName: updatedMedication.name,
-        frequency: updatedMedication.frequency,
+        frequency: updatedMedication.frequency, // 이미 영어 enum 값
         durationDays: updatedMedication.duration,
         startDate: updatedMedication.startDate,
         times: updatedMedication.scheduleTime
@@ -776,10 +782,10 @@ export default function MedicationManagement({
     setToDeleteId(null);
   };
 
-  // 선택된 펫의 투약만 필터링 후 페이징
-  const filteredMedications = medications.filter(
-    (med) => !selectedPetName || med.petName === selectedPetName
-  );
+  // 선택된 펫의 투약만 필터링 후 최신순 정렬
+  const filteredMedications = medications
+    .filter((med) => !selectedPetName || med.petName === selectedPetName)
+    .sort((a, b) => b.id - a.id); // 최신순 정렬 (ID 내림차순)
   const paginatedMedications = filteredMedications.slice(
     (medicationPage - 1) * itemsPerPage,
     medicationPage * itemsPerPage
@@ -984,7 +990,7 @@ export default function MedicationManagement({
       {/* 복용약 및 영양제 */}
       <div className={styles.medicationSection}>
         <div className={styles.sectionHeader}>
-          <h3>복용약 및 영양제</h3>
+          <h3>투약</h3>
           <button className={styles.addButton} onClick={handleAddMedication}>
             <span>추가</span>
             <img
@@ -1010,8 +1016,11 @@ export default function MedicationManagement({
               <p>새로운 투약 일정을 추가해보세요!</p>
             </div>
           ) : (
-            paginatedMedications.map((medication) => (
-              <div key={medication.id} className={styles.medicationCard}>
+            paginatedMedications.map((medication, index) => (
+              <div
+                key={medication.id || `medication-${index}`}
+                className={styles.medicationCard}
+              >
                 <div className={styles.medicationInfo}>
                   <div
                     className={styles.medicationIcon}
@@ -1022,7 +1031,8 @@ export default function MedicationManagement({
                   <div className={styles.medicationDetails}>
                     <h4>{medication.name}</h4>
                     <p>
-                      {medication.type} • {medication.frequency}
+                      {medication.type} •{" "}
+                      {medication.frequency?.replace(/(\d+)번/g, "$1 번")}
                     </p>
                     <p className={styles.scheduleTime}>
                       {medication.scheduleTime}

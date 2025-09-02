@@ -13,6 +13,7 @@ import {
   vaccinationSubTypeOptions,
   vaccinationFrequencyOptions,
   ICON_MAP,
+  frequencyMapping,
   COLOR_MAP,
 } from "../../data/mockData";
 
@@ -41,11 +42,11 @@ export default function EditScheduleModal({
   // 복용 빈도에 따른 기본 시간 설정
   const getDefaultTimes = (frequency) => {
     switch (frequency) {
-      case "하루에 한 번":
+      case "DAILY_ONCE":
         return ["09:00"];
-      case "하루에 두 번":
+      case "DAILY_TWICE":
         return ["08:00", "20:00"];
-      case "하루에 세 번":
+      case "DAILY_THREE_TIMES":
         return ["08:00", "12:00", "20:00"];
       default:
         return ["09:00"];
@@ -55,11 +56,11 @@ export default function EditScheduleModal({
   // 복용 빈도에 따른 시간 입력 칸 개수
   const getTimeInputCount = (frequency) => {
     switch (frequency) {
-      case "하루에 한 번":
+      case "DAILY_ONCE":
         return 1;
-      case "하루에 두 번":
+      case "DAILY_TWICE":
         return 2;
-      case "하루에 세 번":
+      case "DAILY_THREE_TIMES":
         return 3;
       default:
         return 1;
@@ -188,15 +189,25 @@ export default function EditScheduleModal({
   // 기존 데이터로 폼 초기화
   useEffect(() => {
     if (scheduleData) {
+      // 한글 값을 영어 enum 값으로 변환
+      const frequency =
+        frequencyMapping[scheduleData.frequency] ||
+        scheduleData.frequency ||
+        "";
+      const defaultTimes = getDefaultTimes(frequency);
+
       setFormData({
         name: scheduleData.name || "",
         subType: scheduleData.subType || scheduleData.type || "",
-        frequency: scheduleData.frequency || "",
+        frequency: frequency,
         date: scheduleData.date || scheduleData.startDate || "", // 호환성
         startDate: scheduleData.startDate || scheduleData.date || "",
         endDate: scheduleData.endDate || scheduleData.date || "",
         time: scheduleData.time || scheduleData.scheduleTime || "", // 호환성
-        scheduleTime: scheduleData.scheduleTime || scheduleData.time || "",
+        scheduleTime:
+          scheduleData.scheduleTime ||
+          scheduleData.time ||
+          defaultTimes.join(", "),
         duration: scheduleData.duration || "",
         notificationTiming: scheduleData.notificationTiming || "",
       });
@@ -537,8 +548,11 @@ export default function EditScheduleModal({
               >
                 <option value="">빈도를 선택하세요</option>
                 {getFrequencyOptions().map((option) => (
-                  <option key={option} value={option}>
-                    {option}
+                  <option
+                    key={option.value || option}
+                    value={option.value || option}
+                  >
+                    {option.label || option}
                   </option>
                 ))}
               </select>
@@ -593,40 +607,48 @@ export default function EditScheduleModal({
               </div>
               <div className={styles.timeInputsContainer}>
                 {formData.frequency ? (
-                  Array.from(
-                    { length: getTimeInputCount(formData.frequency) },
-                    (_, index) => (
-                      <div key={index} className={styles.timeInputGroup}>
-                        <label className={styles.timeLabel}>
-                          {formData.frequency === "하루에 두 번"
-                            ? index === 0
-                              ? "아침"
-                              : "저녁"
-                            : formData.frequency === "하루에 세 번"
-                            ? index === 0
-                              ? "아침"
-                              : index === 1
-                              ? "점심"
-                              : "저녁"
-                            : "시간"}
-                        </label>
-                        <TimePicker
-                          value={
-                            formData.scheduleTime.split(",")[index]?.trim() ||
-                            ""
-                          }
-                          onChange={(time) => {
-                            const times = formData.scheduleTime
-                              .split(",")
-                              .map((t) => t.trim());
-                            times[index] = time;
-                            handleInputChange("scheduleTime", times.join(", "));
-                          }}
-                          placeholder="시간을 선택하세요"
-                        />
-                      </div>
-                    )
-                  )
+                  <div className={styles.timeInputsRow}>
+                    {Array.from(
+                      { length: getTimeInputCount(formData.frequency) },
+                      (_, index) => (
+                        <div key={index} className={styles.timeInputGroup}>
+                          <label className={styles.timeLabel}>
+                            {formData.frequency === "DAILY_TWICE"
+                              ? index === 0
+                                ? "아침"
+                                : "저녁"
+                              : formData.frequency === "DAILY_THREE_TIMES"
+                              ? index === 0
+                                ? "아침"
+                                : index === 1
+                                ? "점심"
+                                : "저녁"
+                              : "시간"}
+                          </label>
+                          <TimePicker
+                            value={
+                              (formData.scheduleTime &&
+                                formData.scheduleTime
+                                  .split(",")
+                                  [index]?.trim()) ||
+                              ""
+                            }
+                            onChange={(time) => {
+                              const times = (formData.scheduleTime || "")
+                                .split(",")
+                                .map((t) => t.trim());
+                              times[index] = time;
+                              handleInputChange(
+                                "scheduleTime",
+                                times.join(", ")
+                              );
+                            }}
+                            placeholder="시간을 선택하세요"
+                          />
+                        </div>
+                      )
+                    )}
+                  </div>
                 ) : (
                   <div className={styles.noFrequencyMessage}>
                     복용 빈도를 먼저 선택해주세요
@@ -681,28 +703,6 @@ export default function EditScheduleModal({
               )}
             </div>
           )}
-
-          {/* 일정 시간 */}
-          <div className={styles.formGroup}>
-            <div className={styles.labelContainer}>
-              <label className={styles.label}>일정 시간</label>
-              <span className={styles.required}>*</span>
-            </div>
-            <div className={styles.inputContainer}>
-              <input
-                type="time"
-                className={styles.input}
-                value={formData.scheduleTime || formData.time}
-                onChange={(e) => {
-                  handleInputChange("scheduleTime", e.target.value);
-                  handleInputChange("time", e.target.value); // 호환성 유지
-                }}
-              />
-            </div>
-            {errors.scheduleTime && (
-              <span className={styles.error}>{errors.scheduleTime}</span>
-            )}
-          </div>
 
           {/* 알림 시기 (모든 타입) */}
           <div className={styles.formGroup}>

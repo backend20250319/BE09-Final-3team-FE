@@ -21,11 +21,11 @@ export default function PetProfileSelector({
         </div>
         <div
           className={`${styles.tab} ${
-            activeTab === "진료ㆍ처방 관리" ? styles.active : ""
+            activeTab === "투약ㆍ돌봄 관리" ? styles.active : ""
           }`}
-          onClick={() => onTabChange && onTabChange("진료ㆍ처방 관리")}
+          onClick={() => onTabChange && onTabChange("투약ㆍ돌봄 관리")}
         >
-          진료ㆍ처방 관리
+          투약ㆍ돌봄 관리
         </div>
       </div>
 

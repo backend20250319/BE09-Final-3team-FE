@@ -9,6 +9,7 @@ import {
   medicationTypeOptions,
   medicationFrequencyOptions,
   notificationTimingOptions,
+  frequencyMapping,
 } from "../../data/mockData";
 
 export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
@@ -27,11 +28,11 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
   // 복용 빈도에 따른 기본 시간 설정
   const getDefaultTimes = (frequency) => {
     switch (frequency) {
-      case "하루에 한 번":
+      case "DAILY_ONCE":
         return ["09:00"];
-      case "하루에 두 번":
+      case "DAILY_TWICE":
         return ["08:00", "20:00"];
-      case "하루에 세 번":
+      case "DAILY_THREE_TIMES":
         return ["08:00", "12:00", "20:00"];
       default:
         return ["09:00"];
@@ -41,11 +42,11 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
   // 복용 빈도에 따른 시간 입력 칸 개수
   const getTimeInputCount = (frequency) => {
     switch (frequency) {
-      case "하루에 한 번":
+      case "DAILY_ONCE":
         return 1;
-      case "하루에 두 번":
+      case "DAILY_TWICE":
         return 2;
-      case "하루에 세 번":
+      case "DAILY_THREE_TIMES":
         return 3;
       default:
         return 1;
@@ -255,7 +256,7 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
         id: Date.now(),
         name: formData.name,
         type: formData.type,
-        frequency: formData.frequency,
+        frequency: formData.frequency, // 이미 영어 enum 값
         duration: Number(formData.duration),
         startDate: formData.startDate,
         endDate: endDate,
@@ -387,8 +388,8 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
               >
                 <option value="">복용 빈도를 선택하세요</option>
                 {frequencyOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </select>
@@ -491,11 +492,11 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
                     (_, index) => (
                       <div key={index} className={styles.timeInputGroup}>
                         <label className={styles.timeLabel}>
-                          {formData.frequency === "하루에 두 번"
+                          {formData.frequency === "DAILY_TWICE"
                             ? index === 0
                               ? "아침"
                               : "저녁"
-                            : formData.frequency === "하루에 세 번"
+                            : formData.frequency === "DAILY_THREE_TIMES"
                             ? index === 0
                               ? "아침"
                               : index === 1

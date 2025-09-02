@@ -19,16 +19,8 @@ export function SelectedPetProvider({ children }) {
         if (petsData && Array.isArray(petsData)) {
           setPets(petsData);
 
-          // 저장된 펫 이름이 있으면 해당 펫의 petNo 찾기
-          const savedPetName = localStorage.getItem("selectedPetName");
-          if (savedPetName) {
-            const savedPet = petsData.find((pet) => pet.name === savedPetName);
-            if (savedPet) {
-              setSelectedPetName(savedPetName);
-              setSelectedPetNo(savedPet.petNo);
-            }
-          } else if (petsData.length > 0) {
-            // 저장된 펫이 없으면 petNo 오름차순으로 정렬하여 가장 낮은 petNo 선택
+          // petNo 오름차순으로 정렬하여 가장 낮은 petNo 선택 (저장된 펫 무시)
+          if (petsData.length > 0) {
             const sortedPets = [...petsData].sort((a, b) => a.petNo - b.petNo);
             const firstPet = sortedPets[0];
             console.log(

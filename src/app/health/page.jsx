@@ -176,7 +176,7 @@ export default function HealthPage() {
         loading={loading}
       />
 
-      {/* 메인 탭: 활동 관리 or 진료/처방 관리 */}
+      {/* 메인 탭: 활동 관리 or 투약/돌봄 관리 */}
       {activeMainTab === "활동 관리" && (
         <>
           {/* 서브 탭 */}
@@ -193,9 +193,9 @@ export default function HealthPage() {
         </>
       )}
 
-      {activeMainTab === "진료ㆍ처방 관리" && (
+      {activeMainTab === "투약ㆍ돌봄 관리" && (
         <>
-          {/* 진료/처방 관리 서브 탭 */}
+          {/* 투약/돌봄 관리 서브 탭 */}
           <MedicalNavTabs
             activeTab={medicalSubTab}
             setActiveTab={setMedicalSubTab}
@@ -205,7 +205,7 @@ export default function HealthPage() {
             onEventClick={handleMedicalCalendarEventClick}
           />
 
-          {/* 진료/처방 관리 하위 탭 렌더링 */}
+          {/* 투약/돌봄 관리 하위 탭 렌더링 */}
           {medicalSubTab === "투약" && (
             <MedicationManagement
               medications={medications}

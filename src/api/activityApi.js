@@ -159,8 +159,7 @@ export const getPetActivityStats = async (petNo) => {
     return res.data?.data ?? res.data;
   } catch (error) {
     console.error("getPetActivityStats 오류:", error);
-    // 임시로 더미 데이터 반환 (테스트용)
-    return [];
+    throw error;
   }
 };
 
@@ -171,12 +170,6 @@ export const getActivityLevels = async () => {
     return res.data?.data ?? res.data;
   } catch (error) {
     console.error("getActivityLevels 오류:", error);
-    // 임시로 기본 활동량 옵션 반환 (테스트용)
-    return [
-      { value: "LOW", label: "거의 안 움직여요", numericValue: 1.0 },
-      { value: "MEDIUM_LOW", label: "가끔 산책해요", numericValue: 1.5 },
-      { value: "MEDIUM_HIGH", label: "자주 뛰어놀아요", numericValue: 2.0 },
-      { value: "HIGH", label: "매우 활동적이에요", numericValue: 2.5 },
-    ];
+    throw error;
   }
 };

@@ -131,13 +131,7 @@ export default function PrescriptionResultModal({
           {/* 처리 정보 */}
           <div className={styles.uploadInfo}>
             <div className={styles.infoRow}>
-              <span className={styles.label}>템플릿:</span>
-              <span className={styles.value}>
-                {data.templateName || "처방전4"}
-              </span>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.label}>처리 시간:</span>
+              <span className={styles.label}>일정 등록 시간:</span>
               <span className={styles.value}>
                 {new Date().toLocaleString("ko-KR", {
                   year: "numeric",
