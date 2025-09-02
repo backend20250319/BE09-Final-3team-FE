@@ -534,6 +534,9 @@ const PortfolioContent = () => {
       deleteHistory(pendingDeleteActivity.id);
       setShowDeleteConfirmModal(false);
       setPendingDeleteActivity(null);
+      // 상세보기 모달도 함께 닫기
+      setIsDetailModalOpen(false);
+      setSelectedActivity(null);
     }
   };
 
