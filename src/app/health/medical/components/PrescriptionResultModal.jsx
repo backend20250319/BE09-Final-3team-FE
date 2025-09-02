@@ -179,8 +179,10 @@ export default function PrescriptionResultModal({
                           용량: {medication.dosage || medication.amount}
                         </p>
                         <p className={styles.medicationSchedule}>
-                          복용법:{" "}
-                          {medication.administration || medication.instructions}
+                          복용빈도:{" "}
+                          {medication.frequency ||
+                            medication.administration ||
+                            medication.instructions}
                         </p>
                         <p className={styles.medicationPeriod}>
                           {medication.frequency} •{" "}

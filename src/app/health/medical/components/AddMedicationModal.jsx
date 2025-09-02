@@ -16,8 +16,6 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
 
   const [formData, setFormData] = useState({
     name: "",
-    dosage: "", // 용량
-    instructions: "", // 복용법
     frequency: "",
     type: "",
     duration: "", // 복용 기간 (일수)
@@ -213,14 +211,6 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
       newErrors.name = "약 이름을 입력해주세요";
     }
 
-    if (!formData.dosage.trim()) {
-      newErrors.dosage = "용량을 입력해주세요";
-    }
-
-    if (!formData.instructions.trim()) {
-      newErrors.instructions = "복용법을 입력해주세요";
-    }
-
     if (!formData.frequency) {
       newErrors.frequency = "복용 빈도를 선택해주세요";
     }
@@ -264,8 +254,6 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
       const newMedication = {
         id: Date.now(),
         name: formData.name,
-        dosage: formData.dosage,
-        instructions: formData.instructions,
         type: formData.type,
         frequency: formData.frequency,
         duration: Number(formData.duration),
@@ -287,8 +275,6 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
   const handleClose = () => {
     setFormData({
       name: "",
-      dosage: "",
-      instructions: "",
       frequency: "",
       type: "",
       duration: "",
@@ -352,46 +338,38 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
             {errors.name && <span className={styles.error}>{errors.name}</span>}
           </div>
 
-          {/* 용량 */}
+          {/* 유형 */}
           <div className={styles.formGroup}>
             <div className={styles.labelContainer}>
-              <label className={styles.label}>용량</label>
+              <label className={styles.label}>유형</label>
               <span className={styles.required}>*</span>
             </div>
-            <div className={styles.inputContainer}>
-              <input
-                type="text"
-                className={styles.input}
-                placeholder="예: 500mg, 1정"
-                value={formData.dosage}
-                onChange={(e) => handleInputChange("dosage", e.target.value)}
-              />
+            <div className={styles.selectContainer}>
+              <select
+                className={styles.select}
+                value={formData.type}
+                onChange={(e) => handleInputChange("type", e.target.value)}
+              >
+                <option value="">유형을 선택하세요</option>
+                {typeOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+              <div className={styles.selectArrow}>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path
+                    d="M3 5L7 9L11 5"
+                    stroke="#9CA3AF"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
             </div>
-            {errors.dosage && (
-              <span className={styles.error}>{errors.dosage}</span>
-            )}
-          </div>
-
-          {/* 복용법 */}
-          <div className={styles.formGroup}>
-            <div className={styles.labelContainer}>
-              <label className={styles.label}>복용법</label>
-              <span className={styles.required}>*</span>
-            </div>
-            <div className={styles.inputContainer}>
-              <input
-                type="text"
-                className={styles.input}
-                placeholder="예: 식후 30분, 공복에"
-                value={formData.instructions}
-                onChange={(e) =>
-                  handleInputChange("instructions", e.target.value)
-                }
-              />
-            </div>
-            {errors.instructions && (
-              <span className={styles.error}>{errors.instructions}</span>
-            )}
+            {errors.type && <span className={styles.error}>{errors.type}</span>}
           </div>
 
           {/* 복용 빈도 */}
@@ -429,40 +407,6 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
             {errors.frequency && (
               <span className={styles.error}>{errors.frequency}</span>
             )}
-          </div>
-
-          {/* 유형 */}
-          <div className={styles.formGroup}>
-            <div className={styles.labelContainer}>
-              <label className={styles.label}>유형</label>
-              <span className={styles.required}>*</span>
-            </div>
-            <div className={styles.selectContainer}>
-              <select
-                className={styles.select}
-                value={formData.type}
-                onChange={(e) => handleInputChange("type", e.target.value)}
-              >
-                <option value="">유형을 선택하세요</option>
-                {typeOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-              <div className={styles.selectArrow}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path
-                    d="M3 5L7 9L11 5"
-                    stroke="#9CA3AF"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-            </div>
-            {errors.type && <span className={styles.error}>{errors.type}</span>}
           </div>
 
           {/* 복용 기간 */}

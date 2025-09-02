@@ -608,8 +608,16 @@ export default function CareManagement({
         </div>
 
         <div className={styles.scheduleList}>
-          {paginatedCareSchedules.map((schedule) =>
-            renderScheduleCard(schedule, "돌봄")
+          {paginatedCareSchedules.length === 0 ? (
+            <div className={styles.emptyContainer}>
+              <div className={styles.emptyIcon}>🐕</div>
+              <p>등록된 일정이 없습니다.</p>
+              <p>새로운 돌봄 일정을 추가해보세요!</p>
+            </div>
+          ) : (
+            paginatedCareSchedules.map((schedule) =>
+              renderScheduleCard(schedule, "돌봄")
+            )
           )}
         </div>
 
@@ -624,7 +632,7 @@ export default function CareManagement({
       {/* 예방접종 일정 섹션 */}
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
-          <h3>예방접종</h3>
+          <h3>접종</h3>
           <div className={styles.headerControls}>
             <Select
               options={vaccinationFilterOptions}
@@ -655,8 +663,16 @@ export default function CareManagement({
         </div>
 
         <div className={styles.scheduleList}>
-          {paginatedVaccinationSchedules.map((schedule) =>
-            renderScheduleCard(schedule, "접종")
+          {paginatedVaccinationSchedules.length === 0 ? (
+            <div className={styles.emptyContainer}>
+              <div className={styles.emptyIcon}>💉</div>
+              <p>등록된 일정이 없습니다.</p>
+              <p>새로운 접종 일정을 추가해보세요!</p>
+            </div>
+          ) : (
+            paginatedVaccinationSchedules.map((schedule) =>
+              renderScheduleCard(schedule, "접종")
+            )
           )}
         </div>
 
