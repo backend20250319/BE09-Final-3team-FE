@@ -153,14 +153,9 @@ const PetProfile = () => {
   };
 
   const hasPets = pets.length > 0;
-  console.log("pets:", pets);
-  console.log("hasPets:", hasPets);
-
   const handleEditPet = (pet) => {
-    console.log("모달 열기 시도:", pet);
     setSelectedPet(pet);
     setIsModalOpen(true);
-    console.log("isModalOpen 상태:", true);
   };
 
   const handleCloseModal = () => {
@@ -199,9 +194,7 @@ const PetProfile = () => {
             <button
               className={styles.createButton}
               onClick={() => {
-                console.log("첫 번째 프로필 만들기 버튼 클릭");
                 setIsModalOpen(true);
-                console.log("isModalOpen 상태:", true);
               }}
             >
               첫 번째 프로필 만들기
@@ -251,10 +244,6 @@ const PetProfile = () => {
                             className={styles.petImage}
                             unoptimized
                             onError={(e) => {
-                              console.log(
-                                "이미지 로드 실패, 기본 이미지로 대체:",
-                                pet.imageUrl
-                              );
                               e.target.src = "/user/dog.png";
                             }}
                           />
@@ -265,21 +254,27 @@ const PetProfile = () => {
                     <div className={styles.petInfo}>
                       <div className={styles.petHeader}>
                         <div className={styles.petNameBreedRow}>
-                          <span className={styles.petName}>{pet.name}</span>
-                          <span className={styles.breedText}>({pet.type})</span>
-                          {pet.isPetStar && (
-                            <Image
-                              src="/user/medal.svg"
-                              alt="PetStar"
-                              width={20}
-                              height={18}
-                              className={styles.petStarBadge}
-                            />
-                          )}
+                          <div className={styles.petNameSection}>
+                            <span className={styles.petName}>{pet.name}</span>
+                            <span className={styles.breedText}>
+                              ({pet.type})
+                            </span>
+                            {pet.isPetStar && (
+                              <Image
+                                src="/user/medal.svg"
+                                alt="PetStar"
+                                width={20}
+                                height={18}
+                                className={styles.petStarBadge}
+                              />
+                            )}
+                          </div>
+                          <div className={styles.petRightSection}>
+                            <span className={styles.ageText}>{pet.age}살</span>
+                          </div>
                         </div>
                         <div className={styles.petMetaRow}></div>
                       </div>
-                      <div className={styles.ageText}>{pet.age}살</div>
                       <div className={styles.genderText}>
                         {pet.gender === "M"
                           ? "수컷"
@@ -287,6 +282,18 @@ const PetProfile = () => {
                           ? "암컷"
                           : pet.gender}
                       </div>
+                      {pet.snsUrl && (
+                        <div className={styles.snsUrlContainer}>
+                          <img
+                            src="/user/instagram.svg"
+                            alt="SNS"
+                            className={styles.snsIcon}
+                          />
+                          <span className={styles.snsUrlText}>
+                            {pet.snsUrl}
+                          </span>
+                        </div>
+                      )}
                       <div className={styles.petDescription}>
                         {pet.description}
                       </div>
@@ -342,9 +349,7 @@ const PetProfile = () => {
                 <div
                   className={styles.addPetCard}
                   onClick={() => {
-                    console.log("반려동물 등록하기 카드 클릭");
                     setIsModalOpen(true);
-                    console.log("isModalOpen 상태:", true);
                   }}
                   style={{ cursor: "pointer" }}
                 >

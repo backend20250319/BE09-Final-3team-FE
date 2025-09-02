@@ -32,6 +32,7 @@ const PetProfileRegistration = ({
   // 수정 모드일 때 기존 데이터를 폼에 불러오기
   useEffect(() => {
     if (isEditMode && petData) {
+      console.log("수정 모드 - 기존 펫 데이터:", petData);
       setFormData({
         name: petData.name || "",
         type: petData.type || "",
@@ -39,8 +40,9 @@ const PetProfileRegistration = ({
         gender: petData.gender || "",
         weight: petData.weight || "",
         imageUrl: petData.imageUrl || "",
-        snsUrl: petData.snsUrl || "",
+        snsUrl: petData.snsUrl || null,
       });
+      console.log("설정된 formData.snsUrl:", petData.snsUrl);
       // 기존 이미지가 있으면 표시
       if (petData.imageUrl && petData.imageUrl.trim() !== "") {
         setSelectedImage(petData.imageUrl);
@@ -165,14 +167,23 @@ const PetProfileRegistration = ({
         gender: formData.gender,
         weight: parseFloat(formData.weight),
         imageUrl: formData.imageUrl || null,
-        snsProfileNo: formData.snsUrl ? 1 : null,
+        snsUrl: formData.snsUrl || null,
       };
 
       console.log("전송할 데이터:", requestData);
+      console.log("수정 모드 여부:", isEditMode);
+      console.log("기존 펫 데이터:", petData);
+      console.log(
+        "API 엔드포인트:",
+        isEditMode
+          ? `${PET_API_BASE}/pets/${petData.petNo}`
+          : `${PET_API_BASE}/pets`
+      );
 
       let petResponse;
       if (isEditMode && petData) {
         // 수정
+        console.log("PUT 요청 시작 - 펫 번호:", petData.petNo);
         petResponse = await axios.put(
           `${PET_API_BASE}/pets/${petData.petNo}`,
           requestData,
@@ -184,6 +195,7 @@ const PetProfileRegistration = ({
             },
           }
         );
+        console.log("PUT 요청 응답:", petResponse.data);
       } else {
         // 등록
         petResponse = await axios.post(`${PET_API_BASE}/pets`, requestData, {
@@ -232,6 +244,22 @@ const PetProfileRegistration = ({
         }
       }
 
+      // 성공 로그 출력
+      console.log(
+        isEditMode ? "펫 프로필 수정 성공!" : "펫 프로필 등록 성공!",
+        {
+          petNo: petResponse.data.data.petNo,
+          name: formData.name,
+          type: formData.type,
+          age: formData.age,
+          gender: formData.gender,
+          weight: formData.weight,
+          imageUrl: formData.imageUrl,
+          snsUrl: formData.snsUrl,
+          response: petResponse.data,
+        }
+      );
+
       // 성공 메시지 표시
       if (onSuccessMessage) {
         onSuccessMessage(
@@ -262,11 +290,6 @@ const PetProfileRegistration = ({
     onClose();
   };
 
-  console.log("PetProfileRegistration 렌더링:", {
-    isOpen,
-    isEditMode,
-    petData,
-  });
   if (!isOpen) return null;
 
   return (
@@ -413,13 +436,32 @@ const PetProfileRegistration = ({
                   alt="SNS"
                   className={styles.snsIcon}
                 />
-                <input
-                  type="text"
-                  value={formData.snsUrl}
-                  onChange={(e) => handleInputChange("snsUrl", e.target.value)}
-                  className={styles.input}
-                  placeholder="SNS URL을 입력해주세요"
-                />
+                <div className={styles.snsUrlInputContainer}>
+                  <span className={styles.snsUrlPrefix}>
+                    www.instagram.com/
+                  </span>
+                  <input
+                    type="text"
+                    value={
+                      formData.snsUrl &&
+                      formData.snsUrl !== null &&
+                      formData.snsUrl.includes("www.instagram.com/")
+                        ? formData.snsUrl.replace("www.instagram.com/", "")
+                        : formData.snsUrl && formData.snsUrl !== null
+                        ? formData.snsUrl
+                        : ""
+                    }
+                    onChange={(e) => {
+                      const username = e.target.value;
+                      const fullUrl = username
+                        ? `www.instagram.com/${username}`
+                        : "";
+                      handleInputChange("snsUrl", fullUrl);
+                    }}
+                    className={styles.snsUrlInput}
+                    placeholder="사용자명"
+                  />
+                </div>
               </div>
             </div>
           </div>
