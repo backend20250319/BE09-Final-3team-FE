@@ -700,3 +700,43 @@
     font-size: 11px;
   }
 }
+
+/* SNS URL Input Styles */
+.snsUrlInputContainer {
+  display: flex;
+  align-items: center;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.snsUrlPrefix {
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 400;
+  padding: 8px 12px;
+  border-right: 1px solid #d1d5db;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.snsUrlInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 400;
+  color: #000000;
+  background: transparent;
+}
+
+.snsUrlInput::placeholder {
+  color: #9ca3af;
+}
+
+.snsUrlInput:focus {
+  background: #f9fafb;
+}
