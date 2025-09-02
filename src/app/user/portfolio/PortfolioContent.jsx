@@ -42,6 +42,7 @@ const PortfolioContent = () => {
   const [hasPortfolio, setHasPortfolio] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [pendingDeleteActivity, setPendingDeleteActivity] = useState(null);
+  const [showActivityModal, setShowActivityModal] = useState(false);
 
   // API 호출 함수들
   const getAuthHeaders = () => {
@@ -233,6 +234,37 @@ const PortfolioContent = () => {
         data: error.response?.data,
         config: error.config,
       });
+
+      // 백엔드 에러 메시지 상세 출력
+      if (error.response?.data) {
+        console.error("백엔드 에러 응답:", error.response.data);
+        if (error.response.data.message) {
+          console.error("백엔드 에러 메시지:", error.response.data.message);
+        }
+        if (error.response.data.errors) {
+          console.error("백엔드 검증 에러:", error.response.data.errors);
+        }
+      }
+
+      // 중복 에러는 특별히 처리하여 사용자에게 알림
+      if (
+        error.response?.data?.message?.includes(
+          "동일한 내용의 활동이력이 이미 존재합니다"
+        )
+      ) {
+        console.log(
+          "중복된 활동 이력이 존재합니다. 기존 것을 수정하거나 다른 내용으로 등록해주세요."
+        );
+        // 사용자에게 중복 알림
+        alert(
+          "동일한 내용의 활동 이력이 이미 존재합니다. 기존 것을 수정하거나 다른 내용으로 등록해주세요."
+        );
+        // 중복 에러는 특별한 객체로 반환하여 상위에서 처리할 수 있도록 함
+        const duplicateResponse = { isDuplicate: true, error: error };
+        console.log("중복 응답 객체 반환:", duplicateResponse);
+        return duplicateResponse;
+      }
+
       throw error;
     }
   };
@@ -313,41 +345,16 @@ const PortfolioContent = () => {
 
           // 활동 이력 조회 (별도 API)
           try {
-            const histories = await fetchHistories(petNo);
-            if (histories && histories.length > 0) {
-              const activityCardsData = histories.map((history, index) => {
-                // 이미지 URL 처리 - 백엔드에서 받은 이미지 URL들을 FTP 서버 URL로 변환
-                let images = [];
-                if (history.images && history.images.length > 0) {
-                  images = history.images
-                    .filter((img) => img && img.trim() !== "")
-                    .map(
-                      (img) => `http://dev.macacolabs.site:8008/3/pet/${img}`
-                    );
-                } else if (history.imageUrls && history.imageUrls.length > 0) {
-                  images = history.imageUrls
-                    .filter((img) => img && img.trim() !== "")
-                    .map(
-                      (img) => `http://dev.macacolabs.site:8008/3/pet/${img}`
-                    );
-                }
+            console.log("=== 활동 이력 로드 시작 ===");
 
-                // 기본 이미지가 없으면 기본 이미지 사용
-                const defaultImage = `/campaign-${(index % 4) + 1}.jpg`;
+            // 새로고침 시 기존 카드 초기화
+            setActivityCards([]);
+            console.log("기존 카드 초기화 완료");
 
-                return {
-                  id: history.historyNo || index + 1,
-                  image: images.length > 0 ? images[0] : defaultImage,
-                  images: images.length > 0 ? images : [defaultImage],
-                  title: history.title || `활동 ${index + 1}`,
-                  period: `${history.historyStart} - ${history.historyEnd}`,
-                  content: history.content,
-                  detailedContent: history.content,
-                  progress: 100,
-                };
-              });
-              setActivityCards(activityCardsData);
-            }
+            // 먼저 중복 정리 실행
+            await cleanupDuplicateHistories();
+
+            console.log("중복 정리 완료, 활동 이력 로드 시작");
           } catch (historyError) {
             // 활동 이력이 없는 경우 무시
             console.log("활동 이력 정보가 없습니다.");
@@ -423,6 +430,34 @@ const PortfolioContent = () => {
       console.log("editingActivity:", editingActivity);
       console.log("activityData:", activityData);
 
+      // ActivityModal에서 이미 생성이 완료된 경우 처리
+      if (activityData.historyNo) {
+        console.log(
+          "ActivityModal에서 이미 생성된 활동 이력:",
+          activityData.historyNo
+        );
+
+        // 새로 생성된 활동 이력 카드 추가
+        const newCard = {
+          id: activityData.historyNo,
+          title: activityData.title,
+          content: activityData.content,
+          period: `${activityData.startDate} - ${activityData.endDate}`,
+          images: activityData.images || [],
+          historyNo: activityData.historyNo,
+        };
+
+        setActivityCards((prev) => [...prev, newCard]);
+        console.log("새 활동 이력 카드가 UI에 추가되었습니다:", newCard);
+
+        // 활동 이력 등록 완료 후 1초 뒤 자동 새로고침
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+
+        return;
+      }
+
       if (isEditMode && editingActivity) {
         // 수정 모드: 기존 활동이력 업데이트 (PUT 요청)
         const [startDate, endDate] = activityData.period.includes(" - ")
@@ -473,8 +508,37 @@ const PortfolioContent = () => {
           title: activityData.title || "",
         };
 
+        console.log("=== 새 활동 이력 등록 시도 ===");
         console.log("새 활동 이력 등록 데이터:", historyData);
+        console.log("전송할 데이터 상세:", {
+          historyStart: historyData.historyStart,
+          historyEnd: historyData.historyEnd,
+          content: historyData.content,
+          title: historyData.title,
+          dataType: typeof historyData,
+          keys: Object.keys(historyData),
+        });
+
+        // 백엔드에서 중복 체크를 수행하므로 프론트엔드 중복 체크는 제거
+        console.log("백엔드로 전송 시작");
+
         const response = await createHistory(historyData, false);
+        console.log("createHistory 응답:", response);
+
+        // 중복 에러 체크
+        if (response && response.isDuplicate) {
+          console.log(
+            "중복된 활동 이력이 존재합니다. 기존 것을 수정하거나 다른 내용으로 등록해주세요."
+          );
+          console.log("중복 응답으로 인해 함수 종료");
+          return; // 중복인 경우 함수 종료
+        }
+
+        // 정상 응답이 아닌 경우 에러 처리
+        if (!response || !response.data) {
+          console.error("createHistory에서 예상치 못한 응답:", response);
+          return;
+        }
 
         // 새로 생성된 활동 이력의 ID를 사용
         const newCard = {
@@ -497,6 +561,170 @@ const PortfolioContent = () => {
     } catch (error) {
       console.error("활동 이력 저장 실패:", error);
       // 에러 처리 (사용자에게 알림 등)
+    }
+  };
+
+  // 중복 활동이력 정리 함수
+  const cleanupDuplicateHistories = async () => {
+    try {
+      console.log("중복 활동이력 정리 시작");
+      const response = await axios.post(
+        `${PET_API_BASE}/pets/${petNo}/histories/cleanup`,
+        {},
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+
+      if (response.data.code === "2000") {
+        console.log("중복 활동이력 정리 성공");
+        // 정리 후 활동 이력 다시 로드
+        await loadActivityHistories();
+      }
+    } catch (error) {
+      console.error("중복 활동이력 정리 실패:", error);
+    }
+  };
+
+  // 활동 이력 로드 함수 (별도로 분리)
+  const loadActivityHistories = async () => {
+    try {
+      const histories = await fetchHistories(petNo);
+      console.log("=== 백엔드에서 받은 원본 데이터 ===");
+      console.log("histories:", histories);
+
+      if (histories && histories.length > 0) {
+        const activityCardsData = histories.map((history, index) => {
+          console.log(`--- History ${index + 1} ---`);
+          console.log("history:", history);
+          console.log("history.images:", history.images);
+          console.log("history.imageUrls:", history.imageUrls);
+          // 이미지 URL 처리 - 백엔드에서 받은 이미지들을 FTP 서버 URL로 변환
+          let images = [];
+          console.log("이미지 처리 시작...");
+
+          if (history.images && history.images.length > 0) {
+            console.log("history.images 사용:", history.images);
+            images = history.images
+              .filter((img) => {
+                console.log("필터링 중인 img:", img, "타입:", typeof img);
+                // img가 문자열인 경우
+                if (typeof img === "string") {
+                  const result = img && img.trim() !== "";
+                  console.log("문자열 img 필터 결과:", result);
+                  return result;
+                }
+                // img가 객체인 경우 (savedName을 우선 사용)
+                if (typeof img === "object" && img !== null) {
+                  const result =
+                    img.savedName || img.url || img.originalName || img.preview;
+                  console.log("객체 img 필터 결과:", result);
+                  return result;
+                }
+                console.log("img 필터 실패");
+                return false;
+              })
+              .map((img) => {
+                console.log("매핑 중인 img:", img, "타입:", typeof img);
+                // img가 문자열인 경우
+                if (typeof img === "string") {
+                  const url = `http://dev.macacolabs.site:8008/3/pet/${img}`;
+                  console.log("문자열 img URL 생성:", url);
+                  return url;
+                }
+                // img가 객체인 경우
+                if (typeof img === "object" && img !== null) {
+                  const fileName = img.savedName; // savedName만 사용
+                  if (typeof fileName === "string") {
+                    const url = `http://dev.macacolabs.site:8008/3/pet/${fileName}`;
+                    console.log("객체 img URL 생성 (savedName 사용):", url);
+                    return url;
+                  }
+                }
+                console.log("img 매핑 실패");
+                return null;
+              })
+              .filter((url) => url !== null); // null 값 제거
+          } else if (history.imageUrls && history.imageUrls.length > 0) {
+            console.log("history.imageUrls 사용:", history.imageUrls);
+            images = history.imageUrls
+              .filter((img) => {
+                console.log("필터링 중인 img:", img, "타입:", typeof img);
+                // img가 문자열인 경우
+                if (typeof img === "string") {
+                  const result = img && img.trim() !== "";
+                  console.log("문자열 img 필터 결과:", result);
+                  return result;
+                }
+                // img가 객체인 경우
+                if (typeof img === "object" && img !== null) {
+                  const result =
+                    img.savedName || img.url || img.originalName || img.preview;
+                  console.log("객체 img 필터 결과:", result);
+                  return result;
+                }
+                console.log("img 필터 실패");
+                return false;
+              })
+              .map((img) => {
+                console.log("매핑 중인 img:", img, "타입:", typeof img);
+                // img가 문자열인 경우
+                if (typeof img === "string") {
+                  const url = `http://dev.macacolabs.site:8008/3/pet/${img}`;
+                  console.log("문자열 img URL 생성:", url);
+                  return url;
+                }
+                // img가 객체인 경우
+                if (typeof img === "object" && img !== null) {
+                  const fileName = img.savedName; // savedName만 사용
+                  if (typeof fileName === "string") {
+                    const url = `http://dev.macacolabs.site:8008/3/pet/${fileName}`;
+                    console.log("객체 img URL 생성 (savedName 사용):", url);
+                    return url;
+                  }
+                }
+                console.log("img 매핑 실패");
+                return null;
+              })
+              .filter((url) => url !== null); // null 값 제거
+          }
+
+          console.log("최종 생성된 images 배열:", images);
+
+          // 기본 이미지가 없으면 기본 이미지 사용
+          const defaultImage = `/campaign-${(index % 4) + 1}.jpg`;
+
+          // 이미지 객체 생성 (실제 백엔드 imageId 사용)
+          const imageObjects = history.images
+            ? history.images.map((img) => ({
+                id: img.id || Date.now() + Math.random(),
+                imageId: img.id, // 실제 백엔드 imageId 사용 (257, 258, 259...)
+                preview: `http://dev.macacolabs.site:8008/3/pet/${img.savedName}`,
+                file: null,
+              }))
+            : [];
+
+          const cardData = {
+            id: history.historyNo || index + 1,
+            image: images.length > 0 ? images[0] : defaultImage,
+            images: images.length > 0 ? images : [defaultImage],
+            imageObjects: imageObjects, // 이미지 객체 배열 추가
+            title: history.title || `활동 ${index + 1}`,
+            period: `${history.historyStart} - ${history.historyEnd}`,
+            content: history.content,
+            detailedContent: history.content,
+            progress: 100,
+          };
+
+          console.log("생성된 cardData:", cardData);
+          return cardData;
+        });
+
+        setActivityCards(activityCardsData);
+        console.log("활동 이력 재로드 완료:", activityCardsData.length, "개");
+      }
+    } catch (error) {
+      console.error("활동 이력 재로드 실패:", error);
     }
   };
 
