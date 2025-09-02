@@ -353,6 +353,7 @@
   font-size: 14px;
   font-weight: 400;
   color: #666;
+  margin-bottom: 4px;
 }
 
 /* SNS URL */
@@ -360,8 +361,13 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 8px;
-  margin-bottom: 3px;
+  margin-top: 4px;
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  min-height: 32px;
 }
 
 .snsIcon {
@@ -371,10 +377,20 @@
 }
 
 .snsUrlText {
-  color: #4b5563;
-  font-size: 14px;
-  font-weight: 400;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
   word-break: break-all;
+}
+
+.snsUrlContainer.noSnsUrl {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  opacity: 0.7;
+}
+
+.snsUrlContainer.noSnsUrl .snsUrlText {
+  color: #9ca3af;
 }
 
 /* Pet Description 스타일 제거 - 사용하지 않음 */
