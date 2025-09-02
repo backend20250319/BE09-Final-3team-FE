@@ -17,9 +17,6 @@ const PortfolioContent = () => {
   const PORTFOLIO_API_BASE = "http://localhost:8000/api/v1/pet-service";
 
   const [formData, setFormData] = useState({
-    ownerName: "",
-    email: "",
-    phoneNumber: "",
     petName: "",
     breed: "",
     age: "",
@@ -267,45 +264,7 @@ const PortfolioContent = () => {
     }
   };
 
-  // 사용자 정보 조회
-  const fetchUserInfo = async () => {
-    try {
-      // 먼저 localStorage에서 사용자 정보 확인
-      const userNickname = localStorage.getItem("userNickname");
-      const userEmail = localStorage.getItem("userEmail");
-      const accessToken = localStorage.getItem("accessToken");
-      const token = localStorage.getItem("token");
-
-      // 토큰이 있고 기본 정보가 있으면 API 호출 시도
-      if ((accessToken || token) && (userNickname || userEmail)) {
-        try {
-          const response = await axios.get(
-            `http://localhost:8000/api/v1/user-service/auth/profile`,
-            {
-              headers: getAuthHeaders(),
-            }
-          );
-          return response.data.data;
-        } catch (apiError) {
-          console.log("API 호출 실패, localStorage 정보 사용");
-          // API 실패 시 localStorage 정보 반환
-          return {
-            nickname: userNickname,
-            name: userNickname,
-            email: userEmail,
-            phoneNumber: "",
-            phone: "",
-          };
-        }
-      } else {
-        console.log("토큰 또는 사용자 정보가 없습니다.");
-        return null;
-      }
-    } catch (error) {
-      console.error("사용자 정보 조회 실패:", error);
-      return null;
-    }
-  };
+  // 사용자 정보 조회 함수 제거 - 연락수단 불필요
 
   const fileInputRef = useRef(null);
 
@@ -349,18 +308,7 @@ const PortfolioContent = () => {
                 price: portfolioInfo.cost ? portfolioInfo.cost.toString() : "",
               }));
 
-              // 연락처 정보 파싱
-              if (portfolioInfo.contact) {
-                const contactParts = portfolioInfo.contact.split(", ");
-                if (contactParts.length >= 3) {
-                  setFormData((prev) => ({
-                    ...prev,
-                    ownerName: contactParts[0] || "",
-                    email: contactParts[1] || "",
-                    phoneNumber: contactParts[2] || "",
-                  }));
-                }
-              }
+              // 연락처 정보 파싱 제거 - 연락수단 불필요
             } else {
               // 포트폴리오가 없는 경우
               console.log("포트폴리오 정보가 없습니다.");
@@ -372,16 +320,7 @@ const PortfolioContent = () => {
             setHasPortfolio(false);
           }
 
-          // 사용자 정보 조회하여 연락수단 자동 설정
-          const userInfo = await fetchUserInfo();
-          if (userInfo) {
-            setFormData((prev) => ({
-              ...prev,
-              ownerName: userInfo.nickname || userInfo.name || "",
-              email: userInfo.email || "",
-              phoneNumber: userInfo.phoneNumber || userInfo.phone || "",
-            }));
-          }
+          // 사용자 정보 조회 부분 제거 - 연락수단 불필요
 
           // 활동 이력 조회 (별도 API)
           try {
@@ -436,38 +375,10 @@ const PortfolioContent = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
-    // 전화번호 필드인 경우 자동 포맷팅
-    if (name === "phoneNumber") {
-      const phoneNumber = value.replace(/[^0-9]/g, ""); // 숫자만 추출
-      let formattedNumber = "";
-
-      if (phoneNumber.length <= 3) {
-        formattedNumber = phoneNumber;
-      } else if (phoneNumber.length <= 7) {
-        formattedNumber = `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3)}`;
-      } else if (phoneNumber.length <= 11) {
-        formattedNumber = `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(
-          3,
-          7
-        )}-${phoneNumber.slice(7)}`;
-      } else {
-        formattedNumber = `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(
-          3,
-          7
-        )}-${phoneNumber.slice(7, 11)}`;
-      }
-
-      setFormData((prev) => ({
-        ...prev,
-        [name]: formattedNumber,
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleFileChange = (e) => {
@@ -599,7 +510,6 @@ const PortfolioContent = () => {
       const portfolioData = {
         content: formData.introduction || "",
         cost: formData.price ? parseInt(formData.price) : 0,
-        contact: `${formData.ownerName}, ${formData.email}, ${formData.phoneNumber}`,
         isSaved: true,
         personality: formData.personality || "",
       };
@@ -672,15 +582,7 @@ const PortfolioContent = () => {
     if (!formData.introduction.trim()) {
       missingFields.push("간단한 소개");
     }
-    if (!formData.ownerName.trim()) {
-      missingFields.push("이름");
-    }
-    if (!formData.email.trim()) {
-      missingFields.push("이메일");
-    }
-    if (!formData.phoneNumber.trim()) {
-      missingFields.push("연락처");
-    }
+    // 연락수단 관련 유효성 검사 제거
 
     if (missingFields.length > 0) {
       // 작성되지 않은 내용이 있는 경우
@@ -701,7 +603,6 @@ const PortfolioContent = () => {
       const portfolioData = {
         content: formData.introduction || "",
         cost: formData.price ? parseInt(formData.price) : 0,
-        contact: `${formData.ownerName}, ${formData.email}, ${formData.phoneNumber}`,
         isSaved: false,
         personality: formData.personality || "",
       };
@@ -980,51 +881,7 @@ const PortfolioContent = () => {
             </div>
           </section>
 
-          {/* 연락 수단 섹션 */}
-          <section className={styles.contactSection}>
-            <div className={styles.sectionHeader}>
-              <div className={styles.sectionNumber}>5</div>
-              <h2 className={styles.sectionTitle}>연락 수단</h2>
-            </div>
-            <div className={styles.sectionContent}>
-              <div className={styles.contactForm}>
-                <div className={styles.formGroup}>
-                  <label htmlFor="ownerName">이름</label>
-                  <input
-                    type="text"
-                    id="ownerName"
-                    name="ownerName"
-                    value={formData.ownerName}
-                    onChange={handleInputChange}
-                    placeholder="이름을 입력해주세요"
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <label htmlFor="email">이메일</label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="이메일을 입력해주세요"
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <label htmlFor="phoneNumber">연락처</label>
-                  <input
-                    type="tel"
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    value={formData.phoneNumber}
-                    onChange={handleInputChange}
-                    placeholder="010-1234-5678"
-                    maxLength={13}
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
+          {/* 연락수단 섹션 제거 */}
 
           {/* 버튼 섹션 */}
           <div className={styles.buttonSection}>
