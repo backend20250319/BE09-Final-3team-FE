@@ -68,13 +68,31 @@ export default function PetFulLogin() {
             );
           }
 
-          console.log("로그인 성공, 토큰 저장 완료");
+          // 사용자 타입 확인하여 Admin인 경우 관리자 페이지로 리다이렉트
+          const userType =
+            authData.userType ||
+            authData.role ||
+            authData.user_type ||
+            data.userType ||
+            data.role ||
+            data.user_type ||
+            authData.type ||
+            data.type;
 
-          // 커스텀 이벤트 발생 (헤더 업데이트용)
-          window.dispatchEvent(new Event("loginStatusChanged"));
+          if (
+            userType === "Admin" ||
+            userType === "ADMIN" ||
+            userType === "admin"
+          ) {
+            window.location.href = "/admin";
+          } else {
+            // 일반 사용자인 경우 기존 로직 실행
+            // 커스텀 이벤트 발생 (헤더 업데이트용)
+            window.dispatchEvent(new Event("loginStatusChanged"));
 
-          // 강제로 페이지 새로고침하여 헤더 상태 업데이트
-          window.location.href = "/";
+            // 홈페이지로 이동
+            router.replace("/");
+          }
         } else {
           setError("로그인 응답에 토큰이 없습니다.");
         }

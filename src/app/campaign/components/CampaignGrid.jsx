@@ -1,32 +1,19 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styles from "../styles/CampaignGrid.module.css";
 import CampaignCard from "./CampaignCard";
 import { useCampaign } from "../context/CampaignContext";
-import campaigns from "../data/campaigns";
-
-const APPLIED_STATUSES = ["applied", "pending", "selected", "rejected", "completed"];
-
-function isTodayInAnnouncePeriod(announce_start, announce_end) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const startDate = new Date(announce_start);
-  const endDate = new Date(announce_end);
-
-  // period 경계 포함 범위 검사
-  return startDate <= today && today <= endDate;
-}
+import { getAdsGrouped, getAppliedAds } from "@/api/campaignApi";
 
 function sortCampaigns(campaigns, sortBy, activeTab) {
   switch (sortBy) {
     case "recent":
       // 최신순
       return activeTab === "recruiting" ? 
-        [...campaigns].sort((a, b) => new Date(a.announce_start) - new Date(b.announce_start)) :
-        [...campaigns].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) ;
+        [...campaigns].sort((a, b) => new Date(a.announceStart) - new Date(b.announceStart)) :
+        [...campaigns].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) ;
     case "deadline":
       // 마감 임박순 (공고 종료일 오름차순)
-      return [...campaigns].sort((a, b) => new Date(a.announce_end) - new Date(b.announce_end));
+      return [...campaigns].sort((a, b) => new Date(a.announceEnd) - new Date(b.announceEnd));
     case "popular":
       // 인기순 (신청자 수 내림차순)
       return [...campaigns].sort((a, b) => {
@@ -35,10 +22,10 @@ function sortCampaigns(campaigns, sortBy, activeTab) {
       });
     case "endedRecent":
       // 종료일 최신순 (공고 종료일 내림차순)
-      return [...campaigns].sort((a, b) => new Date(b.announce_end) - new Date(a.announce_end));
+      return [...campaigns].sort((a, b) => new Date(b.announceEnd) - new Date(a.announceEnd));
     case "endedOld":
       // 종료일 오래된 순 (공고 종료일 오름차순)
-      return [...campaigns].sort((a, b) => new Date(a.announce_end) - new Date(b.announce_end));
+      return [...campaigns].sort((a, b) => new Date(a.announceEnd) - new Date(b.announceEnd));
     default:
       return campaigns;
   }
@@ -48,29 +35,41 @@ export default function CampaignGrid({searchQuery, sortBy, openModal}) {
 
   const { activeTab } = useCampaign();
 
-  let filteredCampaigns = [];
+  const [campaigns, setCampaigns] = useState({ recruitingAds: [], endedAds: [] });
+  const [appliedCampaigns, setAppliedCampaigns] = useState([]);
 
-  switch (activeTab) {
-    case "recruiting":
-      filteredCampaigns = campaigns.filter(c => isTodayInAnnouncePeriod(c.announce_start, c.announce_end) && c.ad_status === "approved");
-      break;
-    case "ended":
-      filteredCampaigns = campaigns.filter(c => c.ad_status === "ended");
-      break;
-    case "applied":
-      filteredCampaigns = campaigns.filter(c => APPLIED_STATUSES.includes(c.applicant_status));
-      break;
-    default:
-      filteredCampaigns = campaigns;
-  }
+  useEffect(() => {
+    const fetchCampaigns = async () => {
+      try {
+        const data = await getAdsGrouped();
+        setCampaigns(data);
 
-  const sortedCampaigns = sortCampaigns(filteredCampaigns, sortBy, activeTab);
+        const res = await getAppliedAds();
+        const appliedData = res.ads.map(item => item.advertisement);
+        setAppliedCampaigns(appliedData);
+      } catch (error) {
+        console.error("Failed to fetch campaigns:", error);
+      }
+    };
+
+    fetchCampaigns();
+  }, [activeTab]);
+
+  const filteredCampaigns = activeTab === "recruiting"
+  ? campaigns.recruitingAds : activeTab === "ended"
+  ? campaigns.endedAds : (appliedCampaigns || []);
+
+  const finalFilteredCampaigns = searchQuery
+  ? filteredCampaigns.filter(c => c.title.includes(searchQuery))
+  : filteredCampaigns;
+
+  const sortedCampaigns = sortCampaigns(finalFilteredCampaigns, sortBy, activeTab);
 
   return (
     <section className={styles.campaignGrid}>
       <div className={styles.grid}>
         {sortedCampaigns.map((campaign) => (
-          <CampaignCard key={campaign.ad_no} campaign={campaign} openModal={openModal} />
+          <CampaignCard key={campaign.adNo} campaign={campaign} openModal={openModal} />
         ))}
       </div>
     </section>

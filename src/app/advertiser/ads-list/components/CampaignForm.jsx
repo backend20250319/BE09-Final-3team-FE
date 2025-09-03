@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from "../styles/CampaignForm.module.css"
-import campaigns from '../data/campaigns';
 import ProgressSection from '../register/components/CampaignRegisterForm/ProgressSection';
 import ImageUploadSection from '../register/components/FormSections/ImageUploadSection';
 import TitleSection from '../register/components/FormSections/TitleSection';
@@ -14,59 +13,141 @@ import KeywordsSection from '../register/components/FormSections/KeyWordsSection
 import RequirementsSection from '../register/components/FormSections/RequirementsSection';
 import ProductPageSection from '../register/components/FormSections/ProductPageSection';
 import ParticipationInfoSection from '../register/components/FormSections/ParticipationInfoSection';
+import { createAd, getAllAdsByAdvertiser, getImageByAdNo, updateAdByAdvertiser, updateImage, uploadImage } from '@/api/advertisementApi';
 
 export default function CampaignForm({ mode = "create", campaignId }) {
   
   const router = useRouter();
 
   const [formData, setFormData] = useState({
-    mainImage: null,
     title: '',
-    detailInfo: '',
-    mainGoal: '',
-    missions: [''],
-    keywords: [''],
-    requirements: [''],
-    participationInfo: {
-      recruitmentPeriod: { start: null, end: null },
-      participationPeriod: { start: null, end: null },
-      selectionDate: null,
-      recruitmentCount: ''
-    },
-    productPage: ''
+    content: '',
+    objective: '',
+    mission: [{ content: "" }],
+    keyword: [{ content: "" }],
+    requirement: [{ content: "" }],
+    announceStart: null,
+    announceEnd: null,
+    campaignSelect: null,
+    campaignStart: null,
+    campaignEnd: null,
+    members: 0,
+    adUrl: ''
   });
+
+  const [adImage, setAdImage] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
+
+  // 날짜 문자열을 Date 객체로 변환 (로컬 시간 기준)
+  const parseLocalDate = (dateString) => {
+    if (!dateString) return null;
+    
+    // YYYY-MM-DD 형식의 문자열을 로컬 시간 기준으로 파싱
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day); // month는 0부터 시작하므로 -1
+  };
+
+  const handleSave = async () => {
+    try {
+      // 날짜를 DB 저장용 문자열로 변환
+      const formatDateForDB = (date) => {
+        if (!date) return null;
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+
+      const dataToSave = {
+        ...formData,
+        announceStart: formatDateForDB(formData.announceStart),
+        announceEnd: formatDateForDB(formData.announceEnd),
+        campaignSelect: formatDateForDB(formData.campaignSelect),
+        campaignStart: formatDateForDB(formData.campaignStart),
+        campaignEnd: formatDateForDB(formData.campaignEnd),
+      };
+
+      if(mode === "edit"){
+        await updateAdByAdvertiser(campaignId, dataToSave);
+        if (adImage) {
+          try {
+            await updateImage(campaignId, adImage, false);
+          } catch (error) {
+            console.error("Failed to upload Image:", error);
+          }
+        }
+      } else {
+        const ad = await createAd(dataToSave);
+        const adNo = ad.adNo;
+        if (adImage && adNo) {
+          await handleImageUpload(adImage, adNo);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to create advertisement:", error);
+    }
+  };
+
+  const handleImageUpload = async (adImage, adNo) => {
+    if (!adNo) {
+      console.error("adNo is required for image upload.");
+      return;
+    } 
+    if (adImage) {
+      try {
+        await uploadImage(adImage, adNo);
+      } catch (error) {
+        console.error("Failed to upload Image:", error);
+      }
+    }
+  };
+
+  const [campaigns, setCampaigns] = useState([]);
+  
+  useEffect(() => {
+    const fetchCampaigns = async () => {
+      try {
+        const data = await getAllAdsByAdvertiser();
+        setCampaigns(data.ads);
+      } catch (error) {
+        console.error("Failed to fetch campaigns:", error);
+      }
+    };
+
+    fetchCampaigns();
+  }, []);
 
   useEffect(() => {
     if (mode === "edit" && campaignId) {
       const adNo = parseInt(campaignId, 10);
-      const foundCampaign = campaigns.find(c => c.ad_no === adNo);
-      console.log(campaignId);
+      const foundCampaign = campaigns.find(c => c.adNo === adNo);
+
+      getImageByAdNo(adNo).then(imageData => {
+      if (imageData) {
+        setPreviewImage(imageData);
+        setAdImage(imageData);
+      }
+    });
+      
       if (foundCampaign) {
         setFormData({
-          mainImage: foundCampaign.image || null,
           title: foundCampaign.title || "",
-          detailInfo: foundCampaign.content || "",
-          mainGoal: foundCampaign.objective || "",
-          missions: foundCampaign.mission.length ? foundCampaign.mission : [""],
-          keywords: foundCampaign.keyword.length ? foundCampaign.keyword : [""],
-          requirements: foundCampaign.requirement.length ? foundCampaign.requirement : [""],
-          participationInfo: {
-            recruitmentPeriod: {
-              start: foundCampaign.announce_start || null,
-              end: foundCampaign.announce_end || null
-            },
-            participationPeriod: {
-              start: foundCampaign.campaign_start || null,
-              end: foundCampaign.campaign_end || null
-            },
-            selectionDate: foundCampaign.campaign_select || null,
-            recruitmentCount: foundCampaign.totalApplicants || ""
-          },
-          productPage: foundCampaign.campaign_url || ""
+          content: foundCampaign.content || "",
+          objective: foundCampaign.objective || "",
+          mission: foundCampaign.mission?.length ? foundCampaign.mission : [{ content: "" }],
+          keyword: foundCampaign.keyword?.length ? foundCampaign.keyword : [{ content: "" }],
+          requirement: foundCampaign.requirement?.length ? foundCampaign.requirement : [{ content: "" }],
+          announceStart: parseLocalDate(foundCampaign.announceStart),
+          announceEnd: parseLocalDate(foundCampaign.announceEnd),
+          campaignSelect: parseLocalDate(foundCampaign.campaignSelect),
+          campaignStart: parseLocalDate(foundCampaign.campaignStart),
+          campaignEnd: parseLocalDate(foundCampaign.campaignEnd),
+          members: foundCampaign.members || "",
+          adUrl: foundCampaign.adUrl || ""
         });
       }
     }
-  }, [mode, campaignId]);
+  }, [mode, campaignId, campaigns.length]);
 
   const steps = [
     { name: '이미지', icon: '📷' },
@@ -86,24 +167,24 @@ export default function CampaignForm({ mode = "create", campaignId }) {
   ];
 
   const fillAllInfo = (
-    formData.participationInfo.recruitmentPeriod.start &&
-    formData.participationInfo.recruitmentPeriod.end &&
-    formData.participationInfo.participationPeriod.start &&
-    formData.participationInfo.participationPeriod.end &&
-    formData.participationInfo.selectionDate &&
-    formData.participationInfo.recruitmentCount
+    formData.announceStart &&
+    formData.announceEnd &&
+    formData.campaignSelect &&
+    formData.campaignStart &&
+    formData.campaignEnd &&
+    formData.members
   );
 
   const getCompletedSteps = () => {
     return [
-      Boolean(formData.mainImage), // 0: 이미지
+      Boolean(adImage), // 0: 이미지
       Boolean(formData.title), // 1: 제목
-      Boolean(formData.detailInfo), // 2: 상세 정보
-      Boolean(formData.mainGoal), // 3: 주요 목표
-      formData.missions.some(m => m), // 4: 미션
-      formData.keywords.some(k => k), // 5: 키워드
-      formData.requirements.some(r => r), // 6: 필수 요건
-      Boolean(formData.productPage), // 7: 링크
+      Boolean(formData.content), // 2: 상세 정보
+      Boolean(formData.objective), // 3: 주요 목표
+      formData.mission.some(m => m.content), // 4: 미션
+      formData.keyword.some(k => k.content), // 5: 키워드
+      formData.requirement.some(r => r.content), // 6: 필수 요건
+      Boolean(formData.adUrl), // 7: 링크
       Boolean(fillAllInfo) // 8: 참여 정보
     ];
   };
@@ -116,6 +197,7 @@ export default function CampaignForm({ mode = "create", campaignId }) {
   };
 
   const handleSubmit = () => {
+    handleSave();
     if (mode === "edit") {
       alert("캠페인이 정상적으로 수정되었습니다.");
       router.push(`/advertiser/ads-list/${campaignId}`);
@@ -144,7 +226,7 @@ export default function CampaignForm({ mode = "create", campaignId }) {
         />
 
         <form className={styles.form}>
-          <ImageUploadSection formData={formData} setFormData={setFormData} />
+          <ImageUploadSection adImage={adImage} setAdImage={setAdImage} previewImage={previewImage} setPreviewImage={setPreviewImage} />
           <TitleSection formData={formData} handleInputChange={handleInputChange} />
           <DetailInfoSection formData={formData} handleInputChange={handleInputChange} />
           <MainGoalSection formData={formData} handleInputChange={handleInputChange} />

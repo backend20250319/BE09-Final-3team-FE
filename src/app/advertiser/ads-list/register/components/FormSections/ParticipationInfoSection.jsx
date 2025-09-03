@@ -3,34 +3,23 @@ import styles from "../../styles/FormSections/ParticipationInfoSection.module.cs
 import "react-datepicker/dist/react-datepicker.css";
 
 export default function ParticipationInfoSection({ formData, setFormData }) {
-  const handleDateChange = (field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      participationInfo: {
-        ...prev.participationInfo,
-        [field]: value,
-      },
-    }));
-  };
-
-  const handlePeriodChange = (field, type, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      participationInfo: {
-        ...prev.participationInfo,
-        [field]: {
-          ...prev.participationInfo[field],
-          [type]: value,
-        },
-      },
-    }));
-  };
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
+  };
+
+  // DatePicker에서 사용할 날짜 변환 함수
+  const handleDateChange = (field, date) => {
+    if (date) {
+      // 선택된 날짜를 로컬 시간 기준으로 설정 (시간은 00:00:00으로)
+      const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      handleInputChange(field, localDate);
+    } else {
+      handleInputChange(field, null);
+    }
   };
 
   return (
@@ -44,20 +33,16 @@ export default function ParticipationInfoSection({ formData, setFormData }) {
           <label className={styles.dateLabel}>체험단 모집 기간</label>
           <div className={`${styles.dateInputs} ${styles.datePickerContainer}`}>
             <DatePicker
-              selected={formData.participationInfo.recruitmentPeriod.start}
-              onChange={(date) =>
-                handlePeriodChange("recruitmentPeriod", "start", date)
-              }
+              selected={formData.announceStart}
+              onChange={(date) => handleDateChange("announceStart", date)}
               dateFormat="yyyy-MM-dd"
               placeholderText="시작일"
               className={styles.datePicker}
             />
             <span>~</span>
             <DatePicker
-              selected={formData.participationInfo.recruitmentPeriod.end}
-              onChange={(date) =>
-                handlePeriodChange("recruitmentPeriod", "end", date)
-              }
+              selected={formData.announceEnd}
+              onChange={(date) => handleDateChange("announceEnd", date)}
               dateFormat="yyyy-MM-dd"
               placeholderText="종료일"
               className={styles.datePicker}
@@ -69,20 +54,16 @@ export default function ParticipationInfoSection({ formData, setFormData }) {
           <label className={styles.dateLabel}>체험단 참여 기간</label>
           <div className={`${styles.dateInputs} ${styles.datePickerContainer}`}>
             <DatePicker
-              selected={formData.participationInfo.participationPeriod.start}
-              onChange={(date) =>
-                handlePeriodChange("participationPeriod", "start", date)
-              }
+              selected={formData.campaignStart}
+              onChange={(date) => handleDateChange("campaignStart", date)}
               dateFormat="yyyy-MM-dd"
               placeholderText="시작일"
               className={styles.datePicker}
             />
             <span>~</span>
             <DatePicker
-              selected={formData.participationInfo.participationPeriod.end}
-              onChange={(date) =>
-                handlePeriodChange("participationPeriod", "end", date)
-              }
+              selected={formData.campaignEnd}
+              onChange={(date) => handleDateChange("campaignEnd", date)}
               dateFormat="yyyy-MM-dd"
               placeholderText="종료일"
               className={styles.datePicker}
@@ -94,10 +75,10 @@ export default function ParticipationInfoSection({ formData, setFormData }) {
           <label className={styles.dateLabel}>체험단 선정일</label>
           <div className={styles.datePickerContainer}>
             <DatePicker
-              selected={formData.participationInfo.selectionDate}
-              onChange={(date) => handleDateChange("selectionDate", date)}
+              selected={formData.campaignSelect}
+              onChange={(date) => handleDateChange("campaignSelect", date)}
               dateFormat="yyyy-MM-dd"
-              placeholderText="체험단 선정일을 입력해주세요"
+              placeholderText="체험단 선정일"
               className={styles.datePicker}
             />
           </div>
@@ -107,13 +88,8 @@ export default function ParticipationInfoSection({ formData, setFormData }) {
           <label className={styles.dateLabel}>체험단 모집 인원</label>
           <input
             type="number"
-            value={formData.participationInfo.recruitmentCount}
-            onChange={(e) =>
-              handleInputChange("participationInfo", {
-                ...formData.participationInfo,
-                recruitmentCount: e.target.value,
-              })
-            }
+            value={formData.members}
+            onChange={(e) => handleInputChange("members", e.target.value)}
             placeholder="모집 인원을 입력해주세요"
             className={styles.input}
           />

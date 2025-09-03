@@ -7,8 +7,8 @@
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   z-index: 1000;
   padding: 20px;
 }
@@ -113,8 +113,8 @@
   margin-bottom: 0;
 }
 
-/* Campaign Info */
-.campaignInfo {
+/* Form Elements */
+.formGroup {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -135,14 +135,6 @@
   color: #EF4444;
   font-size: 14px;
   font-weight: 400;
-}
-
-.campaignName {
-  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 2;
-  color: #000000;
 }
 
 /* Input Group */
@@ -193,6 +185,49 @@
   color: #6B7280;
 }
 
+/* Select and Input Styles */
+.select,
+.input {
+  width: 100%;
+  height: 50px;
+  padding: 15.5px 13px;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  background: #FFFFFF;
+  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.19;
+  color: #000000;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.select {
+  cursor: pointer;
+}
+
+.select:focus,
+.input:focus {
+  border-color: #8BC34A;
+}
+
+.select::placeholder,
+.input::placeholder {
+  color: #ADAEBC;
+}
+
+/* Error Message */
+.errorMessage {
+  color: #EF4444;
+  font-size: 14px;
+  padding: 8px 12px;
+  background-color: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 8px;
+  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
 /* Action Buttons */
 .modalActions {
   background: #FFFFFF;
@@ -201,7 +236,7 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin: 0 -32px -32px -32px;
+  margin: 0;
 }
 
 .cancelButton {
@@ -265,7 +300,7 @@
   
   .modalActions {
     padding: 20px 24px;
-    margin: 0 -24px -24px -24px;
+    margin: 0;
   }
   
   .headerContent {

@@ -1,25 +1,47 @@
-"use client"
+"use client";
 
-import React, { useState } from 'react';
-import Image from 'next/image';
-import styles from '../styles/ReportModal.module.css';
+import React, { useState } from "react";
+import Image from "next/image";
+import { reportUser } from "@/api/userApi";
+import styles from "../styles/ReportModal.module.css";
 
-export default function ReportModal({ isOpen, onClose, applicantName }) {
-  const [reportReason, setReportReason] = useState('');
+export default function ReportModal({
+  isOpen,
+  onClose,
+  applicantName,
+  onReportSuccess,
+}) {
+  const [reportReason, setReportReason] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = () => {
-    // 신고 제출 로직
-    console.log('신고 사유:', reportReason);
-    console.log('신고 대상:', applicantName);
-    onClose();
-    setReportReason('');
+  const handleSubmit = async () => {
+    if (!reportReason.trim()) return;
+
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        reason: reportReason.trim(),
+        targetName: applicantName,
+      };
+
+      await reportUser(payload);
+
+      alert("신고가 접수되었습니다.");
+      onReportSuccess?.();
+      handleCancel();
+    } catch (error) {
+      console.error("신고 제출 실패:", error);
+      alert(error?.response?.data?.message || "신고 제출에 실패했습니다.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
     onClose();
-    setReportReason('');
+    setReportReason("");
   };
 
   return (
@@ -39,7 +61,9 @@ export default function ReportModal({ isOpen, onClose, applicantName }) {
               </div>
               <div className={styles.headerText}>
                 <h3 className={styles.reportTitle}>신고하기</h3>
-                <p className={styles.reportSubtitle}>해당 유저를 신고하시겠습니까?</p>
+                <p className={styles.reportSubtitle}>
+                  {applicantName}님을 신고하시겠습니까?
+                </p>
               </div>
             </div>
             <button className={styles.closeButton} onClick={onClose}>
@@ -66,10 +90,11 @@ export default function ReportModal({ isOpen, onClose, applicantName }) {
             <div className={styles.textareaContainer}>
               <textarea
                 className={styles.reportTextarea}
-                placeholder="신고 사유를 입력하세요"
+                placeholder="신고 사유를 구체적으로 입력해주세요"
                 value={reportReason}
                 onChange={(e) => setReportReason(e.target.value)}
                 rows={6}
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -78,22 +103,32 @@ export default function ReportModal({ isOpen, onClose, applicantName }) {
         {/* Footer Section */}
         <div className={styles.footerSection}>
           <div className={styles.buttonContainer}>
-            <button className={styles.cancelButton} onClick={handleCancel}>
+            <button
+              className={styles.cancelButton}
+              onClick={handleCancel}
+              disabled={isSubmitting}
+            >
               취소
             </button>
-            <button 
-              className={styles.submitButton} 
+            <button
+              className={styles.submitButton}
               onClick={handleSubmit}
-              disabled={!reportReason.trim()}
+              disabled={!reportReason.trim() || isSubmitting}
             >
-              <Image
-                src="/icons/report-icon.svg"
-                alt="Report"
-                width={24}
-                height={24}
-                className={styles.reportIcon}
-              />
-              신고하기
+              {isSubmitting ? (
+                "신고 중..."
+              ) : (
+                <>
+                  <Image
+                    src="/icons/report-icon.svg"
+                    alt="Report"
+                    width={24}
+                    height={24}
+                    className={styles.reportIcon}
+                  />
+                  신고하기
+                </>
+              )}
             </button>
           </div>
         </div>

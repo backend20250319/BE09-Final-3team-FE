@@ -31,4 +31,16 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// 관리자 로그아웃 API
+export const adminLogout = async (refreshToken) => {
+  try {
+    const response = await api.post("/user-service/admin/users/logout", {
+      refreshToken: refreshToken,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export default api;

@@ -9,26 +9,18 @@ import {
   FiX,
   FiCamera,
 } from "react-icons/fi";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import styles from "../styles/ProfilePage.module.css";
+import { getAdvertiser, updateAdvertiser, getFileByAdvertiserNo, updateFile } from "@/api/advertiserApi";
+import { useImage } from "../../context/ImageContext";
 
 const ProfileCard = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [companyData, setCompanyData] = useState({
-    name: "PawsomeNutrition",
-    description:
-`PawsomeNutrition은 전 세계 반려동물에게 최고의 영양과 건강을 선사하기 위해 끊임없이 연구하고 노력하는 유기농 반려동물 사료 전문 기업입니다.
-엄선된 유기농 원료만을 사용하여 안전하고 균형 잡힌 영양을 제공하며, 합성 첨가물과 인공 색소를 배제해 반려동물이 자연 그대로의 맛과 영양을 누릴 수 있도록 합니다.
-또한 지속 가능한 생산과 친환경 포장을 통해 지구와 환경까지 생각하는 착한 기업으로, 반려동물과 보호자가 함께하는 모든 순간이 더 행복하고 건강할 수 있도록 최선을 다하고 있습니다.`,
-    phone: "02-123-4567",
-    email: "contact@pawsomenutrition.com",
-    website: "www.pawsomenutrition.com",
-    profileImage: "/campaign/brand-1.jpg",
-  });
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [companyData, setCompanyData] = useState(null);
+  const { refreshImage } = useImage();
 
-  const [editData, setEditData] = useState(companyData);
-  const [previewImage, setPreviewImage] = useState(null);
-  const fileInputRef = useRef(null);
+  const DEFAULT_IMAGE_URL = `http://dev.macacolabs.site:8008/3/advertiser/images/default_brand.png`;
 
   // 전화번호 분할 상태
   const splitPhone = (phone) => {
@@ -36,28 +28,92 @@ const ProfileCard = () => {
     const nums = (phone || "").replace(/\D/g, "");
     return [nums.slice(0, 3), nums.slice(3, 7), nums.slice(7, 11)];
   };
-  const [phoneFields, setPhoneFields] = useState(splitPhone(companyData.phone));
+
+  const [editData, setEditData] = useState(companyData);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [isLoadingImage, setIsLoadingImage] = useState(true);
+  const [phoneFields, setPhoneFields] = useState(["", "", ""]);
+  const [isSaved, setIsSaved] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const loadProfileImage = async () => {
+    try {
+      setIsLoadingImage(true);
+      const fileData = await getFileByAdvertiserNo();
+
+      if (fileData && fileData[0]?.filePath && fileData[0].filePath.trim() !== "") {
+        setPreviewImage(fileData[0].filePath);
+      } else {
+        setPreviewImage(DEFAULT_IMAGE_URL);
+      }
+    } catch (error) {
+      console.error("Failed to load profile image:", error);
+      setPreviewImage(DEFAULT_IMAGE_URL);
+    } finally {
+      setIsLoadingImage(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getAdvertiser();
+        setCompanyData(data);
+        setEditData(data);
+        setPhoneFields(splitPhone(data?.phone));
+      } catch (error) {
+        console.error("Failed to get advertiser profile:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    loadProfileImage();
+  }, [])
 
   const handleEdit = () => {
     setEditData(companyData);
-    setPreviewImage(null);
     setIsEditing(true);
     setPhoneFields(splitPhone(companyData.phone));
+    setUploadedFile(null);
   };
 
-  const handleSave = () => {
-    // 전화번호 합치기
+  const handleSave = async () => {
+  try {
     const phone = phoneFields.join("-");
-    setCompanyData({ ...editData, phone });
-    setPreviewImage(null);
+    const updatedData = { ...editData, phone };
+    const savedData = await updateAdvertiser(updatedData);
+
+    if (uploadedFile) {
+      try {
+        await updateFile(null, uploadedFile, null);
+      } catch (imageError) {
+        console.error("Failed to upload image:", imageError);
+      }
+    }
+
+    // 서버 응답 데이터로 상태 업데이트
+    setCompanyData(savedData);
+    setEditData(savedData);
     setIsEditing(false);
-  };
+    setIsSaved(true);
+    setUploadedFile(null);
+
+    await loadProfileImage();
+
+    refreshImage();
+  } catch (error) {
+    console.error("Failed to update advertiser profile:", error);
+  }
+}
 
   const handleCancel = () => {
-    setEditData(companyData);
-    setPreviewImage(null);
+    setIsSaved(false);
     setIsEditing(false);
-    setPhoneFields(splitPhone(companyData.phone));
+    setUploadedFile(null);
+    loadProfileImage();
   };
 
   const handleInputChange = (field, value) => {
@@ -74,26 +130,15 @@ const ProfileCard = () => {
     setPhoneFields((prev) => prev.map((p, i) => (i === idx ? v : p)));
   };
 
-  const handleImageUpload = (event) => {
+  const handleImageUpload = async (event) => {
     const file = event.target.files[0];
     if (file) {
-      // 파일 크기 체크 (5MB 제한)
-      if (file.size > 5 * 1024 * 1024) {
-        alert("파일 크기는 5MB 이하로 선택해주세요.");
-        return;
-      }
-
-      // 이미지 파일 타입 체크
-      if (!file.type.startsWith("image/")) {
-        alert("이미지 파일만 업로드 가능합니다.");
-        return;
-      }
+      setUploadedFile(file);
 
       const reader = new FileReader();
       reader.onload = (e) => {
         const imageUrl = e.target.result;
         setPreviewImage(imageUrl);
-        handleInputChange("profileImage", imageUrl);
       };
       reader.readAsDataURL(file);
     }
@@ -104,6 +149,19 @@ const ProfileCard = () => {
       fileInputRef.current.click();
     }
   };
+
+  // 로딩 상태 처리
+  if (!companyData) {
+    return (
+      <div className={styles.profileCard}>
+        <div className={styles.cardContent}>
+          <div className={styles.loadingContainer}>
+            <p></p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.profileCard}>
@@ -116,11 +174,18 @@ const ProfileCard = () => {
               }`}
               onClick={handleImageClick}
             >
-              <img
-                src={previewImage || companyData.profileImage}
-                alt="Company Profile"
-                className={styles.profileImage}
-              />
+              {isLoadingImage ? (
+                <div></div>
+              ) : (
+                <>
+                  <img
+                    src={previewImage || DEFAULT_IMAGE_URL}
+                    alt="Advertiser"
+                    className={styles.avatar}
+                  />
+                  <div className={styles.userName}>{companyData?.name}</div>
+                </>
+              )}
               {isEditing && (
                 <div className={styles.imageOverlay}>
                   <FiCamera className={styles.cameraIcon} />
@@ -143,7 +208,7 @@ const ProfileCard = () => {
               {isEditing ? (
                 <input
                   type="text"
-                  value={editData.name}
+                  value={editData?.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
                   className={styles.editInput}
                 />
@@ -156,15 +221,18 @@ const ProfileCard = () => {
               <label className={styles.label}>기업 소개</label>
               {isEditing ? (
                 <textarea
-                  value={editData.description}
+                  value={editData?.description || ""}
                   onChange={(e) =>
                     handleInputChange("description", e.target.value)
                   }
                   className={styles.editTextarea}
                   rows="4"
+                  placeholder="기업 소개를 입력해주세요"
                 />
               ) : (
-                <p className={styles.description}>{companyData.description}</p>
+                <p className={styles.description}>
+                  {companyData?.description || <span style={{ color: "#888" }}>기입된 기업 소개가 없습니다</span>}
+                </p>
               )}
             </div>
 
@@ -210,7 +278,7 @@ const ProfileCard = () => {
                     </>
                   ) : (
                     <span className={styles.contactText}>
-                      {companyData.phone}
+                      {companyData?.phone}
                     </span>
                   )}
                 </div>
@@ -223,16 +291,17 @@ const ProfileCard = () => {
                   {isEditing ? (
                     <input
                       type="url"
-                      value={editData.website}
+                      value={editData?.website || ""}
                       onChange={(e) =>
                         handleInputChange("website", e.target.value)
                       }
                       className={styles.editContactInput}
+                      placeholder="웹사이트를 입력해주세요"
                     />
                   ) : (
-                    <span className={styles.contactText}>
-                      {companyData.website}
-                    </span>
+                    <p className={styles.contactText}>
+                      {companyData?.website || <span style={{ color: "#888" }}>기입된 웹사이트가 없습니다</span>}
+                    </p>
                   )}
                 </div>
               </div>
@@ -246,16 +315,17 @@ const ProfileCard = () => {
                   {isEditing ? (
                     <input
                       type="email"
-                      value={editData.email}
+                      value={editData?.email || ""}
                       onChange={(e) =>
                         handleInputChange("email", e.target.value)
                       }
                       className={styles.editContactInput}
+                      placeholder="이메일을 입력해주세요"
                     />
                   ) : (
-                    <span className={styles.contactText}>
-                      {companyData.email}
-                    </span>
+                    <p className={styles.contactText}>
+                      {companyData?.email || <span style={{ color: "#888" }}>기입된 이메일이 없습니다</span>}
+                    </p>
                   )}
                 </div>
               </div>

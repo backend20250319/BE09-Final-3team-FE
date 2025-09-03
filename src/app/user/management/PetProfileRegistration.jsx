@@ -26,19 +26,26 @@ const PetProfileRegistration = ({
 
   const [selectedImage, setSelectedImage] = useState(null);
   const fileInputRef = useRef(null);
+  const [showFileTypeModal, setShowFileTypeModal] = useState(false);
+  const [fileTypeMessage, setFileTypeMessage] = useState("");
 
   // 수정 모드일 때 기존 데이터를 폼에 불러오기
   useEffect(() => {
     if (isEditMode && petData) {
-      setFormData({
+      console.log("수정 모드 - 기존 펫 데이터:", petData);
+      const updatedFormData = {
         name: petData.name || "",
         type: petData.type || "",
         age: petData.age || "",
         gender: petData.gender || "",
         weight: petData.weight || "",
         imageUrl: petData.imageUrl || "",
-        snsUrl: petData.snsUrl || "",
-      });
+        snsUrl: petData.snsUrl && petData.snsUrl !== null ? petData.snsUrl : "",
+      };
+      setFormData(updatedFormData);
+      console.log("설정된 formData.snsUrl:", petData.snsUrl);
+      console.log("설정된 전체 formData:", updatedFormData);
+      console.log("snsUrl 처리 결과:", updatedFormData.snsUrl);
       // 기존 이미지가 있으면 표시
       if (petData.imageUrl && petData.imageUrl.trim() !== "") {
         setSelectedImage(petData.imageUrl);
@@ -90,36 +97,51 @@ const PetProfileRegistration = ({
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
-    if (file) {
-      // 파일 크기 검증 (5MB 제한)
-      if (file.size > 5 * 1024 * 1024) {
-        if (onSuccessMessage) {
-          onSuccessMessage("파일 크기는 5MB 이하여야 합니다.");
-        }
-        return;
-      }
+    if (!file) return;
 
-      // 파일 타입 검증
-      if (!file.type.startsWith("image/")) {
-        if (onSuccessMessage) {
-          onSuccessMessage("이미지 파일만 업로드 가능합니다.");
-        }
-        return;
-      }
+    // 지원하는 이미지 파일 확장자
+    const supportedExtensions = ["jpg", "jpeg", "png"];
 
-      // 미리보기용으로 설정
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setSelectedImage(e.target.result);
-      };
-      reader.readAsDataURL(file);
-
-      // 파일을 formData에 저장 (나중에 업로드용)
-      setFormData((prev) => ({
-        ...prev,
-        imageFile: file,
-      }));
+    // 파일 확장자 검증
+    const extension = file.name.split(".").pop().toLowerCase();
+    if (!supportedExtensions.includes(extension)) {
+      setFileTypeMessage(
+        `지원하지 않는 파일확장자입니다.\n(지원하는 파일확장자: ${supportedExtensions.join(
+          ", "
+        )})`
+      );
+      setShowFileTypeModal(true);
+      return;
     }
+
+    // 파일 크기 검증 (5MB 제한)
+    if (file.size > 5 * 1024 * 1024) {
+      if (onSuccessMessage) {
+        onSuccessMessage("파일 크기는 5MB 이하여야 합니다.");
+      }
+      return;
+    }
+
+    // 파일 타입 검증
+    if (!file.type.startsWith("image/")) {
+      if (onSuccessMessage) {
+        onSuccessMessage("이미지 파일만 업로드 가능합니다.");
+      }
+      return;
+    }
+
+    // 미리보기용으로 설정
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setSelectedImage(e.target.result);
+    };
+    reader.readAsDataURL(file);
+
+    // 파일을 formData에 저장 (나중에 업로드용)
+    setFormData((prev) => ({
+      ...prev,
+      imageFile: file,
+    }));
   };
 
   const handleSubmit = async () => {
@@ -148,14 +170,27 @@ const PetProfileRegistration = ({
         gender: formData.gender,
         weight: parseFloat(formData.weight),
         imageUrl: formData.imageUrl || null,
-        snsProfileNo: formData.snsUrl ? 1 : null,
+        snsUrl:
+          formData.snsUrl && formData.snsUrl !== null ? formData.snsUrl : "",
       };
 
       console.log("전송할 데이터:", requestData);
+      console.log("수정 모드 여부:", isEditMode);
+      console.log("기존 펫 데이터:", petData);
+      console.log("현재 formData.snsUrl:", formData.snsUrl);
+      console.log("formData.snsUrl 타입:", typeof formData.snsUrl);
+      console.log("formData.snsUrl === null:", formData.snsUrl === null);
+      console.log(
+        "API 엔드포인트:",
+        isEditMode
+          ? `${PET_API_BASE}/pets/${petData.petNo}`
+          : `${PET_API_BASE}/pets`
+      );
 
       let petResponse;
       if (isEditMode && petData) {
         // 수정
+        console.log("PUT 요청 시작 - 펫 번호:", petData.petNo);
         petResponse = await axios.put(
           `${PET_API_BASE}/pets/${petData.petNo}`,
           requestData,
@@ -167,6 +202,7 @@ const PetProfileRegistration = ({
             },
           }
         );
+        console.log("PUT 요청 응답:", petResponse.data);
       } else {
         // 등록
         petResponse = await axios.post(`${PET_API_BASE}/pets`, requestData, {
@@ -214,6 +250,22 @@ const PetProfileRegistration = ({
           // 이미지 업로드 실패해도 반려동물 등록은 성공했으므로 계속 진행
         }
       }
+
+      // 성공 로그 출력
+      console.log(
+        isEditMode ? "펫 프로필 수정 성공!" : "펫 프로필 등록 성공!",
+        {
+          petNo: petResponse.data.data.petNo,
+          name: formData.name,
+          type: formData.type,
+          age: formData.age,
+          gender: formData.gender,
+          weight: formData.weight,
+          imageUrl: formData.imageUrl,
+          snsUrl: formData.snsUrl,
+          response: petResponse.data,
+        }
+      );
 
       // 성공 메시지 표시
       if (onSuccessMessage) {
@@ -385,19 +437,38 @@ const PetProfileRegistration = ({
 
             {/* SNS URL Field */}
             <div className={styles.formGroup}>
+              <label className={styles.label}>SNS URL</label>
               <div className={styles.snsContainer}>
                 <img
                   src="/user/instagram.svg"
                   alt="SNS"
                   className={styles.snsIcon}
                 />
-                <input
-                  type="text"
-                  value={formData.snsUrl}
-                  onChange={(e) => handleInputChange("snsUrl", e.target.value)}
-                  className={styles.input}
-                  placeholder="SNS URL을 입력해주세요"
-                />
+                <div className={styles.snsUrlInputContainer}>
+                  <span className={styles.snsUrlPrefix}>
+                    www.instagram.com/
+                  </span>
+                  <input
+                    type="text"
+                    value={
+                      formData.snsUrl &&
+                      formData.snsUrl !== null &&
+                      formData.snsUrl !== "" &&
+                      formData.snsUrl.includes("www.instagram.com/")
+                        ? formData.snsUrl.replace("www.instagram.com/", "")
+                        : ""
+                    }
+                    onChange={(e) => {
+                      const username = e.target.value;
+                      const fullUrl = username
+                        ? `www.instagram.com/${username}`
+                        : "";
+                      handleInputChange("snsUrl", fullUrl);
+                    }}
+                    className={styles.snsUrlInput}
+                    placeholder="사용자명"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -415,6 +486,34 @@ const PetProfileRegistration = ({
           </button>
         </div>
       </div>
+
+      {/* 파일 타입 검증 모달 */}
+      {showFileTypeModal && (
+        <div className={styles.fileTypeModalOverlay}>
+          <div
+            className={styles.fileTypeModalContainer}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.fileTypeModalContent}>
+              <div className={styles.fileTypeWarningIcon}>
+                <span>⚠️</span>
+              </div>
+              <h3 className={styles.fileTypeModalTitle}>
+                지원하지 않는 파일 형식
+              </h3>
+              <p className={styles.fileTypeModalMessage}>{fileTypeMessage}</p>
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <button
+                onClick={() => setShowFileTypeModal(false)}
+                className={styles.fileTypeModalButton}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

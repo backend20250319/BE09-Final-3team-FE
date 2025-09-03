@@ -90,15 +90,42 @@ export default function PetFulLogin() {
           localStorage.setItem("advertiserToken", token);
           localStorage.setItem("advertiserEmail", email);
 
-          // 헤더 상태 업데이트를 위한 커스텀 이벤트 발생
-          window.dispatchEvent(new Event("loginStatusChanged"));
+          console.log("data 전체:", data);
+          console.log("data.data 전체:", data.data);
 
-          // 로그인 성공 모달 표시
-          setModal({
-            isOpen: true,
-            message: "로그인에 성공했습니다!",
-            isSuccess: true,
-          });
+          // 사용자 타입 확인하여 Admin인 경우 관리자 페이지로 리다이렉트
+          // 여러 가능한 위치에서 userType 확인
+          const userType =
+            (data.data && data.data.userType) ||
+            (data.data && data.data.role) ||
+            (data.data && data.data.user_type) ||
+            (data.data && data.data.type) ||
+            data.userType ||
+            data.role ||
+            data.user_type ||
+            data.type;
+
+          console.log("확인된 userType:", userType);
+
+          if (
+            userType === "Admin" ||
+            userType === "ADMIN" ||
+            userType === "admin"
+          ) {
+            console.log("관리자 로그인, 관리자 페이지로 이동");
+            window.location.href = "/admin";
+          } else {
+            // 일반 광고주인 경우 기존 로직 실행
+            // 헤더 상태 업데이트를 위한 커스텀 이벤트 발생
+            window.dispatchEvent(new Event("loginStatusChanged"));
+
+            // 로그인 성공 모달 표시
+            setModal({
+              isOpen: true,
+              message: "로그인에 성공했습니다!",
+              isSuccess: true,
+            });
+          }
         } else {
           console.error("토큰을 찾을 수 없습니다. 응답 구조:", data);
           setError("로그인 응답에 토큰이 없습니다.");

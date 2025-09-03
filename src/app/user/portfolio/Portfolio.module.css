@@ -178,7 +178,7 @@
 /* 활동이력 카드 섹션 */
 .activitySection {
   width: 1000px;
-  height: 500px;
+  height: auto;
   background: #ffffff;
   border: 1px solid #f3f4f6;
   border-radius: 12px;
@@ -196,7 +196,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  height: 400px;
+  height: auto;
   margin-top: 20px;
 }
 
@@ -227,10 +227,12 @@
 
 .activityCardsContainer {
   flex: 1;
-  height: 400px;
+  height: auto;
+  overflow-y: visible; /* 세로 자르지 않음 */
   overflow-x: auto;
-  overflow-y: hidden;
   position: relative;
+  padding: 0 12px; /* ← 좌우 여백 추가 */
+
   cursor: grab;
   scrollbar-width: thin;
   scrollbar-color: #c1c1c1 #f1f1f1;
@@ -269,21 +271,23 @@
 
 .activityCard {
   width: 350px;
-  height: 480px;
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  overflow: hidden;
   box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-sizing: border-box;
+  overflow: hidden;
+  height: auto;
 }
 
 .activityCard:hover {
   transform: translateY(-2px);
-  box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 0 2px #8bc34a, 0 4px 8px rgba(0, 0, 0, 0.1);
   border-color: #8bc34a;
+  border-color: transparent;
 }
 
 .cardImage {
@@ -294,6 +298,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  overflow: hidden;
 }
 
 .imagePlaceholder {
@@ -303,6 +310,11 @@
   width: 100%;
   height: 100%;
   background: #f3f4f6;
+}
+
+.cardImage img {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
 }
 
 .progressBadge {
@@ -320,10 +332,15 @@
 
 .cardContent {
   padding: 16px;
-  height: 300px;
+  height: auto;
   display: flex;
   flex-direction: column;
-  overflow: visible;
+  background: #ffffff;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
 }
 
 .cardHeader {
@@ -375,19 +392,31 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  flex: 1;
-  overflow: visible;
+  flex: 0 0 auto;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  background: #ffffff;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .formRow {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   flex: 1;
+  margin-bottom: 8px;
 }
 
 .formRow:last-child {
   flex: 3;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.formRow:last-child .readOnlyText {
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
 
 .formRow label {
@@ -454,7 +483,7 @@
 }
 
 .readOnlyText {
-  padding: 6px 10px;
+  padding: 4px 8px;
   background: #f9fafb;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -463,7 +492,7 @@
   font-weight: 400;
   color: #374151;
   line-height: 1.4;
-  min-height: 32px;
+  min-height: 24px;
   display: block;
   word-wrap: break-word;
   overflow-wrap: break-word;

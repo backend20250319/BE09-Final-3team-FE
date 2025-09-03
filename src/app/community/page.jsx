@@ -25,46 +25,46 @@ export default function NoticePage() {
   // 서버 응답을 기준으로 totalPages 설정 (백업 계산도 PAGE_SIZE 사용)
   const handleLoaded = (data) => {
     const tp =
-        typeof data?.totalPages === "number"
-            ? data.totalPages
-            : typeof data?.totalElements === "number"
-                ? Math.ceil(data.totalElements / PAGE_SIZE)
-                : 0;
+      typeof data?.totalPages === "number"
+        ? data.totalPages
+        : typeof data?.totalElements === "number"
+        ? Math.ceil(data.totalElements / PAGE_SIZE)
+        : 0;
     setTotalPages(tp);
   };
 
   return (
-      <div className={styles.container}>
-        <main className={styles.main}>
-          <section className={styles.content}>
-            <NoticeHeader
-                activeTab={activeTab}
-                onChangeType={setActiveTab}
-                mineOnly={mineOnly}
-                onToggleMine={() => setMineOnly((v) => !v)}
+    <div className={styles.container}>
+      <main className={styles.main}>
+        <section className={styles.content}>
+          <NoticeHeader
+            activeTab={activeTab}
+            onChangeType={setActiveTab}
+            mineOnly={mineOnly}
+            onToggleMine={() => setMineOnly((v) => !v)}
+          />
+
+          <div className={styles.listContainer}>
+            {/* 탭/내글 토글이 바뀔 때 리스트를 remount해서 이전 요청 잔상 방지 */}
+            <NoticeList
+              key={`${activeTab}-${mineOnly}`}
+              activeTab={activeTab}
+              mineOnly={mineOnly}
+              page={page}
+              size={PAGE_SIZE}
+              onLoaded={handleLoaded}
             />
+          </div>
 
-            <div className={styles.listContainer}>
-              {/* 탭/내글 토글이 바뀔 때 리스트를 remount해서 이전 요청 잔상 방지 */}
-              <NoticeList
-                  key={`${activeTab}-${mineOnly}`}
-                  activeTab={activeTab}
-                  mineOnly={mineOnly}
-                  page={page}
-                  size={PAGE_SIZE}
-                  onLoaded={handleLoaded}
-              />
-            </div>
-
-            <div className={styles.paginationContainer}>
-              <Pagination
-                  page={page}
-                  onChange={setPage}
-                  totalPages={totalPages}
-              />
-            </div>
-          </section>
-        </main>
-      </div>
+          <div className={styles.paginationContainer}>
+            <Pagination
+              page={page}
+              onChange={setPage}
+              totalPages={totalPages}
+            />
+          </div>
+        </section>
+      </main>
+    </div>
   );
 }

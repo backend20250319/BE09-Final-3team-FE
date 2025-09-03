@@ -38,6 +38,15 @@ const PetProfile = () => {
         },
       });
 
+      console.log("API 응답 전체:", response.data);
+      console.log("반려동물 데이터 배열:", response.data.data);
+      if (response.data.data && response.data.data.length > 0) {
+        response.data.data.forEach((pet, index) => {
+          console.log(`반려동물 ${index + 1} 전체 데이터:`, pet);
+          console.log(`반려동물 ${index + 1} snsUrl 필드:`, pet.snsUrl);
+          console.log(`반려동물 ${index + 1} snsUrl 타입:`, typeof pet.snsUrl);
+        });
+      }
       setPets(response.data.data || []);
     } catch (error) {
       console.error("반려동물 목록 조회 실패:", error);
@@ -153,9 +162,6 @@ const PetProfile = () => {
   };
 
   const hasPets = pets.length > 0;
-  console.log("pets:", pets);
-  console.log("hasPets:", hasPets);
-
   const handleEditPet = (pet) => {
     setSelectedPet(pet);
     setIsModalOpen(true);
@@ -196,7 +202,9 @@ const PetProfile = () => {
             </p>
             <button
               className={styles.createButton}
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => {
+                setIsModalOpen(true);
+              }}
             >
               첫 번째 프로필 만들기
             </button>
@@ -228,114 +236,151 @@ const PetProfile = () => {
               </div>
 
               <div className={styles.petGrid}>
-                {pets.map((pet) => (
-                  <div key={pet.petNo} className={styles.petCard}>
-                    <div className={styles.petImageContainer}>
-                      <Link href={`/user/portfolio?petId=${pet.petNo}`}>
-                        <div className={styles.petImage}>
-                          <Image
-                            src={
-                              pet.imageUrl && pet.imageUrl.trim() !== ""
-                                ? pet.imageUrl
-                                : "/user/dog.png"
-                            }
-                            alt={pet.name}
-                            width={409}
-                            height={192}
-                            className={styles.petImage}
-                            unoptimized
-                            onError={(e) => {
-                              console.log(
-                                "이미지 로드 실패, 기본 이미지로 대체:",
-                                pet.imageUrl
-                              );
-                              e.target.src = "/user/dog.png";
-                            }}
-                          />
-                        </div>
-                      </Link>
-                    </div>
-
-                    <div className={styles.petInfo}>
-                      <div className={styles.petHeader}>
-                        <div className={styles.petNameBreedRow}>
-                          <span className={styles.petName}>{pet.name}</span>
-                          <span className={styles.breedText}>({pet.type})</span>
-                          {pet.isPetStar && (
+                {pets.map((pet) => {
+                  console.log(`반려동물 ${pet.name} 데이터:`, pet);
+                  console.log(`반려동물 ${pet.name} snsUrl:`, pet.snsUrl);
+                  return (
+                    <div key={pet.petNo} className={styles.petCard}>
+                      <div className={styles.petImageContainer}>
+                        <Link href={`/user/portfolio?petId=${pet.petNo}`}>
+                          <div className={styles.petImage}>
                             <Image
-                              src="/user/medal.svg"
-                              alt="PetStar"
-                              width={20}
-                              height={18}
-                              className={styles.petStarBadge}
+                              src={
+                                pet.imageUrl && pet.imageUrl.trim() !== ""
+                                  ? pet.imageUrl
+                                  : "/user/dog.png"
+                              }
+                              alt={pet.name}
+                              width={409}
+                              height={192}
+                              className={styles.petImage}
+                              unoptimized
+                              onError={(e) => {
+                                e.target.src = "/user/dog.png";
+                              }}
                             />
-                          )}
+                          </div>
+                        </Link>
+                      </div>
+
+                      <div className={styles.petInfo}>
+                        <div className={styles.petHeader}>
+                          <div className={styles.petNameBreedRow}>
+                            <div className={styles.petNameSection}>
+                              <span className={styles.petName}>{pet.name}</span>
+                              <span className={styles.breedText}>
+                                ({pet.type})
+                              </span>
+                              {pet.isPetStar && (
+                                <Image
+                                  src="/user/medal.svg"
+                                  alt="PetStar"
+                                  width={20}
+                                  height={18}
+                                  className={styles.petStarBadge}
+                                />
+                              )}
+                            </div>
+                            <div className={styles.petRightSection}>
+                              <span className={styles.ageText}>
+                                {pet.age}살
+                              </span>
+                            </div>
+                          </div>
+                          <div className={styles.petMetaRow}></div>
                         </div>
-                        <div className={styles.petMetaRow}></div>
-                      </div>
-                      <div className={styles.ageText}>{pet.age}살</div>
-                      <div className={styles.genderText}>
-                        {pet.gender === "M"
-                          ? "수컷"
-                          : pet.gender === "F"
-                          ? "암컷"
-                          : pet.gender}
-                      </div>
-                      <div className={styles.petDescription}>
-                        {pet.description}
-                      </div>
-                      <div className={styles.petFooter}>
-                        <div className={styles.petActions}>
-                          {!pet.isPetStar && (
+                        <div className={styles.genderText}>
+                          {pet.gender === "M"
+                            ? "수컷"
+                            : pet.gender === "F"
+                            ? "암컷"
+                            : pet.gender}
+                        </div>
+                        {pet.snsUrl &&
+                        pet.snsUrl.trim() !== "" &&
+                        pet.snsUrl !== null ? (
+                          <div className={styles.snsUrlContainer}>
+                            <img
+                              src="/user/instagram.svg"
+                              alt="SNS"
+                              className={styles.snsIcon}
+                            />
+                            <span className={styles.snsUrlText}>
+                              {pet.snsUrl}
+                            </span>
+                          </div>
+                        ) : (
+                          <div
+                            className={`${styles.snsUrlContainer} ${styles.noSnsUrl}`}
+                          >
+                            <img
+                              src="/user/instagram.svg"
+                              alt="SNS"
+                              className={styles.snsIcon}
+                            />
+                            <span className={styles.snsUrlText}>
+                              SNS URL 없음
+                            </span>
+                          </div>
+                        )}
+                        <div className={styles.petDescription}>
+                          {pet.description}
+                        </div>
+                        <div className={styles.petFooter}>
+                          <div className={styles.petActions}>
+                            {!pet.isPetStar && (
+                              <button
+                                className={styles.actionButton}
+                                onClick={() => {
+                                  setSelectedPet(pet);
+                                  setIsPetstarModalOpen(true);
+                                }}
+                              >
+                                <Image
+                                  src={`/user/medal.png`}
+                                  alt="Medal"
+                                  width={18}
+                                  height={18}
+                                />
+                              </button>
+                            )}
+                            <button
+                              className={styles.actionButton}
+                              onClick={() => handleEditPet(pet)}
+                            >
+                              <Image
+                                src="/user/edit.png"
+                                alt="Edit"
+                                width={16}
+                                height={16}
+                              />
+                            </button>
                             <button
                               className={styles.actionButton}
                               onClick={() => {
                                 setSelectedPet(pet);
-                                setIsPetstarModalOpen(true);
+                                setIsDeleteModalOpen(true);
                               }}
                             >
                               <Image
-                                src={`/user/medal.png`}
-                                alt="Medal"
-                                width={18}
-                                height={18}
+                                src="/user/garbage.png"
+                                alt="Delete"
+                                width={14}
+                                height={16}
                               />
                             </button>
-                          )}
-                          <button
-                            className={styles.actionButton}
-                            onClick={() => handleEditPet(pet)}
-                          >
-                            <Image
-                              src="/user/edit.png"
-                              alt="Edit"
-                              width={16}
-                              height={16}
-                            />
-                          </button>
-                          <button
-                            className={styles.actionButton}
-                            onClick={() => {
-                              setSelectedPet(pet);
-                              setIsDeleteModalOpen(true);
-                            }}
-                          >
-                            <Image
-                              src="/user/garbage.png"
-                              alt="Delete"
-                              width={14}
-                              height={16}
-                            />
-                          </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 <div
                   className={styles.addPetCard}
-                  onClick={() => setIsModalOpen(true)}
+                  onClick={() => {
+                    setIsModalOpen(true);
+                  }}
                   style={{ cursor: "pointer" }}
                 >
                   <div className={styles.addPetIcon}>
