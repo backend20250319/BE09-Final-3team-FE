@@ -1,20 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import styles from "../styles/CampaignInfo.module.css"
 
-export default function CampaignInfo({ campaignData }) {
-
-  const router = useRouter();
-
-  const handleClick = () => {
-    alert('신청서가 정상적으로 제출되었습니다.');
-    router.push('/campaign');
-  };
+export default function CampaignInfo({ campaignData, adImage, advImage }) {
 
   const calculateDaysLeft = () => {
-    const endDate = new Date(campaignData.announce_end);
+    const endDate = new Date(campaignData.announceEnd);
     const now = new Date();
 
     const diffMs = endDate - now; // 남은 밀리초
@@ -34,7 +26,7 @@ export default function CampaignInfo({ campaignData }) {
       <div className={styles.campaignCard}>
         <div className={styles.campaignImage}>
           <Image 
-            src={campaignData.image}
+            src={adImage.filePath}
             alt="Campaign"
             width={346} 
             height={194}
@@ -46,8 +38,8 @@ export default function CampaignInfo({ campaignData }) {
           <div className={styles.brandSection}>
             <div className={styles.brandBadge}>
               <Image 
-                src={campaignData.brand_url}
-                alt={campaignData.brand}
+                src={advImage.filePath}
+                alt={campaignData.advertiser.name}
                 width={32}
                 height={32}
                 className={styles.brandLogo}
@@ -68,22 +60,22 @@ export default function CampaignInfo({ campaignData }) {
             </div>
             <div className={styles.detailRow}>
               <span className={styles.detailLabel}>체험단 선정일</span>
-              <span className={styles.detailValue}>{campaignData.campaign_select}</span>
+              <span className={styles.detailValue}>{campaignData.campaignSelect}</span>
             </div>
             <div className={styles.detailRow}>
               <span className={styles.detailLabel}>체험단 활동 기간</span>
-              <span className={styles.detailValue}>{campaignData.campaign_start}~{campaignData.campaign_end}</span>
+              <span className={styles.detailValue}>{campaignData.campaignStart}~{campaignData.campaignEnd}</span>
             </div>
             <div className={styles.detailRow}>
               <span className={styles.detailLabel}>상품 링크</span>
               <div className={styles.linkContent}>
-                <a href="#" className={styles.storeLink}>
+                <a href={campaignData.adUrl} className={styles.storeLink}>
                   <Image 
                     src="/campaign/link.png"
                     alt="link.png"
                     width={16}
                     height={16}/>
-                  Visit {campaignData.brand} Store
+                  Visit {campaignData.advertiser.name} Store
                 </a>
               </div>
             </div>
@@ -95,7 +87,7 @@ export default function CampaignInfo({ campaignData }) {
         <h3 className={styles.requirementsTitle}>필수 요건</h3>
           <ul className={styles.requirementsList}>
             {campaignData.requirement.map((requirement, index) => (
-              <li key={index} className={styles.requirementItem}>
+              <li key={requirement.reqNo || index} className={styles.requirementItem}>
                 <div className={styles.requirementIcon}>
                   <Image
                     src="/campaign/info.png"
@@ -103,7 +95,7 @@ export default function CampaignInfo({ campaignData }) {
                     width={16}
                     height={16} />
                 </div>
-                <span className={styles.requirementText}>{requirement}</span>
+                <span className={styles.requirementText}>{requirement.content}</span>
               </li>
             ))}
           </ul>
@@ -117,11 +109,6 @@ export default function CampaignInfo({ campaignData }) {
           </svg>
           <span className={styles.deadlineText}>{calculateDaysLeft()}</span>
         </div>
-      </div>
-
-      <div className={styles.actionButtons}>
-        <button className={styles.submitButton} onClick={handleClick}>신청서 제출하기</button>
-        <button className={styles.saveButton}>임시 저장</button>
       </div>
     </div>
   );

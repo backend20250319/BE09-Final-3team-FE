@@ -1,12 +1,12 @@
 import Image from 'next/image';
 import styles from "../styles/CampaignHeader.module.css"
 
-export default function CampaignHeader({ title, brand, image, brand_url }) {
+export default function CampaignHeader({ title, brand, image, advImage }) {
   return (
     <div className={styles.campaignHeader}>
       <div className={styles.headerImage}>
         <Image
-          src={image}
+          src={image.filePath}
           alt={title}
           width={1246}
           height={300}
@@ -16,7 +16,7 @@ export default function CampaignHeader({ title, brand, image, brand_url }) {
           <div className={styles.headerContent}>
             <div className={styles.brandInfo}>
               <Image
-                src={brand_url}
+                src={advImage.filePath}
                 alt={title}
                 width={48}
                 height={48}

@@ -1,7 +1,7 @@
 import advertiserApi from "./advertiserApi";
 
 const AD_PREFIX =
-    (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_COMMUNITY_PREFIX) ||
+    (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_ADVERTISEMENT_PREFIX) ||
     "/advertiser-service/ad";
 
 // 1. 광고 생성
