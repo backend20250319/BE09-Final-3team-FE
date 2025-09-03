@@ -231,7 +231,7 @@
   overflow-y: visible; /* 세로 자르지 않음 */
   overflow-x: auto;
   position: relative;
-  padding: 0 12px;          /* ← 좌우 여백 추가 */
+  padding: 0 12px; /* ← 좌우 여백 추가 */
 
   cursor: grab;
   scrollbar-width: thin;
@@ -279,13 +279,14 @@
   cursor: pointer;
   transition: all 0.2s ease;
   box-sizing: border-box;
-  overflow : hidden;
+  overflow: hidden;
   height: auto;
 }
 
 .activityCard:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 0 2px #8bc34a, 0 4px 8px rgba(0,0,0,.1);  border-color: #8bc34a;
+  box-shadow: 0 0 0 2px #8bc34a, 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-color: #8bc34a;
   border-color: transparent;
 }
 
