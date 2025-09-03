@@ -12,6 +12,8 @@ const API_BASE =
 
 // 모달 컴포넌트
 const SuccessModal = ({ isOpen, message, onClose }) => {
+  console.log("SuccessModal 렌더링:", { isOpen, message });
+
   if (!isOpen) return null;
 
   return (
@@ -45,7 +47,7 @@ export default function SignupPage() {
     confirmPassword: "",
     name: "",
     phone: "",
-    address: "",
+    businessNumber: "",
   });
 
   const [errors, setErrors] = useState({ passwordMatch: false });
@@ -61,7 +63,7 @@ export default function SignupPage() {
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [nameError, setNameError] = useState("");
   const [phoneError, setPhoneError] = useState("");
-  const [addressError, setAddressError] = useState("");
+  const [businessNumberError, setBusinessNumberError] = useState("");
 
   const [loading, setLoading] = useState({
     signup: false,
@@ -75,6 +77,37 @@ export default function SignupPage() {
     message: "",
     isSignupSuccess: false,
   });
+
+  // 사업자등록번호 검증 함수
+  const validateBusinessNumber = (businessNumber) => {
+    // 숫자만 추출
+    const numbers = businessNumber.replace(/[^0-9]/g, "");
+
+    // 10자리가 아닌 경우
+    if (numbers.length !== 10) {
+      return "사업자등록번호는 10자리 숫자여야 합니다.";
+    }
+
+    // 앞 3자리: 세무서 코드 (001~999)
+    const taxOfficeCode = parseInt(numbers.substring(0, 3));
+    if (taxOfficeCode < 1 || taxOfficeCode > 999) {
+      return "세무서 코드가 올바르지 않습니다.";
+    }
+
+    // 4-5번째 자리: 개인/법인 구분코드 (01~99)
+    const businessTypeCode = parseInt(numbers.substring(3, 5));
+    if (businessTypeCode < 1 || businessTypeCode > 99) {
+      return "개인/법인 구분코드가 올바르지 않습니다.";
+    }
+
+    // 뒤 5자리: 일련번호와 검증코드 (00001~99999)
+    const serialNumber = parseInt(numbers.substring(5));
+    if (serialNumber < 1 || serialNumber > 99999) {
+      return "일련번호가 올바르지 않습니다.";
+    }
+
+    return null; // 검증 통과
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -92,8 +125,8 @@ export default function SignupPage() {
       setNameError("");
     } else if (name === "phone") {
       setPhoneError("");
-    } else if (name === "address") {
-      setAddressError("");
+    } else if (name === "businessNumber") {
+      setBusinessNumberError("");
     }
 
     // 전화번호 입력 처리
@@ -122,6 +155,42 @@ export default function SignupPage() {
       return;
     }
 
+    // 사업자등록번호 입력 처리
+    if (name === "businessNumber") {
+      // 숫자만 추출
+      const numbers = value.replace(/[^0-9]/g, "");
+
+      // 10자리 제한
+      if (numbers.length <= 10) {
+        let formattedBusinessNumber = "";
+
+        // 하이픈 자동 추가 (123-45-67890 형식)
+        if (numbers.length <= 3) {
+          formattedBusinessNumber = numbers;
+        } else if (numbers.length <= 5) {
+          formattedBusinessNumber = `${numbers.slice(0, 3)}-${numbers.slice(
+            3
+          )}`;
+        } else {
+          formattedBusinessNumber = `${numbers.slice(0, 3)}-${numbers.slice(
+            3,
+            5
+          )}-${numbers.slice(5)}`;
+        }
+
+        setFormData((prev) => ({ ...prev, [name]: formattedBusinessNumber }));
+
+        // 실시간 검증
+        const validationError = validateBusinessNumber(formattedBusinessNumber);
+        if (validationError) {
+          setBusinessNumberError(validationError);
+        } else {
+          setBusinessNumberError("");
+        }
+      }
+      return;
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
 
     if (name === "password" || name === "confirmPassword") {
@@ -143,12 +212,18 @@ export default function SignupPage() {
     setConfirmPasswordError("");
     setNameError("");
     setPhoneError("");
-    setAddressError("");
+    setBusinessNumberError("");
   };
 
   // 모달 열기 함수
   const openModal = (message, isSignupSuccess = false) => {
+    console.log("openModal 함수 호출됨");
+    console.log("message:", message);
+    console.log("isSignupSuccess:", isSignupSuccess);
+
     setModal({ isOpen: true, message, isSignupSuccess });
+
+    console.log("setModal 호출됨");
   };
 
   // 모달 닫기 함수
@@ -178,6 +253,15 @@ export default function SignupPage() {
       return;
     }
 
+    // 사업자등록번호 검증
+    const businessNumberValidation = validateBusinessNumber(
+      formData.businessNumber
+    );
+    if (businessNumberValidation) {
+      setBusinessNumberError(businessNumberValidation);
+      return;
+    }
+
     // 이메일 미인증 차단 (선택사항)
     if (!verificationStatus.verified) {
       if (!confirm("이메일 인증을 완료하지 않았습니다. 계속 진행할까요?")) {
@@ -186,19 +270,22 @@ export default function SignupPage() {
     }
 
     try {
+      console.log("회원가입 시도 시작...");
+      console.log("formData:", formData);
+
       setLoading((prev) => ({ ...prev, signup: true }));
 
       const signupData = {
-        email: formData.email, // 백엔드에서 email 필드 요구
-        userId: formData.email, // 백엔드에서 userId 필드도 요구할 수 있음
+        userId: formData.email,
         password: formData.password,
         name: formData.name,
         phone: formData.phone,
-        address: formData.address,
-        description: "", // 백엔드에서 요구할 수 있는 필드
-        imageUrl: "", // 백엔드에서 요구할 수 있는 필드
-        docUrl: "", // 백엔드에서 요구할 수 있는 필드
+        businessNumber: formData.businessNumber,
       };
+
+      console.log("전송할 데이터:", signupData);
+
+      console.log("API 호출 시작:", `${API_BASE}/advertiser/signup`);
 
       const res = await fetch(`${API_BASE}/advertiser/signup`, {
         method: "POST",
@@ -211,26 +298,37 @@ export default function SignupPage() {
         body: JSON.stringify(signupData),
       });
 
+      console.log("API 응답 상태:", res.status);
+      console.log("API 응답 헤더:", res.headers);
+
       let data = {};
       try {
         const responseText = await res.text();
+        console.log("API 응답 텍스트:", responseText);
+
         if (responseText.trim()) {
           data = JSON.parse(responseText);
+          console.log("파싱된 응답 데이터:", data);
         }
       } catch (parseError) {
         console.error("회원가입 JSON 파싱 에러:", parseError);
       }
 
-      if (res.status === 201) {
+      if ((res.status === 200 || res.status === 201) && data.code === "2000") {
         clearAllErrors(); // 성공 시 모든 에러 초기화
+        console.log("회원가입 성공! 모달 열기 시도...");
+        console.log("현재 modal 상태:", modal);
+
         openModal(
           <>
-            회원가입이 성공적으로 완료되었습니다.
+            회원가입이 진행되었습니다.
             <br />
-            로그인 후 이용해주세요.
+            관리자 승인을 기다려주세요.
           </>,
           true // 회원가입 성공 플래그
         );
+
+        console.log("openModal 호출 후 modal 상태:", modal);
       } else if (res.status === 409) {
         setEmailError(data.message ?? "이미 존재하는 이메일입니다.");
       } else if (res.status === 400 && data.data) {
@@ -254,8 +352,8 @@ export default function SignupPage() {
         if (validationErrors.phone) {
           setPhoneError(validationErrors.phone);
         }
-        if (validationErrors.address) {
-          setAddressError(validationErrors.address);
+        if (validationErrors.businessNumber) {
+          setBusinessNumberError(validationErrors.businessNumber);
         }
       } else {
         // 일반적인 에러
@@ -562,7 +660,7 @@ export default function SignupPage() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    placeholder="010-1234-5678"
+                    placeholder="전화번호를 입력하세요"
                     maxLength={13}
                     className={styles.input}
                     disabled={
@@ -575,24 +673,27 @@ export default function SignupPage() {
                 )}
               </div>
 
-              {/* Address */}
+              {/* Business Number */}
               <div className={styles.formGroup}>
                 <label className={styles.label}>사업자 등록번호</label>
                 <div className={styles.inputGroup}>
                   <input
                     type="text"
-                    name="address"
-                    value={formData.address}
+                    name="businessNumber"
+                    value={formData.businessNumber}
                     onChange={handleInputChange}
-                    placeholder="사업자 등록번호를 입력하세요"
+                    placeholder="123-45-67890 (하이픈 자동 추가)"
+                    maxLength={12}
                     className={styles.input}
                     disabled={
                       loading.sendCode || loading.verifyCode || loading.signup
                     }
                   />
                 </div>
-                {addressError && (
-                  <div className={styles.errorMessage}>{addressError}</div>
+                {businessNumberError && (
+                  <div className={styles.errorMessage}>
+                    {businessNumberError}
+                  </div>
                 )}
               </div>
               {/* 서류 제출 */}
@@ -649,6 +750,7 @@ export default function SignupPage() {
       </div>
 
       {/* 성공 모달 */}
+      {console.log("모달 렌더링 부분 - modal 상태:", modal)}
       <SuccessModal
         isOpen={modal.isOpen}
         message={modal.message}

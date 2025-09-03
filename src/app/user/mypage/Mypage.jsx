@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 
-
 const MyPage = () => {
   const router = useRouter();
   const USER_API_BASE = "http://localhost:8000/api/v1/user-service";
@@ -219,24 +218,26 @@ const MyPage = () => {
   // 연결된 인스타그램 프로필 가져오기
   const fetchConnectedProfiles = async () => {
     try {
-      const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+      const token =
+        localStorage.getItem("token") || localStorage.getItem("accessToken");
       if (!token) {
         return;
       }
 
-      const response = await axios.get("http://localhost:8000/api/v1/sns-service/instagram/profiles", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await axios.get(
+        "http://localhost:8000/api/v1/sns-service/instagram/profiles",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (response.data.code === "2000") {
         setConnectedProfiles(response.data.data || []);
       }
-    } catch (error) {
-      
-    }
+    } catch (error) {}
   };
 
   const handleInputChange = (e) => {
@@ -307,7 +308,6 @@ const MyPage = () => {
           console.log("Access Token:", token);
           console.log("User ID:", userId);
 
-   
           connectInstagramToServer(token);
         } else {
           console.log("User cancelled login or did not fully authorize.");
@@ -324,8 +324,9 @@ const MyPage = () => {
   // Instagram 연결 API 호출 함수
   const connectInstagramToServer = async (accessToken) => {
     try {
-      const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
-      
+      const token =
+        localStorage.getItem("token") || localStorage.getItem("accessToken");
+
       if (!token) {
         setError("사용자 인증 토큰이 없습니다.");
         setIsLoading(false);
@@ -335,7 +336,7 @@ const MyPage = () => {
       const response = await axios.post(
         "http://localhost:8000/api/v1/sns-service/instagram/auth/connect",
         {
-          access_token: accessToken
+          access_token: accessToken,
         },
         {
           headers: {
@@ -348,46 +349,59 @@ const MyPage = () => {
       console.log("Instagram 연결 API 응답:", response.data);
       setSuccess("Instagram 계정이 성공적으로 연결되었습니다!");
       setIsLoading(false);
-      
+
       // 연결된 프로필 목록 새로고침
       await fetchConnectedProfiles();
-      
     } catch (error) {
       console.error("Instagram 연결 API 호출 실패:", error);
-      setError(error.response?.data?.message || "Instagram 계정 연결에 실패했습니다.");
+      setError(
+        error.response?.data?.message || "Instagram 계정 연결에 실패했습니다."
+      );
       setIsLoading(false);
     }
   };
 
-
-
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      // 파일 크기 검증 (5MB 제한)
-      if (file.size > 5 * 1024 * 1024) {
-        setError("파일 크기는 5MB 이하여야 합니다.");
-        return;
-      }
+    if (!file) return;
 
-      // 파일 타입 검증
-      if (!file.type.startsWith("image/")) {
-        setError("이미지 파일만 업로드 가능합니다.");
-        return;
-      }
+    // 지원하는 이미지 파일 확장자
+    const supportedExtensions = ["jpg", "jpeg", "png"];
 
-      try {
-        setLoading(true);
-        setError(""); // 이전 에러 메시지 초기화
+    // 파일 확장자 검증
+    const extension = file.name.split(".").pop().toLowerCase();
+    if (!supportedExtensions.includes(extension)) {
+      setError(
+        `지원하지 않는 파일확장자입니다. (지원하는 파일확장자: ${supportedExtensions.join(
+          ", "
+        )})`
+      );
+      return;
+    }
 
-        // 실제 이미지 업로드 실행
-        await uploadImageToFTP(file);
-      } catch (error) {
-        console.error("이미지 업로드 실패:", error);
-        setError(error.message || "이미지 업로드에 실패했습니다.");
-      } finally {
-        setLoading(false);
-      }
+    // 파일 크기 검증 (5MB 제한)
+    if (file.size > 5 * 1024 * 1024) {
+      setError("파일 크기는 5MB 이하여야 합니다.");
+      return;
+    }
+
+    // 파일 타입 검증
+    if (!file.type.startsWith("image/")) {
+      setError("이미지 파일만 업로드 가능합니다.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(""); // 이전 에러 메시지 초기화
+
+      // 실제 이미지 업로드 실행
+      await uploadImageToFTP(file);
+    } catch (error) {
+      console.error("이미지 업로드 실패:", error);
+      setError(error.message || "이미지 업로드에 실패했습니다.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -798,17 +812,23 @@ const MyPage = () => {
                       height={21}
                     />
                   </div>
-                  <span>{isLoading ? "연결 중..." : userInfo ? "연결 해제" : "연결 하기"}</span>
+                  <span>
+                    {isLoading
+                      ? "연결 중..."
+                      : userInfo
+                      ? "연결 해제"
+                      : "연결 하기"}
+                  </span>
                 </button>
               </div>
             </div>
-            
-
 
             {/* 연결된 Instagram 계정 정보 */}
             {userInfo && (
               <div className={styles.connectedProfilesContainer}>
-                <h4 className={styles.connectedProfilesTitle}>연결된 Instagram 계정</h4>
+                <h4 className={styles.connectedProfilesTitle}>
+                  연결된 Instagram 계정
+                </h4>
                 <div className={styles.connectedProfilesList}>
                   <div className={styles.connectedProfileItem}>
                     <div className={styles.profileAvatar}>
@@ -820,14 +840,14 @@ const MyPage = () => {
                       />
                     </div>
                     <div className={styles.profileInfo}>
-                      <div className={styles.profileName}>
-                        {userInfo.name}
-                      </div>
+                      <div className={styles.profileName}>{userInfo.name}</div>
                       <div className={styles.profileUsername}>
                         {userInfo.email || "이메일 정보 없음"}
                       </div>
                       <div className={styles.profileStats}>
-                        <span>Access Token: {accessToken.substring(0, 20)}...</span>
+                        <span>
+                          Access Token: {accessToken.substring(0, 20)}...
+                        </span>
                       </div>
                     </div>
                     <div className={styles.profileStatus}>
@@ -841,10 +861,15 @@ const MyPage = () => {
             {/* 연결된 인스타그램 계정 리스트 */}
             {connectedProfiles.length > 0 && (
               <div className={styles.connectedProfilesContainer}>
-                <h4 className={styles.connectedProfilesTitle}>연결된 인스타그램 계정</h4>
+                <h4 className={styles.connectedProfilesTitle}>
+                  연결된 인스타그램 계정
+                </h4>
                 <div className={styles.connectedProfilesList}>
                   {connectedProfiles.map((profile) => (
-                    <div key={profile.id} className={styles.connectedProfileItem}>
+                    <div
+                      key={profile.id}
+                      className={styles.connectedProfileItem}
+                    >
                       <div className={styles.profileAvatar}>
                         <Image
                           src={profile.profile_picture_url || "/user-1.jpg"}
@@ -858,7 +883,9 @@ const MyPage = () => {
                         <div className={styles.profileName}>
                           {profile.name || profile.username}
                         </div>
-                        <div className={styles.profileUsername}>@{profile.username}</div>
+                        <div className={styles.profileUsername}>
+                          @{profile.username}
+                        </div>
                         <div className={styles.profileStats}>
                           <span>팔로워 {profile.followers_count || 0}</span>
                           <span>팔로잉 {profile.follows_count || 0}</span>

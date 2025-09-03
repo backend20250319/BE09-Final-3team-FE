@@ -1,14 +1,18 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import React, { useState, useEffect } from "react"
+import { usePathname} from "next/navigation";
 import { FiUsers, FiList, FiUser } from "react-icons/fi";
 import styles from "../styles/SideBar.module.css";
+import { getAdvertiser, getFileByAdvertiserNo } from "@/api/advertiserApi";
+import { useImage } from "../context/ImageContext";
 
 const Sidebar = () => {
   const pathname = usePathname();
   if (pathname === "/advertiser") {
     return null;
   }
+  const { imageVersion } = useImage();
 
   const navigationItems = [
     {
@@ -31,16 +35,62 @@ const Sidebar = () => {
     },
   ];
 
+  const [companyData, setCompanyData] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [isLoadingImage, setIsLoadingImage] = useState(true);
+  
+  const DEFAULT_IMAGE_URL = `http://dev.macacolabs.site:8008/3/advertiser/images/default_brand.png`;
+
+  const loadProfileImage = async () => {
+    try {
+      const fileData = await getFileByAdvertiserNo();
+
+      if (fileData && fileData[0].filePath && fileData[0].filePath.trim() !== "") {
+        setPreviewImage(fileData[0].filePath);
+        setIsLoadingImage(false);
+      } else {
+        setPreviewImage(DEFAULT_IMAGE_URL);
+        setIsLoadingImage(false);
+      }
+    } catch (error) {
+      console.error("Failed to load profile image:", error);
+      setPreviewImage(DEFAULT_IMAGE_URL);
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getAdvertiser();
+        setCompanyData(data);
+      } catch (error) {
+        console.error("Failed to get advertiser profile:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+  
+  useEffect(() => {
+    loadProfileImage();
+  }, [imageVersion])
+
   return (
     <div className={styles.sidebar}>
       <div className={styles.sidebarContent}>
         <div className={styles.userProfile}>
-          <img
-            src="/campaign/brand-1.jpg"
-            alt="Advertiser"
-            className={styles.avatar}
-          />
-          <div className={styles.userName}>PawsomeNutrition</div>
+          {isLoadingImage ? (
+            <div></div>
+          ) : (
+            <>
+              <img
+                src={previewImage || DEFAULT_IMAGE_URL}
+                alt="Advertiser"
+                className={styles.avatar}
+              />
+              <div className={styles.userName}>{companyData?.name}</div>
+            </>
+          )}
         </div>
 
         <nav className={styles.navigation}>

@@ -9,8 +9,8 @@ export default function ProductPageSection({ formData, handleInputChange }) {
       </label>
       <input
         type="url"
-        value={formData.productPage}
-        onChange={(e) => handleInputChange('productPage', e.target.value)}
+        value={formData.adUrl}
+        onChange={(e) => handleInputChange('adUrl', e.target.value)}
         placeholder="상품 판매 페이지를 입력해주세요"
         className={styles.input}
       />

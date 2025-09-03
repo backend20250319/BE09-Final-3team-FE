@@ -23,7 +23,7 @@ const campaigns = [
       brand_url: "/campaign/brand-1.jpg",
       announce_start: "2025-08-01",
       announce_end: "2025-08-31",
-      campaign_select: "2025-09-10",
+      campaign_select : "2025-09-10",
       campaign_start: "2025-09-10",
       campaign_end: "2025-10-10",
       currentApplicants: 45,

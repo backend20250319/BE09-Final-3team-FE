@@ -5,14 +5,15 @@ export default function RequirementsSection({ formData, setFormData }) {
   const handleArrayFieldChange = (field, index, value) => {
     setFormData(prev => ({
       ...prev,
-      [field]: prev[field].map((item, i) => i === index ? value : item)
+      [field]: prev[field].map((item, i) => 
+        i === index ? { ...item, content: value } : item)
     }));
   };
 
   const addArrayField = (field) => {
     setFormData(prev => ({
       ...prev,
-      [field]: [...prev[field], '']
+      [field]: [...prev[field], { content: "" }]
     }));
   };
 
@@ -28,19 +29,19 @@ export default function RequirementsSection({ formData, setFormData }) {
       <label className={styles.label}>
         필수 요건 <span className={styles.required}>*</span>
       </label>
-      {formData.requirements.map((requirement, index) => (
+      {formData.requirement.map((requirement, index) => (
         <div key={index} className={styles.arrayFieldContainer}>
           <input
             type="text"
-            value={requirement}
-            onChange={(e) => handleArrayFieldChange('requirements', index, e.target.value)}
+            value={requirement.content}
+            onChange={(e) => handleArrayFieldChange('requirement', index, e.target.value)}
             placeholder="필수 요건을 입력해주세요"
             className={styles.input}
           />
-          {formData.requirements.length > 1 && (
+          {formData.requirement.length > 1 && (
             <button
             type="button"
-            onClick={() => removeArrayField('requirements', index)}
+            onClick={() => removeArrayField('requirement', index)}
             className={styles.removeButton}
           >
             ✕
@@ -50,7 +51,7 @@ export default function RequirementsSection({ formData, setFormData }) {
       ))}
       <button
         type="button"
-        onClick={() => addArrayField('requirements')}
+        onClick={() => addArrayField('requirement')}
         className={styles.addButton}
       >
         + 요건 추가

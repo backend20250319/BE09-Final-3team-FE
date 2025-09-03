@@ -1,21 +1,8 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styles from "../styles/CampaignGrid.module.css";
 import CampaignCard from "./CampaignCard";
 import { useCampaign } from "../context/CampaignContext";
-import campaigns from "../data/campaigns";
-
-const APPLIED_STATUSES = ["applied", "pending", "selected", "rejected", "completed"];
-
-function isTodayInAnnouncePeriod(announce_start, announce_end) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const startDate = new Date(announce_start);
-  const endDate = new Date(announce_end);
-
-  // period 경계 포함 범위 검사
-  return startDate <= today && today <= endDate;
-}
+import { getAllAdsByAdvertiser } from "@/api/advertisementApi";
 
 function sortCampaigns(campaigns, sortBy, activeTab) {
   switch (sortBy) {
@@ -33,13 +20,13 @@ function sortCampaigns(campaigns, sortBy, activeTab) {
     case "selectedRecent":
       // 선정일 최신순 (체험단 선정일 내림차순)
       return [...campaigns].sort((a, b) => new Date(b.campaign_select) - new Date(a.campaign_select));
-    case "selectedRecent":
+    case "selectedOld":
       // 선정일 오래된순 (체험단 선정일 오름차순)
       return [...campaigns].sort((a, b) => new Date(a.campaign_select) - new Date(b.campaign_select));
-    case "endedRecent":
+    case "trialEndedRecent":
       // 체험 종료일 최신순 (공고 종료일 내림차순)
       return [...campaigns].sort((a, b) => new Date(b.campaign_end) - new Date(a.campaign_end));
-    case "endedOld":
+    case "trialEndedOld":
       // 체험 종료일 오래된 순 (공고 종료일 오름차순)
       return [...campaigns].sort((a, b) => new Date(a.campaign_end) - new Date(b.campaign_end));
     case "createdRecent":
@@ -63,30 +50,22 @@ export default function CampaignGrid({searchQuery, sortBy}) {
 
   const { activeTab } = useCampaign();
 
-  let filteredCampaigns = [];
+  const [campaigns, setCampaigns] = useState([]);
 
-  switch (activeTab) {
-    case "approved":
-      filteredCampaigns = campaigns.filter(c => c.ad_status === "approved");
-      break;
-    case "closed":
-      filteredCampaigns = campaigns.filter(c => c.ad_status === "closed");
-      break;
-    case "trial":
-      filteredCampaigns = campaigns.filter(c => c.ad_status === "trial");
-      break;
-    case "pending":
-      filteredCampaigns = campaigns.filter(c => c.ad_status === "pending");
-      break;
-    case "rejected":
-      filteredCampaigns = campaigns.filter(c => c.ad_status === "rejected");
-      break;
-    case "ended":
-      filteredCampaigns = campaigns.filter(c => c.ad_status === "ended");
-      break;
-    default:
-      filteredCampaigns = campaigns;
-  }
+  useEffect(() => {
+    const fetchCampaigns = async () => {
+      try {
+        const data = await getAllAdsByAdvertiser(activeTab.toUpperCase());
+        setCampaigns(data.ads || []);
+      } catch (error) {
+        console.error("Failed to fetch campaigns:", error);
+      }
+    };
+
+    fetchCampaigns();
+  }, [activeTab]);
+
+  let filteredCampaigns = campaigns;
 
   const sortedCampaigns = sortCampaigns(filteredCampaigns, sortBy, activeTab);
 
@@ -94,7 +73,8 @@ export default function CampaignGrid({searchQuery, sortBy}) {
     <section className={styles.campaignGrid}>
       <div className={styles.grid}>
         {sortedCampaigns.map((campaign) => (
-          <CampaignCard key={campaign.ad_no} campaign={campaign} />
+
+          <CampaignCard key={campaign.adNo} campaign={campaign} />
         ))}
       </div>
     </section>

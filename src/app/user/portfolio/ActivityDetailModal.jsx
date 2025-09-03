@@ -3,7 +3,13 @@ import React, { useState } from "react";
 import styles from "./ActivityDetailModal.module.css";
 import Image from "next/image";
 
-const ActivityDetailModal = ({ isOpen, onClose, activityData }) => {
+const ActivityDetailModal = ({
+  isOpen,
+  onClose,
+  activityData,
+  onDelete,
+  isEditMode = false, // 수정 모드 여부를 받아옴
+}) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -179,6 +185,20 @@ const ActivityDetailModal = ({ isOpen, onClose, activityData }) => {
               placeholder="활동에 대한 자세한 설명을 입력하세요"
               rows={4}
             />
+          </div>
+        </div>
+
+        {/* 액션 버튼 영역 */}
+        <div className={styles.actionSection}>
+          <div className={styles.buttonRow}>
+            {onDelete && (
+              <button
+                className={styles.deleteButton}
+                onClick={() => onDelete(activityData)}
+              >
+                활동이력 삭제
+              </button>
+            )}
           </div>
         </div>
       </div>

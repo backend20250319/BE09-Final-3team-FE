@@ -272,10 +272,10 @@
   line-height: 1.5;
   color: #000000;
   background: #ffffff;
-  resize: none; /* 사용자가 크기 조절 못하게 */
-  overflow: hidden; /* 스크롤바 감춤 */
+  resize: none;
+  overflow: hidden;
   font-family: inherit;
-  min-height: 32px; /* 기본 높이 유지 */
+  min-height: 32px;
 }
 
 .textarea::placeholder {
@@ -337,6 +337,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  margin-top: 6px;
 }
 
 .snsIcon {
@@ -345,7 +346,51 @@
   flex-shrink: 0;
 }
 
-/* SNS URL input styling */
+.snsUrlInputContainer {
+  display: flex;
+  align-items: center;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #ffffff;
+  overflow: hidden;
+  flex: 1;
+  height: 32px;
+}
+
+.snsUrlPrefix {
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 400;
+  padding: 8px 12px;
+  border-right: 1px solid #d1d5db;
+  white-space: nowrap;
+  user-select: none;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.snsUrlInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 400;
+  color: #000000;
+  background: transparent;
+  height: 100%;
+}
+
+.snsUrlInput::placeholder {
+  color: #9ca3af;
+}
+
+.snsUrlInput:focus {
+  background: #f9fafb;
+}
+
 .snsContainer .input {
   flex: 1;
   height: 32px;
@@ -368,7 +413,6 @@
   border-color: #8bc34a;
 }
 
-/* SNS Select specific styling */
 .formGroup:has(.select) .dropdownIcon {
   width: 18px;
   height: 8px;
@@ -479,7 +523,6 @@
     gap: 24px;
   }
 
-  /* Scrollbar styling for tablet */
   .modalContainer::-webkit-scrollbar {
     width: 6px;
   }
@@ -534,7 +577,6 @@
     width: 200px;
   }
 
-  /* Scrollbar styling for mobile */
   .modalContainer::-webkit-scrollbar {
     width: 4px;
   }
@@ -579,7 +621,6 @@
     gap: 20px;
   }
 
-  /* Scrollbar styling for small mobile */
   .modalContainer::-webkit-scrollbar {
     width: 3px;
   }
@@ -596,5 +637,112 @@
 
   .modalContainer::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
+  }
+}
+
+/* 파일 타입 검증 모달 스타일 */
+.fileTypeModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.fileTypeModalContainer {
+  max-width: 400px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0px 10px 15px 0px rgba(0, 0, 0, 0.1),
+    0px 4px 6px 0px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, sans-serif;
+  position: relative;
+}
+
+.fileTypeModalContent {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.fileTypeWarningIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #fef2f2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+  border: 2px solid #fecaca;
+}
+
+.fileTypeWarningIcon span {
+  font-size: 20px;
+  color: #ef4444;
+}
+
+.fileTypeModalTitle {
+  margin: 0;
+  color: #1f2937;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.fileTypeModalMessage {
+  margin: 0;
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre-line;
+}
+
+.fileTypeModalButton {
+  padding: 8px 18px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.fileTypeModalButton:hover {
+  background-color: #2563eb;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 480px) {
+  .fileTypeModalContainer {
+    max-width: 90%;
+    padding: 16px;
+  }
+
+  .fileTypeWarningIcon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .fileTypeWarningIcon span {
+    font-size: 18px;
+  }
+
+  .fileTypeModalTitle {
+    font-size: 15px;
+  }
+
+  .fileTypeModalMessage {
+    font-size: 11px;
   }
 }
