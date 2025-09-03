@@ -51,15 +51,6 @@ advertiserApi.interceptors.request.use(
           cfg.headers["User-No"] = localStorage.getItem("advertiserNo") || "";
           cfg.headers["User-Type"] = localStorage.getItem("userType") || "";
         }
-        console.log("API 요청에 토큰 적용:", {
-          url: cfg.url,
-          token: token.substring(0, 20) + "...",
-          authorization: cfg.headers.Authorization,
-          userNo: cfg.headers["X-User-No"],
-          userType: cfg.headers["X-User-Type"],
-          allHeaders: Object.fromEntries(Object.entries(cfg.headers)),
-        });
-
       } else {
         console.warn("advertiserToken이 없습니다. API 요청:", cfg.url);
         // 토큰이 없을 때는 요청을 지연시켜 토큰 저장 완료 대기
@@ -107,14 +98,6 @@ advertiserApi.interceptors.request.use(
                 cfg.headers["User-Type"] =
                   localStorage.getItem("userType") || "";
               }
-              console.log("토큰 대기 후 API 요청에 토큰 적용:", {
-                url: cfg.url,
-                token: newToken.substring(0, 20) + "...",
-                authorization: cfg.headers.Authorization,
-                userNo: cfg.headers["X-User-No"],
-                userType: cfg.headers["X-User-Type"],
-                allHeaders: Object.fromEntries(Object.entries(cfg.headers)),
-              });
               resolve(cfg);
             } else {
               setTimeout(checkToken, 100);
