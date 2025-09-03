@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "../styles/AddScheduleModal.module.css";
 import { useSelectedPet } from "../../context/SelectedPetContext";
 import {
@@ -11,6 +11,7 @@ import {
   COLOR_MAP,
   SUBTYPE_LABEL_MAP,
 } from "../../constants";
+import CustomCalendar from "./CustomCalendar";
 
 export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
   const { selectedPetName } = useSelectedPet();
@@ -27,7 +28,66 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
     notificationTiming: "",
   });
 
+  const [showStartCalendar, setShowStartCalendar] = useState(false);
+  const [showEndCalendar, setShowEndCalendar] = useState(false);
+  const startCalendarButtonRef = React.useRef(null);
+  const endCalendarButtonRef = React.useRef(null);
+
   const [errors, setErrors] = useState({});
+
+  // 날짜 포맷팅 함수
+  const formatDateForDisplay = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}.${String(date.getDate()).padStart(2, "0")}`;
+  };
+
+  // 달력에서 날짜 선택 핸들러
+  const handleStartDateSelect = (dateString) => {
+    setFormData((prev) => ({
+      ...prev,
+      startDate: dateString,
+      date: dateString, // 호환성 유지
+    }));
+  };
+
+  const handleEndDateSelect = (dateString) => {
+    setFormData((prev) => ({
+      ...prev,
+      endDate: dateString,
+    }));
+  };
+
+  // 외부 클릭 시 달력 닫기
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        showStartCalendar &&
+        !event.target.closest(`.${styles.dateInputWrapper}`) &&
+        !event.target.closest(`.${styles.calendar}`)
+      ) {
+        setShowStartCalendar(false);
+      }
+      if (
+        showEndCalendar &&
+        !event.target.closest(`.${styles.dateInputWrapper}`) &&
+        !event.target.closest(`.${styles.calendar}`)
+      ) {
+        setShowEndCalendar(false);
+      }
+    };
+
+    if (showStartCalendar || showEndCalendar) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showStartCalendar, showEndCalendar]);
 
   const mainType = "돌봄";
 
@@ -111,6 +171,8 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
       notificationTiming: "",
     });
     setErrors({});
+    setShowStartCalendar(false); // 달력도 닫기
+    setShowEndCalendar(false); // 달력도 닫기
     onClose();
   };
 
@@ -246,15 +308,29 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
               <span className={styles.required}>*</span>
             </div>
             <div className={styles.inputContainer}>
-              <input
-                type="date"
-                className={styles.input}
-                value={formData.startDate}
-                onChange={(e) => {
-                  handleInputChange("startDate", e.target.value);
-                  handleInputChange("date", e.target.value); // 호환성 유지
-                }}
-              />
+              <div className={styles.dateInputWrapper}>
+                <input
+                  type="text"
+                  value={formatDateForDisplay(formData.startDate)}
+                  placeholder="시작 날짜를 선택하세요"
+                  className={styles.dateInput}
+                  readOnly
+                  onClick={() => setShowStartCalendar(true)}
+                />
+                <button
+                  ref={startCalendarButtonRef}
+                  type="button"
+                  className={styles.calendarButton}
+                  onClick={() => setShowStartCalendar(!showStartCalendar)}
+                >
+                  <img
+                    src="/health/calendar.png"
+                    alt="달력"
+                    width="16"
+                    height="16"
+                  />
+                </button>
+              </div>
             </div>
             {errors.startDate && (
               <span className={styles.error}>{errors.startDate}</span>
@@ -268,12 +344,29 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
               <span className={styles.required}>*</span>
             </div>
             <div className={styles.inputContainer}>
-              <input
-                type="date"
-                className={styles.input}
-                value={formData.endDate}
-                onChange={(e) => handleInputChange("endDate", e.target.value)}
-              />
+              <div className={styles.dateInputWrapper}>
+                <input
+                  type="text"
+                  value={formatDateForDisplay(formData.endDate)}
+                  placeholder="종료 날짜를 선택하세요"
+                  className={styles.dateInput}
+                  readOnly
+                  onClick={() => setShowEndCalendar(true)}
+                />
+                <button
+                  ref={endCalendarButtonRef}
+                  type="button"
+                  className={styles.calendarButton}
+                  onClick={() => setShowEndCalendar(!showEndCalendar)}
+                >
+                  <img
+                    src="/health/calendar.png"
+                    alt="달력"
+                    width="16"
+                    height="16"
+                  />
+                </button>
+              </div>
             </div>
             {errors.endDate && (
               <span className={styles.error}>{errors.endDate}</span>
@@ -359,6 +452,23 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
           </button>
         </div>
       </div>
+
+      {/* 커스텀 달력 */}
+      <CustomCalendar
+        isOpen={showStartCalendar}
+        onClose={() => setShowStartCalendar(false)}
+        onDateSelect={handleStartDateSelect}
+        selectedDate={formData.startDate}
+        buttonRef={startCalendarButtonRef}
+      />
+      <CustomCalendar
+        isOpen={showEndCalendar}
+        onClose={() => setShowEndCalendar(false)}
+        onDateSelect={handleEndDateSelect}
+        selectedDate={formData.endDate}
+        minDate={formData.startDate}
+        buttonRef={endCalendarButtonRef}
+      />
     </div>
   );
 }

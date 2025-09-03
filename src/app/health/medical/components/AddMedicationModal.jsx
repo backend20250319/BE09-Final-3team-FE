@@ -1,8 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import React, { useState, useEffect } from "react";
 import styles from "../styles/AddScheduleModal.module.css";
 import { useSelectedPet } from "../../context/SelectedPetContext";
 import {
@@ -11,6 +9,7 @@ import {
   notificationTimingOptions,
   frequencyMapping,
 } from "../../constants";
+import CustomCalendar from "./CustomCalendar";
 
 export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
   const { selectedPetName } = useSelectedPet();
@@ -24,6 +23,66 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
     scheduleTime: "", // 일정 시간 (실제 복용 시간)
     notificationTiming: "", // 알림 시기 (당일, 1일전, 2일전, 3일전)
   });
+
+  const [showStartCalendar, setShowStartCalendar] = useState(false);
+  const calendarButtonRef = React.useRef(null);
+
+  // 날짜 포맷팅 함수
+  const formatDateForDisplay = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}.${String(date.getDate()).padStart(2, "0")}`;
+  };
+
+  // 달력에서 날짜 선택 핸들러
+  const handleStartDateSelect = (dateString) => {
+    setFormData((prev) => ({
+      ...prev,
+      startDate: dateString,
+    }));
+  };
+
+  // 외부 클릭 시 달력 닫기
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        showStartCalendar &&
+        !event.target.closest(`.${styles.dateInputWrapper}`) &&
+        !event.target.closest(`.${styles.calendar}`)
+      ) {
+        setShowStartCalendar(false);
+      }
+    };
+
+    if (showStartCalendar) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showStartCalendar]);
+
+  // 복용 빈도를 한글로 변환
+  const getFrequencyKorean = (frequency) => {
+    switch (frequency) {
+      case "DAILY_ONCE":
+        return "하루에 한 번";
+      case "DAILY_TWICE":
+        return "하루에 두 번";
+      case "DAILY_THREE_TIMES":
+        return "하루에 세 번";
+      case "WEEKLY_ONCE":
+        return "주에 한 번";
+      case "MONTHLY_ONCE":
+        return "월에 한 번";
+      default:
+        return frequency;
+    }
+  };
 
   // 복용 빈도에 따른 기본 시간 설정
   const getDefaultTimes = (frequency) => {
@@ -136,7 +195,7 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
     return (
       <div className={styles.timePickerContainer}>
         <div
-          className={styles.timePickerInput}
+          className={`${styles.timePickerInput} ${isOpen ? styles.active : ""}`}
           onClick={() => setIsOpen(!isOpen)}
         >
           <span className={value ? styles.timeValue : styles.timePlaceholder}>
@@ -284,6 +343,7 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
       notificationTiming: "",
     });
     setErrors({});
+    setShowStartCalendar(false); // 달력도 닫기
     onClose();
   };
 
@@ -438,12 +498,29 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
               <span className={styles.required}>*</span>
             </div>
             <div className={styles.inputContainer}>
-              <input
-                type="date"
-                className={styles.input}
-                value={formData.startDate}
-                onChange={(e) => handleInputChange("startDate", e.target.value)}
-              />
+              <div className={styles.dateInputWrapper}>
+                <input
+                  type="text"
+                  value={formatDateForDisplay(formData.startDate)}
+                  placeholder="시작 날짜를 선택하세요"
+                  className={styles.dateInput}
+                  readOnly
+                  onClick={() => setShowStartCalendar(true)}
+                />
+                <button
+                  ref={calendarButtonRef}
+                  type="button"
+                  className={styles.calendarButton}
+                  onClick={() => setShowStartCalendar(!showStartCalendar)}
+                >
+                  <img
+                    src="/health/calendar.png"
+                    alt="달력"
+                    width="16"
+                    height="16"
+                  />
+                </button>
+              </div>
             </div>
             {errors.startDate && (
               <span className={styles.error}>{errors.startDate}</span>
@@ -466,7 +543,9 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
                 <div className={styles.infoDropdown}>
                   <div className={styles.infoContent}>
                     <strong>선택된 빈도:</strong>{" "}
-                    {formData.frequency || "선택되지 않음"}
+                    {formData.frequency
+                      ? getFrequencyKorean(formData.frequency)
+                      : "선택되지 않음"}
                     <br />
                     <strong>시간 입력 칸:</strong>{" "}
                     {formData.frequency
@@ -503,6 +582,7 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
                               ? "점심"
                               : "저녁"
                             : "시간"}
+                          <span className={styles.required}>*</span>
                         </label>
                         <TimePicker
                           value={
@@ -590,6 +670,15 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
           </button>
         </div>
       </div>
+
+      {/* 커스텀 달력 */}
+      <CustomCalendar
+        isOpen={showStartCalendar}
+        onClose={() => setShowStartCalendar(false)}
+        onDateSelect={handleStartDateSelect}
+        selectedDate={formData.startDate}
+        buttonRef={calendarButtonRef}
+      />
     </div>
   );
 }

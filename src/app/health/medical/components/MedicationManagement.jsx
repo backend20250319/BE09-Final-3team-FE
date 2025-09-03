@@ -1094,8 +1094,7 @@ export default function MedicationManagement({
                       )}
                     </div>
                     <p>
-                      {medication.type} •{" "}
-                      {medication.frequency?.replace(/(\d+)번/g, "$1 번")}
+                      {medication.type} • {medication.frequency}
                     </p>
                     <p className={styles.scheduleTime}>
                       {medication.scheduleTime}
