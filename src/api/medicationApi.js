@@ -49,9 +49,15 @@ export const getMedicationDetail = async (calNo) => {
   }
 };
 
-// 복용약/영양제 일정 수정
+// 복용약/영양제 일정 수정 (백엔드에서 알림 시기 변경 시 자동으로 마지막 알림 시기 저장)
 export const updateMedication = async (calNo, updateData) => {
   try {
+    console.log("투약 일정 수정 API 호출:", {
+      calNo,
+      updateData,
+      url: `${MEDICATION_PREFIX}/update`,
+    });
+
     const response = await api.patch(
       `${MEDICATION_PREFIX}/update`,
       updateData,
@@ -59,22 +65,44 @@ export const updateMedication = async (calNo, updateData) => {
         params: { calNo },
       }
     );
+
+    console.log("투약 일정 수정 API 응답:", response.data);
     return response.data?.data ?? response.data;
   } catch (error) {
     console.error("투약 일정 수정 실패:", error);
+    console.error("에러 상세:", error.response?.data);
     throw error;
   }
 };
 
-// 알림 on/off 토글
+// 알림 on/off 토글 (백엔드에서 마지막 알림 시기 자동 복원)
 export const toggleAlarm = async (calNo) => {
   try {
-    const response = await api.patch(`${MEDICATION_PREFIX}/alarm`, null, {
-      params: { calNo },
+    console.log("알림 토글 API 호출:", {
+      calNo,
+      calNoType: typeof calNo,
+      url: `${MEDICATION_PREFIX}/alarm`,
     });
+
+    // calNo가 숫자인지 확인
+    if (typeof calNo !== "number" && typeof calNo !== "string") {
+      console.error("calNo가 올바른 타입이 아닙니다:", calNo, typeof calNo);
+      throw new Error(`Invalid calNo type: ${typeof calNo}, value: ${calNo}`);
+    }
+
+    const response = await api.patch(`${MEDICATION_PREFIX}/alarm`, null, {
+      params: { calNo: Number(calNo) }, // 명시적으로 숫자로 변환
+    });
+    console.log("알림 토글 API 응답:", response.data);
+
+    // 백엔드에서 boolean 값 반환 (true/false)
     return response.data?.data ?? response.data;
   } catch (error) {
     console.error("알림 토글 실패:", error);
+    console.error("에러 상세:", error.response?.data);
+    console.error("요청 URL:", error.config?.url);
+    console.error("요청 파라미터:", error.config?.params);
+    console.error("요청 헤더:", error.config?.headers);
     throw error;
   }
 };

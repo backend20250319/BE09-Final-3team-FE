@@ -344,8 +344,16 @@ const MyCalendar = () => {
 
   if (!selectedPetName || !selectedPetNo) {
     return (
-      <div className={styles.noPetContainer}>
-        <p>반려동물을 선택해주세요.</p>
+      <div className={styles.calendarContainer}>
+        <div className={styles.noPetSection}>
+          <div className={styles.noPetArea}>
+            <div className={styles.noPetIcon}>🐕</div>
+            <div className={styles.noPetText}>
+              <h3>반려동물을 선택해주세요</h3>
+              <p>캘린더를 보려면 먼저 반려동물을 선택해주세요!</p>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

@@ -89,43 +89,71 @@ export default function MedicationManagement({
       }
 
       // 백엔드 응답을 프론트엔드 형식으로 변환
-      const transformedMedications = response.map((med) => ({
-        id: med.scheduleNo,
-        name: med.medicationName || med.title,
-        type: med.subType === "PILL" ? "복용약" : "영양제",
-        frequency: frequencyMapping[med.frequency] || med.frequency, // 영어 enum을 한글로 변환
-        duration: med.durationDays,
-        startDate: med.startDate
-          ? new Date(med.startDate).toISOString().split("T")[0]
-          : "",
-        endDate: med.endDate
-          ? new Date(med.endDate).toISOString().split("T")[0]
-          : "",
-        scheduleTime: med.times
-          ? med.times
-              .map((t) => {
-                // 시간 문자열에서 초 제거 (예: "09:00:00" -> "09:00")
-                if (typeof t === "string" && t.includes(":")) {
-                  const parts = t.split(":");
-                  if (parts.length >= 2) {
-                    return `${parts[0]}:${parts[1]}`;
-                  }
-                }
-                return t;
-              })
-              .join(", ")
-          : med.time || "09:00",
-        notificationTiming: med.reminderDaysBefore
-          ? `${med.reminderDaysBefore}일 전`
-          : "당일",
-        petName: selectedPetName,
-        petNo: selectedPetNo,
-        icon: med.subType === "PILL" ? "💊" : "💊",
-        color: med.subType === "PILL" ? "#E3F2FD" : "#FFF3E0",
-        isNotified: med.alarmEnabled !== false,
-        calNo: med.scheduleNo,
-      }));
+      console.log("투약 목록 원본 데이터:", response);
+      const transformedMedications = response.map((med) => {
+        // scheduleNo가 객체인 경우 숫자 값 추출
+        // scheduleNo가 객체인 경우 숫자 값 추출
+        let scheduleNo;
+        if (typeof med.scheduleNo === "object" && med.scheduleNo !== null) {
+          // 객체인 경우 가능한 필드들을 확인
+          scheduleNo =
+            med.scheduleNo.scheduleNo ||
+            med.scheduleNo.id ||
+            med.scheduleNo.value ||
+            med.scheduleNo.data;
+        } else {
+          scheduleNo = med.scheduleNo;
+        }
 
+        // id도 scheduleNo와 동일하게 처리
+        let id;
+        if (typeof med.id === "object" && med.id !== null) {
+          id = med.id.id || med.id.value || med.id.data || scheduleNo;
+        } else {
+          id = med.id || scheduleNo;
+        }
+
+        return {
+          id: id,
+          calNo: scheduleNo, // calNo 추가 - 백엔드 API에서 사용하는 필드명
+          name: med.medicationName || med.title,
+          type: med.subType === "PILL" ? "복용약" : "영양제",
+          frequency: frequencyMapping[med.frequency] || med.frequency, // 영어 enum을 한글로 변환
+          duration: med.durationDays,
+          startDate: med.startDate
+            ? new Date(med.startDate).toISOString().split("T")[0]
+            : "",
+          endDate: med.endDate
+            ? new Date(med.endDate).toISOString().split("T")[0]
+            : "",
+          scheduleTime: med.times
+            ? med.times
+                .map((t) => {
+                  // 시간 문자열에서 초 제거 (예: "09:00:00" -> "09:00")
+                  if (typeof t === "string" && t.includes(":")) {
+                    const parts = t.split(":");
+                    if (parts.length >= 2) {
+                      return `${parts[0]}:${parts[1]}`;
+                    }
+                  }
+                  return t;
+                })
+                .join(", ")
+            : med.time || "09:00",
+          // notificationTiming은 표시용이므로 EditScheduleModal에서는 사용하지 않음
+          // reminderDaysBefore와 lastReminderDaysBefore를 직접 사용
+          reminderDaysBefore: med.reminderDaysBefore, // 백엔드에서 직접 제공
+          lastReminderDaysBefore: med.lastReminderDaysBefore, // 마지막 알림 시기
+          isPrescription: med.isPrescription || false, // 처방전 여부
+          petName: selectedPetName,
+          petNo: selectedPetNo,
+          icon: med.subType === "PILL" ? "💊" : "💊",
+          color: med.subType === "PILL" ? "#E3F2FD" : "#FFF3E0",
+          isNotified: med.reminderDaysBefore !== null,
+        };
+      });
+
+      console.log("변환된 투약 데이터:", transformedMedications);
       onMedicationsUpdate(transformedMedications);
     } catch (error) {
       console.error("투약 데이터 가져오기 실패:", error);
@@ -322,26 +350,43 @@ export default function MedicationManagement({
         return;
       }
 
-      const newAlarmStatus = await toggleAlarm(medication.calNo);
+      // calNo가 객체인 경우 숫자 값 추출
+      let calNo = medication.calNo;
+      if (typeof calNo === "object" && calNo !== null) {
+        calNo = calNo.scheduleNo || calNo.id || calNo.value || calNo.data;
+        console.warn("calNo가 객체였습니다. 변환:", {
+          original: medication.calNo,
+          converted: calNo,
+        });
+      }
 
-      const updated = medications.map((med) =>
-        med.id === id ? { ...med, isNotified: newAlarmStatus } : med
-      );
-      onMedicationsUpdate(updated);
+      console.log("알림 토글 요청:", {
+        id,
+        medication,
+        calNo: calNo,
+        calNoType: typeof calNo,
+      });
 
-      const updatedStatus = updated.reduce((acc, med) => {
-        acc[med.id] = med.isNotified;
+      // 백엔드에서 알림 토글 및 마지막 알림 시기 자동 복원
+      const newAlarmStatus = await toggleAlarm(calNo);
+
+      // 백엔드에서 업데이트된 데이터를 다시 가져와서 상태 동기화
+      await fetchMedications();
+
+      // 로컬 스토리지 업데이트
+      const updatedStatus = medications.reduce((acc, med) => {
+        acc[med.id] =
+          med.id === id ? newAlarmStatus : med.reminderDaysBefore !== null;
         return acc;
       }, {});
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedStatus));
 
-      const updatedMed = updated.find((med) => med.id === id);
       setToastMessage(
-        `${updatedMed.name} 일정 알림이 ${
-          updatedMed.isNotified ? "활성화" : "비활성화"
+        `${medication.name} 일정 알림이 ${
+          newAlarmStatus ? "활성화" : "비활성화"
         } 되었습니다.`
       );
-      setToastType(updatedMed.isNotified ? "active" : "inactive");
+      setToastType(newAlarmStatus ? "active" : "inactive");
       setShowToast(true);
     } catch (error) {
       console.error("알림 토글 실패:", error);
@@ -580,16 +625,7 @@ export default function MedicationManagement({
         times: newMedication.scheduleTime
           ? newMedication.scheduleTime.split(",").map((t) => t.trim())
           : ["09:00"],
-        reminderDaysBefore:
-          newMedication.notificationTiming === "당일"
-            ? 0
-            : newMedication.notificationTiming === "1일 전"
-            ? 1
-            : newMedication.notificationTiming === "2일 전"
-            ? 2
-            : newMedication.notificationTiming === "3일 전"
-            ? 3
-            : 0,
+        reminderDaysBefore: Number(newMedication.notificationTiming),
       };
 
       const calNo = await createMedication(medicationData);
@@ -638,6 +674,19 @@ export default function MedicationManagement({
         return;
       }
 
+      // 처방전 약의 알림 시기 변경 제한
+      if (
+        medication.isPrescription &&
+        updatedMedication.reminderDaysBefore !== 0
+      ) {
+        setToastMessage(
+          "처방전으로 등록된 약은 알림 시기를 변경할 수 없습니다."
+        );
+        setToastType("error");
+        setShowToast(true);
+        return;
+      }
+
       // 백엔드 형식으로 데이터 변환
       const updateData = {
         medicationName: updatedMedication.name,
@@ -648,26 +697,15 @@ export default function MedicationManagement({
           ? updatedMedication.scheduleTime.split(",").map((t) => t.trim())
           : ["09:00"],
         subType: updatedMedication.type === "복용약" ? "PILL" : "SUPPLEMENT",
-        reminderDaysBefore:
-          updatedMedication.notificationTiming === "당일"
-            ? 0
-            : updatedMedication.notificationTiming === "1일 전"
-            ? 1
-            : updatedMedication.notificationTiming === "2일 전"
-            ? 2
-            : updatedMedication.notificationTiming === "3일 전"
-            ? 3
-            : 0,
+        reminderDaysBefore: updatedMedication.reminderDaysBefore,
       };
 
+      // 백엔드에서 알림 시기 변경 시 자동으로 마지막 알림 시기 저장
       await updateMedication(medication.calNo, updateData);
 
-      // 성공 시 로컬 상태 업데이트
-      onMedicationsUpdate((prev) =>
-        prev.map((med) =>
-          med.id === updatedMedication.id ? updatedMedication : med
-        )
-      );
+      // 백엔드에서 업데이트된 데이터를 다시 가져와서 상태 동기화
+      await fetchMedications();
+
       setToastMessage(`${updatedMedication.name}이(가) 수정되었습니다.`);
       setToastType("active");
       setShowToast(true);
@@ -680,7 +718,16 @@ export default function MedicationManagement({
       }
     } catch (error) {
       console.error("투약 수정 실패:", error);
-      setToastMessage("투약 수정에 실패했습니다.");
+
+      // 403 에러인 경우 처방전 관련 메시지 표시
+      if (error.response?.status === 403) {
+        setToastMessage(
+          "처방전으로 등록된 약은 알림 시기를 변경할 수 없습니다."
+        );
+      } else {
+        setToastMessage("투약 수정에 실패했습니다.");
+      }
+
       setToastType("error");
       setShowToast(true);
     }
@@ -956,6 +1003,23 @@ export default function MedicationManagement({
     setShowDetailModal(false);
   };
 
+  // 반려동물이 선택되지 않았을 때 안내 섹션 표시
+  if (!selectedPetName || !selectedPetNo) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.noPetSection}>
+          <div className={styles.noPetArea}>
+            <div className={styles.noPetIcon}>🐕</div>
+            <div className={styles.noPetText}>
+              <h3>반려동물을 선택해주세요</h3>
+              <p>투약 일정을 관리하려면 먼저 반려동물을 선택해주세요!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
       {/* 처방전 사진 업로드 */}
@@ -1018,7 +1082,7 @@ export default function MedicationManagement({
           ) : (
             paginatedMedications.map((medication, index) => (
               <div
-                key={medication.id || `medication-${index}`}
+                key={`medication-${medication.id || medication.calNo || index}`}
                 className={styles.medicationCard}
               >
                 <div className={styles.medicationInfo}>
@@ -1029,7 +1093,12 @@ export default function MedicationManagement({
                     {medication.icon}
                   </div>
                   <div className={styles.medicationDetails}>
-                    <h4>{medication.name}</h4>
+                    <div className={styles.medicationHeader}>
+                      <h4>{medication.name}</h4>
+                      {medication.isPrescription && (
+                        <span className={styles.prescriptionBadge}>처방전</span>
+                      )}
+                    </div>
                     <p>
                       {medication.type} •{" "}
                       {medication.frequency?.replace(/(\d+)번/g, "$1 번")}
@@ -1065,10 +1134,21 @@ export default function MedicationManagement({
                   <button
                     className={styles.actionButton}
                     onClick={() => toggleNotification(medication.id)}
+                    title={(() => {
+                      if (medication.reminderDaysBefore === null) {
+                        return `알림 비활성화 (마지막 설정: ${
+                          medication.lastReminderDaysBefore || 0
+                        }일전)`;
+                      } else {
+                        return medication.reminderDaysBefore === 0
+                          ? "당일 알림"
+                          : `${medication.reminderDaysBefore}일 전 알림`;
+                      }
+                    })()}
                   >
                     <img
                       src={
-                        medication.isNotified
+                        medication.reminderDaysBefore !== null
                           ? "/health/notifi.png"
                           : "/health/notifi2.png"
                       }

@@ -35,9 +35,11 @@ export default function EditScheduleModal({
     scheduleTime: "", // 일정 시간
     duration: "", // 투약용
     notificationTiming: "", // 알림 시기 (모든 타입용)
+    lastReminderDaysBefore: null, // 마지막 알림 시기
   });
 
   const [errors, setErrors] = useState({});
+  const [isPrescription, setIsPrescription] = useState(false);
 
   // 복용 빈도에 따른 기본 시간 설정
   const getDefaultTimes = (frequency) => {
@@ -189,11 +191,35 @@ export default function EditScheduleModal({
   // 기존 데이터로 폼 초기화
   useEffect(() => {
     if (scheduleData) {
-      // 한글 값을 영어 enum 값으로 변환
-      const frequency =
-        frequencyMapping[scheduleData.frequency] ||
-        scheduleData.frequency ||
-        "";
+      console.log("EditScheduleModal - scheduleData:", scheduleData);
+      console.log("EditScheduleModal - 알림 관련 필드:", {
+        reminderDaysBefore: scheduleData.reminderDaysBefore,
+        lastReminderDaysBefore: scheduleData.lastReminderDaysBefore,
+        // notificationTiming은 표시용 문자열이므로 사용하지 않음
+        note: "notificationTiming은 표시용 문자열이므로 사용하지 않음",
+      });
+      // frequency 값을 영어 enum 값으로 변환
+      // scheduleData.frequency가 한글이면 영어로, 이미 영어면 그대로 사용
+      const frequency = (() => {
+        // 이미 영어 enum 값인 경우
+        if (
+          [
+            "DAILY_ONCE",
+            "DAILY_TWICE",
+            "DAILY_THREE_TIMES",
+            "WEEKLY_ONCE",
+            "MONTHLY_ONCE",
+          ].includes(scheduleData.frequency)
+        ) {
+          return scheduleData.frequency;
+        }
+        // 한글 값인 경우 영어로 변환
+        return (
+          frequencyMapping[scheduleData.frequency] ||
+          scheduleData.frequency ||
+          ""
+        );
+      })();
       const defaultTimes = getDefaultTimes(frequency);
 
       setFormData({
@@ -209,12 +235,37 @@ export default function EditScheduleModal({
           scheduleData.time ||
           defaultTimes.join(", "),
         duration: scheduleData.duration || "",
-        notificationTiming: scheduleData.notificationTiming || "",
+        notificationTiming:
+          scheduleData.reminderDaysBefore !== null
+            ? scheduleData.reminderDaysBefore
+            : scheduleData.lastReminderDaysBefore !== null
+            ? scheduleData.lastReminderDaysBefore
+            : 0,
+        lastReminderDaysBefore: scheduleData.lastReminderDaysBefore,
       });
+
+      console.log("EditScheduleModal - 알림 시기 디버깅:", {
+        reminderDaysBefore: scheduleData.reminderDaysBefore,
+        lastReminderDaysBefore: scheduleData.lastReminderDaysBefore,
+        finalNotificationTiming:
+          scheduleData.reminderDaysBefore !== null
+            ? scheduleData.reminderDaysBefore
+            : scheduleData.lastReminderDaysBefore !== null
+            ? scheduleData.lastReminderDaysBefore
+            : 0,
+      });
+
+      // 처방전 여부 설정
+      setIsPrescription(scheduleData.isPrescription || false);
     }
   }, [scheduleData]);
 
   const handleInputChange = (field, value) => {
+    // 처방전인 경우 알림 시기 변경 제한
+    if (field === "notificationTiming" && isPrescription) {
+      return; // 처방전 약은 알림 시기 변경 불가
+    }
+
     // 복용 빈도가 변경되면 기본 시간도 함께 설정
     if (field === "frequency") {
       const defaultTimes = getDefaultTimes(value);
@@ -269,8 +320,8 @@ export default function EditScheduleModal({
       newErrors.scheduleTime = "일정 시간을 입력해주세요";
     }
 
-    // 알림 시기 검증 (모든 타입)
-    if (!formData.notificationTiming) {
+    // 알림 시기 검증 (처방전이 아닌 경우에만)
+    if (!isPrescription && !formData.notificationTiming) {
       newErrors.notificationTiming = "알림 시기를 선택해주세요";
     }
 
@@ -324,6 +375,7 @@ export default function EditScheduleModal({
           endDate: endDate,
           scheduleTime: formData.scheduleTime,
           notificationTiming: formData.notificationTiming,
+          reminderDaysBefore: Number(formData.notificationTiming), // 백엔드로 전송할 숫자 값
           icon: getIconForSubType(formData.subType),
           color: getColorForType(formData.subType),
         };
@@ -344,11 +396,13 @@ export default function EditScheduleModal({
           time: formData.scheduleTime || formData.time, // 호환성 유지
 
           notificationTiming: formData.notificationTiming,
+          reminderDaysBefore: Number(formData.notificationTiming), // 백엔드로 전송할 숫자 값
           icon: getIconForSubType(formData.subType),
           color: getColorForType(mainType),
         };
       }
 
+      console.log("EditScheduleModal - updatedSchedule:", updatedSchedule);
       onEdit(updatedSchedule);
       handleClose();
     }
@@ -367,6 +421,7 @@ export default function EditScheduleModal({
       duration: "",
 
       notificationTiming: "",
+      lastReminderDaysBefore: null,
     });
     setErrors({});
     onClose();
@@ -712,16 +767,19 @@ export default function EditScheduleModal({
             </div>
             <div className={styles.selectContainer}>
               <select
-                className={styles.select}
+                className={`${styles.select} ${
+                  isPrescription ? styles.disabled : ""
+                }`}
                 value={formData.notificationTiming}
                 onChange={(e) =>
                   handleInputChange("notificationTiming", e.target.value)
                 }
+                disabled={isPrescription}
               >
                 <option value="">알림 시기를 선택하세요</option>
                 {notificationTimingOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </select>
@@ -737,6 +795,19 @@ export default function EditScheduleModal({
                 </svg>
               </div>
             </div>
+            {isPrescription && (
+              <span className={styles.prescriptionMessage}>
+                처방전으로 등록된 약은 알림 시기를 변경할 수 없습니다.
+              </span>
+            )}
+            {!isPrescription &&
+              formData.lastReminderDaysBefore !== undefined &&
+              formData.notificationTiming === null && (
+                <span className={styles.prescriptionMessage}>
+                  현재 알림이 비활성화되어 있습니다. (마지막 설정:{" "}
+                  {formData.lastReminderDaysBefore}일전)
+                </span>
+              )}
             {errors.notificationTiming && (
               <span className={styles.error}>{errors.notificationTiming}</span>
             )}

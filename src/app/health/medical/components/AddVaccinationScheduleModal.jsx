@@ -322,8 +322,8 @@ export default function AddVaccinationScheduleModal({
               >
                 <option value="">알림 시기를 선택하세요</option>
                 {notificationTimingOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </select>

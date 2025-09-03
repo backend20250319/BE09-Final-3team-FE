@@ -562,3 +562,19 @@
     padding: 20px 24px;
   }
 }
+
+/* 처방전 관련 스타일 */
+.disabled {
+  background-color: #f9fafb !important;
+  color: #6b7280 !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+}
+
+.prescriptionMessage {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+  display: block;
+  font-style: italic;
+}

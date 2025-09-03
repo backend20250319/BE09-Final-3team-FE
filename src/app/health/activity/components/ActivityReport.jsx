@@ -907,98 +907,25 @@ export default function ActivityReport() {
 
   return (
     <section className={styles.activityReportSection} suppressHydrationWarning>
-      <div className={styles.dateRangeContainer}>
-        <div className={styles.dateRangeHeader}>
-          <span className={styles.dateRangeLabel}></span>
-          {/* 2단계 드롭다운 기간 선택 */}
-          <div className={styles.periodDropdowns}>
-            {/* 메인 드롭다운 */}
-            <div className={styles.dropdownContainer}>
-              <button
-                className={styles.dropdownButton}
-                onClick={() => {
-                  setShowMainDropdown(!showMainDropdown);
-                  setShowSubDropdown(false);
-                }}
-              >
-                <span>{mainPeriod}</span>
-                <svg
-                  className={`${styles.dropdownArrow} ${
-                    showMainDropdown ? styles.rotated : ""
-                  }`}
-                  width="12"
-                  height="12"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                >
-                  <path
-                    d="M3 4.5L6 7.5L9 4.5"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-
-              {showMainDropdown && (
-                <div className={styles.dropdownMenu}>
-                  {Object.keys(periodOptions).map((period) => (
-                    <div
-                      key={period}
-                      className={styles.dropdownItem}
-                      onClick={() => {
-                        setMainPeriod(period);
-                        setShowMainDropdown(false);
-
-                        // 첫 번째 서브 옵션을 기본값으로 설정
-                        const firstSubOption = periodOptions[period][0];
-                        setSubPeriod(firstSubOption.key);
-
-                        // 기간 선택 상태 업데이트
-                        setHasSelectedPeriod(true);
-
-                        // 사용자 지정이 아닌 경우에만 서브 드롭다운 표시
-                        if (firstSubOption.key !== "CUSTOM") {
-                          setShowSubDropdown(true);
-                          setShowCustomDatePicker(false);
-                        } else {
-                          setShowSubDropdown(false);
-                          setShowCustomDatePicker(true);
-                        }
-                      }}
-                    >
-                      {period}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* 서브 드롭다운 - 메인 선택 후에만 표시 */}
-            {mainPeriod !== "선택" && (
+      {selectedPetName && selectedPetNo && (
+        <div className={styles.dateRangeContainer}>
+          <div className={styles.dateRangeHeader}>
+            <span className={styles.dateRangeLabel}></span>
+            {/* 2단계 드롭다운 기간 선택 */}
+            <div className={styles.periodDropdowns}>
+              {/* 메인 드롭다운 */}
               <div className={styles.dropdownContainer}>
                 <button
-                  className={`${styles.dropdownButton} ${
-                    mainPeriod === "선택" ? styles.disabled : ""
-                  }`}
+                  className={styles.dropdownButton}
                   onClick={() => {
-                    if (mainPeriod !== "선택") {
-                      setShowSubDropdown(!showSubDropdown);
-                    }
+                    setShowMainDropdown(!showMainDropdown);
+                    setShowSubDropdown(false);
                   }}
-                  disabled={mainPeriod === "선택"}
                 >
-                  <span>
-                    {mainPeriod === "선택"
-                      ? "선택"
-                      : periodOptions[mainPeriod]?.find(
-                          (opt) => opt.key === subPeriod
-                        )?.label || "선택"}
-                  </span>
+                  <span>{mainPeriod}</span>
                   <svg
                     className={`${styles.dropdownArrow} ${
-                      showSubDropdown ? styles.rotated : ""
+                      showMainDropdown ? styles.rotated : ""
                     }`}
                     width="12"
                     height="12"
@@ -1015,84 +942,159 @@ export default function ActivityReport() {
                   </svg>
                 </button>
 
-                {showSubDropdown && mainPeriod !== "선택" && (
+                {showMainDropdown && (
                   <div className={styles.dropdownMenu}>
-                    {periodOptions[mainPeriod]?.map((option) => (
+                    {Object.keys(periodOptions).map((period) => (
                       <div
-                        key={option.key}
-                        className={`${styles.dropdownItem} ${
-                          subPeriod === option.key ? styles.selected : ""
-                        }`}
+                        key={period}
+                        className={styles.dropdownItem}
                         onClick={() => {
-                          setSubPeriod(option.key);
-                          setShowSubDropdown(false);
+                          setMainPeriod(period);
+                          setShowMainDropdown(false);
+
+                          // 첫 번째 서브 옵션을 기본값으로 설정
+                          const firstSubOption = periodOptions[period][0];
+                          setSubPeriod(firstSubOption.key);
+
                           // 기간 선택 상태 업데이트
                           setHasSelectedPeriod(true);
-                          if (option.key === "CUSTOM") {
-                            setShowCustomDatePicker(true);
-                          } else {
+
+                          // 사용자 지정이 아닌 경우에만 서브 드롭다운 표시
+                          if (firstSubOption.key !== "CUSTOM") {
+                            setShowSubDropdown(true);
                             setShowCustomDatePicker(false);
+                          } else {
+                            setShowSubDropdown(false);
+                            setShowCustomDatePicker(true);
                           }
                         }}
                       >
-                        {option.label}
+                        {period}
                       </div>
                     ))}
                   </div>
                 )}
               </div>
+
+              {/* 서브 드롭다운 - 메인 선택 후에만 표시 */}
+              {mainPeriod !== "선택" && (
+                <div className={styles.dropdownContainer}>
+                  <button
+                    className={`${styles.dropdownButton} ${
+                      mainPeriod === "선택" ? styles.disabled : ""
+                    }`}
+                    onClick={() => {
+                      if (mainPeriod !== "선택") {
+                        setShowSubDropdown(!showSubDropdown);
+                      }
+                    }}
+                    disabled={mainPeriod === "선택"}
+                  >
+                    <span>
+                      {mainPeriod === "선택"
+                        ? "선택"
+                        : periodOptions[mainPeriod]?.find(
+                            (opt) => opt.key === subPeriod
+                          )?.label || "선택"}
+                    </span>
+                    <svg
+                      className={`${styles.dropdownArrow} ${
+                        showSubDropdown ? styles.rotated : ""
+                      }`}
+                      width="12"
+                      height="12"
+                      viewBox="0 0 12 12"
+                      fill="none"
+                    >
+                      <path
+                        d="M3 4.5L6 7.5L9 4.5"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+
+                  {showSubDropdown && mainPeriod !== "선택" && (
+                    <div className={styles.dropdownMenu}>
+                      {periodOptions[mainPeriod]?.map((option) => (
+                        <div
+                          key={option.key}
+                          className={`${styles.dropdownItem} ${
+                            subPeriod === option.key ? styles.selected : ""
+                          }`}
+                          onClick={() => {
+                            setSubPeriod(option.key);
+                            setShowSubDropdown(false);
+                            // 기간 선택 상태 업데이트
+                            setHasSelectedPeriod(true);
+                            if (option.key === "CUSTOM") {
+                              setShowCustomDatePicker(true);
+                            } else {
+                              setShowCustomDatePicker(false);
+                            }
+                          }}
+                        >
+                          {option.label}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* 사용자 지정 기간 날짜 선택기 */}
+            {showCustomDatePicker && (
+              <div className={styles.customDatePicker}>
+                <div className={styles.dateInputGroup}>
+                  <label htmlFor="startDate">시작일:</label>
+                  <input
+                    type="date"
+                    id="startDate"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    className={styles.dateInput}
+                  />
+                </div>
+                <div className={styles.dateInputGroup}>
+                  <label htmlFor="endDate">종료일:</label>
+                  <input
+                    type="date"
+                    id="endDate"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    className={styles.dateInput}
+                  />
+                </div>
+                <button
+                  className={styles.applyButton}
+                  onClick={async () => {
+                    if (customStartDate && customEndDate) {
+                      // 날짜 유효성 검증
+                      if (new Date(customStartDate) > new Date(customEndDate)) {
+                        alert("시작일은 종료일보다 이전이어야 합니다.");
+                        return;
+                      }
+                      // 데이터 조회
+                      await fetchCustomPeriodData();
+                    } else {
+                      alert("시작일과 종료일을 모두 선택해주세요.");
+                    }
+                  }}
+                  disabled={!customStartDate || !customEndDate}
+                >
+                  적용
+                </button>
+              </div>
             )}
           </div>
-
-          {/* 사용자 지정 기간 날짜 선택기 */}
-          {showCustomDatePicker && (
-            <div className={styles.customDatePicker}>
-              <div className={styles.dateInputGroup}>
-                <label htmlFor="startDate">시작일:</label>
-                <input
-                  type="date"
-                  id="startDate"
-                  value={customStartDate}
-                  onChange={(e) => setCustomStartDate(e.target.value)}
-                  className={styles.dateInput}
-                />
-              </div>
-              <div className={styles.dateInputGroup}>
-                <label htmlFor="endDate">종료일:</label>
-                <input
-                  type="date"
-                  id="endDate"
-                  value={customEndDate}
-                  onChange={(e) => setCustomEndDate(e.target.value)}
-                  className={styles.dateInput}
-                />
-              </div>
-              <button
-                className={styles.applyButton}
-                onClick={async () => {
-                  if (customStartDate && customEndDate) {
-                    // 날짜 유효성 검증
-                    if (new Date(customStartDate) > new Date(customEndDate)) {
-                      alert("시작일은 종료일보다 이전이어야 합니다.");
-                      return;
-                    }
-                    // 데이터 조회
-                    await fetchCustomPeriodData();
-                  } else {
-                    alert("시작일과 종료일을 모두 선택해주세요.");
-                  }
-                }}
-                disabled={!customStartDate || !customEndDate}
-              >
-                적용
-              </button>
-            </div>
-          )}
         </div>
-      </div>
+      )}
 
       {/* 요약 통계 표시 영역 */}
-      {summaryData && summaryData.data && (
+      {selectedPetName && selectedPetNo && summaryData && summaryData.data && (
         <div className={styles.summaryStats}>
           <div className={styles.summaryCard}>
             <h4>총 활동 횟수</h4>
@@ -1126,8 +1128,12 @@ export default function ActivityReport() {
       )}
 
       {!selectedPetName || !selectedPetNo ? (
-        <div className={styles.noPetContainer}>
-          <p>반려동물을 선택해주세요.</p>
+        <div className={styles.noPetArea}>
+          <div className={styles.noPetIcon}>🐕</div>
+          <div className={styles.noPetText}>
+            <h3>반려동물을 선택해주세요</h3>
+            <p>활동 리포트를 보려면 먼저 반려동물을 선택해주세요!</p>
+          </div>
         </div>
       ) : loading && hasSelectedPeriod ? (
         <div className={styles.loadingContainer}>

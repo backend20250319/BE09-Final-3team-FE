@@ -561,8 +561,16 @@ export default function ActivityManagement() {
   // 펫이 선택되지 않았을 때 메시지 표시
   if (!selectedPetName || !selectedPetNo) {
     return (
-      <div className={styles.noPetContainer}>
-        <p>반려동물을 선택해주세요.</p>
+      <div className={styles.container}>
+        <div className={styles.noPetSection}>
+          <div className={styles.noPetArea}>
+            <div className={styles.noPetIcon}>🐕</div>
+            <div className={styles.noPetText}>
+              <h3>반려동물을 선택해주세요</h3>
+              <p>활동 기록을 관리하려면 먼저 반려동물을 선택해주세요!</p>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

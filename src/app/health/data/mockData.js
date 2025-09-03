@@ -46,7 +46,12 @@ export const frequencyMapping = {
 };
 
 // 알림 시기 옵션들
-export const notificationTimingOptions = ["당일", "1일전", "2일전", "3일전"];
+export const notificationTimingOptions = [
+  { value: 0, label: "당일" },
+  { value: 1, label: "1일전" },
+  { value: 2, label: "2일전" },
+  { value: 3, label: "3일전" },
+];
 
 // 돌봄 일정용 옵션들
 export const careSubTypeOptions = [
