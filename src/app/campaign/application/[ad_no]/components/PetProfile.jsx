@@ -229,7 +229,13 @@ export default function PetProfile() {
         <div className={styles.ownerInfo}>
           <h4 className={styles.ownerTitle}>반려인 정보</h4>
           <div className={styles.ownerProfile}>
-            <Image src={userData.profileImageUrl} alt="Owner" width={48} height={48} className={styles.ownerImage} />
+            {userData.profileImageUrl ? (
+              <Image src={userData.profileImageUrl} alt="Owner" width={48} height={48} className={styles.ownerImage} />
+            ) : (
+              <div className={styles.ownerAvatarPlaceholder}>
+                <span>?</span>
+              </div>
+            )}
             <div className={styles.ownerDetails}>
               <h5 className={styles.ownerName}>{}</h5>
               <p className={styles.ownerIntro}>{userData.selfIntroduction}</p>

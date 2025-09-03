@@ -5,7 +5,6 @@ import Image from "next/image";
 import styles from "../styles/PortfolioModal.module.css";
 import ActivityHistory from '@/app/campaign/application/[ad_no]/components/ActivityHistory';
 import ActivityDetailModal from '@/app/user/portfolio/ActivityDetailModal';
-import activities from '@/app/campaign/application/[ad_no]/data/ActivityData';
 
 export default function PortfolioModal({ isOpen, onClose, petData }) {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);

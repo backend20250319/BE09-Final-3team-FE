@@ -79,9 +79,9 @@ const Sidebar = () => {
       const fileData = await getFileByAdvertiserNo();
 
       if (
-        fileData &&
-        fileData[0].filePath &&
-        fileData[0].filePath.trim() !== ""
+        fileData && 
+        fileData[0]?.filePath &&
+        fileData[0]?.filePath.trim() !== ""
       ) {
         setPreviewImage(fileData[0].filePath);
         setIsLoadingImage(false);

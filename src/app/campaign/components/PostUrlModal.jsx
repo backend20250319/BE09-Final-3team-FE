@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from "../styles/PostUrlModal.module.css";
-import { getApplicantsByAd } from '@/api/campaignApi';
+import { getApplicantsByAd, updateReview, getReview } from '@/api/campaignApi';
 
 export default function PostUrlModal({ isOpen, onClose, adNo }) {
   const [applicants, setApplicants] = useState([]);
@@ -10,6 +10,8 @@ export default function PostUrlModal({ isOpen, onClose, adNo }) {
   const [postUrl, setPostUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [existingReview, setExistingReview] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState('');
 
   useEffect(() => {
     if (isOpen && adNo) {
@@ -27,7 +29,8 @@ export default function PostUrlModal({ isOpen, onClose, adNo }) {
       
       if (selectedPets.length > 0) {
         setSelectedPet(selectedPets[0]);
-        setPostUrl(selectedPets[0].postUrl || '');
+        // 기존 리뷰 정보 조회
+        await fetchExistingReview(selectedPets[0].applicantNo);
       }
     } catch (error) {
       console.error('선정된 펫 목록 조회 실패:', error);
@@ -37,11 +40,36 @@ export default function PostUrlModal({ isOpen, onClose, adNo }) {
     }
   };
 
+  // 기존 리뷰 정보 조회
+  const fetchExistingReview = async (applicantNo) => {
+    try {
+      const reviewData = await getReview(applicantNo);
+      console.log(reviewData);
+      setExistingReview(reviewData);
+      
+      if (reviewData) {
+        // 기존 reviewUrl이 있으면 설정
+        if (reviewData.reviewUrl) {
+          setPostUrl(reviewData.reviewUrl);
+        }
+        
+        // reason이 있으면 반려 사유로 설정
+        if (reviewData.reason) {
+          setRejectionReason(reviewData.reason);
+        }
+      }
+    } catch (error) {
+      console.error('기존 리뷰 조회 실패:', error);
+      // 리뷰가 없는 경우는 정상적인 상황이므로 에러로 처리하지 않음
+    }
+  };
+
   const handlePetChange = (applicantNo) => {
     const pet = applicants.find(app => app.applicantNo === parseInt(applicantNo));
     if (pet) {
       setSelectedPet(pet);
-      setPostUrl(pet.postUrl || '');
+      // 펫 변경 시 해당 펫의 기존 리뷰 정보 조회
+      fetchExistingReview(pet.applicantNo);
     }
   };
 
@@ -69,17 +97,18 @@ export default function PostUrlModal({ isOpen, onClose, adNo }) {
       setIsLoading(true);
       setError('');
       
-      // TODO: API 호출하여 URL 저장
-      // await updatePostUrl(selectedPet.applicantNo, postUrl);
+      // updateReview API 호출하여 reviewUrl 저장 (reason은 빈 값으로 설정하여 반려 사유 제거)
+      await updateReview(selectedPet.applicantNo, postUrl);
       
-      console.log('게시물 URL 저장:', { applicantNo: selectedPet.applicantNo, postUrl });
+      console.log('게시물 URL 저장 성공:', { applicantNo: selectedPet.applicantNo, postUrl });
       
       // 성공 시 모달 닫기
       onClose();
-      // 성공 메시지나 페이지 새로고침 등을 여기에 추가할 수 있습니다.
+      // 성공 메시지 표시 (선택사항)
+      alert('게시물 URL이 성공적으로 등록되었습니다.');
     } catch (error) {
       console.error('게시물 URL 저장 실패:', error);
-      setError('게시물 URL 저장에 실패했습니다.');
+      setError('게시물 URL 저장에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsLoading(false);
     }
@@ -90,6 +119,8 @@ export default function PostUrlModal({ isOpen, onClose, adNo }) {
     setError('');
     setSelectedPet(null);
     setApplicants([]);
+    setExistingReview(null);
+    setRejectionReason('');
     onClose();
   };
 
@@ -198,6 +229,28 @@ export default function PostUrlModal({ isOpen, onClose, adNo }) {
                 </div>
               </div>
             </div>
+
+            {/* 반려 사유 */}
+            {rejectionReason && (
+              <div className={styles.rejectionWarning}>
+                <div className={styles.warningHeader}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path
+                      d="M8 1L15 14H1L8 1Z"
+                      stroke="#DC2626"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span className={styles.warningTitle}>반려 사유</span>
+                </div>
+                <p className={styles.rejectionReason}>{rejectionReason}</p>
+                <p className={styles.warningMessage}>
+                  위 사유로 인해 반려되었습니다. 수정 후 다시 등록해주세요.
+                </p>
+              </div>
+            )}
 
             {/* Error Message */}
             {error && <div className={styles.errorMessage}>{error}</div>}

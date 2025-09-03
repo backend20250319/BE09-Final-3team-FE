@@ -10,15 +10,14 @@ function sortCampaigns(campaigns, sortBy, activeTab) {
       // 최신순
       return activeTab === "recruiting" ? 
         [...campaigns].sort((a, b) => new Date(a.announceStart) - new Date(b.announceStart)) :
-        [...campaigns].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) ;
+        [...campaigns].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)) ;
     case "deadline":
       // 마감 임박순 (공고 종료일 오름차순)
       return [...campaigns].sort((a, b) => new Date(a.announceEnd) - new Date(b.announceEnd));
     case "popular":
       // 인기순 (신청자 수 내림차순)
       return [...campaigns].sort((a, b) => {
-        const getApplicantsNum = (str) => Number((str || "0").split("/")[0].trim()) || 0;
-        return getApplicantsNum(b.applicants) - getApplicantsNum(a.applicants);
+        return b.applicants -a.applicants;
       });
     case "endedRecent":
       // 종료일 최신순 (공고 종료일 내림차순)
