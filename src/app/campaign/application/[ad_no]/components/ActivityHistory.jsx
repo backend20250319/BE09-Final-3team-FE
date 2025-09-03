@@ -74,9 +74,9 @@ export default function ActivityHistory({ activityCards, onCardClick}) {
               style={{ cursor: "pointer" }}
             >
               <div className={styles.cardImage}>
-                {card.image ? (
+                {card.imageUrls && card.imageUrls.length > 0 ? (
                   <Image
-                    src={card.image}
+                    src={`http://dev.macacolabs.site:8008/3/pet/${card.imageUrls[0]}`}
                     alt={`활동 이미지 ${card.id}`}
                     layout="fill"
                     objectFit="cover"
@@ -104,7 +104,7 @@ export default function ActivityHistory({ activityCards, onCardClick}) {
 
                   <div className={styles.formRow}>
                     <label>활동 시기</label>
-                    <div className={styles.readOnlyText}>{card.period}</div>
+                    <div className={styles.readOnlyText}>{card.historyStart} ~ {card.historyEnd}</div>
                   </div>
 
                   <div className={styles.formRow}>

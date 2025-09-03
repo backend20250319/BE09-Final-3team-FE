@@ -47,6 +47,12 @@ export const getPortfolio = async (petNo) => {
   return res.data.data;
 }
 
+// 3. 활동이력 조회
+export const getHistory = async (petNo) => {
+  const res = await api.get(`${CAMPAIGN_PREFIX}/pet/history/${petNo}`);
+  return res.data.data;
+}
+
 /* 사용자 API */
 // 1. 사용자 조회
 export const getUser = async () => {

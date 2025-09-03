@@ -5,19 +5,19 @@ import Image from "next/image";
 import styles from "../styles/PetProfile.module.css"
 import AdditinalSection from './AdditionalSection';
 import ActivityHistory from './ActivityHistory';
-import ActivityDetailModal from '@/app/user/portfolio/ActivityDetailModal';
-import activities from '../data/ActivityData';
-import { getApplicantsByPetNo, getPets, getPortfolio, getUser } from '@/api/campaignApi';
+import CampaignActivityDetailModal from './CampaignActivityDetailModal';
+import { getApplicantsByPetNo, getPets, getPortfolio, getUser, getHistory } from '@/api/campaignApi';
 
 export default function PetProfile() {
 
   const [selectedPet, setSelectedPet] = useState(null);
-  const [activityCards, setActivityCards] = useState(activities);
+  const [activityCards, setActivityCards] = useState([]);
   const [petData, setPetData] = useState([]);
   const [portfolio, setPortfolio] = useState([]);
   const [userData, setUserData] = useState(null);
   const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   useEffect(() => {
     async function fetchPets() {
@@ -39,26 +39,52 @@ export default function PetProfile() {
     fetchPets();
   }, []);
 
-  // 선택된 펫이 변경될 때마다 포트폴리오 조회
+  // 선택된 펫이 변경될 때마다 포트폴리오와 활동이력 조회
   useEffect(() => {
-    async function fetchPortfolio() {
+    async function fetchPortfolioAndHistory() {
       if (selectedPet !== null && petData[selectedPet]?.petNo) {
         try{
+          setIsLoadingHistory(true);
           const portfolioData = await getPortfolio(petData[selectedPet].petNo);
           setPortfolio(portfolioData || []);
 
           const historyData = await getApplicantsByPetNo(petData[selectedPet].petNo);
           setHistory(historyData);
+
+          // 활동이력 조회 (이미지 정보 포함)
+          const petNo = petData[selectedPet].petNo;
+          const historyResponse = await getHistory(petNo);
+
+          // 활동이력 데이터를 activityCards 형식으로 변환
+          const combinedActivities = historyResponse.map(historyItem => {
+            return {
+              id: historyItem.historyNo,
+              title: historyItem.title || '활동 기록',
+              content: historyItem.content || '활동 내용',
+              historyStart: historyItem.historyStart ? new Date(historyItem.historyStart).toLocaleDateString() : '날짜 없음',
+              historyEnd: historyItem.historyEnd ? new Date(historyItem.historyEnd).toLocaleDateString() : '날짜 없음',
+              imageUrls: historyItem.imageUrls || [],
+              category: historyItem.category || '일반',
+              ...historyItem
+            };
+          });
+
+          setActivityCards(combinedActivities);
         } catch (error) {
+          console.error('포트폴리오 및 활동이력 조회 실패:', error);
           if (error.response && error.response.status === 404) {
-          setPortfolio([]);
+            setPortfolio([]);
+            setActivityCards([]);
           } else {
             setPortfolio([]);
+            setActivityCards([]);
           }
+        } finally {
+          setIsLoadingHistory(false);
         }
       }
     }
-    fetchPortfolio();
+    fetchPortfolioAndHistory();
   }, [selectedPet, petData]);
 
   const selectedPetInfo = petData[selectedPet] || petData[0];
@@ -158,8 +184,18 @@ export default function PetProfile() {
         {/* Activity History */}
         <div className={styles.activityContent}>
           <h4 className={styles.activityTitle}>활동 이력</h4>
-          <ActivityHistory activityCards={activityCards} onCardClick={handleCardClick} />
-          <ActivityDetailModal
+          {isLoadingHistory ? (
+            <div className={styles.loadingHistoryMessage}>
+              <p>활동이력 조회중</p>
+            </div>
+          ) : activityCards.length > 0 ? (
+            <ActivityHistory activityCards={activityCards} onCardClick={handleCardClick} />
+          ) : (
+            <div className={styles.noActivityMessage}>
+              <p>조회된 활동 이력이 없습니다.</p>
+            </div>
+          )}
+          <CampaignActivityDetailModal
             isOpen={isDetailModalOpen}
             onClose={() => setIsDetailModalOpen(false)}
             activityData={selectedActivity}/>

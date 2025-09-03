@@ -319,3 +319,19 @@
   color: #4B5563;
   line-height: 1.43;
 }
+
+.loadingHistoryMessage {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6B7280;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.noActivityMessage {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6B7280;
+  font-size: 16px;
+  font-weight: 400;
+}
