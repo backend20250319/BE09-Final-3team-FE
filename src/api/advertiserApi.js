@@ -33,7 +33,7 @@ advertiserApi.interceptors.request.use(
 export default advertiserApi;
 
 const ADVERTISER_PREFIX =
-    (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_COMMUNITY_PREFIX) ||
+    (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_ADVERTISER_PREFIX) ||
     "/advertiser-service/advertiser";
 
 // 1. 광고주 프로필 정보 조회
@@ -49,7 +49,7 @@ export const updateAdvertiser = async (profile) => {
 };
 
 const FILE_PREFIX =
-    (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_COMMUNITY_PREFIX) ||
+    (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_FILE_PREFIX) ||
     "/advertiser-service/file";
 
 // 1. 광고주 파일 업로드

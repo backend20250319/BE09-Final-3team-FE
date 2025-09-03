@@ -4,19 +4,19 @@ import { useRouter } from "next/navigation";
 import Image from 'next/image';
 import styles from "../styles/CampaignSideBar.module.css"
 
-export default function CampaignSidebar({ campaignData }) {
+export default function CampaignSidebar({ campaignData, advImage }) {
 
   const router = useRouter();
 
   const handleClick = () => {
-    router.push(`/campaign/application/${campaignData.ad_no}`);
+    router.push(`/campaign/application/${campaignData.adNo}`);
   };
 
   const calculateDaysLeft = () => {
-    const endDate = new Date(campaignData.announce_end);
+    const endDate = new Date(campaignData.announceEnd);
     const now = new Date();
 
-    const diffMs = endDate - now; // 남은 밀리초
+    const diffMs = endDate - now;
     if (diffMs <= 0) {
       return '마감됨';
     }
@@ -44,11 +44,11 @@ export default function CampaignSidebar({ campaignData }) {
           </div>
           <div className={styles.detailRow}>
             <span className={styles.detailLabel}>체험단 선정일</span>
-            <span className={styles.detailValue}>{campaignData.campaign_select}</span>
+            <span className={styles.detailValue}>{campaignData.campaignSelect}</span>
           </div>
           <div className={styles.detailRow}>
             <span className={styles.detailLabel}>체험단 활동 기간</span>
-            <span className={styles.detailValue}>{campaignData.campaign_start}~{campaignData.campaign_end}</span>
+            <span className={styles.detailValue}>{campaignData.campaignStart}~{campaignData.campaignEnd}</span>
           </div>
         </div>
       </div>
@@ -57,13 +57,13 @@ export default function CampaignSidebar({ campaignData }) {
       <div className={`${styles.sidebarSection} ${styles.linkSection}`}>
         <h3 className={styles.sectionTitle}>상품 링크</h3>
         <div className={styles.linkContent}>
-          <a href="#" className={styles.storeLink}>
+          <a href={campaignData.adUrl} className={styles.storeLink}>
             <Image 
               src="/campaign/link.png"
               alt="link.png"
               width={16}
               height={16}/>
-            Visit {campaignData.brand} Store
+            Visit {campaignData.advertiser.name} Store
           </a>
         </div>
       </div>
@@ -75,33 +75,39 @@ export default function CampaignSidebar({ campaignData }) {
           <div className={styles.companyProfile}>
             <div className={styles.companyLogo}>
               <Image
-                src={campaignData.brand_url}
-                alt={campaignData.brand}
+                src={advImage.filePath}
+                alt={campaignData.advertiser.name}
                 width={48}
                 height={48}
                 className={styles.logoImage}
               />
             </div>
             <div className={styles.companyDetails}>
-              <h4 className={styles.companyName}>{campaignData.brand}</h4>
+              <h4 className={styles.companyName}>{campaignData.advertiser.name}</h4>
             </div>
           </div>
           <p className={styles.companyIntro}>
-            {campaignData.description}
+            {campaignData.advertiser.description}
           </p>
         </div>
       </div>
 
       {/* 신청 버튼 */}
       <div className={`${styles.sidebarSection} ${styles.applySection}`}>
-        <button className={styles.applyButton} onClick={handleClick}>
+        {["ENDED", "CLOSED", "TRIAL"].includes(campaignData.adStatus) ? (
+          <div className={styles.closedMessage}>
+            <span>체험단 신청마감</span>
+          </div>
+        ) : (
+          <button className={styles.applyButton} onClick={handleClick}>
             <Image 
               src="/campaign/airplane.png"
               alt="airplane.png"
               width={16}
               height={16}/>
-          <span>체험단 신청하기</span>
-        </button>
+            <span>체험단 신청하기</span>
+          </button>
+        )}
       </div>
     </div>
   );

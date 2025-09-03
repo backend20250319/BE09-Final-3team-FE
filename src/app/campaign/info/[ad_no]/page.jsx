@@ -6,18 +6,43 @@ import CampaignDetail from './components/CampaignDetail';
 import CampaignHeader from './components/CampaignHeader';
 import CampaignSidebar from './components/CampaignSidebar';
 import styles from ".//styles/CampaignPage.module.css"
-import campaigns from '../../data/campaigns';
+import { getAd, getAdvertiserFile, getImageByAdNo } from '@/api/campaignApi';
 
 export default function AdvertisementPage() {
   const params = useParams();
   const router = useRouter();
   const [campaignData, setCampaignData] = useState(null);
+  const [advImage, setAdvImage] = useState(null);
+  const [adImage, setAdImage] = useState(null);
 
   useEffect(() => {
-    const adNo = parseInt(params.ad_no, 10);
-    const foundCampaign = campaigns.find(campaign => campaign.ad_no === adNo);
-    setCampaignData(foundCampaign || null);
+    const fetchCampaign = async () => {
+      const adNo = parseInt(params.ad_no, 10);
+      try {
+        const data = await getAd(adNo);
+        setCampaignData(data);
+
+        const adImageData = await getImageByAdNo(adNo);
+        setAdImage(adImageData);
+
+      } catch (error) {
+        console.error("Failed to fetch campaigns:", error);
+      }
+    };
+
+    fetchCampaign();
   }, [params.ad_no]);
+
+  useEffect(() => {
+    if (campaignData){
+      const getAdvImage = async () => {
+        const advImageData = await getAdvertiserFile(campaignData.advertiser.advertiserNo);
+        setAdvImage(advImageData[0]);
+      };
+
+      getAdvImage();
+    }
+  }, [campaignData]);
 
   return (
     <>
@@ -34,13 +59,13 @@ export default function AdvertisementPage() {
           체험단 목록으로 이동
         </button>
       </div>
-      {campaignData && (
+      {campaignData && adImage && advImage && (
         <div className={styles.campaignContainer}>
           <CampaignHeader 
             title={campaignData.title}
-            brand={campaignData.brand}
-            image={campaignData.image}
-            brand_url={campaignData.brand_url}
+            brand={campaignData.advertiser.name}
+            image={adImage}
+            advImage={advImage}
           />
           
           <div className={styles.campaignContent}>
@@ -49,7 +74,7 @@ export default function AdvertisementPage() {
             </div>
             
             <div className={styles.campaignSidebar}>
-              <CampaignSidebar campaignData={campaignData} />
+              <CampaignSidebar campaignData={campaignData} advImage={advImage} />
             </div>
           </div>
         </div>

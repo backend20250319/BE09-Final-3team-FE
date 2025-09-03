@@ -1,17 +1,24 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from "next/image";
 import Link from "next/link";
 import styles from "../styles/CampaignCard.module.css";
 import { useCampaign } from "../context/CampaignContext";
+import { getAdvertiserFile, getImageByAdNo, getApplicantsByAd } from '@/api/campaignApi';
+import EditApplicationModal from './EditApplicationModal';
+import PostUrlModal from './PostUrlModal';
 
 export default function CampaignCard({ campaign, openModal }) {
 
   const { activeTab } = useCampaign();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isPostUrlModalOpen, setIsPostUrlModalOpen] = useState(false);
+  const [userStatus, setUserStatus] = useState(null);
 
-  const showRecruitingButton = activeTab === "recruiting" && campaign.ad_status === "approved";
-  const showEndedButton = activeTab === "ended" && campaign.ad_status === "ended";
+  const showRecruitingButton = activeTab === "recruiting" && campaign.adStatus === "APPROVED";
+  const showEndedButton = activeTab === "ended" && 
+    ["ENDED", "CLOSED", "TRIAL"].includes(campaign.adStatus);
 
   const COLORS = {
     recruiting: "#FF8484",  
@@ -22,7 +29,7 @@ export default function CampaignCard({ campaign, openModal }) {
 
   const STATUSTEXT = {
     approved: "모집중",
-    pending: "확인 절차중",
+    pending: "선정 절차중",
     selected: "게시물 URL 등록",
     rejected: "선발 완료(X)",
     completed: "광고 완료",
@@ -53,19 +60,79 @@ export default function CampaignCard({ campaign, openModal }) {
         return { ...baseStyle, backgroundColor: "#8BC34A", color: "#FFFFFF" };
     }
   };
+
+  const [advImage, setAdvImage] = useState(null);
+  const [adImage, setAdImage] = useState(null);
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+
+      const advImageData = await getAdvertiserFile(campaign.advertiser.advertiserNo);
+      setAdvImage(advImageData[0]);
+
+      const adImageData = await getImageByAdNo(campaign.adNo);
+      setAdImage(adImageData);
+
+    };
+
+    fetchData();
+  }, [campaign.adNo]);
+
+  // 사용자 상태 확인
+  useEffect(() => {
+    const fetchUserStatus = async () => {
+      if (activeTab === "applied" && campaign.adNo) {
+        try {
+          const applicants = await getApplicantsByAd(campaign.adNo);
+          const userStatus = determineUserStatus(applicants);
+          setUserStatus(userStatus);
+        } catch (error) {
+          console.error('사용자 상태 조회 실패:', error);
+        }
+      }
+    };
+
+    fetchUserStatus();
+  }, [activeTab, campaign.adNo]);
+
+  // 사용자 상태 결정 함수
+  const determineUserStatus = (applicants) => {
+    if (!applicants || applicants.length === 0) return null;
+
+    const statuses = applicants.map(applicant => applicant.status);
+    
+    // selected: 하나라도 selected인 경우
+    if (statuses.some(status => status === 'SELECTED')) {
+      return 'selected';
+    }
+    
+    // rejected: 모든 펫이 rejected인 경우
+    if (statuses.every(status => status === 'REJECTED')) {
+      return 'rejected';
+    }
+    
+    // completed: 모든 펫이 completed인 경우
+    if (statuses.every(status => status === 'COMPLETED')) {
+      return 'completed';
+    }
+    
+    // pending: 그 외의 경우
+    return 'pending';
+  };
   
   const cardContent = (
     <div
       className={styles.campaignCard}
       style={{ borderTopColor: COLORS[activeTab] || COLORS.default }}>
       <div className={styles.imageContainer}>
-        <Image  
-          src={campaign.image}
+        {adImage && (<Image  
+          src={adImage.filePath}
           alt={campaign.title}
           width={410}
           height={160}
           className={styles.campaignImage}
-        />
+        />)}
       </div>
 
       <div className={styles.cardContent}>
@@ -74,15 +141,15 @@ export default function CampaignCard({ campaign, openModal }) {
         <div className={styles.brandSection}>
           <div className={styles.brandInfo}>
             <div className={styles.brandIcon}>
-              <Image  
-                src={campaign.brand_url}
-                alt={campaign.brand}
+              {advImage && (<Image  
+                src={advImage.filePath}
+                alt={campaign.advertiser.name}
                 width={32}
                 height={32}
                 className={styles.brandImage}
-              />
+              />)}
             </div>
-            <span className={styles.brandName}>{campaign.brand}</span>
+            <span className={styles.brandName}>{campaign?.advertiser?.name}</span>
           </div>
           {showRecruitingButton ? (
             <span
@@ -98,30 +165,39 @@ export default function CampaignCard({ campaign, openModal }) {
             >
               {STATUSTEXT["ended"]}
             </span>
-          ) : campaign.applicant_status === "applied" ? (
+          ) : campaign.adStatus === "APPROVED" && activeTab === "applied" ? (
             <div className={styles.actionButtons}>
-              <button style={getStatusStyle("applied")} className={styles.actionBtn}>
+              <button style={getStatusStyle("applied")} className={styles.actionBtn}
+                onClick={(e) => {
+                  e.preventDefault(); 
+                  e.stopPropagation();
+                  setIsEditModalOpen(true);
+                }}>
                 수정
               </button>
               <button style={getStatusStyle("applied")} className={styles.actionBtn}>
-                삭제
+                취소
               </button>
             </div>
-          ) : campaign.applicant_status === "selected" ? (
+          ) : userStatus === "selected" ? (
             <button
-              onClick={() => openModal(campaign)}
-              style={getStatusStyle(campaign.applicant_status)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsPostUrlModalOpen(true);
+              }}
+              style={getStatusStyle("selected")}
               className={styles.statusButton}
             >
-              {STATUSTEXT[campaign.applicant_status]}
+              {STATUSTEXT["selected"]}
             </button>
-          ) : (
+          ) : userStatus ? (
             <span 
-              style={getStatusStyle(campaign.applicant_status)}
+              style={getStatusStyle(userStatus)}
               className={styles.statusSpan}>
-              {STATUSTEXT[campaign.applicant_status]}
+              {STATUSTEXT[userStatus]}
             </span>
-          )}
+          ) : null}
         </div>
         <div className={styles.cardFooter}>
           <div className={styles.periodInfo}>
@@ -131,7 +207,7 @@ export default function CampaignCard({ campaign, openModal }) {
                 fill="#6B7280"
               />
             </svg>
-            <span className={styles.period}>{campaign.announce_start}~{campaign.announce_end}</span>
+            <span className={styles.period}>{campaign.announceStart}~{campaign.announceEnd}</span>
           </div>
           <span className={styles.applicants}>신청자 수 : {campaign.applicants}</span>
         </div>
@@ -139,13 +215,23 @@ export default function CampaignCard({ campaign, openModal }) {
     </div>
   );
 
-  if (campaign.ad_no === 1) {
-    return (
-      <Link href={`/campaign/info/${campaign.ad_no}`} className={styles.campaignCardLink}>
+  return (
+    <>
+      <Link href={`/campaign/info/${campaign.adNo}`} className={styles.campaignCardLink}>
         {cardContent}
       </Link>
-    );
-  }
-
-  return <div className={styles.campaignCardLink}>{cardContent}</div>;
+      
+      <EditApplicationModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        adNo={campaign.adNo}
+      />
+      
+      <PostUrlModal
+        isOpen={isPostUrlModalOpen}
+        onClose={() => setIsPostUrlModalOpen(false)}
+        adNo={campaign.adNo}
+      />
+    </>
+  );
 }
