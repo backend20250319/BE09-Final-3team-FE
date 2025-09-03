@@ -126,12 +126,12 @@
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  pointer-events: none; /* 클릭 방지 */
+  pointer-events: none;
 }
 
 .searchInput {
   width: 100%;
-  padding: 8px 12px 8px 36px; /* ← 왼쪽 아이콘 공간 확보 */
+  padding: 8px 12px 8px 36px;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 14px;
@@ -276,69 +276,130 @@
   text-align: center;
 }
 
+/* Pet Info */
 .petInfo {
   padding: 16px;
   background: #ffffff;
+  display: flex;
+  flex-direction: column;
 }
 
 .petHeader {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 16px;
 }
 
-.petDetails {
+/* Pet Name and Breed Row */
+.petNameBreedRow {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex: 1;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 8px;
 }
 
-.ageInfo,
-.healthInfo {
+.petNameSection {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.petRightSection {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.ageIcon,
-.healthIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 16px;
-}
-
-.ageText {
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 1.43;
-  color: #4b5563;
-  justify-content: center;
-  margin-top: -10px;
-}
-
-.healthText {
-  font-size: 17px;
-  font-weight: 400;
-  line-height: 1.43;
-  color: #4b5563;
-  justify-content: center;
+.petName {
+  font-weight: 600;
 }
 
 .breedText {
-  font-size: 14px;
   font-weight: 400;
-  line-height: 1.43;
-  color: #000000;
-  margin-top: 4px;
+  font-size: 16px;
+  color: #666;
 }
 
+.petStarBadge {
+  margin-left: 4px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.petMetaRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 4px;
+  font-size: 14px;
+  color: #555;
+}
+
+.healthInfo {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.healthIcon {
+  display: inline-block;
+}
+
+/* Gender Text */
+.genderText {
+  font-size: 14px;
+  font-weight: 400;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+/* SNS URL */
+.snsUrlContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  min-height: 32px;
+}
+
+.snsIcon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+}
+
+.snsUrlText {
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.snsUrlContainer.noSnsUrl {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  opacity: 0.7;
+}
+
+.snsUrlContainer.noSnsUrl .snsUrlText {
+  color: #9ca3af;
+}
+
+/* Pet Description 스타일 제거 - 사용하지 않음 */
+
+/* Pet Actions */
 .petActions {
   display: flex;
   gap: 8px;
+  margin-top: 16px;
 }
 
 .actionButton {
@@ -358,35 +419,220 @@
   background: #f3f4f6;
 }
 
-.petDescription {
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 1.43;
-  color: #4b5563;
-  margin-bottom: 16px;
-  min-height: 40px;
-  margin-top: 10px;
-}
-
+/* Pet Footer */
 .petFooter {
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  margin-top: -10px;
 }
 
-.petName {
-  font-size: 18px;
-  font-weight: 400;
-  line-height: 1.56;
-  color: #000000;
-}
-
-.medalIcon {
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  z-index: 999;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.modalContainer {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0px 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0px 10px 10px -5px rgba(0, 0, 0, 0.04);
+  text-align: center;
+  animation: slideIn 0.3s ease;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.title {
+  font-family: "Pretendard Variable";
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4em;
+  color: #594a3e;
+  margin: 0;
+  text-align: left;
+  flex: 1;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.deleteButton {
+  background-color: #ff5f56;
+  color: white;
+  padding: 12px 32px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-family: "Pretendard Variable";
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.5em;
+  transition: background-color 0.2s ease;
+  min-width: 100px;
+}
+
+.cancelButton {
+  background-color: #e0e0e0;
+  color: #333;
+  padding: 12px 32px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-family: "Pretendard Variable";
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.5em;
+  transition: background-color 0.2s ease;
+  min-width: 100px;
+}
+
+/* Success Message Modal */
+.modalContent {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0px 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0px 10px 10px -5px rgba(0, 0, 0, 0.04);
+  width: 90%;
+  max-width: 400px;
+  animation: slideIn 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalTitle {
+  font-family: "Pretendard Variable";
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1.4em;
+  color: #594a3e;
+  margin: 0;
+}
+
+.modalClose {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.modalClose:hover {
+  color: #6b7280;
+}
+
+.modalBody {
+  padding: 20px 24px;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.modalMessage {
+  font-family: "Pretendard Variable";
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5em;
+  color: #4b5563;
+  margin: 0;
+  text-align: center;
+  white-space: pre-line;
+  display: block;
+  width: 100%;
+}
+
+.modalButton {
+  background: #f5a623;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-family: "Pretendard Variable";
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.5em;
+  padding: 12px 32px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  min-width: 100px;
+}
+
+.modalButton:hover {
+  background: #e0941a;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Responsive Design */
@@ -514,273 +760,5 @@
 
   .petGrid::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
-  }
-}
-
-.petNameBreedRow {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-}
-
-.petName {
-  font-weight: 600;
-}
-
-.breedText {
-  font-weight: 400;
-  font-size: 16px;
-  color: #666;
-}
-
-.petStarBadge {
-  margin-left: 4px;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
-}
-
-.petMetaRow {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-top: 4px;
-  font-size: 14px;
-  color: #555;
-}
-
-.healthInfo {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.healthIcon {
-  display: inline-block;
-}
-
-/* PetProfile.module.css에 추가 */
-.modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-.modalContainer {
-  background: white;
-  border-radius: 12px;
-  padding: 32px;
-  width: 90%;
-  max-width: 400px;
-  box-shadow: 0px 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0px 10px 10px -5px rgba(0, 0, 0, 0.04);
-  text-align: center;
-  animation: slideIn 0.3s ease;
-}
-
-.modalHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
-  width: 100%;
-  box-sizing: border-box;
-  position: relative;
-}
-
-.title {
-  font-family: "Pretendard Variable";
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1.4em;
-  color: #594a3e;
-  margin: 0;
-  text-align: left;
-  flex: 1;
-}
-
-.closeButton {
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: #9ca3af;
-  cursor: pointer;
-  padding: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s ease;
-  position: absolute;
-  top: 0;
-  right: 0;
-}
-
-.modalFooter {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.deleteButton {
-  background-color: #ff5f56;
-  color: white;
-  padding: 12px 32px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-family: "Pretendard Variable";
-  font-weight: 500;
-  font-size: 16px;
-  line-height: 1.5em;
-  transition: background-color 0.2s ease;
-  min-width: 100px;
-}
-
-.cancelButton {
-  background-color: #e0e0e0;
-  color: #333;
-  padding: 12px 32px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-family: "Pretendard Variable";
-  font-weight: 500;
-  font-size: 16px;
-  line-height: 1.5em;
-  transition: background-color 0.2s ease;
-  min-width: 100px;
-}
-
-/* 성공 메시지 모달 스타일 (회원가입 페이지와 동일) */
-.modalContent {
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0px 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0px 10px 10px -5px rgba(0, 0, 0, 0.04);
-  width: 90%;
-  max-width: 400px;
-  animation: slideIn 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.modalTitle {
-  font-family: "Pretendard Variable";
-  font-weight: 600;
-  font-size: 18px;
-  line-height: 1.4em;
-  color: #594a3e;
-  margin: 0;
-}
-
-.modalClose {
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: #9ca3af;
-  cursor: pointer;
-  padding: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s ease;
-}
-
-.modalClose:hover {
-  color: #6b7280;
-}
-
-.modalBody {
-  padding: 20px 24px;
-  width: 100%;
-  box-sizing: border-box;
-  text-align: center;
-}
-
-.modalHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 24px 0 24px;
-  border-bottom: 1px solid #e5e7eb;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.modalFooter {
-  padding: 0 24px 20px 24px;
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.modalMessage {
-  font-family: "Pretendard Variable";
-  font-weight: 400;
-  font-size: 16px;
-  line-height: 1.5em;
-  color: #4b5563;
-  margin: 0;
-  text-align: center;
-  white-space: pre-line;
-  display: block;
-  width: 100%;
-}
-
-.modalButton {
-  background: #f5a623;
-  border: none;
-  border-radius: 8px;
-  color: #ffffff;
-  font-family: "Pretendard Variable";
-  font-weight: 500;
-  font-size: 16px;
-  line-height: 1.5em;
-  padding: 12px 32px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  min-width: 100px;
-}
-
-.modalButton:hover {
-  background: #e0941a;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
   }
 }

@@ -73,7 +73,7 @@
 /* Main Content Layout */
 .mainContent {
   display: flex;
-  flex:1;
+  flex: 1;
   height: auto;
 }
 
@@ -115,7 +115,6 @@
   text-align: center;
   color: #4b5563;
 }
-
 
 .navList {
   list-style: none;
@@ -175,8 +174,6 @@
   text-align: center;
 }
 
-
-
 .activeIndicator span {
   font-family: "Pretendard Variable", sans-serif;
   font-weight: 500;
@@ -191,7 +188,7 @@
   flex: 1;
   padding: 24px;
   background: #ffffff;
-  width:135%;
+  width: 135%;
 }
 
 .content {
@@ -238,13 +235,13 @@
   padding: 0 24px;
 }
 
-.rightControls{
+.rightControls {
   display: flex;
   align-items: center;
   gap: 20px;
 }
 
-.searchSection > div:last-child{
+.searchSection > div:last-child {
   display: flex;
   align-items: center;
 }
@@ -358,7 +355,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  width:600px;
+  width: 600px;
 }
 
 .productTitle {
@@ -436,7 +433,7 @@
   line-height: 1.19;
   color: #ffffff;
   cursor: pointer;
-  margin:100px 20px 0 0;
+  margin: 100px 20px 0 0;
 }
 
 .rejectBtn {
@@ -453,14 +450,14 @@
   line-height: 1.19;
   color: #ffffff;
   cursor: pointer;
-  margin:100px 20px 0 0;
+  margin: 100px 20px 0 0;
 }
 
-.approveBtn{
+.approveBtn {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #16A34A;
+  background: #16a34a;
   border: none;
   border-radius: 8px;
   padding: 8px 16px;
@@ -470,9 +467,8 @@
   line-height: 1.19;
   color: #ffffff;
   cursor: pointer;
-  margin:100px 20px 0 0;
+  margin: 100px 20px 0 0;
 }
-
 
 .deleteBtn:hover {
   background: #b91c1c;
@@ -551,8 +547,6 @@
   flex: 1;
 }
 
-
-
 .reason {
   text-align: center;
   flex: 2;
@@ -562,4 +556,89 @@
   margin-top: 50px;
   text-align: right;
   flex: 1;
+}
+
+/* 페이지네이션 스타일 - 커뮤니티와 동일 */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 5px;
+  margin-top: 32px;
+}
+
+.paginationButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 35px;
+  height: 42px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.19;
+  color: #000000;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.paginationButton:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.paginationButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.paginationButton.active {
+  background: #f5a623;
+  border-color: #f5a623;
+  color: #ffffff;
+}
+
+/* 이전/다음 버튼 스타일 */
+.paginationButton:first-child,
+.paginationButton:last-child {
+  width: 36px;
+}
+
+/* 모바일 페이지네이션 */
+@media (max-width: 768px) {
+  .pagination {
+    gap: 6px;
+  }
+
+  .paginationButton {
+    width: 32px;
+    height: 38px;
+    font-size: 14px;
+  }
+
+  .paginationButton:first-child,
+  .paginationButton:last-child {
+    width: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pagination {
+    gap: 4px;
+  }
+
+  .paginationButton {
+    width: 28px;
+    height: 34px;
+    font-size: 13px;
+  }
+
+  .paginationButton:first-child,
+  .paginationButton:last-child {
+    width: 28px;
+  }
 }

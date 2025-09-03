@@ -5,7 +5,7 @@ import styles from "../styles/PostContent.module.css";
 import Image from "next/image";
 import ReportModal from "@/app/advertiser/ads-list/[ad_no]/components/ReportModal";
 
-export default function PostContent({ post = {} , onDelete}) {
+export default function PostContent({ post = {}, onDelete }) {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const title = post.title ?? "";
@@ -24,62 +24,72 @@ export default function PostContent({ post = {} , onDelete}) {
   }, [post.content]);
 
   return (
-      <div className={styles.container} >
-        <header className={styles.header}>
-          <div className={styles.top}>
+    <div className={styles.container}>
+      <header className={styles.header}>
+        <div className={styles.top}>
           <h1 className={styles.title}>{title}</h1>
           {post.mine && (
-              <span
-                  className={styles.deleteText}
-                  onClick={onDelete}
-                  role="button"
-              >
+            <span
+              className={styles.deleteText}
+              onClick={onDelete}
+              role="button"
+            >
               게시글 삭제
-              </span>
+            </span>
           )}
-          </div>
-          <div className={styles.meta}>
-            <span className={styles.date}>{date}</span>
+        </div>
+        <div className={styles.meta}>
+          <span className={styles.date}>{date}</span>
 
-            <div className={styles.authorSection}>
-              <div className={styles.commentCount}>
-                <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H6L4 18V4H20V16Z" fill="#6B7280"/>
-                </svg>
-                <span className={styles.count}>{commentCount}</span>
-              </div>
+          <div className={styles.authorSection}>
+            <div className={styles.commentCount}>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H6L4 18V4H20V16Z"
+                  fill="#6B7280"
+                />
+              </svg>
+              <span className={styles.count}>{commentCount}</span>
+            </div>
 
-              <span className={styles.author}>{author}</span>
+            <span className={styles.author}>{author}</span>
 
-              {post.mine ||(
+            {post.mine || (
               <button
-                  type="button"
-                  aria-label="신고하기"
-                  className={styles.sirenButton}
-                  onClick={() => setIsReportModalOpen(true)}
-                  style={{ backgroundColor: "white" }}
+                type="button"
+                aria-label="신고하기"
+                className={styles.sirenButton}
+                onClick={() => setIsReportModalOpen(true)}
+                style={{ backgroundColor: "white" }}
               >
                 <Image src="/siren.png" alt="신고" width={30} height={30} />
               </button>
-              )}
-              <ReportModal
-                  isOpen={isReportModalOpen}
-                  onClose={() => setIsReportModalOpen(false)}
-                  applicantName={author}
-              />
-            </div>
+            )}
+            <ReportModal
+              isOpen={isReportModalOpen}
+              onClose={() => setIsReportModalOpen(false)}
+              applicantName={author}
+            />
           </div>
-        </header>
-
-        <div className={styles.content}>
-          {paragraphs.length === 0 ? (
-              <p className={styles.paragraphEmpty}>내용이 없습니다.</p>
-          ) : (
-              paragraphs.map((p, i) => (
-                  <p key={i} className={styles.paragraph}>{p}</p>
-              ))
-          )}
         </div>
+      </header>
+
+      <div className={styles.content}>
+        {paragraphs.length === 0 ? (
+          <p className={styles.paragraphEmpty}>내용이 없습니다.</p>
+        ) : (
+          paragraphs.map((p, i) => (
+            <p key={i} className={styles.paragraph}>
+              {p}
+            </p>
+          ))
+        )}
       </div>
+    </div>
   );
 }
