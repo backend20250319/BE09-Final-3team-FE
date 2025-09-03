@@ -8,6 +8,7 @@ import styles from "../styles/Header.module.css";
 import { IoIosNotifications, IoMdBusiness } from "react-icons/io";
 import NavbarDropdown from "@/app/components/AlarmDropdown";
 import LoginRequiredModal from "@/components/LoginRequiredModal";
+import { getUnreadNotificationCount } from "@/api/notificationApi";
 
 export default function Header() {
   const router = useRouter();
@@ -96,6 +97,17 @@ export default function Header() {
     }
   };
 
+  // 안읽은 알림 갯수 가져오기
+  const fetchUnreadCount = async () => {
+    try {
+      const count = await getUnreadNotificationCount();
+      setNotificationCount(count);
+    } catch (error) {
+      console.error("알림 갯수 가져오기 실패:", error);
+      setNotificationCount(0);
+    }
+  };
+
   // 로그인 상태 확인
   useEffect(() => {
     const checkLoginStatus = () => {
@@ -106,9 +118,12 @@ export default function Header() {
       if (accessToken || token) {
         setIsLoggedIn(true);
         setUserNickname(nickname || "");
+        // 로그인 시 안읽은 알림 갯수 가져오기
+        fetchUnreadCount();
       } else {
         setIsLoggedIn(false);
         setUserNickname("");
+        setNotificationCount(0);
       }
     };
 
@@ -120,6 +135,13 @@ export default function Header() {
 
     // 5분마다 토큰 상태 확인 및 갱신
     const tokenCheckInterval = setInterval(checkAndRefreshToken, 5 * 60 * 1000);
+
+    // 30초마다 안읽은 알림 갯수 갱신
+    const notificationInterval = setInterval(() => {
+      if (isLoggedIn) {
+        fetchUnreadCount();
+      }
+    }, 30000);
 
     // localStorage 변경 감지
     const handleStorageChange = () => {
@@ -134,10 +156,11 @@ export default function Header() {
     return () => {
       clearInterval(intervalId);
       clearInterval(tokenCheckInterval);
+      clearInterval(notificationInterval);
       window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener("loginStatusChanged", checkLoginStatus);
     };
-  }, []);
+  }, [isLoggedIn]);
 
   const toggleDropdown = () => {
     setIsOpen((prev) => !prev);
@@ -247,14 +270,21 @@ export default function Header() {
                   onClick={toggleDropdown}
                 >
                   <IoIosNotifications size={24} />
+                  {notificationCount > 0 && (
+                    <span className={styles.notificationBadge}>
+                      {notificationCount > 99 ? "99+" : notificationCount}
+                    </span>
+                  )}
                 </div>
-                <span className={styles.notificationCount}>
-                  {notificationCount}
-                </span>
               </button>
             )}
 
-            {isOpen && <NavbarDropdown open={isOpen} />}
+            {isOpen && (
+              <NavbarDropdown
+                open={isOpen}
+                onNotificationDeleted={fetchUnreadCount}
+              />
+            )}
           </div>
         </div>
       </header>
