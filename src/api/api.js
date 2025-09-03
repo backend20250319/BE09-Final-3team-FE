@@ -1,13 +1,14 @@
 /* eslint-env node */
 import axios from "axios";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+const BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 console.log("[ENV] BASE_URL =", BASE_URL);
 
 const api = axios.create({
-    baseURL: BASE_URL,
-    headers: { "Content-Type": "application/json" },
+  baseURL: BASE_URL,
+  headers: { "Content-Type": "application/json" },
 });
 
 api.interceptors.request.use(
@@ -29,5 +30,17 @@ api.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
+
+// 관리자 로그아웃 API
+export const adminLogout = async (refreshToken) => {
+  try {
+    const response = await api.post("/user-service/admin/users/logout", {
+      refreshToken: refreshToken,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
 
 export default api;
