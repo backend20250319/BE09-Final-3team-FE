@@ -15,7 +15,8 @@ import {
   ICON_MAP,
   frequencyMapping,
   COLOR_MAP,
-} from "../../data/mockData";
+  SUBTYPE_LABEL_MAP,
+} from "../../constants";
 
 export default function EditScheduleModal({
   isOpen,
@@ -566,7 +567,7 @@ export default function EditScheduleModal({
                 <option value="">유형을 선택하세요</option>
                 {getSubTypeOptions().map((option) => (
                   <option key={option} value={option}>
-                    {option}
+                    {SUBTYPE_LABEL_MAP[option] || option}
                   </option>
                 ))}
               </select>

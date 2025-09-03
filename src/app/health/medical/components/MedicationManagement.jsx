@@ -18,11 +18,7 @@ import {
   deleteMedication,
   processPrescription,
 } from "../../../../api/medicationApi";
-import {
-  STORAGE_KEYS,
-  mockPrescriptionData,
-  frequencyMapping,
-} from "../../data/mockData";
+import { STORAGE_KEYS, frequencyMapping } from "../../constants";
 
 export default function MedicationManagement({
   medications,
@@ -1026,14 +1022,12 @@ export default function MedicationManagement({
       <div className={styles.prescriptionSection}>
         <div className={styles.uploadArea}>
           <div className={styles.uploadIcon}>
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path
-                d="M10 2L10 18M2 10L18 10"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
+            <img
+              src="/health/camera.png"
+              alt="처방전 업로드"
+              width="20"
+              height="20"
+            />
           </div>
           <div className={styles.uploadText}>
             <h3>처방전 사진</h3>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useSelectedPet } from "../../context/SelectedPetContext";
-import { activityOptions } from "../../data/mockData";
+// activityOptions는 더 이상 사용하지 않음
 import { updateActivityData } from "../../../../api/activityApi";
 import UpdateResultModal from "./UpdateResultModal";
 import styles from "../styles/ActivityRecordView.module.css";

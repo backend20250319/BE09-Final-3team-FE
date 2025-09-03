@@ -8,7 +8,7 @@ import {
   initialFormData,
   initialCalculated,
   formatNumber,
-} from "../../data/mockData";
+} from "../../constants";
 import {
   saveActivityData,
   getActivityData,

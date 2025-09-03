@@ -2,7 +2,7 @@
 
 import React from "react";
 import styles from "../styles/PrescriptionResultModal.module.css";
-import { mockPrescriptionData } from "../../data/mockData";
+// mockPrescriptionData는 더 이상 사용하지 않음
 import { useSelectedPet } from "../../context/SelectedPetContext";
 
 export default function PrescriptionResultModal({

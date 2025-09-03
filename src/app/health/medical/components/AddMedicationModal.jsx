@@ -10,7 +10,7 @@ import {
   medicationFrequencyOptions,
   notificationTimingOptions,
   frequencyMapping,
-} from "../../data/mockData";
+} from "../../constants";
 
 export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
   const { selectedPetName } = useSelectedPet();

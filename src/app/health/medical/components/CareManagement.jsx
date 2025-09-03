@@ -10,10 +10,7 @@ import Toast from "./Toast";
 import EditScheduleModal from "./EditScheduleModal";
 import ScheduleDetailModal from "./ScheduleDetailModal";
 import Select from "../../activity/components/ClientOnlySelect";
-import {
-  careSubTypeOptions,
-  vaccinationSubTypeOptions,
-} from "../../data/mockData";
+import { careSubTypeOptions, vaccinationSubTypeOptions } from "../../constants";
 
 export default function CareManagement({
   medications,
