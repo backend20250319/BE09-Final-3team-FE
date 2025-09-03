@@ -1,16 +1,20 @@
-'use client';
-import React from 'react';
-import { useRouter } from 'next/navigation';
-import styles from './LoginRequiredModal.module.css';
+"use client";
+import React from "react";
+import { useRouter } from "next/navigation";
+import styles from "./LoginRequiredModal.module.css";
 
-export default function LoginRequiredModal({ isOpen, onClose, serviceName = "이 서비스" }) {
+export default function LoginRequiredModal({
+  isOpen,
+  onClose,
+  serviceName = "이 서비스",
+}) {
   const router = useRouter();
 
   if (!isOpen) return null;
 
   const handleLogin = () => {
     onClose();
-    router.push('/user/login');
+    router.push("/user/login");
   };
 
   const handleClose = () => {
@@ -26,7 +30,7 @@ export default function LoginRequiredModal({ isOpen, onClose, serviceName = "이
             ×
           </button>
         </div>
-        
+
         <div className={styles.modalBody}>
           <div className={styles.iconContainer}>
             <div className={styles.lockIcon}>🔒</div>
@@ -38,7 +42,7 @@ export default function LoginRequiredModal({ isOpen, onClose, serviceName = "이
             로그인 후 다양한 서비스를 이용해보세요.
           </p>
         </div>
-        
+
         <div className={styles.modalFooter}>
           <button className={styles.cancelButton} onClick={handleClose}>
             취소
