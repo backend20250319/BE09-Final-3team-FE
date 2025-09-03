@@ -6,13 +6,10 @@ import { FiUsers, FiList, FiUser } from "react-icons/fi";
 import styles from "../styles/SideBar.module.css";
 import { getAdvertiser, getFileByAdvertiserNo } from "@/api/advertiserApi";
 import { useImage } from "../context/ImageContext";
-import LoginRequiredModal from "@/components/LoginRequiredModal";
 
 const Sidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [selectedService, setSelectedService] = useState("");
 
   if (pathname === "/advertiser") {
     return null;
@@ -47,31 +44,10 @@ const Sidebar = () => {
 
   const DEFAULT_IMAGE_URL = `http://dev.macacolabs.site:8008/3/advertiser/images/default_brand.png`;
 
-  // 광고주 로그인 상태 확인
-  const isAdvertiserLoggedIn = () => {
-    if (typeof window === "undefined") return false;
-
-    const advertiserToken = localStorage.getItem("advertiserToken");
-    const advertiserId = localStorage.getItem("advertiserId");
-
-    return !!(advertiserToken && advertiserId);
-  };
-
   // 네비게이션 클릭 핸들러
   const handleNavigationClick = (e, serviceName, href) => {
-    if (!isAdvertiserLoggedIn()) {
-      e.preventDefault();
-      setSelectedService(serviceName);
-      setShowLoginModal(true);
-      return;
-    }
-    // 로그인된 경우 정상적으로 이동
+    // 광고주 페이지에서는 로그인 상태와 관계없이 이동 허용
     router.push(href);
-  };
-
-  const closeLoginModal = () => {
-    setShowLoginModal(false);
-    setSelectedService("");
   };
 
   const loadProfileImage = async () => {
@@ -80,8 +56,8 @@ const Sidebar = () => {
 
       if (
         fileData &&
-        fileData[0].filePath &&
-        fileData[0].filePath.trim() !== ""
+        fileData[0]?.filePath &&
+        fileData[0]?.filePath.trim() !== ""
       ) {
         setPreviewImage(fileData[0].filePath);
         setIsLoadingImage(false);
@@ -148,13 +124,6 @@ const Sidebar = () => {
           </nav>
         </div>
       </div>
-
-      {/* 로그인 필요 모달 */}
-      <LoginRequiredModal
-        isOpen={showLoginModal}
-        onClose={closeLoginModal}
-        serviceName={selectedService}
-      />
     </>
   );
 };
