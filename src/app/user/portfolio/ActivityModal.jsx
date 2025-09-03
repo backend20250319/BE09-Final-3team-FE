@@ -30,7 +30,7 @@ const ActivityModal = ({
     detailedContent: "",
   });
   const [uploadedImages, setUploadedImages] = useState([]);
-  const [showTempSaveModal, setShowTempSaveModal] = useState(false);
+
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showFileTypeModal, setShowFileTypeModal] = useState(false);
@@ -575,16 +575,6 @@ const ActivityModal = ({
     }
   };
 
-  const handleTempSave = () => {
-    // 임시저장 모달 표시
-    setShowTempSaveModal(true);
-
-    // 2초 후 모달 자동 닫기
-    setTimeout(() => {
-      setShowTempSaveModal(false);
-    }, 2000);
-  };
-
   const handleSave = () => {
     // 필수 필드 검증
     const missingFields = [];
@@ -933,7 +923,6 @@ const ActivityModal = ({
       detailedContent: "",
     });
     setUploadedImages([]);
-    setShowTempSaveModal(false);
     setShowValidationModal(false);
     setShowConfirmModal(false);
     setShowStartCalendar(false);
@@ -1204,9 +1193,6 @@ const ActivityModal = ({
 
         {/* 버튼 영역 */}
         <div className={styles.buttonSection}>
-          <button className={styles.tempSaveButton} onClick={handleTempSave}>
-            임시저장
-          </button>
           <button className={styles.editButton} onClick={handleSave}>
             <Image
               src="/user/edit-icon.svg"
@@ -1253,22 +1239,6 @@ const ActivityModal = ({
           multiple
           style={{ display: "none" }}
         />
-
-        {/* 임시저장 완료 모달 */}
-        {showTempSaveModal && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.alertModal}>
-              <div className={styles.alertContent}>
-                <div className={`${styles.alertIcon} ${styles.successIcon}`}>
-                  ✓
-                </div>
-                <h3 className={styles.alertTitle}>
-                  임시저장이 완료되었습니다.
-                </h3>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* 검증 실패 모달 */}
         {showValidationModal && (

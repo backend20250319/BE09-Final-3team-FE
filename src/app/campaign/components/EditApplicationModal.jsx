@@ -1,19 +1,21 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import styles from "../styles/PostUrlModal.module.css";
-import { getApplicantsByAd } from '@/api/campaignApi';
+import styles from "../styles/EditApplicationModal.module.css";
+import { getApplicantsByAd, updateApplicant } from '@/api/campaignApi';
 
-export default function PostUrlModal({ isOpen, onClose, adNo }) {
+export default function EditApplicationModal({ isOpen, onClose, adNo }) {
   const [applicants, setApplicants] = useState([]);
-  const [selectedPet, setSelectedPet] = useState(null);
-  const [postUrl, setPostUrl] = useState('');
+  const [selectedApplicant, setSelectedApplicant] = useState(null);
+  const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (isOpen && adNo) {
       fetchApplicants();
+    } else if (isOpen && !adNo) {
+      setError('광고 정보가 누락되었습니다.');
     }
   }, [isOpen, adNo]);
 
@@ -21,47 +23,38 @@ export default function PostUrlModal({ isOpen, onClose, adNo }) {
     try {
       setIsLoading(true);
       const applicantsData = await getApplicantsByAd(adNo);
-      // selected 상태인 펫들만 필터링
-      const selectedPets = applicantsData.filter(applicant => applicant.status === 'SELECTED');
-      setApplicants(selectedPets);
+      setApplicants(applicantsData);
       
-      if (selectedPets.length > 0) {
-        setSelectedPet(selectedPets[0]);
-        setPostUrl(selectedPets[0].postUrl || '');
+      if (applicantsData.length > 0) {
+        setSelectedApplicant(applicantsData[0]);
+        setContent(applicantsData[0].content || '');
       }
     } catch (error) {
-      console.error('선정된 펫 목록 조회 실패:', error);
-      setError('선정된 펫 목록을 불러오는데 실패했습니다.');
+      console.error('지원자 목록 조회 실패:', error);
+      setError('지원자 목록을 불러오는데 실패했습니다.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handlePetChange = (applicantNo) => {
-    const pet = applicants.find(app => app.applicantNo === parseInt(applicantNo));
-    if (pet) {
-      setSelectedPet(pet);
-      setPostUrl(pet.postUrl || '');
+  const handleApplicantChange = (applicantNo) => {
+    const applicant = applicants.find(app => app.applicantNo === parseInt(applicantNo));
+    if (applicant) {
+      setSelectedApplicant(applicant);
+      setContent(applicant.content || '');
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!selectedPet) {
-      setError('펫을 선택해주세요.');
+    if (!selectedApplicant) {
+      setError('지원자를 선택해주세요.');
       return;
     }
     
-    if (!postUrl.trim()) {
-      setError('게시물 URL을 입력해주세요.');
-      return;
-    }
-
-    // URL 형식 검증
-    const urlPattern = /^https?:\/\/.+/;
-    if (!urlPattern.test(postUrl)) {
-      setError('올바른 URL 형식을 입력해주세요. (http:// 또는 https://로 시작)');
+    if (!content.trim()) {
+      setError('내용을 입력해주세요.');
       return;
     }
 
@@ -69,26 +62,21 @@ export default function PostUrlModal({ isOpen, onClose, adNo }) {
       setIsLoading(true);
       setError('');
       
-      // TODO: API 호출하여 URL 저장
-      // await updatePostUrl(selectedPet.applicantNo, postUrl);
-      
-      console.log('게시물 URL 저장:', { applicantNo: selectedPet.applicantNo, postUrl });
-      
-      // 성공 시 모달 닫기
+      await updateApplicant(selectedApplicant.applicantNo, content);
       onClose();
       // 성공 메시지나 페이지 새로고침 등을 여기에 추가할 수 있습니다.
     } catch (error) {
-      console.error('게시물 URL 저장 실패:', error);
-      setError('게시물 URL 저장에 실패했습니다.');
+      console.error('지원 내용 수정 실패:', error);
+      setError('지원 내용 수정에 실패했습니다.');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleClose = () => {
-    setPostUrl('');
+    setContent('');
     setError('');
-    setSelectedPet(null);
+    setSelectedApplicant(null);
     setApplicants([]);
     onClose();
   };
@@ -115,9 +103,9 @@ export default function PostUrlModal({ isOpen, onClose, adNo }) {
               </div>
             </div>
             <div className={styles.headerText}>
-              <h2 className={styles.modalTitle}>게시물 URL 등록</h2>
+              <h2 className={styles.modalTitle}>추가 내용 수정</h2>
               <p className={styles.modalSubtitle}>
-                체험한 상품에 대한 리뷰 게시물 URL을 등록해보세요
+                추가 내용을 수정하여 더 나은 지원서를 작성해보세요
               </p>
             </div>
           </div>
@@ -137,27 +125,27 @@ export default function PostUrlModal({ isOpen, onClose, adNo }) {
         {/* Form */}
         <div className={styles.modalBody}>
           <form onSubmit={handleSubmit}>
-            {/* Pet Selection */}
+            {/* Applicant Selection */}
             <div className={styles.formSection}>
               <div className={styles.inputGroup}>
                 <label className={styles.formLabel}>
-                  펫 선택
+                  지원자 선택
                   <span className={styles.required}>*</span>
                 </label>
                 <div className={styles.inputContainer}>
                   <select
-                    id="pet"
-                    value={selectedPet?.applicantNo || ''}
-                    onChange={(e) => handlePetChange(e.target.value)}
+                    id="applicant"
+                    value={selectedApplicant?.applicantNo || ''}
+                    onChange={(e) => handleApplicantChange(e.target.value)}
                     className={styles.select}
                     disabled={isLoading || applicants.length === 0}
                   >
                     {applicants.length === 0 ? (
-                      <option value="">선정된 펫이 없습니다</option>
+                      <option value="">지원자가 없습니다</option>
                     ) : (
                       applicants.map((applicant) => (
                         <option key={applicant.applicantNo} value={applicant.applicantNo}>
-                          {applicant.pet?.name || `펫 ${applicant.applicantNo}`}
+                          {applicant.pet?.name || `지원자 ${applicant.applicantNo}`}
                         </option>
                       ))
                     )}
@@ -166,35 +154,24 @@ export default function PostUrlModal({ isOpen, onClose, adNo }) {
               </div>
             </div>
 
-            {/* URL Input */}
+            {/* Content Input */}
             <div className={styles.formSection}>
               <div className={styles.inputGroup}>
                 <label className={styles.formLabel}>
-                  게시물 URL
+                  추가 내용
                   <span className={styles.required}>*</span>
                 </label>
                 <div className={styles.inputContainer}>
-                  <input
-                    type="url"
-                    id="postUrl"
-                    value={postUrl}
-                    onChange={(e) => setPostUrl(e.target.value)}
-                    placeholder="게시물 URL을 작성해주세요"
-                    className={styles.urlInput}
-                    disabled={isLoading || !selectedPet}
+                  <textarea
+                    id="content"
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    placeholder="추가 내용을 입력해주세요"
+                    className={styles.textarea}
+                    rows={6}
+                    disabled={isLoading}
                     required
                   />
-                  <div className={styles.inputIcon}>
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                      <path
-                        d="M7 1L13 7L7 13M1 7H13"
-                        stroke="#6B7280"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
                 </div>
               </div>
             </div>
@@ -218,9 +195,9 @@ export default function PostUrlModal({ isOpen, onClose, adNo }) {
             type="submit"
             className={styles.submitButton}
             onClick={handleSubmit}
-            disabled={isLoading || !selectedPet}
+            disabled={isLoading || !selectedApplicant}
           >
-            {isLoading ? '저장중' : '등록'}
+            {isLoading ? '수정중' : '수정'}
           </button>
         </div>
       </div>

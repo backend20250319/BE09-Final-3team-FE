@@ -87,8 +87,33 @@ export default function PetFulLogin() {
         }
 
         if (token) {
+          // JWT 토큰 디코딩하여 payload 확인
+          try {
+            const tokenParts = token.split(".");
+            if (tokenParts.length === 3) {
+              const payload = JSON.parse(atob(tokenParts[1]));
+              console.log("JWT 토큰 payload:", payload);
+            }
+          } catch (decodeError) {
+            console.error("JWT 토큰 디코딩 실패:", decodeError);
+          }
+
+          // 토큰들을 localStorage에 저장
           localStorage.setItem("advertiserToken", token);
+          localStorage.setItem(
+            "advertiserRefreshToken",
+            data.data.refreshToken
+          );
           localStorage.setItem("advertiserEmail", email);
+          localStorage.setItem("advertiserNo", data.data.advertiserNo);
+          localStorage.setItem("userType", data.data.userType);
+
+          console.log("토큰 저장 완료:", {
+            accessToken: token,
+            refreshToken: data.data.refreshToken,
+            advertiserNo: data.data.advertiserNo,
+            userType: data.data.userType,
+          });
 
           // 헤더 상태 업데이트를 위한 커스텀 이벤트 발생
           window.dispatchEvent(new Event("loginStatusChanged"));
@@ -96,7 +121,8 @@ export default function PetFulLogin() {
           // 로그인 성공 모달 표시
           setModal({
             isOpen: true,
-            message: "로그인에 성공했습니다!",
+            message:
+              "로그인에 성공했습니다! 확인 버튼을 클릭하면 광고주 대시보드로 이동합니다.",
             isSuccess: true,
           });
         } else {
@@ -134,7 +160,18 @@ export default function PetFulLogin() {
 
     // 로그인 성공이었다면 광고주 대시보드로 이동
     if (wasSuccess) {
-      router.push("/advertiser/ads-list");
+      // 토큰이 제대로 저장되었는지 확인
+      const token = localStorage.getItem("advertiserToken");
+      if (token) {
+        console.log("페이지 이동 전 토큰 확인:", token);
+        // 토큰 저장 후 페이지 새로고침으로 토큰 적용 보장
+        setTimeout(() => {
+          window.location.href = "/advertiser/ads-list";
+        }, 100);
+      } else {
+        console.error("토큰이 저장되지 않았습니다.");
+        setError("로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
+      }
     }
   };
 
