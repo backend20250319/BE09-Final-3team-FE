@@ -1,4 +1,3 @@
-
 /* eslint-env node */
 import axios from "axios";
 
@@ -11,7 +10,6 @@ const advertiserApi = axios.create({
   baseURL: BASE_URL,
   headers: { "Content-Type": "application/json" },
 });
-
 
 advertiserApi.interceptors.request.use(
   (cfg) => {
@@ -61,6 +59,7 @@ advertiserApi.interceptors.request.use(
           userType: cfg.headers["X-User-Type"],
           allHeaders: Object.fromEntries(Object.entries(cfg.headers)),
         });
+
       } else {
         console.warn("advertiserToken이 없습니다. API 요청:", cfg.url);
         // 토큰이 없을 때는 요청을 지연시켜 토큰 저장 완료 대기
@@ -133,9 +132,9 @@ advertiserApi.interceptors.request.use(
 export default advertiserApi;
 
 const ADVERTISER_PREFIX =
-
-    (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_ADVERTISER_PREFIX) ||
-    "/advertiser-service/advertiser";
+  (typeof process !== "undefined" &&
+    process.env?.NEXT_PUBLIC_ADVERTISER_PREFIX) ||
+  "/advertiser-service/advertiser";
 // Admin API
 const ADMIN_PREFIX = `${ADVERTISER_PREFIX}/admin`;
 
@@ -152,10 +151,8 @@ export const updateAdvertiser = async (profile) => {
 };
 
 const FILE_PREFIX =
-
-    (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_FILE_PREFIX) ||
-    "/advertiser-service/file";
-
+  (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_FILE_PREFIX) ||
+  "/advertiser-service/file";
 
 // 1. 광고주 파일 업로드
 
@@ -195,8 +192,6 @@ export const updateFile = async (
   return res.data.data;
 };
 
-
-
 // 광고주 신청 목록 조회 (관리자용)
 export const getAdvertiserApplications = async (params = {}) => {
   const queryParams = new URLSearchParams();
@@ -204,7 +199,7 @@ export const getAdvertiserApplications = async (params = {}) => {
   if (params.size) queryParams.append("size", params.size);
   if (params.sort) queryParams.append("sort", params.sort);
 
-  const res = await api.get(
+  const res = await advertiserApi.get(
     `${ADMIN_PREFIX}/advertiser/all?${queryParams.toString()}`
   );
   return res.data?.data ?? res.data;
@@ -212,7 +207,7 @@ export const getAdvertiserApplications = async (params = {}) => {
 
 // 광고주 승인 (관리자용)
 export const approveAdvertiser = async (advertiserId) => {
-  const res = await api.patch(
+  const res = await advertiserApi.patch(
     `${ADMIN_PREFIX}/advertiser/${advertiserId}/approve`
   );
   return res.data?.data ?? res.data;
@@ -220,7 +215,7 @@ export const approveAdvertiser = async (advertiserId) => {
 
 // 광고주 거절 (관리자용)
 export const rejectAdvertiser = async (advertiserId, reason) => {
-  const res = await api.patch(
+  const res = await advertiserApi.patch(
     `${ADMIN_PREFIX}/advertiser/${advertiserId}/reject`,
     reason,
     {
@@ -234,7 +229,7 @@ export const rejectAdvertiser = async (advertiserId, reason) => {
 
 // 광고주 제한 (관리자용)
 export const restrictAdvertiser = async (advertiserId) => {
-  const res = await api.post(
+  const res = await advertiserApi.post(
     `${ADMIN_PREFIX}/advertiser/${advertiserId}/restrict`
   );
   return res.data?.data ?? res.data;
@@ -247,7 +242,7 @@ export const getAllCampaigns = async (params = {}) => {
   if (params.size) queryParams.append("size", params.size);
   if (params.sort) queryParams.append("sort", params.sort);
 
-  const res = await api.get(
+  const res = await advertiserApi.get(
     `${ADMIN_PREFIX}/ad/trial?${queryParams.toString()}`
   );
   return res.data?.data ?? res.data;
@@ -260,7 +255,7 @@ export const getPendingCampaigns = async (params = {}) => {
   if (params.size) queryParams.append("size", params.size);
   if (params.sort) queryParams.append("sort", params.sort);
 
-  const res = await api.get(
+  const res = await advertiserApi.get(
     `${ADMIN_PREFIX}/ad/pending?${queryParams.toString()}`
   );
   return res.data?.data ?? res.data;
@@ -268,13 +263,13 @@ export const getPendingCampaigns = async (params = {}) => {
 
 // 캠페인 승인 (관리자용)
 export const approveCampaign = async (adId) => {
-  const res = await api.patch(`${ADMIN_PREFIX}/ad/${adId}/approve`);
+  const res = await advertiserApi.patch(`${ADMIN_PREFIX}/ad/${adId}/approve`);
   return res.data?.data ?? res.data;
 };
 
 // 캠페인 거절 (관리자용)
 export const rejectCampaign = async (adId, reason) => {
-  const res = await api.patch(
+  const res = await advertiserApi.patch(
     `${ADMIN_PREFIX}/ad/${adId}/reject?reason=${encodeURIComponent(reason)}`
   );
   return res.data?.data ?? res.data;
@@ -282,6 +277,6 @@ export const rejectCampaign = async (adId, reason) => {
 
 // 캠페인 삭제 (관리자용)
 export const deleteCampaign = async (adId) => {
-  const res = await api.patch(`${ADMIN_PREFIX}/ad/${adId}/delete`);
+  const res = await advertiserApi.patch(`${ADMIN_PREFIX}/ad/${adId}/delete`);
   return res.data?.data ?? res.data;
 };
