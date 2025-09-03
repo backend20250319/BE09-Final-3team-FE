@@ -41,7 +41,9 @@ export default function EditScheduleModal({
   const [errors, setErrors] = useState({});
   const [isPrescription, setIsPrescription] = useState(false);
   const [showStartCalendar, setShowStartCalendar] = useState(false);
+  const [showEndCalendar, setShowEndCalendar] = useState(false);
   const calendarButtonRef = React.useRef(null);
+  const endCalendarButtonRef = React.useRef(null);
 
   // 날짜 포맷팅 함수
   const formatDateForDisplay = (dateString) => {
@@ -65,6 +67,26 @@ export default function EditScheduleModal({
   // 외부 클릭 시 달력 닫기
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // 시작날짜 달력이 열려있고, 종료날짜 입력칸을 클릭한 경우
+      if (
+        showStartCalendar &&
+        event.target.closest(`.${styles.dateInputWrapper}`)
+      ) {
+        const clickedInput = event.target.closest(
+          `.${styles.dateInputWrapper}`
+        );
+        const allDateInputs = document.querySelectorAll(
+          `.${styles.dateInputWrapper}`
+        );
+        const clickedIndex = Array.from(allDateInputs).indexOf(clickedInput);
+
+        // 종료날짜 입력칸(두 번째)을 클릭한 경우 시작날짜 달력 닫기
+        if (clickedIndex === 1) {
+          setShowStartCalendar(false);
+        }
+      }
+
+      // 일반적인 외부 클릭 감지
       if (
         showStartCalendar &&
         !event.target.closest(`.${styles.dateInputWrapper}`) &&
@@ -72,43 +94,61 @@ export default function EditScheduleModal({
       ) {
         setShowStartCalendar(false);
       }
+
+      if (
+        showEndCalendar &&
+        !event.target.closest(`.${styles.dateInputWrapper}`) &&
+        !event.target.closest(`.${styles.calendar}`)
+      ) {
+        setShowEndCalendar(false);
+      }
     };
 
-    if (showStartCalendar) {
+    if (showStartCalendar || showEndCalendar) {
       document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showStartCalendar]);
+  }, [showStartCalendar, showEndCalendar]);
 
   // 복용 빈도에 따른 기본 시간 설정
   const getDefaultTimes = (frequency) => {
-    switch (frequency) {
-      case "DAILY_ONCE":
-        return ["09:00"];
-      case "DAILY_TWICE":
-        return ["08:00", "20:00"];
-      case "DAILY_THREE_TIMES":
-        return ["08:00", "12:00", "20:00"];
-      default:
-        return ["09:00"];
+    // 투약의 경우에만 시간 설정
+    if (type === "medication") {
+      switch (frequency) {
+        case "DAILY_ONCE":
+          return ["09:00"];
+        case "DAILY_TWICE":
+          return ["08:00", "20:00"];
+        case "DAILY_THREE_TIMES":
+          return ["08:00", "12:00", "20:00"];
+        default:
+          return ["09:00"];
+      }
     }
+    // 돌봄과 접종의 경우 기본 시간 1개만
+    return ["09:00"];
   };
 
   // 복용 빈도에 따른 시간 입력 칸 개수
   const getTimeInputCount = (frequency) => {
-    switch (frequency) {
-      case "DAILY_ONCE":
-        return 1;
-      case "DAILY_TWICE":
-        return 2;
-      case "DAILY_THREE_TIMES":
-        return 3;
-      default:
-        return 1;
+    // 투약의 경우에만 여러 시간 입력 칸
+    if (type === "medication") {
+      switch (frequency) {
+        case "DAILY_ONCE":
+          return 1;
+        case "DAILY_TWICE":
+          return 2;
+        case "DAILY_THREE_TIMES":
+          return 3;
+        default:
+          return 1;
+      }
     }
+    // 돌봄과 접종의 경우 시간 입력 칸 1개만
+    return 1;
   };
 
   // 시간 옵션 생성 (30분 간격)
@@ -240,27 +280,31 @@ export default function EditScheduleModal({
         // notificationTiming은 표시용 문자열이므로 사용하지 않음
         note: "notificationTiming은 표시용 문자열이므로 사용하지 않음",
       });
-      // frequency 값을 영어 enum 값으로 변환
-      // scheduleData.frequency가 한글이면 영어로, 이미 영어면 그대로 사용
+      // frequency 값 처리
       const frequency = (() => {
-        // 이미 영어 enum 값인 경우
-        if (
-          [
-            "DAILY_ONCE",
-            "DAILY_TWICE",
-            "DAILY_THREE_TIMES",
-            "WEEKLY_ONCE",
-            "MONTHLY_ONCE",
-          ].includes(scheduleData.frequency)
-        ) {
-          return scheduleData.frequency;
+        if (type === "medication") {
+          // 투약의 경우: 한글이면 영어로, 이미 영어면 그대로 사용
+          if (
+            [
+              "DAILY_ONCE",
+              "DAILY_TWICE",
+              "DAILY_THREE_TIMES",
+              "WEEKLY_ONCE",
+              "MONTHLY_ONCE",
+            ].includes(scheduleData.frequency)
+          ) {
+            return scheduleData.frequency;
+          }
+          // 한글 값인 경우 영어로 변환
+          return (
+            frequencyMapping[scheduleData.frequency] ||
+            scheduleData.frequency ||
+            ""
+          );
+        } else {
+          // 돌봄과 접종의 경우: 그대로 사용 (한글)
+          return scheduleData.frequency || "";
         }
-        // 한글 값인 경우 영어로 변환
-        return (
-          frequencyMapping[scheduleData.frequency] ||
-          scheduleData.frequency ||
-          ""
-        );
       })();
       const defaultTimes = getDefaultTimes(frequency);
 
@@ -278,12 +322,14 @@ export default function EditScheduleModal({
           defaultTimes.join(", "),
         duration: scheduleData.duration || "",
         notificationTiming:
-          scheduleData.reminderDaysBefore !== null
-            ? scheduleData.reminderDaysBefore
-            : scheduleData.lastReminderDaysBefore !== null
-            ? scheduleData.lastReminderDaysBefore
-            : 0,
-        lastReminderDaysBefore: scheduleData.lastReminderDaysBefore,
+          scheduleData.reminderDaysBefore !== null &&
+          scheduleData.reminderDaysBefore !== undefined
+            ? String(scheduleData.reminderDaysBefore)
+            : scheduleData.lastReminderDaysBefore !== null &&
+              scheduleData.lastReminderDaysBefore !== undefined
+            ? String(scheduleData.lastReminderDaysBefore)
+            : "0",
+        lastReminderDaysBefore: scheduleData.lastReminderDaysBefore || 0,
       });
 
       console.log("EditScheduleModal - 알림 시기 디버깅:", {
@@ -308,21 +354,51 @@ export default function EditScheduleModal({
       return; // 처방전 약은 알림 시기 변경 불가
     }
 
-    // 복용 빈도가 변경되면 기본 시간도 함께 설정
-    if (field === "frequency") {
-      const defaultTimes = getDefaultTimes(value);
-      setFormData((prev) => ({
+    setFormData((prev) => {
+      const newData = {
         ...prev,
         [field]: value,
-        scheduleTime: defaultTimes.join(", "),
-      }));
-    } else {
-      // 다른 필드는 일반적으로 업데이트
-      setFormData((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
-    }
+      };
+
+      // 복용 빈도가 변경되면 기본 시간도 함께 설정
+      if (field === "frequency") {
+        const defaultTimes = getDefaultTimes(value);
+        newData.scheduleTime = defaultTimes.join(", ");
+
+        // 돌봄과 접종의 경우 종료날짜 처리
+        if (type === "care" || type === "vaccination") {
+          if (
+            value === "매주" ||
+            value === "매월" ||
+            value === "연 1회" ||
+            value === "반년 1회"
+          ) {
+            // 매주, 매월, 연 1회, 반년 1회인 경우 종료날짜를 시작날짜와 동일하게 설정
+            if (prev.startDate) {
+              newData.endDate = prev.startDate;
+            }
+          }
+        }
+      }
+
+      // 시작날짜가 변경되면 종료날짜 처리 (돌봄과 접종만)
+      if (
+        field === "startDate" &&
+        (type === "care" || type === "vaccination")
+      ) {
+        if (
+          prev.frequency === "매주" ||
+          prev.frequency === "매월" ||
+          prev.frequency === "연 1회" ||
+          prev.frequency === "반년 1회"
+        ) {
+          // 매주, 매월, 연 1회, 반년 1회인 경우 종료날짜를 시작날짜와 동일하게 설정
+          newData.endDate = value;
+        }
+      }
+
+      return newData;
+    });
 
     if (errors[field]) {
       setErrors((prev) => ({
@@ -353,8 +429,23 @@ export default function EditScheduleModal({
     }
 
     // 종료날짜 검증
-    if (!formData.endDate) {
-      newErrors.endDate = "종료 날짜를 선택해주세요";
+    if (type === "medication") {
+      // 투약은 항상 종료날짜 필요
+      if (!formData.endDate) {
+        newErrors.endDate = "종료 날짜를 선택해주세요";
+      }
+    } else if (type === "care" || type === "vaccination") {
+      // 돌봄/접종은 매주, 매월, 연 1회, 반년 1회가 아닌 경우에만 종료날짜 필요
+      if (
+        formData.frequency !== "매주" &&
+        formData.frequency !== "매월" &&
+        formData.frequency !== "연 1회" &&
+        formData.frequency !== "반년 1회"
+      ) {
+        if (!formData.endDate) {
+          newErrors.endDate = "종료 날짜를 선택해주세요";
+        }
+      }
     }
 
     // 일정 시간 검증
@@ -467,6 +558,7 @@ export default function EditScheduleModal({
     });
     setErrors({});
     setShowStartCalendar(false); // 달력도 닫기
+    setShowEndCalendar(false); // 종료날짜 달력도 닫기
     onClose();
   };
 
@@ -696,7 +788,7 @@ export default function EditScheduleModal({
             </div>
           )}
 
-          {/* 투약의 경우 일정 시간 */}
+          {/* 일정 시간 */}
           {type === "medication" && (
             <div className={styles.formGroup}>
               <div className={styles.labelContainer}>
@@ -805,15 +897,101 @@ export default function EditScheduleModal({
                 <span className={styles.required}>*</span>
               </div>
               <div className={styles.inputContainer}>
-                <input
-                  type="date"
-                  className={styles.input}
-                  value={formData.endDate}
-                  onChange={(e) => handleInputChange("endDate", e.target.value)}
-                />
+                <div className={styles.dateInputWrapper}>
+                  <input
+                    type="text"
+                    value={formatDateForDisplay(formData.endDate)}
+                    placeholder="종료 날짜를 선택하세요"
+                    className={`${styles.dateInput} ${
+                      formData.frequency === "매주" ||
+                      formData.frequency === "매월" ||
+                      formData.frequency === "연 1회" ||
+                      formData.frequency === "반년 1회"
+                        ? styles.disabledInput
+                        : ""
+                    }`}
+                    readOnly
+                    onClick={() => {
+                      if (
+                        formData.frequency !== "매주" &&
+                        formData.frequency !== "매월" &&
+                        formData.frequency !== "연 1회" &&
+                        formData.frequency !== "반년 1회"
+                      ) {
+                        setShowEndCalendar(true);
+                      }
+                    }}
+                  />
+                  <button
+                    ref={endCalendarButtonRef}
+                    type="button"
+                    className={`${styles.calendarButton} ${
+                      formData.frequency === "매주" ||
+                      formData.frequency === "매월" ||
+                      formData.frequency === "연 1회" ||
+                      formData.frequency === "반년 1회"
+                        ? styles.disabledButton
+                        : ""
+                    }`}
+                    onClick={() => {
+                      if (
+                        formData.frequency !== "매주" &&
+                        formData.frequency !== "매월" &&
+                        formData.frequency !== "연 1회" &&
+                        formData.frequency !== "반년 1회"
+                      ) {
+                        setShowEndCalendar(!showEndCalendar);
+                      }
+                    }}
+                    disabled={
+                      formData.frequency === "매주" ||
+                      formData.frequency === "매월" ||
+                      formData.frequency === "연 1회" ||
+                      formData.frequency === "반년 1회"
+                    }
+                  >
+                    <img
+                      src="/health/calendar.png"
+                      alt="달력"
+                      width="16"
+                      height="16"
+                    />
+                  </button>
+                </div>
               </div>
+              {(formData.frequency === "매주" ||
+                formData.frequency === "매월" ||
+                formData.frequency === "연 1회" ||
+                formData.frequency === "반년 1회") && (
+                <span className={styles.infoMessage}>
+                  {formData.frequency}는 시작날짜와 종료날짜가 동일합니다.
+                </span>
+              )}
               {errors.endDate && (
                 <span className={styles.error}>{errors.endDate}</span>
+              )}
+            </div>
+          )}
+
+          {/* 돌봄과 접종의 경우 일정 시간 */}
+          {(type === "care" || type === "vaccination") && (
+            <div className={styles.formGroup}>
+              <div className={styles.labelContainer}>
+                <label className={styles.label}>일정 시간</label>
+                <span className={styles.required}>*</span>
+              </div>
+              <div className={styles.inputContainer}>
+                <TimePicker
+                  value={formData.scheduleTime || formData.time || ""}
+                  onChange={(timeString) => {
+                    handleInputChange("scheduleTime", timeString);
+                    handleInputChange("time", timeString); // 호환성 유지
+                  }}
+                  placeholder="시간을 선택하세요"
+                />
+              </div>
+              {errors.scheduleTime && (
+                <span className={styles.error}>{errors.scheduleTime}</span>
               )}
             </div>
           )}
@@ -892,13 +1070,25 @@ export default function EditScheduleModal({
         </div>
       </div>
 
-      {/* 커스텀 달력 */}
+      {/* 시작날짜 커스텀 달력 */}
       <CustomCalendar
         isOpen={showStartCalendar}
         onClose={() => setShowStartCalendar(false)}
         onDateSelect={handleStartDateSelect}
         selectedDate={formData.startDate || formData.date}
         buttonRef={calendarButtonRef}
+      />
+
+      {/* 종료날짜 커스텀 달력 */}
+      <CustomCalendar
+        isOpen={showEndCalendar}
+        onClose={() => setShowEndCalendar(false)}
+        onDateSelect={(dateString) => {
+          handleInputChange("endDate", dateString);
+          setShowEndCalendar(false);
+        }}
+        selectedDate={formData.endDate}
+        buttonRef={endCalendarButtonRef}
       />
     </div>
   );

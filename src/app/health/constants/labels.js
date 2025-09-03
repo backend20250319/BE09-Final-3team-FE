@@ -11,6 +11,6 @@ export const SUBTYPE_LABEL_MAP = {
   ETC: "기타",
 
   // 예방접종
-  VACCINE: "접종",
+  VACCINE: "예방접종",
   CHECKUP: "건강검진",
 };

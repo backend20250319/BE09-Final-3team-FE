@@ -9,6 +9,7 @@ import ActivityReport from "./activity/components/ActivityReport";
 import MedicalNavTabs from "./medical/components/MedicalNavTabs";
 import MedicationManagement from "./medical/components/MedicationManagement";
 import CareManagement from "./medical/components/CareManagement";
+import { SUBTYPE_LABEL_MAP } from "./constants/labels";
 
 export default function HealthPage() {
   const { selectedPetName, setSelectedPetName, pets, loading } =
@@ -85,41 +86,91 @@ export default function HealthPage() {
 
     // 2) 돌봄
     careSchedules.forEach((s) => {
-      if (!s.date) return;
-      const base = new Date(s.date);
-      const sTime = dateAtTime(base, s.scheduleTime || "09:00");
-      const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
-      events.push({
-        id: `care-${s.id}`,
-        title: `${s.icon || "🐕"} ${s.name}`,
-        start: sTime,
-        end: eTime,
-        allDay: false,
-        // 캘린더 필터와 색상 매핑을 위해 돌봄 하위유형(산책/미용/생일)로 설정
-        type: s.subType || "산책",
-        schedule: { ...s, category: "care" },
-      });
+      if (s.startDate && s.endDate) {
+        // 새로운 형식: startDate와 endDate 사용
+        const start = new Date(s.startDate);
+        const end = new Date(s.endDate);
+        const current = new Date(start);
+        while (current <= end) {
+          const sTime = dateAtTime(current, s.scheduleTime || "09:00");
+          const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+          events.push({
+            id: `care-${s.id}-${current.toISOString().slice(0, 10)}`,
+            title: `${s.icon || "🐕"} ${s.name}`,
+            start: sTime,
+            end: eTime,
+            allDay: false,
+            // 캘린더 필터와 색상 매핑을 위해 돌봄 하위유형(산책/미용/생일)로 설정
+            type: SUBTYPE_LABEL_MAP[s.subType] || s.subType || "산책",
+            schedule: { ...s, category: "care" },
+          });
+          current.setDate(current.getDate() + 1);
+        }
+      } else if (s.date) {
+        // 기존 형식: date 사용 (호환성 유지)
+        const base = new Date(s.date);
+        const sTime = dateAtTime(base, s.scheduleTime || "09:00");
+        const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+        events.push({
+          id: `care-${s.id}`,
+          title: `${s.icon || "🐕"} ${s.name}`,
+          start: sTime,
+          end: eTime,
+          allDay: false,
+          type: SUBTYPE_LABEL_MAP[s.subType] || s.subType || "산책",
+          schedule: { ...s, category: "care" },
+        });
+      }
     });
 
     // 3) 접종 일정
     vaccinationSchedules.forEach((s) => {
-      const dateStr = s.date || new Date().toISOString().slice(0, 10);
-      const base = new Date(dateStr);
-      const sTime = dateAtTime(base, s.scheduleTime || "10:00");
-      const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
-      events.push({
-        id: `vac-${s.id}`,
-        title: `${s.icon || "💉"} ${s.name}`,
-        start: sTime,
-        end: eTime,
-        allDay: false,
-        // 캘린더 필터와 색상 매핑을 위해 접종 하위유형(예방접종/건강검진)로 설정
-        type: s.subType === "건강검진" ? "건강검진" : "예방접종",
-        schedule: {
-          ...s,
-          category: "vaccination",
-        },
-      });
+      if (s.startDate && s.endDate) {
+        // 새로운 형식: startDate와 endDate 사용
+        const start = new Date(s.startDate);
+        const end = new Date(s.endDate);
+        const current = new Date(start);
+        while (current <= end) {
+          const sTime = dateAtTime(current, s.scheduleTime || "10:00");
+          const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+          events.push({
+            id: `vac-${s.id}-${current.toISOString().slice(0, 10)}`,
+            title: `${s.icon || "💉"} ${s.name}`,
+            start: sTime,
+            end: eTime,
+            allDay: false,
+            // 캘린더 필터와 색상 매핑을 위해 접종 하위유형(예방접종/건강검진)로 설정
+            type:
+              SUBTYPE_LABEL_MAP[s.subType] ||
+              (s.subType === "건강검진" ? "건강검진" : "예방접종"),
+            schedule: {
+              ...s,
+              category: "vaccination",
+            },
+          });
+          current.setDate(current.getDate() + 1);
+        }
+      } else {
+        // 기존 형식: date 사용 (호환성 유지)
+        const dateStr = s.date || new Date().toISOString().slice(0, 10);
+        const base = new Date(dateStr);
+        const sTime = dateAtTime(base, s.scheduleTime || "10:00");
+        const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+        events.push({
+          id: `vac-${s.id}`,
+          title: `${s.icon || "💉"} ${s.name}`,
+          start: sTime,
+          end: eTime,
+          allDay: false,
+          type:
+            SUBTYPE_LABEL_MAP[s.subType] ||
+            (s.subType === "건강검진" ? "건강검진" : "예방접종"),
+          schedule: {
+            ...s,
+            category: "vaccination",
+          },
+        });
+      }
     });
 
     return events;

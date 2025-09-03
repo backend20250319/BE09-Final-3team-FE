@@ -780,3 +780,30 @@
 .calendarButton:hover {
   background-color: #f3f4f6;
 }
+
+/* 비활성화 스타일 */
+.disabledInput {
+  background-color: #f9f9f9 !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+  border-color: #e5e7eb !important;
+}
+
+.disabledButton {
+  background-color: #f9f9f9 !important;
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+}
+
+.disabledButton:hover {
+  background-color: #f9f9f9 !important;
+  border-color: #e5e7eb !important;
+}
+
+/* 정보 메시지 스타일 */
+.infoMessage {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+  font-style: italic;
+}

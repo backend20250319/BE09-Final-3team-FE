@@ -9,9 +9,9 @@ export const vaccinationSubTypeOptions = [
 ];
 
 export const vaccinationFrequencyOptions = [
-  "매년",
-  "6개월마다",
-  "3개월마다",
-  "월 1회",
-  "1회만",
+  "매일",
+  "매주",
+  "매월",
+  "연 1회",
+  "반년 1회",
 ];

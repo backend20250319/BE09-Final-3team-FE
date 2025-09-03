@@ -12,8 +12,8 @@ export const careSubTypeOptions = [
 
 export const careFrequencyOptions = [
   "매일",
-  "주 2회",
-  "주 1회",
-  "월 2회",
-  "월 1회",
+  "매주",
+  "매월",
+  "연 1회",
+  "반년 1회",
 ];

@@ -260,8 +260,13 @@ export default function ActivityManagement() {
   useEffect(() => {
     const weight = parseFloat(formData.weight);
     const walkingDistance = parseFloat(formData.walkingDistance);
-    const activityLevel = parseFloat(formData.activityLevel);
     const validWeight = !isNaN(weight) ? weight : 0;
+
+    // 활동량 옵션에서 numericValue 가져오기
+    const selectedActivityLevel = activityOptions.find(
+      (opt) => opt.value === formData.activityLevel
+    );
+    const activityLevelNum = selectedActivityLevel?.numericValue || 1.5;
 
     // 저장된 식사들의 총 섭취 칼로리 합산
     const mealsIntake = meals.reduce((sum, m) => {
@@ -284,16 +289,16 @@ export default function ActivityManagement() {
 
     setCalculated({
       recommendedBurn:
-        validWeight && !isNaN(activityLevel)
-          ? validWeight * activityLevel * 70
+        validWeight && activityLevelNum
+          ? validWeight * activityLevelNum * 70
           : 0,
       actualBurn:
-        !isNaN(walkingDistance) && !isNaN(activityLevel)
-          ? walkingDistance * activityLevel * 5
+        !isNaN(walkingDistance) && activityLevelNum
+          ? walkingDistance * activityLevelNum * 5
           : 0,
       recommendedIntake:
-        validWeight && !isNaN(activityLevel)
-          ? validWeight * activityLevel * 100
+        validWeight && activityLevelNum
+          ? validWeight * activityLevelNum * 100
           : 0,
       actualIntake: mealsIntake + currentMealIntake,
     });
@@ -305,6 +310,7 @@ export default function ActivityManagement() {
     formData.totalCaloriesInFood,
     formData.feedingAmount,
     meals,
+    activityOptions,
   ]);
 
   const handleChange = (e) => {
@@ -966,25 +972,17 @@ export default function ActivityManagement() {
                   <div className={styles.calorieItem}>
                     <p>섭취 칼로리</p>
                     <p className={styles.calorieValue}>
-                      {(() => {
-                        const mealCalories = calculateMealCalories();
-                        return mealCalories.actualIntake > 0
-                          ? `${formatNumber(mealCalories.actualIntake)} kcal`
-                          : "--";
-                      })()}
+                      {calculated.actualIntake > 0
+                        ? `${formatNumber(calculated.actualIntake)} kcal`
+                        : "--"}
                     </p>
                   </div>
                   <div className={styles.calorieItem}>
                     <p>권장 섭취 칼로리</p>
                     <p className={styles.calorieValue}>
-                      {(() => {
-                        const mealCalories = calculateMealCalories();
-                        return mealCalories.recommendedIntake > 0
-                          ? `${formatNumber(
-                              mealCalories.recommendedIntake
-                            )} kcal`
-                          : "--";
-                      })()}
+                      {calculated.recommendedIntake > 0
+                        ? `${formatNumber(calculated.recommendedIntake)} kcal`
+                        : "--"}
                     </p>
                   </div>
                 </div>

@@ -10,7 +10,19 @@ import Toast from "./Toast";
 import EditScheduleModal from "./EditScheduleModal";
 import ScheduleDetailModal from "./ScheduleDetailModal";
 import Select from "../../activity/components/ClientOnlySelect";
-import { careSubTypeOptions, vaccinationSubTypeOptions } from "../../constants";
+import {
+  careSubTypeOptions,
+  vaccinationSubTypeOptions,
+  SUBTYPE_LABEL_MAP,
+  ICON_MAP,
+} from "../../constants";
+import {
+  createCare,
+  listCareSchedules,
+  updateCareSchedule,
+  deleteCareSchedule,
+  toggleCareAlarm,
+} from "../../../../api/medicationApi";
 
 export default function CareManagement({
   medications,
@@ -25,7 +37,7 @@ export default function CareManagement({
   selectedSchedule,
   setSelectedSchedule,
 }) {
-  const { selectedPetName } = useSelectedPet();
+  const { selectedPetName, selectedPetNo } = useSelectedPet();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [toDeleteId, setToDeleteId] = useState(null);
@@ -38,7 +50,7 @@ export default function CareManagement({
   const [toastType, setToastType] = useState("inactive");
   const [showToast, setShowToast] = useState(false);
 
-  // 필터링 상태
+  // 필터링 상태 - 통합된 CARE 메인타입으로 변경
   const [careFilter, setCareFilter] = useState("전체");
   const [vaccinationFilter, setVaccinationFilter] = useState("전체");
 
@@ -47,6 +59,23 @@ export default function CareManagement({
   const [vaccinationPage, setVaccinationPage] = useState(1);
   const careItemsPerPage = 3; // 돌봄 3개
   const vaccinationItemsPerPage = 2; // 접종 2개
+
+  // 서브타입 기반 분류 함수들
+  const isCareSubType = (subType) => {
+    return ["WALK", "BIRTHDAY", "GROOMING", "ETC"].includes(subType);
+  };
+
+  const isVaccinationSubType = (subType) => {
+    return ["VACCINE", "CHECKUP"].includes(subType);
+  };
+
+  const getScheduleIcon = (subType) => {
+    return ICON_MAP[subType] || "📅";
+  };
+
+  const getScheduleLabel = (subType) => {
+    return SUBTYPE_LABEL_MAP[subType] || subType;
+  };
 
   // react-select 공통 스타일 (활동관리 산책 드롭다운과 동일 톤)
   const selectStyles = {
@@ -91,14 +120,20 @@ export default function CareManagement({
     }),
   };
 
-  // 드롭다운 옵션
+  // 드롭다운 옵션 - 서브타입 기반으로 수정
   const careFilterOptions = [
     { value: "전체", label: "전체" },
-    ...careSubTypeOptions.map((o) => ({ value: o, label: o })),
+    ...careSubTypeOptions.map((o) => ({
+      value: o,
+      label: getScheduleLabel(o),
+    })),
   ];
   const vaccinationFilterOptions = [
     { value: "전체", label: "전체" },
-    ...vaccinationSubTypeOptions.map((o) => ({ value: o, label: o })),
+    ...vaccinationSubTypeOptions.map((o) => ({
+      value: o,
+      label: getScheduleLabel(o),
+    })),
   ];
 
   // 캘린더 이벤트를 상위 컴포넌트로 전달
@@ -125,21 +160,71 @@ export default function CareManagement({
     setShowAddModal("vaccination");
   };
 
-  const handleAddNewSchedule = (newSchedule) => {
-    if (newSchedule.type === "돌봄") {
-      onCareSchedulesUpdate((prev) => [...prev, newSchedule]);
-    } else {
-      onVaccinationSchedulesUpdate((prev) => [...prev, newSchedule]);
-    }
-    setToastMessage(`${newSchedule.name} 일정이 추가되었습니다.`);
-    setToastType("active");
-    setShowToast(true);
-    setShowAddModal(false); // 모달 닫기
+  const handleAddNewSchedule = async (newSchedule) => {
+    try {
+      if (!selectedPetNo) {
+        throw new Error("반려동물을 선택해주세요.");
+      }
 
-    // 캘린더 이벤트 즉시 업데이트
-    const events = buildCalendarEvents();
-    if (onCalendarEventsChange) {
-      onCalendarEventsChange(events);
+      let calNo;
+
+      // 백엔드 CareRequestDTO에 맞춘 데이터 구조
+      const careData = {
+        petNo: selectedPetNo,
+        title: newSchedule.name, // 백엔드에서는 title 필드 사용
+        subType: newSchedule.subType, // 서브타입으로 구분 (WALK/BIRTHDAY/GROOMING/ETC/VACCINE/CHECKUP)
+        careFrequency: newSchedule.frequency, // frequency → careFrequency로 변경
+        startDate: newSchedule.startDate,
+        endDate: newSchedule.endDate,
+        times: newSchedule.scheduleTime
+          ? newSchedule.scheduleTime.split(", ")
+          : [], // 백엔드에서는 times 배열 사용
+        reminderDaysBefore: Number(newSchedule.notificationTiming),
+      };
+
+      calNo = await createCare(careData);
+
+      // 성공 시 로컬 상태 업데이트 (서브타입에 따라 분류)
+      const updatedSchedule = {
+        ...newSchedule,
+        id: calNo,
+        reminderDaysBefore: Number(newSchedule.notificationTiming),
+        lastReminderDaysBefore: Number(newSchedule.notificationTiming),
+        isNotified: Number(newSchedule.notificationTiming) !== 0,
+      };
+
+      // 서브타입에 따라 돌봄 또는 접종으로 분류
+      if (isVaccinationSubType(newSchedule.subType)) {
+        onVaccinationSchedulesUpdate((prev) => [...prev, updatedSchedule]);
+      } else if (isCareSubType(newSchedule.subType)) {
+        onCareSchedulesUpdate((prev) => [...prev, updatedSchedule]);
+      }
+
+      setToastMessage(`${newSchedule.name} 일정이 추가되었습니다.`);
+      setToastType("active");
+      setShowToast(true);
+      setShowAddModal(false); // 모달 닫기
+
+      // 캘린더 이벤트 즉시 업데이트
+      const events = buildCalendarEvents();
+      if (onCalendarEventsChange) {
+        onCalendarEventsChange(events);
+      }
+    } catch (error) {
+      console.error("일정 생성 실패:", error);
+      let errorMessage = "일정 생성에 실패했습니다.";
+
+      if (error.message === "반려동물을 선택해주세요.") {
+        errorMessage = error.message;
+      } else if (error.response?.status === 400) {
+        errorMessage = "입력 정보를 확인해주세요.";
+      } else if (error.response?.status === 500) {
+        errorMessage = "서버 오류가 발생했습니다.";
+      }
+
+      setToastMessage(errorMessage);
+      setToastType("error");
+      setShowToast(true);
     }
   };
 
@@ -160,59 +245,117 @@ export default function CareManagement({
     }
   };
 
-  const handleEditScheduleSubmit = (updatedSchedule) => {
-    if (editingType === "care") {
-      onCareSchedulesUpdate((prev) =>
-        prev.map((s) => (s.id === updatedSchedule.id ? updatedSchedule : s))
-      );
-    } else {
-      onVaccinationSchedulesUpdate((prev) =>
-        prev.map((s) => (s.id === updatedSchedule.id ? updatedSchedule : s))
-      );
-    }
+  const handleEditScheduleSubmit = async (updatedSchedule) => {
+    try {
+      if (!selectedPetNo) {
+        throw new Error("반려동물을 선택해주세요.");
+      }
 
-    setToastMessage(`${updatedSchedule.name} 일정이 수정되었습니다.`);
-    setToastType("active");
-    setShowToast(true);
+      // 백엔드 CareRequestDTO에 맞춘 데이터 구조
+      const updateData = {
+        title: updatedSchedule.name,
+        subType: updatedSchedule.subType, // 서브타입으로 구분
+        careFrequency: updatedSchedule.frequency, // frequency → careFrequency로 변경
+        startDate: updatedSchedule.startDate,
+        endDate: updatedSchedule.endDate,
+        times: updatedSchedule.scheduleTime
+          ? updatedSchedule.scheduleTime.split(", ").map((t) => t.trim())
+          : ["09:00"],
+        reminderDaysBefore: updatedSchedule.reminderDaysBefore,
+      };
 
-    // 캘린더 이벤트 즉시 업데이트
-    const events = buildCalendarEvents();
-    if (onCalendarEventsChange) {
-      onCalendarEventsChange(events);
+      // API 호출
+      await updateCareSchedule(updatedSchedule.id, updateData);
+
+      // 성공 시 로컬 상태 업데이트 - 서브타입 기반으로 분류
+      if (isVaccinationSubType(updatedSchedule.subType)) {
+        onVaccinationSchedulesUpdate((prev) =>
+          prev.map((s) => (s.id === updatedSchedule.id ? updatedSchedule : s))
+        );
+      } else if (isCareSubType(updatedSchedule.subType)) {
+        onCareSchedulesUpdate((prev) =>
+          prev.map((s) => (s.id === updatedSchedule.id ? updatedSchedule : s))
+        );
+      }
+
+      setToastMessage(`${updatedSchedule.name} 일정이 수정되었습니다.`);
+      setToastType("active");
+      setShowToast(true);
+
+      // 캘린더 이벤트 즉시 업데이트
+      const events = buildCalendarEvents();
+      if (onCalendarEventsChange) {
+        onCalendarEventsChange(events);
+      }
+    } catch (error) {
+      console.error("일정 수정 실패:", error);
+      let errorMessage = "일정 수정에 실패했습니다.";
+
+      if (error.message === "반려동물을 선택해주세요.") {
+        errorMessage = error.message;
+      } else if (error.response?.status === 400) {
+        errorMessage = "입력 정보를 확인해주세요.";
+      } else if (error.response?.status === 500) {
+        errorMessage = "서버 오류가 발생했습니다.";
+      }
+
+      setToastMessage(errorMessage);
+      setToastType("error");
+      setShowToast(true);
     }
   };
 
-  const toggleNotification = (id, type) => {
-    if (type === "돌봄") {
-      const updated = careSchedules.map((schedule) =>
-        schedule.id === id
-          ? { ...schedule, isNotified: !schedule.isNotified }
-          : schedule
+  const toggleNotification = async (id, type) => {
+    try {
+      // API 호출
+      const result = await toggleCareAlarm(id);
+
+      // 성공 시 로컬 상태 업데이트 - 서브타입 기반으로 분류
+      const careSchedule = careSchedules.find((schedule) => schedule.id === id);
+      const vaccinationSchedule = vaccinationSchedules.find(
+        (schedule) => schedule.id === id
       );
-      onCareSchedulesUpdate(updated);
-      const updatedSchedule = updated.find((schedule) => schedule.id === id);
-      setToastMessage(
-        `${updatedSchedule.name} 알림이 ${
-          updatedSchedule.isNotified ? "활성화" : "비활성화"
-        } 되었습니다.`
-      );
-      setToastType(updatedSchedule.isNotified ? "active" : "inactive");
-    } else {
-      const updated = vaccinationSchedules.map((schedule) =>
-        schedule.id === id
-          ? { ...schedule, isNotified: !schedule.isNotified }
-          : schedule
-      );
-      onVaccinationSchedulesUpdate(updated);
-      const updatedSchedule = updated.find((schedule) => schedule.id === id);
-      setToastMessage(
-        `${updatedSchedule.name} 알림이 ${
-          updatedSchedule.isNotified ? "활성화" : "비활성화"
-        } 되었습니다.`
-      );
-      setToastType(updatedSchedule.isNotified ? "active" : "inactive");
+
+      if (careSchedule) {
+        const updated = careSchedules.map((schedule) =>
+          schedule.id === id ? { ...schedule, isNotified: result } : schedule
+        );
+        onCareSchedulesUpdate(updated);
+        const updatedSchedule = updated.find((schedule) => schedule.id === id);
+        setToastMessage(
+          `${updatedSchedule.name} 알림이 ${
+            updatedSchedule.isNotified ? "활성화" : "비활성화"
+          } 되었습니다.`
+        );
+        setToastType(updatedSchedule.isNotified ? "active" : "inactive");
+      } else if (vaccinationSchedule) {
+        const updated = vaccinationSchedules.map((schedule) =>
+          schedule.id === id ? { ...schedule, isNotified: result } : schedule
+        );
+        onVaccinationSchedulesUpdate(updated);
+        const updatedSchedule = updated.find((schedule) => schedule.id === id);
+        setToastMessage(
+          `${updatedSchedule.name} 알림이 ${
+            updatedSchedule.isNotified ? "활성화" : "비활성화"
+          } 되었습니다.`
+        );
+        setToastType(updatedSchedule.isNotified ? "active" : "inactive");
+      }
+      setShowToast(true);
+    } catch (error) {
+      console.error("알림 토글 실패:", error);
+      let errorMessage = "알림 설정 변경에 실패했습니다.";
+
+      if (error.response?.status === 400) {
+        errorMessage = "알림 설정을 변경할 수 없습니다.";
+      } else if (error.response?.status === 500) {
+        errorMessage = "서버 오류가 발생했습니다.";
+      }
+
+      setToastMessage(errorMessage);
+      setToastType("error");
+      setShowToast(true);
     }
-    setShowToast(true);
   };
 
   const requestDeleteSchedule = (id, type) => {
@@ -227,61 +370,80 @@ export default function CareManagement({
     setShowConfirm(true);
   };
 
-  const confirmDeleteSchedule = () => {
+  const confirmDeleteSchedule = async () => {
     if (toDeleteId == null) return;
 
-    if (deleteType === "돌봄") {
-      const updated = careSchedules.filter(
-        (schedule) => schedule.id !== toDeleteId
-      );
-      onCareSchedulesUpdate(updated);
+    try {
+      if (deleteType === "돌봄" || deleteType === "접종") {
+        // 돌봄/접종 일정 삭제 API 호출
+        await deleteCareSchedule(toDeleteId);
 
-      // 토스트 메시지 표시
-      const deletedSchedule = careSchedules.find(
-        (schedule) => schedule.id === toDeleteId
-      );
-      if (deletedSchedule) {
-        setToastMessage(`${deletedSchedule.name} 일정이 삭제되었습니다.`);
-        setToastType("delete");
-        setShowToast(true);
-      }
-    } else if (deleteType === "접종") {
-      const updated = vaccinationSchedules.filter(
-        (schedule) => schedule.id !== toDeleteId
-      );
-      onVaccinationSchedulesUpdate(updated);
+        // 성공 시 로컬 상태 업데이트 - 서브타입 기반으로 분류
+        const careSchedule = careSchedules.find(
+          (schedule) => schedule.id === toDeleteId
+        );
+        const vaccinationSchedule = vaccinationSchedules.find(
+          (schedule) => schedule.id === toDeleteId
+        );
 
-      // 토스트 메시지 표시
-      const deletedSchedule = vaccinationSchedules.find(
-        (schedule) => schedule.id === toDeleteId
-      );
-      if (deletedSchedule) {
-        setToastMessage(`${deletedSchedule.name} 일정이 삭제되었습니다.`);
-        setToastType("delete");
-        setShowToast(true);
-      }
-    } else if (deleteType === "투약") {
-      const updated = medications.filter((med) => med.id !== toDeleteId);
-      onMedicationsUpdate(updated);
+        if (careSchedule) {
+          const updated = careSchedules.filter(
+            (schedule) => schedule.id !== toDeleteId
+          );
+          onCareSchedulesUpdate(updated);
 
-      // 토스트 메시지 표시
-      const deletedMed = medications.find((med) => med.id === toDeleteId);
-      if (deletedMed) {
-        setToastMessage(`${deletedMed.name} 투약이 삭제되었습니다.`);
-        setToastType("delete");
-        setShowToast(true);
+          // 토스트 메시지 표시
+          setToastMessage(`${careSchedule.name} 일정이 삭제되었습니다.`);
+          setToastType("delete");
+          setShowToast(true);
+        } else if (vaccinationSchedule) {
+          const updated = vaccinationSchedules.filter(
+            (schedule) => schedule.id !== toDeleteId
+          );
+          onVaccinationSchedulesUpdate(updated);
+
+          // 토스트 메시지 표시
+          setToastMessage(`${vaccinationSchedule.name} 일정이 삭제되었습니다.`);
+          setToastType("delete");
+          setShowToast(true);
+        }
+      } else if (deleteType === "투약") {
+        // 투약은 MedicationManagement에서 처리하므로 여기서는 로컬 상태만 업데이트
+        const updated = medications.filter((med) => med.id !== toDeleteId);
+        onMedicationsUpdate(updated);
+
+        // 토스트 메시지 표시
+        const deletedMed = medications.find((med) => med.id === toDeleteId);
+        if (deletedMed) {
+          setToastMessage(`${deletedMed.name} 투약이 삭제되었습니다.`);
+          setToastType("delete");
+          setShowToast(true);
+        }
       }
+
+      // 캘린더 이벤트 즉시 업데이트
+      const events = buildCalendarEvents();
+      if (onCalendarEventsChange) {
+        onCalendarEventsChange(events);
+      }
+
+      setShowConfirm(false);
+      setToDeleteId(null);
+      setDeleteType("");
+    } catch (error) {
+      console.error("일정 삭제 실패:", error);
+      let errorMessage = "일정 삭제에 실패했습니다.";
+
+      if (error.response?.status === 400) {
+        errorMessage = "삭제할 수 없는 일정입니다.";
+      } else if (error.response?.status === 500) {
+        errorMessage = "서버 오류가 발생했습니다.";
+      }
+
+      setToastMessage(errorMessage);
+      setToastType("error");
+      setShowToast(true);
     }
-
-    // 캘린더 이벤트 즉시 업데이트
-    const events = buildCalendarEvents();
-    if (onCalendarEventsChange) {
-      onCalendarEventsChange(events);
-    }
-
-    setShowConfirm(false);
-    setToDeleteId(null);
-    setDeleteType("");
   };
 
   const cancelDeleteSchedule = () => {
@@ -378,14 +540,14 @@ export default function CareManagement({
       .filter((s) => !selectedPetName || s.petName === selectedPetName)
       .map((s) => ({
         id: `care-${s.id}`,
-        title: `${s.icon} ${s.name}`,
+        title: `${getScheduleIcon(s.subType)} ${s.name}`,
         start: parseDateTime(s.date, s.scheduleTime),
         end: new Date(
           parseDateTime(s.date, s.scheduleTime).getTime() + 60 * 60 * 1000
         ),
         allDay: false,
-        // 캘린더 필터와 색상 매핑을 위해 돌봄 하위유형(산책/미용/생일)로 설정
-        type: s.subType || "산책",
+        // 캘린더 필터와 색상 매핑을 위해 서브타입으로 설정
+        type: getScheduleLabel(s.subType) || "산책",
         schedule: s,
       }));
 
@@ -393,7 +555,7 @@ export default function CareManagement({
       .filter((s) => !selectedPetName || s.petName === selectedPetName)
       .map((s) => ({
         id: `vac-${s.id}`,
-        title: `${s.icon} ${s.name}`,
+        title: `${getScheduleIcon(s.subType)} ${s.name}`,
         start: parseDateTime(
           s.date || new Date().toISOString().slice(0, 10),
           s.scheduleTime
@@ -406,8 +568,8 @@ export default function CareManagement({
             60 * 60 * 1000
         ),
         allDay: false,
-        // 캘린더 필터와 색상 매핑을 위해 접종 하위유형(예방접종/건강검진)로 설정
-        type: s.subType === "건강검진" ? "건강검진" : "예방접종",
+        // 캘린더 필터와 색상 매핑을 위해 서브타입으로 설정
+        type: getScheduleLabel(s.subType) || "예방접종",
         schedule: s,
       }));
 
@@ -434,26 +596,22 @@ export default function CareManagement({
         scheduleId = selectedSchedule.schedule.id;
       }
 
-      if (
-        selectedSchedule.category === "care" ||
-        selectedSchedule.type === "돌봄" ||
-        (selectedSchedule.schedule &&
-          selectedSchedule.schedule.category === "care")
-      ) {
+      // 서브타입 기반으로 분류하여 삭제
+      const careSchedule = careSchedules.find(
+        (schedule) => schedule.id === scheduleId
+      );
+      const vaccinationSchedule = vaccinationSchedules.find(
+        (schedule) => schedule.id === scheduleId
+      );
+
+      if (careSchedule) {
         // 돌봄 일정 삭제
         const updated = careSchedules.filter(
           (schedule) => schedule.id !== scheduleId
         );
         onCareSchedulesUpdate(updated);
         setToastMessage(`${selectedSchedule.name} 일정이 삭제되었습니다.`);
-      } else if (
-        selectedSchedule.category === "vaccination" ||
-        selectedSchedule.category === "checkup" ||
-        selectedSchedule.type === "접종" ||
-        (selectedSchedule.schedule &&
-          (selectedSchedule.schedule.category === "vaccination" ||
-            selectedSchedule.schedule.category === "checkup"))
-      ) {
+      } else if (vaccinationSchedule) {
         // 접종 일정 삭제
         const updated = vaccinationSchedules.filter(
           (schedule) => schedule.id !== scheduleId
@@ -485,7 +643,7 @@ export default function CareManagement({
           className={styles.scheduleIcon}
           style={{ backgroundColor: schedule.color }}
         >
-          {schedule.icon}
+          {getScheduleIcon(schedule.subType)}
         </div>
         <div className={styles.scheduleDetails}>
           <h4>{schedule.name}</h4>

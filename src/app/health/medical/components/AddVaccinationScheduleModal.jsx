@@ -38,6 +38,106 @@ export default function AddVaccinationScheduleModal({
   const endCalendarButtonRef = React.useRef(null);
   const [errors, setErrors] = useState({});
 
+  // 시간 선택을 위한 커스텀 드롭다운
+  const TimePicker = ({ value, onChange, placeholder }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const listRef = React.useRef(null);
+
+    // 외부 클릭 시 드롭다운 닫기
+    React.useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (isOpen && !event.target.closest(`.${styles.timePickerContainer}`)) {
+          setIsOpen(false);
+        }
+      };
+
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }, [isOpen]);
+
+    // 드롭다운이 열릴 때 선택된 시간 위치로 스크롤
+    React.useEffect(() => {
+      if (isOpen && value && listRef.current) {
+        const selectedIndex = timeOptions.findIndex((time) => time === value);
+        if (selectedIndex !== -1) {
+          const itemHeight = 48; // 각 시간 항목의 높이 (padding 포함)
+          const containerHeight = 200; // 드롭다운 컨테이너 높이
+          const scrollTop = Math.max(
+            0,
+            selectedIndex * itemHeight - containerHeight / 2
+          );
+          listRef.current.scrollTop = scrollTop;
+        }
+      }
+    }, [isOpen, value]);
+
+    const handleTimeSelect = (timeString) => {
+      onChange(timeString);
+      setIsOpen(false);
+    };
+
+    const formatTime = (timeString) => {
+      if (!timeString) return "";
+      const [hours, minutes] = timeString.split(":");
+      const hour = parseInt(hours);
+      const ampm = hour < 12 ? "오전" : "오후";
+      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+      return `${ampm} ${displayHour}:${minutes}`;
+    };
+
+    // 30분 간격 시간 옵션 생성
+    const timeOptions = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeString = `${hour.toString().padStart(2, "0")}:${minute
+          .toString()
+          .padStart(2, "0")}`;
+        timeOptions.push(timeString);
+      }
+    }
+
+    return (
+      <div className={styles.timePickerContainer}>
+        <div
+          className={`${styles.timePickerInput} ${isOpen ? styles.active : ""}`}
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <span className={value ? styles.timeValue : styles.timePlaceholder}>
+            {value ? formatTime(value) : placeholder}
+          </span>
+          <div className={styles.timePickerIcon}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="#9CA3AF" strokeWidth="2" />
+              <polyline
+                points="12,6 12,12 16,14"
+                stroke="#9CA3AF"
+                strokeWidth="2"
+              />
+            </svg>
+          </div>
+        </div>
+        {isOpen && (
+          <div className={styles.timePickerDropdown}>
+            <div className={styles.timePickerList} ref={listRef}>
+              {timeOptions.map((time) => (
+                <div
+                  key={time}
+                  className={`${styles.timePickerItem} ${
+                    value === time ? styles.timePickerItemSelected : ""
+                  }`}
+                  onClick={() => handleTimeSelect(time)}
+                >
+                  {formatTime(time)}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // 날짜 포맷팅 함수
   const formatDateForDisplay = (dateString) => {
     if (!dateString) return "";
@@ -67,6 +167,26 @@ export default function AddVaccinationScheduleModal({
   // 외부 클릭 시 달력 닫기
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // 시작날짜 달력이 열려있고, 종료날짜 입력칸을 클릭한 경우
+      if (
+        showStartCalendar &&
+        event.target.closest(`.${styles.dateInputWrapper}`)
+      ) {
+        const clickedInput = event.target.closest(
+          `.${styles.dateInputWrapper}`
+        );
+        const allDateInputs = document.querySelectorAll(
+          `.${styles.dateInputWrapper}`
+        );
+        const clickedIndex = Array.from(allDateInputs).indexOf(clickedInput);
+
+        // 종료날짜 입력칸(두 번째)을 클릭한 경우 시작날짜 달력 닫기
+        if (clickedIndex === 1) {
+          setShowStartCalendar(false);
+        }
+      }
+
+      // 일반적인 외부 클릭 감지
       if (
         showStartCalendar &&
         !event.target.closest(`.${styles.dateInputWrapper}`) &&
@@ -93,16 +213,47 @@ export default function AddVaccinationScheduleModal({
   }, [showStartCalendar, showEndCalendar]);
 
   // 접종 일정 고정
-  const mainType = "접종";
 
   const subTypeOptions = vaccinationSubTypeOptions;
   const frequencyOptions = vaccinationFrequencyOptions;
 
   const handleInputChange = (field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setFormData((prev) => {
+      const newData = {
+        ...prev,
+        [field]: value,
+      };
+
+      // 빈도가 변경되면 종료날짜 처리
+      if (field === "frequency") {
+        if (
+          value === "매주" ||
+          value === "매월" ||
+          value === "연 1회" ||
+          value === "반년 1회"
+        ) {
+          // 매주, 매월, 연 1회, 반년 1회인 경우 종료날짜를 시작날짜와 동일하게 설정
+          if (prev.startDate) {
+            newData.endDate = prev.startDate;
+          }
+        }
+      }
+
+      // 시작날짜가 변경되면 종료날짜 처리
+      if (field === "startDate") {
+        if (
+          prev.frequency === "매주" ||
+          prev.frequency === "매월" ||
+          prev.frequency === "연 1회" ||
+          prev.frequency === "반년 1회"
+        ) {
+          // 매주, 매월, 연 1회, 반년 1회인 경우 종료날짜를 시작날짜와 동일하게 설정
+          newData.endDate = value;
+        }
+      }
+
+      return newData;
+    });
 
     if (errors[field]) {
       setErrors((prev) => ({
@@ -119,7 +270,17 @@ export default function AddVaccinationScheduleModal({
     if (!formData.subType) newErrors.subType = "유형을 선택해주세요";
     if (!formData.frequency) newErrors.frequency = "빈도를 선택해주세요";
     if (!formData.startDate) newErrors.startDate = "시작 날짜를 선택해주세요";
-    if (!formData.endDate) newErrors.endDate = "종료 날짜를 선택해주세요";
+
+    // 매주, 매월, 연 1회, 반년 1회가 아닌 경우에만 종료날짜 검증
+    if (
+      formData.frequency !== "매주" &&
+      formData.frequency !== "매월" &&
+      formData.frequency !== "연 1회" &&
+      formData.frequency !== "반년 1회"
+    ) {
+      if (!formData.endDate) newErrors.endDate = "종료 날짜를 선택해주세요";
+    }
+
     if (!formData.scheduleTime)
       newErrors.scheduleTime = "일정 시간을 입력해주세요";
     if (!formData.notificationTiming)
@@ -142,7 +303,7 @@ export default function AddVaccinationScheduleModal({
       const newSchedule = {
         id: Date.now(),
         name: formData.name,
-        type: mainType,
+        type: "접종",
         subType: formData.subType,
         frequency: formData.frequency,
         startDate: formData.startDate,
@@ -153,7 +314,7 @@ export default function AddVaccinationScheduleModal({
         notificationTiming: formData.notificationTiming,
         petName: selectedPetName, // 선택된 펫 이름 추가
         icon: getIconForSubType(formData.subType),
-        color: getColorForType(mainType),
+        color: getColorForType("접종"),
         isNotified: true,
       };
 
@@ -353,15 +514,53 @@ export default function AddVaccinationScheduleModal({
                   type="text"
                   value={formatDateForDisplay(formData.endDate)}
                   placeholder="종료 날짜를 선택하세요"
-                  className={styles.dateInput}
+                  className={`${styles.dateInput} ${
+                    formData.frequency === "매주" ||
+                    formData.frequency === "매월" ||
+                    formData.frequency === "연 1회" ||
+                    formData.frequency === "반년 1회"
+                      ? styles.disabledInput
+                      : ""
+                  }`}
                   readOnly
-                  onClick={() => setShowEndCalendar(true)}
+                  onClick={() => {
+                    if (
+                      formData.frequency !== "매주" &&
+                      formData.frequency !== "매월" &&
+                      formData.frequency !== "연 1회" &&
+                      formData.frequency !== "반년 1회"
+                    ) {
+                      setShowEndCalendar(true);
+                    }
+                  }}
                 />
                 <button
                   ref={endCalendarButtonRef}
                   type="button"
-                  className={styles.calendarButton}
-                  onClick={() => setShowEndCalendar(!showEndCalendar)}
+                  className={`${styles.calendarButton} ${
+                    formData.frequency === "매주" ||
+                    formData.frequency === "매월" ||
+                    formData.frequency === "연 1회" ||
+                    formData.frequency === "반년 1회"
+                      ? styles.disabledButton
+                      : ""
+                  }`}
+                  onClick={() => {
+                    if (
+                      formData.frequency !== "매주" &&
+                      formData.frequency !== "매월" &&
+                      formData.frequency !== "연 1회" &&
+                      formData.frequency !== "반년 1회"
+                    ) {
+                      setShowEndCalendar(!showEndCalendar);
+                    }
+                  }}
+                  disabled={
+                    formData.frequency === "매주" ||
+                    formData.frequency === "매월" ||
+                    formData.frequency === "연 1회" ||
+                    formData.frequency === "반년 1회"
+                  }
                 >
                   <img
                     src="/health/calendar.png"
@@ -372,6 +571,14 @@ export default function AddVaccinationScheduleModal({
                 </button>
               </div>
             </div>
+            {(formData.frequency === "매주" ||
+              formData.frequency === "매월" ||
+              formData.frequency === "연 1회" ||
+              formData.frequency === "반년 1회") && (
+              <span className={styles.infoMessage}>
+                {formData.frequency}는 시작날짜와 종료날짜가 동일합니다.
+              </span>
+            )}
             {errors.endDate && (
               <span className={styles.error}>{errors.endDate}</span>
             )}
@@ -384,14 +591,13 @@ export default function AddVaccinationScheduleModal({
               <span className={styles.required}>*</span>
             </div>
             <div className={styles.inputContainer}>
-              <input
-                type="time"
-                className={styles.input}
+              <TimePicker
                 value={formData.scheduleTime}
-                onChange={(e) => {
-                  handleInputChange("scheduleTime", e.target.value);
-                  handleInputChange("time", e.target.value); // 호환성 유지
+                onChange={(timeString) => {
+                  handleInputChange("scheduleTime", timeString);
+                  handleInputChange("time", timeString); // 호환성 유지
                 }}
+                placeholder="시간을 선택하세요"
               />
             </div>
             {errors.scheduleTime && (
