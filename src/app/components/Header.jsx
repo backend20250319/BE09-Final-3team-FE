@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import styles from "../styles/Header.module.css";
 import { IoIosNotifications, IoMdBusiness } from "react-icons/io";
 import NavbarDropdown from "@/app/components/AlarmDropdown";
+import LoginRequiredModal from "@/components/LoginRequiredModal";
 
 export default function Header() {
   const router = useRouter();
@@ -14,6 +15,8 @@ export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userNickname, setUserNickname] = useState("");
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [selectedService, setSelectedService] = useState("");
 
   // 토큰 갱신 함수
   const refreshToken = async () => {
@@ -163,6 +166,23 @@ export default function Header() {
     router.push("/user/login");
   };
 
+  // 네비게이션 링크 클릭 핸들러
+  const handleNavigationClick = (e, serviceName, href) => {
+    if (!isLoggedIn) {
+      e.preventDefault();
+      setSelectedService(serviceName);
+      setShowLoginModal(true);
+      return;
+    }
+    // 로그인된 경우 정상적으로 이동
+    router.push(href);
+  };
+
+  const closeLoginModal = () => {
+    setShowLoginModal(false);
+    setSelectedService("");
+  };
+
   const navigation = [
     { name: "체험단", href: "/campaign" },
     { name: "펫 관리", href: "/user/management" },
@@ -243,12 +263,24 @@ export default function Header() {
       <nav className={styles.navigation}>
         <div className={styles.navContent}>
           {navigation.map((item) => (
-            <a key={item.name} href={item.href} className={styles.navLink}>
+            <a
+              key={item.name}
+              href={item.href}
+              className={styles.navLink}
+              onClick={(e) => handleNavigationClick(e, item.name, item.href)}
+            >
               {item.name}
             </a>
           ))}
         </div>
       </nav>
+
+      {/* 로그인 필요 모달 */}
+      <LoginRequiredModal
+        isOpen={showLoginModal}
+        onClose={closeLoginModal}
+        serviceName={selectedService}
+      />
     </>
   );
 }
