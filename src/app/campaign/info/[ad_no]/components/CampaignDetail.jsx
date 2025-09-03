@@ -36,7 +36,7 @@ export default function CampaignDetail({ campaignData }) {
               </div>
             </div>
             {campaignData.mission.map((mission, index) => (
-              <div key={index} className={styles.missionItem}>
+              <div key={mission.missionNo || index} className={styles.missionItem}>
                 <div className={styles.missionIcon}>
                   <Image
                     src="/campaign/check.png"
@@ -44,7 +44,7 @@ export default function CampaignDetail({ campaignData }) {
                     width={16}
                     height={16} />
                 </div>
-                <span className={styles.missionText}>{mission}</span>
+                <span className={styles.missionText}>{mission.content}</span>
               </div>
             ))}
           </div>
@@ -60,8 +60,8 @@ export default function CampaignDetail({ campaignData }) {
           </p>
           <div className={styles.keywordTags}>
             {campaignData.keyword.map((keyword, index) => (
-              <span key={index} className={styles.keywordTag}>
-                {keyword}
+              <span key={keyword.keywordNo || index} className={styles.keywordTag}>
+                {keyword.content}
               </span>
             ))}
           </div>
@@ -74,7 +74,7 @@ export default function CampaignDetail({ campaignData }) {
         <div className={styles.sectionContent}>
           <ul className={styles.requirementsList}>
             {campaignData.requirement.map((requirement, index) => (
-              <li key={index} className={styles.requirementItem}>
+              <li key={requirement.reqNo || index} className={styles.requirementItem}>
                 <div className={styles.requirementIcon}>
                   <Image
                     src="/campaign/info.png"
@@ -82,7 +82,7 @@ export default function CampaignDetail({ campaignData }) {
                     width={16}
                     height={16} />
                 </div>
-                <span className={styles.requirementText}>{requirement}</span>
+                <span className={styles.requirementText}>{requirement.content}</span>
               </li>
             ))}
           </ul>
