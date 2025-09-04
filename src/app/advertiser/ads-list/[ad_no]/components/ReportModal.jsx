@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { reportUser } from "@/api/userApi";
+import AlertModal from "@/app/community/components/AlertModal";
 import styles from "../styles/ReportModal.module.css";
 
 export default function ReportModal({
@@ -13,6 +14,9 @@ export default function ReportModal({
 }) {
   const [reportReason, setReportReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("info");
 
   if (!isOpen) return null;
 
@@ -28,12 +32,18 @@ export default function ReportModal({
 
       await reportUser(payload);
 
-      alert("신고가 접수되었습니다.");
+      setAlertMessage("신고가 접수되었습니다.");
+      setAlertType("success");
+      setShowAlertModal(true);
       onReportSuccess?.();
       handleCancel();
     } catch (error) {
       console.error("신고 제출 실패:", error);
-      alert(error?.response?.data?.message || "신고 제출에 실패했습니다.");
+      setAlertMessage(
+        error?.response?.data?.message || "신고 제출에 실패했습니다."
+      );
+      setAlertType("error");
+      setShowAlertModal(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -133,6 +143,16 @@ export default function ReportModal({
           </div>
         </div>
       </div>
+
+      {/* 알림 모달 */}
+      <AlertModal
+        isOpen={showAlertModal}
+        onClose={() => setShowAlertModal(false)}
+        title="알림"
+        message={alertMessage}
+        type={alertType}
+        confirmText="확인"
+      />
     </div>
   );
 }

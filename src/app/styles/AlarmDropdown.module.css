@@ -52,6 +52,42 @@
 .item:hover {
   background: #f9fafb;
 }
+
+/* 읽지 않은 알림 스타일 */
+.item.unread {
+  background: #fef7e0;
+  border-left: 3px solid #f5a623;
+}
+
+.item.unread:hover {
+  background: #fef3c7;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.closeBtn:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.closeBtn img {
+  width: 16px;
+  height: 16px;
+}
 .iconContainer {
   width: 55px;
   height: 55px;
@@ -80,6 +116,7 @@
 .icon {
   width: 24px;
   height: 24px;
+  filter: brightness(0) invert(1); /* 아이콘을 하얀색으로 변경 */
 }
 .textContent {
   flex: 1;

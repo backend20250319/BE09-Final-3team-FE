@@ -743,11 +743,24 @@ const ActivityModal = ({
       let historyNo;
 
       if (isEditMode && editingData && editingData.historyNo) {
-        // 수정 모드: API 호출하지 않고 historyNo만 설정
-        console.log("수정 모드: API 호출 건너뛰기, PortfolioContent에서 처리");
+        // 수정 모드: PUT 요청으로 기존 활동이력 수정
+        console.log("수정 모드: PUT 요청으로 기존 활동이력 수정");
+        const updateRequest = {
+          title: historyData.title,
+          historyStart: historyData.startDate,
+          historyEnd: historyData.endDate,
+          content: historyData.content,
+        };
+
+        console.log("수정 요청 데이터:", updateRequest);
+        historyResponse = await axios.put(
+          `${PET_API_BASE}/pets/${petNo}/histories/${editingData.historyNo}`,
+          updateRequest,
+          {
+            headers: getAuthHeaders(),
+          }
+        );
         historyNo = editingData.historyNo;
-        // 수정 모드에서는 API 응답을 시뮬레이션
-        historyResponse = { data: { code: "2000", data: { historyNo } } };
       } else {
         // 생성 모드
         console.log("History 생성 요청:", historyRequest);
@@ -1174,19 +1187,6 @@ const ActivityModal = ({
               placeholder="활동 내역을 입력해주세요."
               className={styles.formTextarea}
               rows={4}
-            />
-          </div>
-
-          {/* 상세 내용 */}
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>상세 내용</label>
-            <textarea
-              name="detailedContent"
-              value={formData.detailedContent}
-              onChange={handleInputChange}
-              placeholder="상세 내용을 입력해주세요."
-              className={styles.formTextarea}
-              rows={6}
             />
           </div>
         </div>

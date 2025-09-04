@@ -459,20 +459,10 @@ const PortfolioContent = () => {
       }
 
       if (isEditMode && editingActivity) {
-        // 수정 모드: 기존 활동이력 업데이트 (PUT 요청)
-        const [startDate, endDate] = activityData.period.includes(" - ")
-          ? activityData.period.split(" - ")
-          : activityData.period.split(" ~ ");
-
-        const historyData = {
-          historyStart: startDate,
-          historyEnd: endDate,
-          content: activityData.content || "",
-          title: activityData.title || "",
-        };
-
-        console.log("활동 이력 수정 데이터:", historyData);
-        await createHistory(historyData, true, editingActivity.historyNo);
+        // 수정 모드: ActivityModal에서 이미 수정이 완료되었으므로 로컬 상태만 업데이트
+        console.log(
+          "수정 모드: ActivityModal에서 이미 수정 완료됨, 로컬 상태 업데이트"
+        );
 
         // 로컬 상태 업데이트
         setActivityCards((prev) =>
@@ -494,7 +484,18 @@ const PortfolioContent = () => {
           )
         );
 
-        console.log("활동 이력 수정 완료");
+        console.log("활동 이력 수정 완료 (로컬 상태 업데이트)");
+
+        // 수정 완료 후 백엔드에서 최신 데이터를 다시 로드하여 UI 동기화
+        setTimeout(async () => {
+          try {
+            console.log("수정 완료 후 활동 이력 재로드 시작");
+            await loadActivityHistories();
+            console.log("수정 완료 후 활동 이력 재로드 완료");
+          } catch (error) {
+            console.error("수정 완료 후 활동 이력 재로드 실패:", error);
+          }
+        }, 500);
       } else {
         // 새로 등록 모드: 새로운 활동이력 추가 (POST 요청)
         const [startDate, endDate] = activityData.period.includes(" - ")
@@ -889,55 +890,16 @@ const PortfolioContent = () => {
       await submitPortfolio(portfolioData);
       console.log("포트폴리오 저장 완료");
 
-      // 활동 이력들도 저장
-      if (activityCards.length > 0) {
-        console.log("활동 이력 저장 시작:", activityCards.length, "개");
-        console.log(
-          "활동 카드 데이터:",
-          JSON.stringify(activityCards, null, 2)
-        );
-
-        for (const activity of activityCards) {
-          console.log("처리 중인 활동:", activity);
-
-          // 기간 데이터 검증 (하이픈 또는 물결표 모두 지원)
-          if (
-            !activity.period ||
-            (!activity.period.includes(" - ") &&
-              !activity.period.includes(" ~ "))
-          ) {
-            console.error("활동 기간 형식 오류:", activity.period);
-            continue;
-          }
-
-          // 하이픈 또는 물결표로 분리
-          const [startDate, endDate] = activity.period.includes(" - ")
-            ? activity.period.split(" - ")
-            : activity.period.split(" ~ ");
-          const historyData = {
-            historyStart: startDate,
-            historyEnd: endDate,
-            content: activity.content || "",
-          };
-
-          console.log("변환된 활동 이력 데이터:", historyData);
-
-          try {
-            await createHistory(historyData);
-            console.log("활동 이력 저장 성공:", activity.title);
-          } catch (historyError) {
-            console.error("활동 이력 저장 실패:", activity.title, historyError);
-            console.error("실패한 활동 데이터:", activity);
-            console.error("실패한 이력 데이터:", historyData);
-            // 개별 활동 이력 저장 실패는 전체 프로세스를 중단하지 않음
-          }
-        }
-      } else {
-        console.log("저장할 활동 이력이 없습니다.");
-      }
+      // 활동 이력은 이미 개별적으로 저장되어 있으므로 중복 저장하지 않음
+      console.log(
+        "활동 이력은 이미 개별적으로 저장되어 있어 중복 저장하지 않습니다."
+      );
 
       console.log("포트폴리오 등록 완료:", formData);
       setShowConfirmModal(false);
+
+      // 페이지 상단으로 스크롤
+      window.scrollTo({ top: 0, behavior: "smooth" });
 
       // 성공 메시지 표시
       setValidationMessage("포트폴리오가 성공적으로 등록되었습니다.");
