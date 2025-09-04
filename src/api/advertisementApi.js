@@ -4,6 +4,10 @@ const AD_PREFIX =
     (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_ADVERTISEMENT_PREFIX) ||
     "/advertiser-service/ad";
 
+const CAMPAIGN_PREFIX =
+(typeof process !== "undefined" && process.env?.NEXT_PUBLIC_CAMPAIGN_PREFIX) ||
+"/advertiser-service/campaign";
+
 // 1. 광고 생성
 export const createAd = async (ad) => {
   const res = await advertiserApi.post(`${AD_PREFIX}`, ad);
@@ -74,5 +78,18 @@ export const updateImage = async (adNo, newImage = null, isDeleted) => {
       },
     }
   );
+  return res.data.data;
+};
+
+/* 체험단 */
+// 1. 체험단 조회
+export const getApplicants = async(adNo) => {
+  const res = await advertiserApi.get(`${CAMPAIGN_PREFIX}/${adNo}`);
+  return res.data.data;
+};
+
+// 2. 체험단 선정
+export const updateApplicant = async (applicantNo, status) => {
+  const res = await advertiserApi.put(`${CAMPAIGN_PREFIX}/advertiser/${applicantNo}?status=${status}`);
   return res.data.data;
 };

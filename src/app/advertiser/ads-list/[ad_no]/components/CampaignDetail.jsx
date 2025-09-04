@@ -6,8 +6,7 @@ import Image from 'next/image';
 import styles from '../styles/CampaignDetail.module.css';
 import PetstarList from './PetstarList';
 import ApplicantList from './ApplicantList';
-import { getAdvertiser } from '@/api/advertiserApi';
-import { getImageByAdNo } from '@/api/advertisementApi';
+import { getImageByAdNo, getApplicants } from '@/api/advertisementApi';
 
 export default function CampaignDetail({ campaignData, adNo }) {
 
@@ -15,6 +14,8 @@ export default function CampaignDetail({ campaignData, adNo }) {
   const [applicantPage, setApplicantPage] = useState(1);
   const [petstarPage, setPetstarPage] = useState(1);
   const [sortBy, setSortBy] = useState('name');
+  const [applicants, setApplicants] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const petstars = [
     {
@@ -52,51 +53,6 @@ export default function CampaignDetail({ campaignData, adNo }) {
     }
   ];
 
-  const applicants = [
-    {
-      id: 1,
-      name: '황금이',
-      sns_profile: '@goldenbuddy',
-      image: '/user/dog.png',
-      description: '모험을 사랑하는 황금이는 해변 산책과 산악 하이킹 코스를 즐기며 자연 속에서 뛰노는 걸 가장 좋아합니다. 친구들과 어울려 뛰어노는 것을 즐기며, 특히 어린이와 다른 반려동물들과 따뜻한 교감을 나누는 모습을 자주 볼 수 있습니다. 신뢰감 있고 충성스러운 성향 덕분에 가족들의 든든한 친구이자 보호자로도 사랑받고 있습니다.'
-    },
-    {
-      id: 2,
-      name: '초코',
-      sns_profile: '@chocoPup',
-      image: '/influencer-1.jpg',
-      description: '초코는 가족을 매우 사랑하며 사교성이 뛰어난 강아지입니다. 새로운 사람과 동물과도 금세 친해지며, 활발한 산책과 놀이를 즐깁니다.'
-    },
-    {
-      id: 3,
-      name: '바둑이',
-      sns_profile: '@blackSpot',
-      image: '/influencer-3.jpg',
-      description: '바둑이는 온순하고 충성스러운 성격으로, 보호자에게 매우 헌신적입니다. 조용하면서도 주변을 잘 관찰하는 꼼꼼한 친구입니다.'
-    },
-    {
-      id: 4,
-      name: '미미',
-      sns_profile: '@mimi_cat',
-      image: '/user/cat.png',
-      description: '미미는 조용하고 우아한 고양이로, 주인의 손길을 좋아하며 느긋한 시간을 보내는 것을 선호합니다. 호기심도 많아 때때로 장난기도 발휘합니다.'
-    },
-    {
-      id: 5,
-      name: '토리',
-      sns_profile: '@tori_tiger',
-      image: '/influencer-2.jpg',
-      description: '토리는 활동적이고 명랑한 성격을 가진 고양이입니다. 주변 탐험을 좋아하고, 사람과의 교감도 적극적으로 즐깁니다.'
-    },
-    {
-      id: 6,
-      name: '나비',
-      sns_profile: '@navi_feline',
-      image: '/influencer-4.jpg',
-      description: '나비는 조심스러우면서도 친근한 성격을 지녔으며, 신중하게 새로운 환경을 탐색하는 것을 좋아합니다. 소소한 애교로 가족들의 사랑을 한 몸에 받는 고양이입니다.'
-    }
-  ];
-
   const handleApplicantPageChange = (page) => {
     setApplicantPage(page);
   };
@@ -110,15 +66,24 @@ export default function CampaignDetail({ campaignData, adNo }) {
   };
 
   const [adImage, setAdImage] = useState(null);
-  const [advertiser, setAdvertiser] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      const advertiserData = await getAdvertiser();
-      setAdvertiser(advertiserData);
-          
-      const adImageData = await getImageByAdNo(campaignData.adNo);
-      setAdImage(adImageData);
+      try {
+        setLoading(true);
+        const [adImageData, applicantsData] = await Promise.all([
+          getImageByAdNo(campaignData.adNo),
+          getApplicants(campaignData.adNo)
+        ]);
+        
+        setAdImage(adImageData);
+        setApplicants(applicantsData.applicants || []);
+      } catch (error) {
+        console.error('데이터를 불러오는 중 오류가 발생했습니다:', error);
+        setApplicants([]);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchData();
   }, [campaignData.adNo]);
@@ -275,7 +240,7 @@ export default function CampaignDetail({ campaignData, adNo }) {
                     alt="link.png"
                     width={16}
                     height={16}/>
-                  Visit {advertiser?.name} Store
+                  Visit {campaignData.advertiser?.name} Store
                 </a>
               </div>
             </div>
@@ -288,6 +253,7 @@ export default function CampaignDetail({ campaignData, adNo }) {
         applicants={applicants}
         currentPage={applicantPage}
         onPageChange={handleApplicantPageChange}
+        loading={loading}
       />
       
       {/* Petstar List */}

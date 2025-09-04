@@ -7,20 +7,17 @@ import styles from "../styles/CampaignCard.module.css";
 import { useCampaign } from "../context/CampaignContext";
 import RejectionModal from "./RejectionModal";
 import { getImageByAdNo } from '@/api/advertisementApi';
-import { getAdvertiser, getFileByAdvertiserNo } from '@/api/advertiserApi';
+import { getFileByAdvertiserNo } from '@/api/advertiserApi';
 
 export default function CampaignCard({ campaign }) {
 
   const { activeTab } = useCampaign();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [advertiser, setAdvertiser] = useState(null);
   const [advImage, setAdvImage] = useState(null);
   const [adImage, setAdImage] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      const advertiserData = await getAdvertiser();
-      setAdvertiser(advertiserData);
 
       const advImageData = await getFileByAdvertiserNo();
       setAdvImage(advImageData[0]);
@@ -90,18 +87,18 @@ export default function CampaignCard({ campaign }) {
     setIsModalOpen(false);
   };
   
-  const cardContent = advImage && adImage && (
+  const cardContent = (
     <div
       className={styles.campaignCard}
       style={{ borderTopColor: COLORS[activeTab] || COLORS.default }}>
       <div className={styles.imageContainer}>
-        <Image  
+        {adImage && (<Image  
           src={adImage.filePath}
           alt={campaign?.title || ""}
           width={410}
           height={160}
           className={styles.campaignImage}
-        />
+        />)}
       </div>
 
       <div className={styles.cardContent}>
@@ -109,14 +106,14 @@ export default function CampaignCard({ campaign }) {
         <p className={styles.description}>{campaign.objective}</p>
         <div className={styles.brandSection}>
           <div className={styles.brandInfo}>
-            <Image
+            {advImage && (<Image
                 src={advImage?.filePath}
                 alt={campaign?.brand || ""}
                 width={25}
                 height={25}
                 className={styles.brandIcon}
-              />
-            <span className={styles.brandName}>{advertiser?.name}</span>
+              />)}
+            <span className={styles.brandName}>{campaign.advertiser?.name}</span>
           </div>
           {showRejectedButton ? (
             <div className={styles.actionButtons}>

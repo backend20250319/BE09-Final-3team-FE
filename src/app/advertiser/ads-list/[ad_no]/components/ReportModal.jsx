@@ -2,14 +2,14 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { reportUser } from "@/api/userApi";
 import styles from "../styles/ReportModal.module.css";
+import { reportUser } from "@/api/advertiserApi";
 
 export default function ReportModal({
   isOpen,
   onClose,
+  selectedPetName,
   applicantName,
-  onReportSuccess,
 }) {
   const [reportReason, setReportReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,8 +28,9 @@ export default function ReportModal({
 
       await reportUser(payload);
 
+      console.log(payload);
+
       alert("신고가 접수되었습니다.");
-      onReportSuccess?.();
       handleCancel();
     } catch (error) {
       console.error("신고 제출 실패:", error);
@@ -62,7 +63,7 @@ export default function ReportModal({
               <div className={styles.headerText}>
                 <h3 className={styles.reportTitle}>신고하기</h3>
                 <p className={styles.reportSubtitle}>
-                  {applicantName}님을 신고하시겠습니까?
+                  {selectedPetName}님을 신고하시겠습니까?
                 </p>
               </div>
             </div>
