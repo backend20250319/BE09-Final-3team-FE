@@ -18,7 +18,7 @@ pipeline {
         }
         stage('Source Clone') {
             steps {
-                git credentialsId: 'ssh-jenkins-github--key', branch: "${branch.split("/")[2]}", url: "${env.SOURCE_GITHUB_URL}"
+                git credentialsId: 'ssh-jenkins-github--key', branch: "${branch.split("/", 3)[2]}", url: "${env.SOURCE_GITHUB_URL}"
             }
         }
         
