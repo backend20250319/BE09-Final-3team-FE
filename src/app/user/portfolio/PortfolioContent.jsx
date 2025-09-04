@@ -459,20 +459,10 @@ const PortfolioContent = () => {
       }
 
       if (isEditMode && editingActivity) {
-        // 수정 모드: 기존 활동이력 업데이트 (PUT 요청)
-        const [startDate, endDate] = activityData.period.includes(" - ")
-          ? activityData.period.split(" - ")
-          : activityData.period.split(" ~ ");
-
-        const historyData = {
-          historyStart: startDate,
-          historyEnd: endDate,
-          content: activityData.content || "",
-          title: activityData.title || "",
-        };
-
-        console.log("활동 이력 수정 데이터:", historyData);
-        await createHistory(historyData, true, editingActivity.historyNo);
+        // 수정 모드: ActivityModal에서 이미 수정이 완료되었으므로 로컬 상태만 업데이트
+        console.log(
+          "수정 모드: ActivityModal에서 이미 수정 완료됨, 로컬 상태 업데이트"
+        );
 
         // 로컬 상태 업데이트
         setActivityCards((prev) =>
@@ -494,7 +484,18 @@ const PortfolioContent = () => {
           )
         );
 
-        console.log("활동 이력 수정 완료");
+        console.log("활동 이력 수정 완료 (로컬 상태 업데이트)");
+
+        // 수정 완료 후 백엔드에서 최신 데이터를 다시 로드하여 UI 동기화
+        setTimeout(async () => {
+          try {
+            console.log("수정 완료 후 활동 이력 재로드 시작");
+            await loadActivityHistories();
+            console.log("수정 완료 후 활동 이력 재로드 완료");
+          } catch (error) {
+            console.error("수정 완료 후 활동 이력 재로드 실패:", error);
+          }
+        }, 500);
       } else {
         // 새로 등록 모드: 새로운 활동이력 추가 (POST 요청)
         const [startDate, endDate] = activityData.period.includes(" - ")
