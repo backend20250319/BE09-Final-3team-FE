@@ -17,8 +17,10 @@ import {
   toggleAlarm,
   deleteMedication,
   processPrescription,
+  listCareSchedules,
 } from "../../../../api/medicationApi";
 import { STORAGE_KEYS, frequencyMapping } from "../../constants";
+import { COLOR_MAP } from "../../constants/colors";
 
 export default function MedicationManagement({
   medications,
@@ -66,6 +68,120 @@ export default function MedicationManagement({
 
   // 로딩 상태
   const [isLoading, setIsLoading] = useState(false);
+
+  // 서브타입 기반 분류 함수들
+  const isCareSubType = (subType) => {
+    return ["WALK", "BIRTHDAY", "GROOMING", "ETC"].includes(subType);
+  };
+
+  const isVaccinationSubType = (subType) => {
+    return ["VACCINE", "CHECKUP"].includes(subType);
+  };
+
+  // 백엔드에서 돌봄/접종 일정 가져오기
+  const fetchCareSchedules = useCallback(async () => {
+    if (!selectedPetNo) return;
+
+    try {
+      console.log("돌봄/접종 일정 조회 시작:", {
+        selectedPetNo,
+        selectedPetName,
+      });
+      const schedules = await listCareSchedules({ petNo: selectedPetNo });
+      console.log("돌봄/접종 일정 조회 결과:", schedules);
+
+      if (schedules && Array.isArray(schedules)) {
+        // 백엔드 응답을 프론트엔드 형식으로 변환
+        const transformedSchedules = schedules.map((schedule) => {
+          // scheduleNo가 객체인 경우 숫자 값 추출
+          let scheduleNo;
+          if (
+            typeof schedule.scheduleNo === "object" &&
+            schedule.scheduleNo !== null
+          ) {
+            scheduleNo =
+              schedule.scheduleNo.scheduleNo ||
+              schedule.scheduleNo.id ||
+              schedule.scheduleNo.value ||
+              schedule.scheduleNo.data;
+          } else {
+            scheduleNo = schedule.scheduleNo;
+          }
+
+          // id도 scheduleNo와 동일하게 처리
+          let id;
+          if (typeof schedule.id === "object" && schedule.id !== null) {
+            id =
+              schedule.id.id ||
+              schedule.id.value ||
+              schedule.id.data ||
+              scheduleNo;
+          } else {
+            id = schedule.id || scheduleNo;
+          }
+
+          return {
+            id: id,
+            scheduleNo: scheduleNo,
+            name: schedule.title, // 백엔드의 title을 name으로 매핑
+            title: schedule.title,
+            subType: schedule.subType,
+            frequency: schedule.careFrequency, // 백엔드의 careFrequency를 frequency로 매핑
+            careFrequency: schedule.careFrequency,
+            startDate: schedule.startDate,
+            endDate: schedule.endDate,
+            scheduleTime: schedule.times
+              ? schedule.times
+                  .map((time) => {
+                    // "08:00:00" -> "08:00" 변환
+                    if (time && time.includes(":")) {
+                      const parts = time.split(":");
+                      if (parts.length >= 2) {
+                        return `${parts[0]}:${parts[1]}`;
+                      }
+                    }
+                    return time;
+                  })
+                  .join(", ")
+              : "09:00", // times 배열을 문자열로 변환
+            reminderDaysBefore: schedule.reminderDaysBefore,
+            isNotified: schedule.isNotified || false,
+            petName: selectedPetName,
+            color: schedule.color || "#4CAF50",
+            // 기존 필드들도 유지 (호환성)
+            date: schedule.startDate, // startDate를 date로도 매핑
+          };
+        });
+
+        // 서브타입에 따라 돌봄과 접종으로 분류
+        const careSchedulesData = transformedSchedules.filter((schedule) =>
+          isCareSubType(schedule.subType)
+        );
+        const vaccinationSchedulesData = transformedSchedules.filter(
+          (schedule) => isVaccinationSubType(schedule.subType)
+        );
+
+        console.log("분류된 돌봄 일정:", careSchedulesData);
+        console.log("분류된 접종 일정:", vaccinationSchedulesData);
+
+        onCareSchedulesUpdate(careSchedulesData);
+        onVaccinationSchedulesUpdate(vaccinationSchedulesData);
+      } else {
+        console.log("돌봄/접종 일정 데이터가 없습니다.");
+        onCareSchedulesUpdate([]);
+        onVaccinationSchedulesUpdate([]);
+      }
+    } catch (error) {
+      console.error("돌봄/접종 일정 조회 실패:", error);
+      onCareSchedulesUpdate([]);
+      onVaccinationSchedulesUpdate([]);
+    }
+  }, [
+    selectedPetNo,
+    selectedPetName,
+    onCareSchedulesUpdate,
+    onVaccinationSchedulesUpdate,
+  ]);
 
   // 백엔드에서 투약 데이터 가져오기
   const fetchMedications = useCallback(async () => {
@@ -149,8 +265,15 @@ export default function MedicationManagement({
         };
       });
 
-      console.log("변환된 투약 데이터:", transformedMedications);
-      onMedicationsUpdate(transformedMedications);
+      // 최신순으로 정렬 (id가 큰 순서대로)
+      const sortedMedications = transformedMedications.sort((a, b) => {
+        const idA = parseInt(a.id) || 0;
+        const idB = parseInt(b.id) || 0;
+        return idB - idA; // 내림차순 (최신이 위로)
+      });
+
+      console.log("변환된 투약 데이터 (최신순 정렬):", sortedMedications);
+      onMedicationsUpdate(sortedMedications);
     } catch (error) {
       console.error("투약 데이터 가져오기 실패:", error);
       // 404 에러가 아닌 경우에만 에러 메시지 표시
@@ -170,7 +293,8 @@ export default function MedicationManagement({
   // 컴포넌트 마운트 시 및 선택된 펫 변경 시 데이터 가져오기
   useEffect(() => {
     fetchMedications();
-  }, [fetchMedications]);
+    fetchCareSchedules();
+  }, [fetchMedications, fetchCareSchedules]);
 
   // 특정 날짜와 "HH:MM" 문자열로 Date 만들기 - buildCalendarEvents 이전에 선언
   const dateAtTime = useCallback((baseDate, hm) => {
@@ -549,35 +673,7 @@ export default function MedicationManagement({
             reminderDaysBefore: 0, // 당일 알림
           };
 
-          const calNo = await createMedication(medicationData);
-
-          // 성공 시 로컬 상태 업데이트
-          const updatedMedication = {
-            ...medication,
-            id: calNo,
-            calNo: calNo,
-            name: medication.drugName || medication.name,
-            startDate: new Date().toISOString().split("T")[0],
-            duration: parseInt(medication.prescriptionDays) || 7,
-            frequency:
-              medication.frequency || medication.administration || "하루 1회",
-            scheduleTime: medication.times
-              ? medication.times.map((t) => t.toString()).join(", ")
-              : getDefaultTimes(
-                  medication.frequency ||
-                    medication.administration ||
-                    "하루 1회"
-                ).join(", "),
-            notificationTiming: "당일",
-            petName: selectedPetName,
-            icon:
-              medication.icon ||
-              getMedicationIcon(medication.drugName || medication.name),
-            color: medication.color || "#E3F2FD",
-            isNotified: true,
-          };
-
-          onMedicationsUpdate((prev) => [...prev, updatedMedication]);
+          await createMedication(medicationData);
           successCount++;
         } catch (error) {
           console.error(
@@ -589,8 +685,10 @@ export default function MedicationManagement({
         }
       }
 
-      // 결과 메시지
+      // 모든 약물 등록 완료 후 데이터 다시 가져오기
       if (successCount > 0) {
+        await fetchMedications(); // 백엔드에서 최신 데이터 가져오기
+
         setToastMessage(`${successCount}개의 투약 일정이 추가되었습니다.`);
         setToastType("active");
         setShowToast(true);
@@ -631,12 +729,29 @@ export default function MedicationManagement({
         ...newMedication,
         id: calNo,
         calNo: calNo,
+        frequency:
+          frequencyMapping[newMedication.frequency] || newMedication.frequency, // 영어를 한글로 변환
       };
 
-      onMedicationsUpdate((prev) => [...prev, updatedMedication]);
+      // 즉시 로컬 상태 업데이트 (빠른 UI 반응)
+      onMedicationsUpdate((prev) => {
+        const updated = [...prev, updatedMedication];
+        // 최신순으로 정렬
+        return updated.sort((a, b) => {
+          const idA = parseInt(a.id) || 0;
+          const idB = parseInt(b.id) || 0;
+          return idB - idA;
+        });
+      });
+
       setToastMessage(`${newMedication.name}이(가) 추가되었습니다.`);
       setToastType("active");
       setShowToast(true);
+
+      // 백그라운드에서 데이터 동기화 (1초 후)
+      setTimeout(() => {
+        fetchMedications();
+      }, 1000);
 
       // 캘린더 이벤트 즉시 업데이트
       const events = buildCalendarEvents();
@@ -699,8 +814,12 @@ export default function MedicationManagement({
       // 백엔드에서 알림 시기 변경 시 자동으로 마지막 알림 시기 저장
       await updateMedication(medication.calNo, updateData);
 
-      // 백엔드에서 업데이트된 데이터를 다시 가져와서 상태 동기화
-      await fetchMedications();
+      // 즉시 로컬 상태 업데이트 (빠른 UI 반응)
+      onMedicationsUpdate((prev) =>
+        prev.map((med) =>
+          med.id === updatedMedication.id ? updatedMedication : med
+        )
+      );
 
       setToastMessage(`${updatedMedication.name}이(가) 수정되었습니다.`);
       setToastType("active");
@@ -712,6 +831,11 @@ export default function MedicationManagement({
       if (onCalendarEventsChange) {
         onCalendarEventsChange(events);
       }
+
+      // 백그라운드에서 데이터 동기화 (1초 후)
+      setTimeout(() => {
+        fetchMedications();
+      }, 1000);
     } catch (error) {
       console.error("투약 수정 실패:", error);
 
@@ -1082,7 +1206,9 @@ export default function MedicationManagement({
                 <div className={styles.medicationInfo}>
                   <div
                     className={styles.medicationIcon}
-                    style={{ backgroundColor: medication.color }}
+                    style={{
+                      backgroundColor: COLOR_MAP[medication.type] || "#e8f5e8",
+                    }}
                   >
                     {medication.icon}
                   </div>

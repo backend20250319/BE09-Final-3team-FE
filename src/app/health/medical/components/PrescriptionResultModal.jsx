@@ -4,6 +4,7 @@ import React from "react";
 import styles from "../styles/PrescriptionResultModal.module.css";
 // mockPrescriptionData는 더 이상 사용하지 않음
 import { useSelectedPet } from "../../context/SelectedPetContext";
+import { COLOR_MAP } from "../../constants/colors";
 
 export default function PrescriptionResultModal({
   isOpen,
@@ -87,10 +88,10 @@ export default function PrescriptionResultModal({
     return "💊";
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     // OCR 추출된 약물들을 실제 투약 목록에 추가
     if (onAddMedications && extractedMedications.length > 0) {
-      onAddMedications(extractedMedications);
+      await onAddMedications(extractedMedications);
     }
     onClose();
   };
@@ -159,7 +160,8 @@ export default function PrescriptionResultModal({
                       <div
                         className={styles.medicationIcon}
                         style={{
-                          backgroundColor: medication.color || "#E3F2FD",
+                          backgroundColor:
+                            COLOR_MAP[medication.type] || "#e8f5e8",
                         }}
                       >
                         {medication.icon ||

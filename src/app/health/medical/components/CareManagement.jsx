@@ -16,6 +16,7 @@ import {
   SUBTYPE_LABEL_MAP,
   ICON_MAP,
 } from "../../constants";
+import { COLOR_MAP } from "../../constants/colors";
 import {
   createCare,
   listCareSchedules,
@@ -75,6 +76,21 @@ export default function CareManagement({
 
   const getScheduleLabel = (subType) => {
     return SUBTYPE_LABEL_MAP[subType] || subType;
+  };
+
+  // 시간 형식을 HH:MM으로 변환하는 함수
+  const formatTime = (timeString) => {
+    if (!timeString) return "09:00";
+
+    // "08:00:00" -> "08:00" 변환
+    if (timeString.includes(":")) {
+      const parts = timeString.split(":");
+      if (parts.length >= 2) {
+        return `${parts[0]}:${parts[1]}`;
+      }
+    }
+
+    return timeString;
   };
 
   // react-select 공통 스타일 (활동관리 산책 드롭다운과 동일 톤)
@@ -193,7 +209,7 @@ export default function CareManagement({
         isNotified: Number(newSchedule.notificationTiming) !== 0,
       };
 
-      // 서브타입에 따라 돌봄 또는 접종으로 분류
+      // 즉시 로컬 상태 업데이트 (빠른 UI 반응)
       if (isVaccinationSubType(newSchedule.subType)) {
         onVaccinationSchedulesUpdate((prev) => [...prev, updatedSchedule]);
       } else if (isCareSubType(newSchedule.subType)) {
@@ -210,6 +226,16 @@ export default function CareManagement({
       if (onCalendarEventsChange) {
         onCalendarEventsChange(events);
       }
+
+      // 백그라운드에서 데이터 동기화 (1초 후)
+      setTimeout(() => {
+        // 돌봄/접종 일정은 별도의 fetch 함수가 없으므로
+        // 상위 컴포넌트에서 데이터를 다시 가져오도록 알림
+        if (onCalendarEventsChange) {
+          const updatedEvents = buildCalendarEvents();
+          onCalendarEventsChange(updatedEvents);
+        }
+      }, 1000);
     } catch (error) {
       console.error("일정 생성 실패:", error);
       let errorMessage = "일정 생성에 실패했습니다.";
@@ -267,7 +293,7 @@ export default function CareManagement({
       // API 호출
       await updateCareSchedule(updatedSchedule.id, updateData);
 
-      // 성공 시 로컬 상태 업데이트 - 서브타입 기반으로 분류
+      // 즉시 로컬 상태 업데이트 (빠른 UI 반응)
       if (isVaccinationSubType(updatedSchedule.subType)) {
         onVaccinationSchedulesUpdate((prev) =>
           prev.map((s) => (s.id === updatedSchedule.id ? updatedSchedule : s))
@@ -287,6 +313,14 @@ export default function CareManagement({
       if (onCalendarEventsChange) {
         onCalendarEventsChange(events);
       }
+
+      // 백그라운드에서 데이터 동기화 (1초 후)
+      setTimeout(() => {
+        if (onCalendarEventsChange) {
+          const updatedEvents = buildCalendarEvents();
+          onCalendarEventsChange(updatedEvents);
+        }
+      }, 1000);
     } catch (error) {
       console.error("일정 수정 실패:", error);
       let errorMessage = "일정 수정에 실패했습니다.";
@@ -536,42 +570,90 @@ export default function CareManagement({
         }
       });
 
-    const careEvents = careSchedules
+    const careEvents = [];
+    careSchedules
       .filter((s) => !selectedPetName || s.petName === selectedPetName)
-      .map((s) => ({
-        id: `care-${s.id}`,
-        title: `${getScheduleIcon(s.subType)} ${s.name}`,
-        start: parseDateTime(s.date, s.scheduleTime),
-        end: new Date(
-          parseDateTime(s.date, s.scheduleTime).getTime() + 60 * 60 * 1000
-        ),
-        allDay: false,
-        // 캘린더 필터와 색상 매핑을 위해 서브타입으로 설정
-        type: getScheduleLabel(s.subType) || "산책",
-        schedule: s,
-      }));
+      .forEach((s) => {
+        if (s.startDate && s.endDate) {
+          // 새로운 형식: startDate와 endDate 사용
+          const start = new Date(s.startDate);
+          const end = new Date(s.endDate);
+          const current = new Date(start);
+          while (current <= end) {
+            const sTime = parseDateTime(
+              current.toISOString().slice(0, 10),
+              s.scheduleTime || "09:00"
+            );
+            const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+            careEvents.push({
+              id: `care-${s.id}-${current.toISOString().slice(0, 10)}`,
+              title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
+              start: sTime,
+              end: eTime,
+              allDay: false,
+              type: getScheduleLabel(s.subType) || "산책",
+              schedule: s,
+            });
+            current.setDate(current.getDate() + 1);
+          }
+        } else if (s.date) {
+          // 기존 형식: date 사용 (호환성 유지)
+          const sTime = parseDateTime(s.date, s.scheduleTime || "09:00");
+          const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+          careEvents.push({
+            id: `care-${s.id}`,
+            title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
+            start: sTime,
+            end: eTime,
+            allDay: false,
+            type: getScheduleLabel(s.subType) || "산책",
+            schedule: s,
+          });
+        }
+      });
 
-    const vacEvents = vaccinationSchedules
+    const vacEvents = [];
+    vaccinationSchedules
       .filter((s) => !selectedPetName || s.petName === selectedPetName)
-      .map((s) => ({
-        id: `vac-${s.id}`,
-        title: `${getScheduleIcon(s.subType)} ${s.name}`,
-        start: parseDateTime(
-          s.date || new Date().toISOString().slice(0, 10),
-          s.scheduleTime
-        ),
-        end: new Date(
-          parseDateTime(
-            s.date || new Date().toISOString().slice(0, 10),
-            s.scheduleTime
-          ).getTime() +
-            60 * 60 * 1000
-        ),
-        allDay: false,
-        // 캘린더 필터와 색상 매핑을 위해 서브타입으로 설정
-        type: getScheduleLabel(s.subType) || "예방접종",
-        schedule: s,
-      }));
+      .forEach((s) => {
+        if (s.startDate && s.endDate) {
+          // 새로운 형식: startDate와 endDate 사용
+          const start = new Date(s.startDate);
+          const end = new Date(s.endDate);
+          const current = new Date(start);
+          while (current <= end) {
+            const sTime = parseDateTime(
+              current.toISOString().slice(0, 10),
+              s.scheduleTime || "10:00"
+            );
+            const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+            vacEvents.push({
+              id: `vac-${s.id}-${current.toISOString().slice(0, 10)}`,
+              title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
+              start: sTime,
+              end: eTime,
+              allDay: false,
+              type: getScheduleLabel(s.subType) || "예방접종",
+              schedule: s,
+            });
+            current.setDate(current.getDate() + 1);
+          }
+        } else {
+          // 기존 형식: date 사용 (호환성 유지)
+          const dateStr = s.date || new Date().toISOString().slice(0, 10);
+          const sTime = parseDateTime(dateStr, s.scheduleTime || "10:00");
+          const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+          vacEvents.push({
+            id: `vac-${s.id}`,
+            title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
+            start: sTime,
+            end: eTime,
+            allDay: false,
+            type: getScheduleLabel(s.subType) || "예방접종",
+            schedule: s,
+          });
+        }
+      });
 
     return [...medEvents, ...careEvents, ...vacEvents];
   };
@@ -641,14 +723,16 @@ export default function CareManagement({
       <div className={styles.scheduleInfo}>
         <div
           className={styles.scheduleIcon}
-          style={{ backgroundColor: schedule.color }}
+          style={{ backgroundColor: COLOR_MAP[schedule.subType] || "#e8f5e8" }}
         >
           {getScheduleIcon(schedule.subType)}
         </div>
         <div className={styles.scheduleDetails}>
-          <h4>{schedule.name}</h4>
-          <p>{schedule.frequency}</p>
-          <p className={styles.scheduleTime}>{schedule.scheduleTime}</p>
+          <h4>{schedule.title || schedule.name}</h4>
+          <p>{schedule.frequency || schedule.careFrequency}</p>
+          <p className={styles.scheduleTime}>
+            {formatTime(schedule.scheduleTime)}
+          </p>
         </div>
       </div>
       <div className={styles.scheduleActions}>
