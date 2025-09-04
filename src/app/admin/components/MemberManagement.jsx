@@ -14,6 +14,8 @@ import {
   rejectAdvertiser,
 } from "@/api/advertiserApi";
 import PopupModal from "@/app/admin/components/PopupModal";
+import AlertModal from "./AlertModal";
+import DeleteConfirmModal from "./DeleteConfirmModal";
 
 export default function MemberManagement() {
   const [activeTab, setActiveTab] = useState("펫스타 지원");
@@ -25,6 +27,12 @@ export default function MemberManagement() {
   const [selectedReport, setSelectedReport] = useState(null);
   const [selectedPetStar, setSelectedPetStar] = useState(null);
   const [selectedAdvertiser, setSelectedAdvertiser] = useState(null);
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("info");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteAction, setDeleteAction] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   // 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1);
@@ -105,77 +113,99 @@ export default function MemberManagement() {
     }
   };
 
+  const showAlert = (message, type = "info") => {
+    setAlertMessage(message);
+    setAlertType(type);
+    setShowAlertModal(true);
+  };
+
+  const showDeleteConfirm = (action, target, title, message) => {
+    setDeleteAction(() => action);
+    setDeleteTarget(target);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteAction && deleteTarget) {
+      deleteAction(deleteTarget);
+    }
+    setShowDeleteModal(false);
+    setDeleteAction(null);
+    setDeleteTarget(null);
+  };
+
   const handleRestrict = async (reportId) => {
     try {
       await approveReport(reportId);
-      alert("사용자가 제한되었습니다.");
+      showAlert("사용자가 제한되었습니다.", "success");
       loadReportList(); // 목록 새로고침
     } catch (error) {
       console.error("제한 실패:", error);
-      alert("제한 처리에 실패했습니다.");
+      showAlert("제한 처리에 실패했습니다.", "error");
     }
   };
 
   const handleReject = async (reportId, reason) => {
     try {
       await rejectReport(reportId, reason);
-      alert("신고가 거절되었습니다.");
+      showAlert("신고가 거절되었습니다.", "success");
       loadReportList(); // 목록 새로고침
     } catch (error) {
       console.error("거절 실패:", error);
-      alert("거절 처리에 실패했습니다.");
+      showAlert("거절 처리에 실패했습니다.", "error");
     }
   };
 
   const handlePetStarApprove = async (petNo) => {
     try {
       await approvePetStar(petNo);
-      alert("펫스타가 승인되었습니다.");
+      showAlert("펫스타가 승인되었습니다.", "success");
       loadPetStarList(); // 목록 새로고침
     } catch (error) {
       console.error("펫스타 승인 실패:", error);
-      alert("펫스타 승인에 실패했습니다.");
+      showAlert("펫스타 승인에 실패했습니다.", "error");
     }
   };
 
   const handlePetStarReject = async (petNo, reason) => {
     try {
       await rejectPetStar(petNo);
-      alert("펫스타 신청이 거절되었습니다.");
+      showAlert("펫스타 신청이 거절되었습니다.", "success");
       loadPetStarList(); // 목록 새로고침
     } catch (error) {
       console.error("펫스타 거절 실패:", error);
-      alert("펫스타 거절에 실패했습니다.");
+      showAlert("펫스타 거절에 실패했습니다.", "error");
     }
   };
 
   const handleAdvertiserApprove = async (advertiserId) => {
     try {
       await approveAdvertiser(advertiserId);
-      alert("광고주가 승인되었습니다.");
+      showAlert("광고주가 승인되었습니다.", "success");
       loadAdvertiserList(); // 목록 새로고침
     } catch (error) {
       console.error("광고주 승인 실패:", error);
-      alert("광고주 승인에 실패했습니다.");
+      showAlert("광고주 승인에 실패했습니다.", "error");
     }
   };
 
   const handleAdvertiserReject = async (advertiserId, reason) => {
     try {
       await rejectAdvertiser(advertiserId, reason);
-      alert("광고주 신청이 거절되었습니다.");
+      showAlert("광고주 신청이 거절되었습니다.", "success");
       loadAdvertiserList(); // 목록 새로고침
     } catch (error) {
       console.error("광고주 거절 실패:", error);
-      alert("광고주 거절에 실패했습니다.");
+      showAlert("광고주 거절에 실패했습니다.", "error");
     }
   };
   const handleApprove = () => {
-    if (confirm("승인하시겠습니까?")) {
-      alert("승인되었습니다.");
-    } else {
-      alert("승인이 취소되었습니다.");
-    }
+    showDeleteConfirm(
+      () => showAlert("승인되었습니다.", "success"),
+      null,
+      "승인 확인",
+      "승인하시겠습니까?"
+    );
   };
 
   return (
@@ -320,9 +350,12 @@ export default function MemberManagement() {
                         <button
                           className={styles.approveBtn}
                           onClick={() => {
-                            if (confirm("이 펫스타를 승인하시겠습니까?")) {
-                              handlePetStarApprove(petstar.petNo);
-                            }
+                            showDeleteConfirm(
+                              handlePetStarApprove,
+                              petstar.petNo,
+                              "펫스타 승인",
+                              "이 펫스타를 승인하시겠습니까?"
+                            );
                           }}
                         >
                           승인하기
@@ -421,9 +454,12 @@ export default function MemberManagement() {
                         <button
                           className={styles.deleteBtn}
                           onClick={() => {
-                            if (confirm("이 사용자를 제한하시겠습니까?")) {
-                              handleRestrict(report.reportId);
-                            }
+                            showDeleteConfirm(
+                              handleRestrict,
+                              report.reportId,
+                              "제한",
+                              "제한하시겠습니까?"
+                            );
                           }}
                           disabled={report.status !== "BEFORE"}
                         >
@@ -523,9 +559,12 @@ export default function MemberManagement() {
                       <button
                         className={styles.approveBtn}
                         onClick={() => {
-                          if (confirm("이 광고주를 승인하시겠습니까?")) {
-                            handleAdvertiserApprove(advertiser.advertiserNo);
-                          }
+                          showDeleteConfirm(
+                            handleAdvertiserApprove,
+                            advertiser.advertiserNo,
+                            "광고주 승인",
+                            "이 광고주를 승인하시겠습니까?"
+                          );
                         }}
                       >
                         승인하기
@@ -643,6 +682,27 @@ export default function MemberManagement() {
           )}
         </div>
       </main>
+
+      {/* 알림 모달 */}
+      <AlertModal
+        isOpen={showAlertModal}
+        onClose={() => setShowAlertModal(false)}
+        title="알림"
+        message={alertMessage}
+        type={alertType}
+        confirmText="확인"
+      />
+
+      {/* 삭제 확인 모달 */}
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteConfirm}
+        title="확인"
+        message="정말로 진행하시겠습니까?"
+        confirmText="확인"
+        cancelText="취소"
+      />
     </>
   );
 }

@@ -2,19 +2,23 @@ import React, { useEffect, useState } from "react";
 import styles from "../styles/AlarmDropdown.module.css";
 import { useRouter } from "next/navigation";
 import { getRecentNotifications } from "@/api/notificationApi";
+import {
+  FiMessageCircle,
+  FiHeart,
+  FiGift,
+  FiUsers,
+  FiActivity,
+} from "react-icons/fi";
 
-const iconBasePath = "/icons/";
-
-// 알람 페이지와 동일한 아이콘 매핑
+// 알람 페이지와 동일한 아이콘 매핑 (React Icons 사용)
 const ICON_MAP = {
-  "notification.comment.created": { icon: "community-icon.svg", color: "blue" },
-  "notification.post.liked": { icon: "social-icon.svg", color: "red" },
-  "notification.campaign.new": { icon: "campaign-icon.svg", color: "purple" },
-  "notification.user.followed": { icon: "health-icon.svg", color: "green" },
-  "health.schedule": { icon: "health-icon.svg", color: "green" },
-  "health.schedule.reserve": { icon: "health-icon.svg", color: "blue" },
+  "notification.comment.created": { icon: FiMessageCircle, color: "blue" },
+  "notification.post.liked": { icon: FiHeart, color: "red" },
+  "notification.campaign.new": { icon: FiGift, color: "purple" },
+  "health.schedule": { icon: "notification-icon.svg", color: "green" },
+  "health.schedule.reserve": { icon: FiActivity, color: "blue" },
 };
-const DEFAULT_ICON = { icon: "notification-icon.svg", color: "orange" };
+const DEFAULT_ICON = { icon: FiMessageCircle, color: "orange" };
 
 export default function NavbarDropdown({
   open,
@@ -82,7 +86,7 @@ export default function NavbarDropdown({
         ) : (
           notifications.map((notification, idx) => {
             const cfg = ICON_MAP[notification.type] || DEFAULT_ICON;
-            const iconFile = cfg.icon;
+            const IconComponent = cfg.icon;
             const colorClass = cfg.color;
 
             const id = notification.id;
@@ -90,6 +94,7 @@ export default function NavbarDropdown({
             const content = notification.content ?? "";
             const time =
               notification.relativeTime ??
+              notification.sentAt ??
               notification.createdAt ??
               notification.time ??
               "";
@@ -107,11 +112,15 @@ export default function NavbarDropdown({
                   }
                 >
                   <div className={`icon-container ${colorClass}`}>
-                    <img
-                      src={`${iconBasePath}${iconFile}`}
-                      alt={notification.type}
-                      className="icon"
-                    />
+                    {typeof IconComponent === "string" ? (
+                      <img
+                        src={`/icons/${IconComponent}`}
+                        alt={notification.type}
+                        className="icon"
+                      />
+                    ) : (
+                      <IconComponent size={24} className="icon" />
+                    )}
                   </div>
                 </div>
                 <div
@@ -136,7 +145,7 @@ export default function NavbarDropdown({
                   }}
                   aria-label="알림 닫기"
                 >
-                  <img src={`${iconBasePath}close-icon.svg`} alt="닫기" />
+                  <img src="/icons/close-icon.svg" alt="닫기" />
                 </button>
               </div>
             );

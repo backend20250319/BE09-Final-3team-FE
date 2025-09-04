@@ -1,6 +1,8 @@
 "use client";
 import styles from "@/app/admin/styles/ProductManagement.module.css";
 import PopupModal from "@/app/admin/components/PopupModal";
+import AlertModal from "./AlertModal";
+import DeleteConfirmModal from "./DeleteConfirmModal";
 import React, { useState, useEffect } from "react";
 import {
   getAllCampaigns,
@@ -16,6 +18,12 @@ export default function ProductManagement() {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("info");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteAction, setDeleteAction] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   // 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1);
@@ -58,36 +66,57 @@ export default function ProductManagement() {
     loadCampaigns();
   }, [currentPage, activeTab]);
 
+  const showAlert = (message, type = "info") => {
+    setAlertMessage(message);
+    setAlertType(type);
+    setShowAlertModal(true);
+  };
+
+  const showDeleteConfirm = (action, target, title, message) => {
+    setDeleteAction(() => action);
+    setDeleteTarget(target);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteAction && deleteTarget) {
+      deleteAction(deleteTarget);
+    }
+    setShowDeleteModal(false);
+    setDeleteAction(null);
+    setDeleteTarget(null);
+  };
+
   const handleDelete = async (adId) => {
     try {
       await deleteCampaign(adId);
-      alert("캠페인이 삭제되었습니다.");
+      showAlert("캠페인이 삭제되었습니다.", "success");
       loadCampaigns(); // 목록 새로고침
     } catch (error) {
       console.error("캠페인 삭제 실패:", error);
-      alert("캠페인 삭제에 실패했습니다.");
+      showAlert("캠페인 삭제에 실패했습니다.", "error");
     }
   };
 
   const handleReject = async (adId, reason) => {
     try {
       await rejectCampaign(adId, reason);
-      alert("캠페인이 거절되었습니다.");
+      showAlert("캠페인이 거절되었습니다.", "success");
       loadCampaigns(); // 목록 새로고침
     } catch (error) {
       console.error("캠페인 거절 실패:", error);
-      alert("캠페인 거절에 실패했습니다.");
+      showAlert("캠페인 거절에 실패했습니다.", "error");
     }
   };
 
   const handleApprove = async (adId) => {
     try {
       await approveCampaign(adId);
-      alert("캠페인이 승인되었습니다.");
+      showAlert("캠페인이 승인되었습니다.", "success");
       loadCampaigns(); // 목록 새로고침
     } catch (error) {
       console.error("캠페인 승인 실패:", error);
-      alert("캠페인 승인에 실패했습니다.");
+      showAlert("캠페인 승인에 실패했습니다.", "error");
     }
   };
 
@@ -282,9 +311,12 @@ export default function ProductManagement() {
                           <button
                             className={styles.approveBtn}
                             onClick={() => {
-                              if (confirm("이 캠페인을 승인하시겠습니까?")) {
-                                handleApprove(campaign.adNo);
-                              }
+                              showDeleteConfirm(
+                                handleApprove,
+                                campaign.adNo,
+                                "캠페인 승인",
+                                "이 캠페인을 승인하시겠습니까?"
+                              );
                             }}
                           >
                             <svg
@@ -408,6 +440,27 @@ export default function ProductManagement() {
           )}
         </div>
       </main>
+
+      {/* 알림 모달 */}
+      <AlertModal
+        isOpen={showAlertModal}
+        onClose={() => setShowAlertModal(false)}
+        title="알림"
+        message={alertMessage}
+        type={alertType}
+        confirmText="확인"
+      />
+
+      {/* 삭제 확인 모달 */}
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteConfirm}
+        title="확인"
+        message="정말로 진행하시겠습니까?"
+        confirmText="확인"
+        cancelText="취소"
+      />
     </>
   );
 }
