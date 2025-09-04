@@ -6,6 +6,10 @@ pipeline {
         MANIFESTS_GITHUB_URL = 'https://github.com/gyongcode/petful-manifest.git'
         GIT_USERNAME = 'gyongcode-jenkins'
         GIT_EMAIL = 'gyongcode@gmail.com'
+
+
+        // 환경변수 지정
+        NEXT_PUBLIC_API_URL = 'https://api.my-production-domain.com/api/v1'
     }
 
     stages {
@@ -28,6 +32,9 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'DOCKERHUB_PASSWORD', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         IMAGE_TAG = "v0.0.${currentBuild.number}"
 
+                        // 나중에 ingress 정해지면 지정
+                        //bat "docker build --build-arg NEXT_PUBLIC_API_URL=${env.NEXT_PUBLIC_API_URL} -t ${DOCKER_USER}/petful-frontend:${IMAGE_TAG} ."
+                        
                         bat "docker build -t ${DOCKER_USER}/petful-frontend:${IMAGE_TAG} ."
                         bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
                         bat "docker push ${DOCKER_USER}/petful-frontend:${IMAGE_TAG}"
@@ -43,6 +50,8 @@ pipeline {
                     url: "${env.MANIFESTS_GITHUB_URL}",
                     branch: 'main'
                 script {
+
+                    
                     bat "powershell -Command \"(Get-Content deployment.yml) -replace 'petful-frontend:.*', 'petful-frontend:v0.0.${currentBuild.number}' | Set-Content deployment.yml\""
                     bat "git add deployment.yml"
                     bat "git config --global user.name \"${env.GIT_USERNAME}\""
