@@ -166,12 +166,28 @@ export const processPrescription = async (file, petNo) => {
 // 돌봄 일정 생성
 export const createCare = async (careData) => {
   try {
+    console.log("🔍 createCare API 호출 시작");
+    console.log("🔍 요청 URL:", `${CARE_PREFIX}/create`);
+    console.log("🔍 요청 데이터:", careData);
+    console.log(
+      "🔍 쿼리 파라미터:",
+      careData?.petNo ? { petNo: careData.petNo } : undefined
+    );
+
     const response = await api.post(`${CARE_PREFIX}/create`, careData, {
       params: careData?.petNo ? { petNo: careData.petNo } : undefined,
     });
+
+    console.log("🔍 createCare API 응답:", response);
+    console.log("🔍 응답 데이터:", response.data);
+    console.log("🔍 응답 상태:", response.status);
+
     return response.data?.data ?? response.data;
   } catch (error) {
-    console.error("돌봄 일정 생성 실패:", error);
+    console.error("🔍 돌봄 일정 생성 실패:", error);
+    console.error("🔍 에러 응답:", error.response?.data);
+    console.error("🔍 에러 상태:", error.response?.status);
+    console.error("🔍 에러 메시지:", error.message);
     throw error;
   }
 };

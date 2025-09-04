@@ -54,6 +54,12 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
 
     switch (frequency) {
       case "매일":
+        if (daysDiff === 0) {
+          return {
+            valid: false,
+            message: "시작일과 종료일이 같을 수 없습니다.",
+          };
+        }
         return { valid: true };
       case "매주":
         if (daysDiff < 7) {
@@ -79,33 +85,8 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
           };
         }
         break;
-      case "연 1회":
-        if (daysDiff < 365) {
-          const minDate = new Date(start);
-          minDate.setDate(minDate.getDate() + 365);
-          return {
-            valid: false,
-            message: `연 1회 일정의 종료일은 시작일로부터 최소 365일 이후여야 합니다. 최소 종료일: ${
-              minDate.toISOString().split("T")[0]
-            }`,
-          };
-        }
-        break;
-      case "반년 1회":
-        const monthsDiff =
-          (end.getFullYear() - start.getFullYear()) * 12 +
-          (end.getMonth() - start.getMonth());
-        if (monthsDiff < 6) {
-          const minDate = new Date(start);
-          minDate.setMonth(minDate.getMonth() + 6);
-          return {
-            valid: false,
-            message: `반년 1회 일정의 종료일은 시작일로부터 최소 6개월 이후여야 합니다. 최소 종료일: ${
-              minDate.toISOString().split("T")[0]
-            }`,
-          };
-        }
-        break;
+      case "당일":
+        return { valid: true };
     }
 
     return { valid: true };
@@ -119,7 +100,9 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
 
     switch (frequency) {
       case "매일":
-        return start;
+        const nextDay = new Date(start);
+        nextDay.setDate(nextDay.getDate() + 1);
+        return nextDay;
       case "매주":
         const weekly = new Date(start);
         weekly.setDate(weekly.getDate() + 7);
@@ -128,14 +111,8 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
         const monthly = new Date(start);
         monthly.setDate(monthly.getDate() + 30);
         return monthly;
-      case "연 1회":
-        const yearly = new Date(start);
-        yearly.setDate(yearly.getDate() + 365);
-        return yearly;
-      case "반년 1회":
-        const halfYearly = new Date(start);
-        halfYearly.setMonth(halfYearly.getMonth() + 6);
-        return halfYearly;
+      case "당일":
+        return start;
       default:
         return start;
     }
@@ -150,10 +127,8 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
         return "종료일을 입력하지 않으면 1주일 후로 설정됩니다. (최소 7일 이후)";
       case "매월":
         return "종료일을 입력하지 않으면 1개월 후로 설정됩니다. (최소 30일 이후)";
-      case "연 1회":
-        return "종료일을 입력하지 않으면 1년 후로 설정됩니다. (최소 365일 이후)";
-      case "반년 1회":
-        return "종료일을 입력하지 않으면 6개월 후로 설정됩니다. (최소 6개월 이후)";
+      case "당일":
+        return "종료일은 자동으로 시작일과 동일하게 설정됩니다.";
       default:
         return "종료날짜가 선택사항으로 되어있는데 선택을 안하면 자동 계산되어 종료일자가 설정됩니다.";
     }
@@ -340,13 +315,11 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
 
       // 빈도가 변경되면 종료날짜 처리
       if (field === "frequency") {
-        if (
-          value === "매주" ||
-          value === "매월" ||
-          value === "연 1회" ||
-          value === "반년 1회"
-        ) {
-          // 매주, 매월, 연 1회, 반년 1회인 경우 종료날짜를 자동 계산
+        if (value === "당일") {
+          if (prev.startDate) {
+            newData.endDate = prev.startDate;
+          }
+        } else if (value === "매주" || value === "매월") {
           if (prev.startDate) {
             newData.endDate = getMinEndDate(prev.startDate, value);
           }
@@ -355,13 +328,10 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
 
       // 시작날짜가 변경되면 종료날짜 처리
       if (field === "startDate") {
-        if (
-          prev.frequency === "매주" ||
-          prev.frequency === "매월" ||
-          prev.frequency === "연 1회" ||
-          prev.frequency === "반년 1회"
-        ) {
-          // 매주, 매월, 연 1회, 반년 1회인 경우 종료날짜를 자동 계산
+        if (prev.frequency === "당일") {
+          newData.endDate = value;
+        } else if (prev.frequency === "매주" || prev.frequency === "매월") {
+          // 매주, 매월인 경우 종료날짜를 자동 계산
           newData.endDate = getMinEndDate(value, prev.frequency);
         }
       }
@@ -661,15 +631,29 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
                   type="text"
                   value={formatDateForDisplay(formData.endDate)}
                   placeholder="종료 날짜를 선택하세요 (선택사항)"
-                  className={styles.dateInput}
+                  className={`${styles.dateInput} ${
+                    formData.frequency === "당일" ? styles.disabled : ""
+                  }`}
                   readOnly
-                  onClick={() => setShowEndCalendar(true)}
+                  disabled={formData.frequency === "당일"}
+                  onClick={() => {
+                    if (formData.frequency !== "당일") {
+                      setShowEndCalendar(true);
+                    }
+                  }}
                 />
                 <button
                   ref={endCalendarButtonRef}
                   type="button"
-                  className={styles.calendarButton}
-                  onClick={() => setShowEndCalendar(!showEndCalendar)}
+                  className={`${styles.calendarButton} ${
+                    formData.frequency === "당일" ? styles.disabled : ""
+                  }`}
+                  disabled={formData.frequency === "당일"}
+                  onClick={() => {
+                    if (formData.frequency !== "당일") {
+                      setShowEndCalendar(!showEndCalendar);
+                    }
+                  }}
                 >
                   <img
                     src="/health/calendar.png"

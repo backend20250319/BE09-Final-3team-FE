@@ -8,10 +8,17 @@ export const vaccinationSubTypeOptions = [
   "CHECKUP", // 건강검진
 ];
 
-export const vaccinationFrequencyOptions = [
-  "매일",
-  "매주",
-  "매월",
-  "연 1회",
-  "반년 1회",
-];
+export const vaccinationFrequencyOptions = ["매일", "매주", "매월", "당일"];
+
+export const vaccinationFrequencyMapping = {
+  매일: "DAILY",
+  매주: "WEEKLY",
+  매월: "MONTHLY",
+  당일: "SINGLE_DAY",
+
+  // 영어 → 한글
+  DAILY: "매일",
+  WEEKLY: "매주",
+  MONTHLY: "매월",
+  SINGLE_DAY: "당일",
+};
