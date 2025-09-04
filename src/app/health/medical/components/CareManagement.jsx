@@ -195,7 +195,7 @@ export default function CareManagement({
         times: newSchedule.scheduleTime
           ? newSchedule.scheduleTime.split(", ")
           : [], // 백엔드에서는 times 배열 사용
-        reminderDaysBefore: Number(newSchedule.notificationTiming),
+        reminderDaysBefore: parseInt(newSchedule.notificationTiming, 10) || 0,
       };
 
       calNo = await createCare(careData);
@@ -204,9 +204,10 @@ export default function CareManagement({
       const updatedSchedule = {
         ...newSchedule,
         id: calNo,
-        reminderDaysBefore: Number(newSchedule.notificationTiming),
-        lastReminderDaysBefore: Number(newSchedule.notificationTiming),
-        isNotified: Number(newSchedule.notificationTiming) !== 0,
+        reminderDaysBefore: parseInt(newSchedule.notificationTiming, 10) || 0,
+        lastReminderDaysBefore:
+          parseInt(newSchedule.notificationTiming, 10) || 0,
+        isNotified: true,
       };
 
       // 즉시 로컬 상태 업데이트 (빠른 UI 반응)
@@ -287,7 +288,8 @@ export default function CareManagement({
         times: updatedSchedule.scheduleTime
           ? updatedSchedule.scheduleTime.split(", ").map((t) => t.trim())
           : ["09:00"],
-        reminderDaysBefore: updatedSchedule.reminderDaysBefore,
+        reminderDaysBefore:
+          parseInt(updatedSchedule.reminderDaysBefore, 10) || 0,
       };
 
       // API 호출
@@ -486,18 +488,31 @@ export default function CareManagement({
     setDeleteType("");
   };
 
-  // 필터링된 일정들
-  const filteredCareSchedules = careSchedules.filter(
-    (schedule) =>
-      (careFilter === "전체" || schedule.subType === careFilter) &&
-      (!selectedPetName || schedule.petName === selectedPetName)
-  );
-  const filteredVaccinationSchedules = vaccinationSchedules.filter(
-    (schedule) =>
-      (vaccinationFilter === "전체" ||
-        schedule.subType === vaccinationFilter) &&
-      (!selectedPetName || schedule.petName === selectedPetName)
-  );
+  // 필터링된 일정들 (최신순 정렬 포함)
+  const filteredCareSchedules = careSchedules
+    .filter(
+      (schedule) =>
+        (careFilter === "전체" || schedule.subType === careFilter) &&
+        (!selectedPetName || schedule.petName === selectedPetName)
+    )
+    .sort((a, b) => {
+      const idA = parseInt(a.id) || 0;
+      const idB = parseInt(b.id) || 0;
+      return idB - idA; // 내림차순 (최신이 위로)
+    });
+
+  const filteredVaccinationSchedules = vaccinationSchedules
+    .filter(
+      (schedule) =>
+        (vaccinationFilter === "전체" ||
+          schedule.subType === vaccinationFilter) &&
+        (!selectedPetName || schedule.petName === selectedPetName)
+    )
+    .sort((a, b) => {
+      const idA = parseInt(a.id) || 0;
+      const idB = parseInt(b.id) || 0;
+      return idB - idA; // 내림차순 (최신이 위로)
+    });
 
   // 페이징된 일정들
   const paginatedCareSchedules = filteredCareSchedules.slice(

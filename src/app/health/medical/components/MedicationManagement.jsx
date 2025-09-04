@@ -126,8 +126,8 @@ export default function MedicationManagement({
             name: schedule.title, // 백엔드의 title을 name으로 매핑
             title: schedule.title,
             subType: schedule.subType,
-            frequency: schedule.careFrequency, // 백엔드의 careFrequency를 frequency로 매핑
-            careFrequency: schedule.careFrequency,
+            frequency: schedule.frequency, // 백엔드에서 frequency 필드로 한글 값 반환
+            careFrequency: schedule.frequency, // 호환성 유지
             startDate: schedule.startDate,
             endDate: schedule.endDate,
             scheduleTime: schedule.times
@@ -145,7 +145,11 @@ export default function MedicationManagement({
                   .join(", ")
               : "09:00", // times 배열을 문자열로 변환
             reminderDaysBefore: schedule.reminderDaysBefore,
-            isNotified: schedule.isNotified || false,
+            lastReminderDaysBefore: schedule.lastReminderDaysBefore, // 마지막 알림 시기 추가
+            isNotified:
+              schedule.alarmEnabled !== undefined
+                ? schedule.alarmEnabled
+                : schedule.reminderDaysBefore !== null, // alarmEnabled 우선 사용
             petName: selectedPetName,
             color: schedule.color || "#4CAF50",
             // 기존 필드들도 유지 (호환성)
@@ -161,11 +165,29 @@ export default function MedicationManagement({
           (schedule) => isVaccinationSubType(schedule.subType)
         );
 
-        console.log("분류된 돌봄 일정:", careSchedulesData);
-        console.log("분류된 접종 일정:", vaccinationSchedulesData);
+        // 최신순으로 정렬 (id가 큰 순서대로) - 돌봄과 접종 모두
+        const sortedCareSchedules = careSchedulesData.sort((a, b) => {
+          const idA = parseInt(a.id) || 0;
+          const idB = parseInt(b.id) || 0;
+          return idB - idA; // 내림차순 (최신이 위로)
+        });
 
-        onCareSchedulesUpdate(careSchedulesData);
-        onVaccinationSchedulesUpdate(vaccinationSchedulesData);
+        const sortedVaccinationSchedules = vaccinationSchedulesData.sort(
+          (a, b) => {
+            const idA = parseInt(a.id) || 0;
+            const idB = parseInt(b.id) || 0;
+            return idB - idA; // 내림차순 (최신이 위로)
+          }
+        );
+
+        console.log("분류된 돌봄 일정 (최신순 정렬):", sortedCareSchedules);
+        console.log(
+          "분류된 접종 일정 (최신순 정렬):",
+          sortedVaccinationSchedules
+        );
+
+        onCareSchedulesUpdate(sortedCareSchedules);
+        onVaccinationSchedulesUpdate(sortedVaccinationSchedules);
       } else {
         console.log("돌봄/접종 일정 데이터가 없습니다.");
         onCareSchedulesUpdate([]);
@@ -719,7 +741,7 @@ export default function MedicationManagement({
         times: newMedication.scheduleTime
           ? newMedication.scheduleTime.split(",").map((t) => t.trim())
           : ["09:00"],
-        reminderDaysBefore: Number(newMedication.notificationTiming),
+        reminderDaysBefore: parseInt(newMedication.notificationTiming, 10) || 0,
       };
 
       const calNo = await createMedication(medicationData);

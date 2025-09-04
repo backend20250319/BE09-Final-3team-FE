@@ -302,7 +302,7 @@ export default function EditScheduleModal({
             ""
           );
         } else {
-          // 돌봄과 접종의 경우: 그대로 사용 (한글)
+          // 돌봄과 접종의 경우: frequency 필드 사용 (백엔드에서 한글 값으로 반환)
           return scheduleData.frequency || "";
         }
       })();
