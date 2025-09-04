@@ -84,6 +84,16 @@
   background-color: #f9fafb;
 }
 
+/* 읽지 않은 알림 스타일 */
+.notification-item.unread {
+  background-color: #fef7e0;
+  border-left: 3px solid #f5a623;
+}
+
+.notification-item.unread:hover {
+  background-color: #fef3c7;
+}
+
 .notification-content {
   display: flex;
   align-items: flex-start;

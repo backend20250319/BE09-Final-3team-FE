@@ -11,16 +11,33 @@ const ICON_MAP = {
   "notification.post.liked": { icon: "social-icon.svg", color: "red" },
   "notification.campaign.new": { icon: "campaign-icon.svg", color: "purple" },
   "notification.user.followed": { icon: "health-icon.svg", color: "green" },
+  "health.schedule": { icon: "health-icon.svg", color: "green" },
+  "health.schedule.reserve": { icon: "health-icon.svg", color: "blue" },
 };
 const DEFAULT_ICON = { icon: "notification-icon.svg", color: "orange" };
 
-export default function NavbarDropdown({ open, onViewAll }) {
+export default function NavbarDropdown({
+  open,
+  onViewAll,
+  onNotificationDeleted,
+}) {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleAlarm = () => {
     router.push("/alarm");
+  };
+
+  const handleCloseNotification = (id) => {
+    setNotifications((prev) => {
+      // 삭제만 하고 정렬은 하지 않음 (백엔드에서 이미 정렬되어 옴)
+      return prev.filter((notification) => notification.id !== id);
+    });
+    // 부모 컴포넌트에 알림 삭제 알림
+    if (onNotificationDeleted) {
+      onNotificationDeleted();
+    }
   };
 
   // 알람 데이터 로드
@@ -30,6 +47,7 @@ export default function NavbarDropdown({ open, onViewAll }) {
     try {
       const data = await getRecentNotifications();
       const content = data?.notifications ?? [];
+      // 백엔드에서 이미 최신순으로 정렬되어 오므로 그대로 사용
       setNotifications(content);
     } catch (error) {
       console.error("알람 로드 실패:", error);
@@ -67,16 +85,22 @@ export default function NavbarDropdown({ open, onViewAll }) {
             const iconFile = cfg.icon;
             const colorClass = cfg.color;
 
-            const id =
-              notification.id ??
-              notification.notificationId ??
-              `${notification.type}-${idx}`;
+            const id = notification.id;
             const title = notification.title ?? "새로운 알림";
             const content = notification.content ?? "";
-            const time = notification.createdAt ?? notification.time ?? "";
+            const time =
+              notification.relativeTime ??
+              notification.createdAt ??
+              notification.time ??
+              "";
 
             return (
-              <div className={styles.item} key={id}>
+              <div
+                className={`${styles.item} ${
+                  !notification.isRead ? styles.unread : ""
+                }`}
+                key={id}
+              >
                 <div
                   className={
                     styles.iconContainer + " " + (styles[colorClass] || "")
@@ -104,6 +128,16 @@ export default function NavbarDropdown({ open, onViewAll }) {
                   </div>
                   <div className={styles.time}>{time}</div>
                 </div>
+                <button
+                  className={styles.closeBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCloseNotification(id);
+                  }}
+                  aria-label="알림 닫기"
+                >
+                  <img src={`${iconBasePath}close-icon.svg`} alt="닫기" />
+                </button>
               </div>
             );
           })
