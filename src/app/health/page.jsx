@@ -90,6 +90,8 @@ export default function HealthPage() {
         // 새로운 형식: startDate와 endDate 사용
         const start = new Date(s.startDate);
         const end = new Date(s.endDate);
+
+        // 백엔드에서 주기적 일정을 여러 개 생성하므로, 모든 일정을 그대로 표시
         const current = new Date(start);
         while (current <= end) {
           const sTime = dateAtTime(current, s.scheduleTime || "09:00");
@@ -129,6 +131,8 @@ export default function HealthPage() {
         // 새로운 형식: startDate와 endDate 사용
         const start = new Date(s.startDate);
         const end = new Date(s.endDate);
+
+        // 백엔드에서 주기적 일정을 여러 개 생성하므로, 모든 일정을 그대로 표시
         const current = new Date(start);
         while (current <= end) {
           const sTime = dateAtTime(current, s.scheduleTime || "10:00");

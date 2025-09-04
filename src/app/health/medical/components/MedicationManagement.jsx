@@ -10,6 +10,7 @@ import EditScheduleModal from "./EditScheduleModal";
 import PrescriptionResultModal from "./PrescriptionResultModal";
 import PrescriptionErrorModal from "./PrescriptionErrorModal";
 import ScheduleDetailModal from "./ScheduleDetailModal";
+import Select from "../../activity/components/ClientOnlySelect";
 import {
   createMedication,
   listMedications,
@@ -17,6 +18,7 @@ import {
   toggleAlarm,
   deleteMedication,
   processPrescription,
+  createMedicationFromOcr,
   listCareSchedules,
 } from "../../../../api/medicationApi";
 import { STORAGE_KEYS, frequencyMapping } from "../../constants";
@@ -38,12 +40,38 @@ export default function MedicationManagement({
   const { selectedPetName, selectedPetNo } = useSelectedPet();
   const LOCAL_STORAGE_KEY = STORAGE_KEYS.MEDICATION_NOTIFICATIONS;
 
+  // 투약 일정 필터 옵션
+  const medicationFilterOptions = [
+    { value: "전체", label: "전체" },
+    { value: "복용약", label: "복용약" },
+    { value: "영양제", label: "영양제" },
+    { value: "처방전", label: "처방전" },
+  ];
+
+  // 빈도 매핑 (한글 → Enum)
+  const frequencyToEnum = {
+    "하루에 한 번": "DAILY_ONCE",
+    "하루에 두 번": "DAILY_TWICE",
+    "하루에 세 번": "DAILY_THREE_TIMES",
+    "주에 한 번": "WEEKLY_ONCE",
+    "월에 한 번": "MONTHLY_ONCE",
+  };
+
+  // 타입 매핑 (한글 → Enum)
+  const typeToEnum = {
+    복용약: "PILL",
+    영양제: "SUPPLEMENT",
+  };
+
   const [showConfirm, setShowConfirm] = useState(false);
   const [toDeleteId, setToDeleteId] = useState(null);
   const [deleteType, setDeleteType] = useState(""); // "medication", "care", "vaccination"
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingMedication, setEditingMedication] = useState(null);
+
+  // 투약 일정 필터링 상태
+  const [medicationFilter, setMedicationFilter] = useState("전체");
 
   // 토스트 메시지 상태
   const [toastMessage, setToastMessage] = useState("");
@@ -123,6 +151,7 @@ export default function MedicationManagement({
           return {
             id: id,
             scheduleNo: scheduleNo,
+            calNo: scheduleNo, // scheduleNo를 calNo로 매핑
             name: schedule.title, // 백엔드의 title을 name으로 매핑
             title: schedule.title,
             subType: schedule.subType,
@@ -198,12 +227,7 @@ export default function MedicationManagement({
       onCareSchedulesUpdate([]);
       onVaccinationSchedulesUpdate([]);
     }
-  }, [
-    selectedPetNo,
-    selectedPetName,
-    onCareSchedulesUpdate,
-    onVaccinationSchedulesUpdate,
-  ]);
+  }, [selectedPetNo, selectedPetName]);
 
   // 백엔드에서 투약 데이터 가져오기
   const fetchMedications = useCallback(async () => {
@@ -211,9 +235,23 @@ export default function MedicationManagement({
 
     try {
       setIsLoading(true);
-      const response = await listMedications({
-        petNo: selectedPetNo,
-      });
+
+      // 필터링 파라미터 구성
+      const params = { petNo: selectedPetNo };
+
+      if (medicationFilter !== "전체") {
+        if (medicationFilter === "처방전") {
+          params.isPrescription = true;
+        } else {
+          // 한글 타입을 Enum으로 변환
+          params.type = typeToEnum[medicationFilter] || medicationFilter;
+        }
+      }
+
+      console.log("투약 일정 필터링 파라미터:", params);
+      console.time("투약 데이터 조회 시간");
+      const response = await listMedications(params);
+      console.timeEnd("투약 데이터 조회 시간");
 
       // response가 배열인지 확인
       if (!Array.isArray(response)) {
@@ -224,35 +262,17 @@ export default function MedicationManagement({
 
       // 백엔드 응답을 프론트엔드 형식으로 변환
       console.log("투약 목록 원본 데이터:", response);
+      console.log(
+        "첫 번째 투약 데이터 isPrescription:",
+        response[0]?.isPrescription
+      );
       const transformedMedications = response.map((med) => {
-        // scheduleNo가 객체인 경우 숫자 값 추출
-        // scheduleNo가 객체인 경우 숫자 값 추출
-        let scheduleNo;
-        if (typeof med.scheduleNo === "object" && med.scheduleNo !== null) {
-          // 객체인 경우 가능한 필드들을 확인
-          scheduleNo =
-            med.scheduleNo.scheduleNo ||
-            med.scheduleNo.id ||
-            med.scheduleNo.value ||
-            med.scheduleNo.data;
-        } else {
-          scheduleNo = med.scheduleNo;
-        }
-
-        // id도 scheduleNo와 동일하게 처리
-        let id;
-        if (typeof med.id === "object" && med.id !== null) {
-          id = med.id.id || med.id.value || med.id.data || scheduleNo;
-        } else {
-          id = med.id || scheduleNo;
-        }
-
         return {
-          id: id,
-          calNo: scheduleNo, // calNo 추가 - 백엔드 API에서 사용하는 필드명
-          name: med.medicationName || med.title,
-          type: med.subType === "PILL" ? "복용약" : "영양제",
-          frequency: frequencyMapping[med.frequency] || med.frequency, // 영어 enum을 한글로 변환
+          id: med.scheduleNo,
+          calNo: med.scheduleNo,
+          name: med.medicationName || med.title, // medicationName 또는 title 사용
+          type: med.subType,
+          frequency: med.frequency,
           duration: med.durationDays,
           startDate: med.startDate
             ? new Date(med.startDate).toISOString().split("T")[0]
@@ -273,17 +293,15 @@ export default function MedicationManagement({
                   return t;
                 })
                 .join(", ")
-            : med.time || "09:00",
-          // notificationTiming은 표시용이므로 EditScheduleModal에서는 사용하지 않음
-          // reminderDaysBefore와 lastReminderDaysBefore를 직접 사용
-          reminderDaysBefore: med.reminderDaysBefore, // 백엔드에서 직접 제공
-          lastReminderDaysBefore: med.lastReminderDaysBefore, // 마지막 알림 시기
-          isPrescription: med.isPrescription || false, // 처방전 여부
+            : "09:00",
+          reminderDaysBefore: med.reminderDaysBefore,
+          lastReminderDaysBefore: med.lastReminderDaysBefore,
+          isPrescription: med.isPrescription || false,
           petName: selectedPetName,
           petNo: selectedPetNo,
-          icon: med.subType === "PILL" ? "💊" : "💊",
-          color: med.subType === "PILL" ? "#E3F2FD" : "#FFF3E0",
-          isNotified: med.reminderDaysBefore !== null,
+          icon: med.subType === "복용약" ? "💊" : "💊",
+          color: med.subType === "복용약" ? "#E3F2FD" : "#FFF3E0",
+          isNotified: med.alarmEnabled || false,
         };
       });
 
@@ -310,13 +328,20 @@ export default function MedicationManagement({
     } finally {
       setIsLoading(false);
     }
-  }, [selectedPetNo, selectedPetName, onMedicationsUpdate]);
+  }, [selectedPetNo, selectedPetName, medicationFilter]);
 
   // 컴포넌트 마운트 시 및 선택된 펫 변경 시 데이터 가져오기
   useEffect(() => {
     fetchMedications();
     fetchCareSchedules();
-  }, [fetchMedications, fetchCareSchedules]);
+  }, [selectedPetNo]);
+
+  // 필터 변경 시 투약 데이터 다시 가져오기
+  useEffect(() => {
+    if (selectedPetNo) {
+      fetchMedications();
+    }
+  }, [medicationFilter, selectedPetNo]);
 
   // 특정 날짜와 "HH:MM" 문자열로 Date 만들기 - buildCalendarEvents 이전에 선언
   const dateAtTime = useCallback((baseDate, hm) => {
@@ -390,9 +415,9 @@ export default function MedicationManagement({
 
         const startDate = new Date(s.startDate || s.date);
         const endDate = new Date(s.endDate || s.date);
-        const current = new Date(startDate);
 
-        // 시작일부터 종료일까지 반복하여 이벤트 생성
+        // 백엔드에서 주기적 일정을 여러 개 생성하므로, 모든 일정을 그대로 표시
+        const current = new Date(startDate);
         while (current <= endDate) {
           const sTime = dateAtTime(current, s.scheduleTime || "09:00");
           const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
@@ -418,9 +443,9 @@ export default function MedicationManagement({
 
         const startDate = new Date(s.startDate || s.date);
         const endDate = new Date(s.endDate || s.date);
-        const current = new Date(startDate);
 
-        // 시작일부터 종료일까지 반복하여 이벤트 생성
+        // 백엔드에서 주기적 일정을 여러 개 생성하므로, 모든 일정을 그대로 표시
+        const current = new Date(startDate);
         while (current <= endDate) {
           const sTime = dateAtTime(current, s.scheduleTime || "10:00");
           const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
@@ -543,14 +568,80 @@ export default function MedicationManagement({
     if (file && selectedPetNo) {
       try {
         setIsLoading(true);
-        const result = await processPrescription(file, selectedPetNo);
+
+        // 파일 검증
+        console.log("🔍 파일 검증 시작");
+        console.log("🔍 파일 객체:", file);
+        console.log("🔍 파일이 File 인스턴스인가?", file instanceof File);
+        console.log("🔍 파일 크기:", file.size, "bytes");
+        console.log("🔍 파일 타입:", file.type);
+        console.log(
+          "🔍 selectedPetNo:",
+          selectedPetNo,
+          "타입:",
+          typeof selectedPetNo
+        );
+
+        // 파일 크기 제한 (10MB)
+        if (file.size > 10 * 1024 * 1024) {
+          setErrorMessage("파일 크기가 너무 큽니다.");
+          setErrorDetails("파일 크기는 10MB 이하여야 합니다.");
+          setShowErrorModal(true);
+          return;
+        }
+
+        // 지원하는 이미지 형식 확인
+        const allowedTypes = [
+          "image/jpeg",
+          "image/jpg",
+          "image/png",
+          "image/gif",
+        ];
+        if (!allowedTypes.includes(file.type)) {
+          setErrorMessage("지원하지 않는 파일 형식입니다.");
+          setErrorDetails("JPEG, PNG, GIF 형식의 이미지만 업로드 가능합니다.");
+          setShowErrorModal(true);
+          return;
+        }
+
+        console.log("🔍 파일 검증 완료, OCR 처리 시작");
+
+        // OCR 처방전 분석 및 일정 자동 등록
+        const result = await createMedicationFromOcr(file, selectedPetNo);
+
+        console.log("🔍 OCR 처리 결과:", result);
 
         // 성공적인 응답인지 확인
-        if (result && (result.medications || result.extractedMedications)) {
-          setOcrResult(result);
+        if (result && result.code === "2000" && result.createdSchedules > 0) {
+          // 성공적으로 일정이 등록된 경우
+          setOcrResult({
+            success: true,
+            createdSchedules: result.createdSchedules,
+            scheduleNo: result.scheduleNo,
+            message: result.message,
+            data: result.data, // 약물 정보 포함
+          });
           setShowResultModal(true);
+
+          // 데이터 새로고침
+          await fetchMedications();
+        } else if (result && result.code === "9000") {
+          // 서버 내부 오류
+          setErrorMessage("서버 내부 오류가 발생했습니다.");
+          setErrorDetails(
+            `🔍 오류 정보:\n- 오류 코드: ${result.code}\n- 오류 메시지: ${
+              result.message
+            }\n\n📋 백엔드 개발자에게 전달할 정보:\n- 파일명: ${
+              file.name
+            }\n- 파일 크기: ${file.size} bytes (${(file.size / 1024).toFixed(
+              1
+            )} KB)\n- 파일 타입: ${
+              file.type
+            }\n- 반려동물 번호: ${selectedPetNo}\n- 요청 시간: ${new Date().toLocaleString()}\n\n💡 확인 사항:\n1. OCR 라이브러리 상태 확인\n2. 한국어 언어팩 설치 여부\n3. JVM 메모리 설정 확인\n4. 상세한 예외 스택 트레이스 확인`
+          );
+          setShowErrorModal(true);
         } else {
-          // OCR 처리는 성공했지만 약물 정보가 없는 경우
+          // OCR 처리는 성공했지만 약물 정보가 없거나 등록 실패한 경우
           setErrorMessage("처방전에서 약물 정보를 찾을 수 없습니다.");
           setErrorDetails(
             "처방전 이미지가 불분명하거나 약물 정보가 명확하지 않습니다."
@@ -558,7 +649,13 @@ export default function MedicationManagement({
           setShowErrorModal(true);
         }
       } catch (error) {
-        console.error("처방전 OCR 처리 실패:", error);
+        console.error("❌ 처방전 OCR 처리 실패:", error);
+        console.error("❌ 에러 상세:", {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+          config: error.config,
+        });
 
         // 에러 메시지 설정
         let message = "처방전 처리에 실패했습니다.";
@@ -569,10 +666,12 @@ export default function MedicationManagement({
           const status = error.response.status;
           const data = error.response.data;
 
+          console.log("❌ 서버 응답 에러:", { status, data });
+
           switch (status) {
             case 400:
               message = "처방전 형식이 올바르지 않습니다.";
-              details = "이미지 파일을 확인해주세요.";
+              details = `서버 응답: ${data?.message || "잘못된 요청"}`;
               break;
             case 401:
               message = "로그인이 필요하거나 권한이 없습니다.";
@@ -584,20 +683,28 @@ export default function MedicationManagement({
               break;
             case 500:
               message = "서버에서 처방전을 처리하는데 실패했습니다.";
-              details = "잠시 후 다시 시도해주세요.";
+              details = `서버 오류: ${data?.message || "내부 서버 오류"}`;
               break;
             default:
               message = "처방전 처리 중 오류가 발생했습니다.";
-              details = `오류 코드: ${status}. 잠시 후 다시 시도해주세요.`;
+              details = `HTTP ${status}: ${data?.message || "알 수 없는 오류"}`;
           }
         } else if (error.request) {
           // 네트워크 에러
+          console.log("❌ 네트워크 에러:", error.request);
           message = "서버에 연결할 수 없습니다.";
           details = "인터넷 연결을 확인해주세요.";
+        } else if (error.code === "ECONNABORTED") {
+          // 타임아웃 에러
+          console.log("❌ 타임아웃 에러");
+          message = "요청 시간이 초과되었습니다.";
+          details =
+            "OCR 처리 시간이 오래 걸려서 타임아웃되었습니다. 잠시 후 다시 시도해주세요.";
         } else {
           // 기타 에러
+          console.log("❌ 기타 에러:", error);
           message = "처방전 업로드 중 오류가 발생했습니다.";
-          details = error.message;
+          details = `오류: ${error.message}`;
         }
 
         setErrorMessage(message);
@@ -667,84 +774,33 @@ export default function MedicationManagement({
     return "💊";
   };
 
-  // OCR 결과에서 약물들을 일괄 등록하는 함수
-  const handleAddOcrMedications = async (ocrMedications) => {
-    try {
-      let successCount = 0;
-      let failCount = 0;
-
-      for (const medication of ocrMedications) {
-        try {
-          // 백엔드 형식으로 데이터 변환
-          const medicationData = {
-            petNo: selectedPetNo,
-            name: medication.drugName || medication.name,
-            startDate: new Date().toISOString().split("T")[0], // 오늘 날짜
-            durationDays: parseInt(medication.prescriptionDays) || 7,
-            medicationFrequency:
-              frequencyMapping[medication.frequency] ||
-              frequencyMapping[medication.administration] ||
-              "DAILY_ONCE", // OCR에서 받은 값을 영어 enum으로 변환
-            times: medication.times
-              ? medication.times.map((t) => t.toString())
-              : getDefaultTimes(
-                  frequencyMapping[medication.frequency] ||
-                    frequencyMapping[medication.administration] ||
-                    "DAILY_ONCE"
-                ),
-            reminderDaysBefore: 0, // 당일 알림
-          };
-
-          await createMedication(medicationData);
-          successCount++;
-        } catch (error) {
-          console.error(
-            "약물 등록 실패:",
-            medication.drugName || medication.name,
-            error
-          );
-          failCount++;
-        }
-      }
-
-      // 모든 약물 등록 완료 후 데이터 다시 가져오기
-      if (successCount > 0) {
-        await fetchMedications(); // 백엔드에서 최신 데이터 가져오기
-
-        setToastMessage(`${successCount}개의 투약 일정이 추가되었습니다.`);
-        setToastType("active");
-        setShowToast(true);
-      }
-
-      if (failCount > 0) {
-        setToastMessage(`${failCount}개의 투약 일정 추가에 실패했습니다.`);
-        setToastType("error");
-        setShowToast(true);
-      }
-    } catch (error) {
-      console.error("OCR 약물 일괄 등록 실패:", error);
-      setToastMessage("투약 일정 등록 중 오류가 발생했습니다.");
-      setToastType("error");
-      setShowToast(true);
-    }
-  };
-
   const handleAddNewMedication = async (newMedication) => {
     try {
       // 백엔드 형식으로 데이터 변환
       const medicationData = {
         petNo: selectedPetNo,
-        name: newMedication.name,
+        name: newMedication.name, // medicationName → name
         startDate: newMedication.startDate,
         durationDays: newMedication.duration,
-        medicationFrequency: newMedication.frequency, // 이미 영어 enum 값
+        medicationFrequency:
+          frequencyToEnum[newMedication.frequency] || "DAILY_ONCE", // 한글 → Enum 변환
         times: newMedication.scheduleTime
-          ? newMedication.scheduleTime.split(",").map((t) => t.trim())
-          : ["09:00"],
+          ? newMedication.scheduleTime.split(",").map((t) => {
+              const time = t.trim();
+              // "09:00" → "09:00:00" (초 포함)
+              return time.includes(":") && time.split(":").length === 2
+                ? `${time}:00`
+                : time;
+            })
+          : ["09:00:00"],
+        subType: newMedication.type === "영양제" ? "SUPPLEMENT" : "PILL", // 영양제/복용약 구분
+        isPrescription: newMedication.isPrescription || false, // 처방전 여부
         reminderDaysBefore: parseInt(newMedication.notificationTiming, 10) || 0,
       };
 
+      console.log("투약 일정 등록 데이터:", medicationData);
       const calNo = await createMedication(medicationData);
+      console.log("투약 일정 등록 성공, calNo:", calNo);
 
       // 성공 시 로컬 상태 업데이트
       const updatedMedication = {
@@ -772,6 +828,7 @@ export default function MedicationManagement({
 
       // 백그라운드에서 데이터 동기화 (1초 후)
       setTimeout(() => {
+        setMedicationFilter("전체"); // 필터를 "전체"로 리셋
         fetchMedications();
       }, 1000);
 
@@ -822,14 +879,22 @@ export default function MedicationManagement({
 
       // 백엔드 형식으로 데이터 변환
       const updateData = {
-        medicationName: updatedMedication.name,
-        frequency: updatedMedication.frequency, // 이미 영어 enum 값
-        durationDays: updatedMedication.duration,
+        name: updatedMedication.name, // medicationName → name
         startDate: updatedMedication.startDate,
+        durationDays: updatedMedication.duration,
+        medicationFrequency:
+          frequencyToEnum[updatedMedication.frequency] || "DAILY_ONCE", // 한글 → Enum 변환
         times: updatedMedication.scheduleTime
-          ? updatedMedication.scheduleTime.split(",").map((t) => t.trim())
-          : ["09:00"],
-        subType: updatedMedication.type === "복용약" ? "PILL" : "SUPPLEMENT",
+          ? updatedMedication.scheduleTime.split(",").map((t) => {
+              const time = t.trim();
+              // "09:00" → "09:00:00" (초 포함)
+              return time.includes(":") && time.split(":").length === 2
+                ? `${time}:00`
+                : time;
+            })
+          : ["09:00:00"],
+        subType: updatedMedication.type === "영양제" ? "SUPPLEMENT" : "PILL", // 영양제/복용약 구분
+        isPrescription: updatedMedication.isPrescription || false, // 처방전 여부
         reminderDaysBefore: updatedMedication.reminderDaysBefore,
       };
 
@@ -971,10 +1036,8 @@ export default function MedicationManagement({
     setToDeleteId(null);
   };
 
-  // 선택된 펫의 투약만 필터링 후 최신순 정렬
-  const filteredMedications = medications
-    .filter((med) => !selectedPetName || med.petName === selectedPetName)
-    .sort((a, b) => b.id - a.id); // 최신순 정렬 (ID 내림차순)
+  // 백엔드에서 이미 필터링된 데이터를 사용하므로 추가 필터링 불필요
+  const filteredMedications = medications; // 최신순 정렬 (ID 내림차순)
   const paginatedMedications = filteredMedications.slice(
     (medicationPage - 1) * itemsPerPage,
     medicationPage * itemsPerPage
@@ -1195,16 +1258,29 @@ export default function MedicationManagement({
       <div className={styles.medicationSection}>
         <div className={styles.sectionHeader}>
           <h3>투약</h3>
-          <button className={styles.addButton} onClick={handleAddMedication}>
-            <span>추가</span>
-            <img
-              src="health/pill.png"
-              alt="복용약 추가 아이콘"
-              width="17"
-              height="17"
-              className={styles.icon}
-            />
-          </button>
+          <div className={styles.headerControls}>
+            <div className={styles.filterContainer}>
+              <Select
+                options={medicationFilterOptions}
+                value={medicationFilterOptions.find(
+                  (o) => o.value === medicationFilter
+                )}
+                onChange={(option) => setMedicationFilter(option.value)}
+                placeholder="필터 선택"
+                className={styles.filterSelect}
+              />
+            </div>
+            <button className={styles.addButton} onClick={handleAddMedication}>
+              <span>추가</span>
+              <img
+                src="health/pill.png"
+                alt="복용약 추가 아이콘"
+                width="17"
+                height="17"
+                className={styles.icon}
+              />
+            </button>
+          </div>
         </div>
 
         <div className={styles.medicationList}>
@@ -1346,7 +1422,6 @@ export default function MedicationManagement({
         isOpen={showResultModal}
         onClose={() => setShowResultModal(false)}
         prescriptionData={ocrResult}
-        onAddMedications={handleAddOcrMedications}
       />
 
       {/* 에러 모달 */}

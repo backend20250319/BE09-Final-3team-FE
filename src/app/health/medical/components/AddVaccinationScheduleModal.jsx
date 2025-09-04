@@ -349,9 +349,9 @@ export default function AddVaccinationScheduleModal({
           value === "연 1회" ||
           value === "반년 1회"
         ) {
-          // 매주, 매월, 연 1회, 반년 1회인 경우 종료날짜를 시작날짜와 동일하게 설정
+          // 매주, 매월, 연 1회, 반년 1회인 경우 종료날짜를 자동 계산
           if (prev.startDate) {
-            newData.endDate = prev.startDate;
+            newData.endDate = getMinEndDate(prev.startDate, value);
           }
         }
       }
@@ -364,8 +364,8 @@ export default function AddVaccinationScheduleModal({
           prev.frequency === "연 1회" ||
           prev.frequency === "반년 1회"
         ) {
-          // 매주, 매월, 연 1회, 반년 1회인 경우 종료날짜를 시작날짜와 동일하게 설정
-          newData.endDate = value;
+          // 매주, 매월, 연 1회, 반년 1회인 경우 종료날짜를 자동 계산
+          newData.endDate = getMinEndDate(value, prev.frequency);
         }
       }
 
