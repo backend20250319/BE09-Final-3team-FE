@@ -94,6 +94,18 @@ export const updateFile = async (
   return res.data.data;
 };
 
+/* 체험단 */
+// 1. 체험단 조회
+export const getApplicants = async(adNo) => {
+  const res = await advertiserApi.get(`${ADVERTISER_PREFIX}/campaign/${adNo}`);
+  return res.data.data;
+};
+
+// 2. 체험단 선정
+export const updateApplicant = async (applicantNo, status) => {
+  const res = await advertiserApi.put(`${ADVERTISER_PREFIX}/advertiser/${applicantNo}?status=${status}`);
+  return res.data.data;
+};
 
 // 광고주 신청 목록 조회 (관리자용)
 export const getAdvertiserApplications = async (params = {}) => {
