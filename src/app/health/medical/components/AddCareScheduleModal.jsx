@@ -35,6 +35,130 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
 
   const [errors, setErrors] = useState({});
 
+  // 종료날짜 검증 함수
+  const validateEndDate = (startDate, endDate, frequency) => {
+    if (!endDate) return { valid: true }; // 종료날짜가 없으면 검증 통과
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // 기본 검증: 종료일이 시작일보다 이전이면 안됨
+    if (end < start) {
+      return {
+        valid: false,
+        message: "종료일은 시작일보다 이전일 수 없습니다.",
+      };
+    }
+
+    const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+
+    switch (frequency) {
+      case "매일":
+        return { valid: true };
+      case "매주":
+        if (daysDiff < 7) {
+          const minDate = new Date(start);
+          minDate.setDate(minDate.getDate() + 7);
+          return {
+            valid: false,
+            message: `매주 일정의 종료일은 시작일로부터 최소 7일 이후여야 합니다. 최소 종료일: ${
+              minDate.toISOString().split("T")[0]
+            }`,
+          };
+        }
+        break;
+      case "매월":
+        if (daysDiff < 30) {
+          const minDate = new Date(start);
+          minDate.setDate(minDate.getDate() + 30);
+          return {
+            valid: false,
+            message: `매월 일정의 종료일은 시작일로부터 최소 30일 이후여야 합니다. 최소 종료일: ${
+              minDate.toISOString().split("T")[0]
+            }`,
+          };
+        }
+        break;
+      case "연 1회":
+        if (daysDiff < 365) {
+          const minDate = new Date(start);
+          minDate.setDate(minDate.getDate() + 365);
+          return {
+            valid: false,
+            message: `연 1회 일정의 종료일은 시작일로부터 최소 365일 이후여야 합니다. 최소 종료일: ${
+              minDate.toISOString().split("T")[0]
+            }`,
+          };
+        }
+        break;
+      case "반년 1회":
+        const monthsDiff =
+          (end.getFullYear() - start.getFullYear()) * 12 +
+          (end.getMonth() - start.getMonth());
+        if (monthsDiff < 6) {
+          const minDate = new Date(start);
+          minDate.setMonth(minDate.getMonth() + 6);
+          return {
+            valid: false,
+            message: `반년 1회 일정의 종료일은 시작일로부터 최소 6개월 이후여야 합니다. 최소 종료일: ${
+              minDate.toISOString().split("T")[0]
+            }`,
+          };
+        }
+        break;
+    }
+
+    return { valid: true };
+  };
+
+  // 최소 종료날짜 계산 함수
+  const getMinEndDate = (startDate, frequency) => {
+    if (!startDate) return null;
+
+    const start = new Date(startDate);
+
+    switch (frequency) {
+      case "매일":
+        return start;
+      case "매주":
+        const weekly = new Date(start);
+        weekly.setDate(weekly.getDate() + 7);
+        return weekly;
+      case "매월":
+        const monthly = new Date(start);
+        monthly.setDate(monthly.getDate() + 30);
+        return monthly;
+      case "연 1회":
+        const yearly = new Date(start);
+        yearly.setDate(yearly.getDate() + 365);
+        return yearly;
+      case "반년 1회":
+        const halfYearly = new Date(start);
+        halfYearly.setMonth(halfYearly.getMonth() + 6);
+        return halfYearly;
+      default:
+        return start;
+    }
+  };
+
+  // 빈도별 힌트 메시지
+  const getEndDateHint = (frequency) => {
+    switch (frequency) {
+      case "매일":
+        return "종료일을 입력하지 않으면 시작일과 동일하게 설정됩니다.";
+      case "매주":
+        return "종료일을 입력하지 않으면 1주일 후로 설정됩니다. (최소 7일 이후)";
+      case "매월":
+        return "종료일을 입력하지 않으면 1개월 후로 설정됩니다. (최소 30일 이후)";
+      case "연 1회":
+        return "종료일을 입력하지 않으면 1년 후로 설정됩니다. (최소 365일 이후)";
+      case "반년 1회":
+        return "종료일을 입력하지 않으면 6개월 후로 설정됩니다. (최소 6개월 이후)";
+      default:
+        return "종료날짜가 선택사항으로 되어있는데 선택을 안하면 자동 계산되어 종료일자가 설정됩니다.";
+    }
+  };
+
   // 시간 선택을 위한 커스텀 드롭다운
   const TimePicker = ({ value, onChange, placeholder }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -154,13 +278,6 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
     }));
   };
 
-  const handleEndDateSelect = (dateString) => {
-    setFormData((prev) => ({
-      ...prev,
-      endDate: dateString,
-    }));
-  };
-
   // 외부 클릭 시 달력 닫기
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -260,6 +377,38 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
     }
   };
 
+  // 종료날짜 선택 핸들러
+  const handleEndDateSelect = (dateString) => {
+    // 종료날짜 검증
+    const validation = validateEndDate(
+      formData.startDate,
+      dateString,
+      formData.frequency
+    );
+
+    if (!validation.valid) {
+      setErrors((prev) => ({
+        ...prev,
+        endDate: validation.message,
+      }));
+      return;
+    }
+
+    // 검증 통과 시 종료날짜 설정
+    setFormData((prev) => ({
+      ...prev,
+      endDate: dateString,
+    }));
+
+    // 에러 메시지 제거
+    setErrors((prev) => ({
+      ...prev,
+      endDate: "",
+    }));
+
+    setShowEndCalendar(false);
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
@@ -268,14 +417,16 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
     if (!formData.frequency) newErrors.frequency = "빈도를 선택해주세요";
     if (!formData.startDate) newErrors.startDate = "시작 날짜를 선택해주세요";
 
-    // 매주, 매월, 연 1회, 반년 1회가 아닌 경우에만 종료날짜 검증
-    if (
-      formData.frequency !== "매주" &&
-      formData.frequency !== "매월" &&
-      formData.frequency !== "연 1회" &&
-      formData.frequency !== "반년 1회"
-    ) {
-      if (!formData.endDate) newErrors.endDate = "종료 날짜를 선택해주세요";
+    // 종료날짜가 선택사항이지만, 입력된 경우 검증
+    if (formData.endDate) {
+      const validation = validateEndDate(
+        formData.startDate,
+        formData.endDate,
+        formData.frequency
+      );
+      if (!validation.valid) {
+        newErrors.endDate = validation.message;
+      }
     }
 
     if (!formData.scheduleTime)
@@ -502,62 +653,23 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
           {/* 종료 날짜 */}
           <div className={styles.formGroup}>
             <div className={styles.labelContainer}>
-              <label className={styles.label}>종료 날짜</label>
-              <span className={styles.required}>*</span>
+              <label className={styles.label}>종료 날짜 (선택)</label>
             </div>
             <div className={styles.inputContainer}>
               <div className={styles.dateInputWrapper}>
                 <input
                   type="text"
                   value={formatDateForDisplay(formData.endDate)}
-                  placeholder="종료 날짜를 선택하세요"
-                  className={`${styles.dateInput} ${
-                    formData.frequency === "매주" ||
-                    formData.frequency === "매월" ||
-                    formData.frequency === "연 1회" ||
-                    formData.frequency === "반년 1회"
-                      ? styles.disabledInput
-                      : ""
-                  }`}
+                  placeholder="종료 날짜를 선택하세요 (선택사항)"
+                  className={styles.dateInput}
                   readOnly
-                  onClick={() => {
-                    if (
-                      formData.frequency !== "매주" &&
-                      formData.frequency !== "매월" &&
-                      formData.frequency !== "연 1회" &&
-                      formData.frequency !== "반년 1회"
-                    ) {
-                      setShowEndCalendar(true);
-                    }
-                  }}
+                  onClick={() => setShowEndCalendar(true)}
                 />
                 <button
                   ref={endCalendarButtonRef}
                   type="button"
-                  className={`${styles.calendarButton} ${
-                    formData.frequency === "매주" ||
-                    formData.frequency === "매월" ||
-                    formData.frequency === "연 1회" ||
-                    formData.frequency === "반년 1회"
-                      ? styles.disabledButton
-                      : ""
-                  }`}
-                  onClick={() => {
-                    if (
-                      formData.frequency !== "매주" &&
-                      formData.frequency !== "매월" &&
-                      formData.frequency !== "연 1회" &&
-                      formData.frequency !== "반년 1회"
-                    ) {
-                      setShowEndCalendar(!showEndCalendar);
-                    }
-                  }}
-                  disabled={
-                    formData.frequency === "매주" ||
-                    formData.frequency === "매월" ||
-                    formData.frequency === "연 1회" ||
-                    formData.frequency === "반년 1회"
-                  }
+                  className={styles.calendarButton}
+                  onClick={() => setShowEndCalendar(!showEndCalendar)}
                 >
                   <img
                     src="/health/calendar.png"
@@ -568,16 +680,13 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
                 </button>
               </div>
             </div>
-            {(formData.frequency === "매주" ||
-              formData.frequency === "매월" ||
-              formData.frequency === "연 1회" ||
-              formData.frequency === "반년 1회") && (
-              <span className={styles.infoMessage}>
-                {formData.frequency}는 시작날짜와 종료날짜가 동일합니다.
-              </span>
-            )}
             {errors.endDate && (
               <span className={styles.error}>{errors.endDate}</span>
+            )}
+            {!errors.endDate && formData.frequency && (
+              <span className={styles.hint}>
+                {getEndDateHint(formData.frequency)}
+              </span>
             )}
           </div>
 
@@ -673,7 +782,7 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
         onClose={() => setShowEndCalendar(false)}
         onDateSelect={handleEndDateSelect}
         selectedDate={formData.endDate}
-        minDate={formData.startDate}
+        minDate={getMinEndDate(formData.startDate, formData.frequency)}
         buttonRef={endCalendarButtonRef}
       />
     </div>

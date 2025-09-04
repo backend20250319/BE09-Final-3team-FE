@@ -103,6 +103,27 @@
   position: relative;
 }
 
+.infoButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  cursor: help;
+  margin-left: 4px;
+}
+
+.infoButton:hover {
+  opacity: 0.7;
+}
+
+.hint {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
 .label {
   font-family: "Pretendard Variable", sans-serif;
   font-size: 14px;

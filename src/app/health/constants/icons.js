@@ -12,7 +12,7 @@ export const ICON_MAP = {
   WALK: "🐕", // 산책 (강아지와 함께)
   BIRTHDAY: "🎂", // 생일
   GROOMING: "✂️", // 미용
-  ETC: "🔧", // 기타
+  ETC: "🦴", // 기타
 
   // 예방접종 (백엔드 스펙에 맞게 수정)
   VACCINE: "💉", // 접종
