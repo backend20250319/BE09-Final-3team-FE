@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { useRouter } from "next/navigation";
-import styles from "./LoginRequiredModal.module.css";
+import styles from "../styles/LoginRequiredModal.module.css";
 
 export default function LoginRequiredModal({
   isOpen,

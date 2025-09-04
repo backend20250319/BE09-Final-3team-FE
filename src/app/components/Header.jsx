@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import styles from "../styles/Header.module.css";
 import { IoIosNotifications, IoMdBusiness } from "react-icons/io";
 import NavbarDropdown from "@/app/components/AlarmDropdown";
-import LoginRequiredModal from "@/components/LoginRequiredModal";
+import LoginRequiredModal from "@/app/components/LoginRequiredModal";
 import { getUnreadNotificationCount } from "@/api/notificationApi";
 
 export default function Header() {

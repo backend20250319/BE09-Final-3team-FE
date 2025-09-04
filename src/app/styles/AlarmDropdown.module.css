@@ -116,6 +116,7 @@
 .icon {
   width: 24px;
   height: 24px;
+  filter: brightness(0) invert(1); /* 아이콘을 하얀색으로 변경 */
 }
 .textContent {
   flex: 1;

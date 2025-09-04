@@ -34,6 +34,23 @@
   background: #ffffff;
 }
 
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.header-text {
+  flex: 1;
+}
+
+.header-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
 .title {
   font-size: 24px;
   font-weight: 600;
@@ -71,7 +88,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 16px;
+  padding: 18px 24px;
   border-bottom: 1px solid #f3f4f6;
   transition: background-color 0.2s ease;
 }
@@ -103,13 +120,14 @@
 
 /* Icon Container */
 .icon-container {
-  width: 40px;
-  height: 40px;
+  width: 55px;
+  height: 55px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  margin-top: 6px;
 }
 
 .icon-container.orange {
@@ -133,9 +151,9 @@
 }
 
 .icon {
-  width: 14px;
-  height: 14px;
-  filter: brightness(0) invert(1);
+  width: 24px;
+  height: 24px;
+  filter: brightness(0) invert(1); /* 아이콘을 하얀색으로 변경 */
 }
 
 /* Text Content */
@@ -145,7 +163,7 @@
 }
 
 .notification-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 500;
   color: #594a3e;
   margin-bottom: 4px;
@@ -236,22 +254,32 @@
     padding: 20px 16px;
   }
 
+  .header-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .header-actions {
+    justify-content: center;
+  }
+
   .notification-item {
-    padding: 12px 16px;
+    padding: 16px 20px;
   }
 
   .notification-content {
-    gap: 8px;
+    gap: 10px;
   }
 
   .icon-container {
-    width: 36px;
-    height: 36px;
+    width: 48px;
+    height: 48px;
   }
 
   .icon {
-    width: 12px;
-    height: 12px;
+    width: 20px;
+    height: 20px;
   }
 
   .title {
@@ -276,18 +304,28 @@
     padding: 16px;
   }
 
+  .header-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .header-actions {
+    justify-content: center;
+  }
+
   .notification-item {
-    padding: 10px 16px;
+    padding: 14px 18px;
   }
 
   .icon-container {
-    width: 32px;
-    height: 32px;
+    width: 44px;
+    height: 44px;
   }
 
   .icon {
-    width: 10px;
-    height: 10px;
+    width: 18px;
+    height: 18px;
   }
 
   .notification-title {
