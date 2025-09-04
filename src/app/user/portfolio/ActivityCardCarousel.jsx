@@ -143,7 +143,11 @@ export default function ActivityCardCarousel({
 
                   <div className={styles.formRow}>
                     <label>활동 내용</label>
-                    <div className={styles.readOnlyText}>{card.content}</div>
+                    <div className={styles.readOnlyText}>
+                      {card.content && card.content.length > 30
+                        ? `${card.content.substring(0, 30)}...`
+                        : card.content}
+                    </div>
                   </div>
                 </div>
               </div>

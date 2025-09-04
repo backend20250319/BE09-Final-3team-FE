@@ -497,8 +497,8 @@
   word-wrap: break-word;
   overflow-wrap: break-word;
   white-space: pre-wrap;
-  max-height: none;
-  overflow: visible;
+  max-height: 1.4em; /* 한 줄 높이로 제한 (line-height 1.4 * 1) */
+  overflow: hidden;
 }
 
 .titleWithEdit {
