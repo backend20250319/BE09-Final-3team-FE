@@ -26,9 +26,11 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'DOCKERHUB_PASSWORD', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        bat "docker build -t ${DOCKER_USER}/petful-frontend:latest ."
+                        IMAGE_TAG = "v0.0.${currentBuild.number}"
+
+                        bat "docker build -t ${DOCKER_USER}/petful-frontend:${IMAGE_TAG} ."
                         bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
-                        bat "docker push ${DOCKER_USER}/petful-frontend:latest"
+                        bat "docker push ${DOCKER_USER}/petful-frontend:${IMAGE_TAG}"
                     }
                 }
             }
