@@ -9,7 +9,7 @@ pipeline {
 
 
         // 환경변수 지정
-        NEXT_PUBLIC_API_URL = 'https://api.my-production-domain.com/api/v1'
+        NEXT_PUBLIC_API_URL = 'http://petful-alb-1782443739.ap-northeast-2.elb.amazonaws.com/api/api/v1'
     }
 
     stages {
@@ -33,9 +33,9 @@ pipeline {
                         IMAGE_TAG = "v0.0.${currentBuild.number}"
 
                         // 나중에 ingress 정해지면 지정
-                        //bat "docker build --build-arg NEXT_PUBLIC_API_URL=${env.NEXT_PUBLIC_API_URL} -t ${DOCKER_USER}/petful-frontend:${IMAGE_TAG} ."
+                        bat "docker build --build-arg NEXT_PUBLIC_API_URL=${env.NEXT_PUBLIC_API_URL} -t ${DOCKER_USER}/petful-frontend:${IMAGE_TAG} ."
                         
-                        bat "docker build -t ${DOCKER_USER}/petful-frontend:${IMAGE_TAG} ."
+                        // bat "docker build -t ${DOCKER_USER}/petful-frontend:${IMAGE_TAG} ."
                         bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
                         bat "docker push ${DOCKER_USER}/petful-frontend:${IMAGE_TAG}"
                     }
