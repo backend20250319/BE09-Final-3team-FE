@@ -27,7 +27,11 @@ export const approvePetStar = async (petNo) => {
 };
 
 // 펫스타 거절 (관리자용)
-export const rejectPetStar = async (petNo) => {
-  const res = await api.patch(`${ADMIN_PREFIX}/${petNo}/reject`);
+export const rejectPetStar = async (petNo, reason) => {
+  const res = await api.patch(`${ADMIN_PREFIX}/${petNo}/reject`, reason, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
   return res.data?.data ?? res.data;
 };
