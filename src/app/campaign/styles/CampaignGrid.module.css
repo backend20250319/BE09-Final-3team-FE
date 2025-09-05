@@ -2,6 +2,37 @@
   margin-bottom: 64px;
 }
 
+.searchResults {
+  margin-bottom: 24px;
+  padding: 16px 20px;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  border-left: 4px solid #3b82f6;
+}
+
+.searchResults p {
+  margin: 0;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.noResults {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  background-color: #f9fafb;
+  border-radius: 12px;
+  border: 2px dashed #d1d5db;
+}
+
+.noResults p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 16px;
+  font-weight: 500;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -24,5 +55,14 @@
   
   .campaignGrid {
     margin-bottom: 40px;
+  }
+  
+  .searchResults {
+    margin-bottom: 20px;
+    padding: 12px 16px;
+  }
+  
+  .noResults {
+    padding: 40px 16px;
   }
 }
