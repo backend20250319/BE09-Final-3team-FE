@@ -76,6 +76,14 @@
   min-height: 347px;
 }
 
+.activityCard.saved {
+  min-height: auto;
+}
+
+.leftColumn .activityCard.saved {
+  min-height: auto;
+}
+
 .activityCard.sleep {
   background: #e8def8;
 }
@@ -458,6 +466,7 @@
 
 .horizontalInputs .formGroup {
   flex: 1;
+  min-width: 30px;
 }
 
 /* Save Section */
@@ -754,4 +763,36 @@
   50% {
     transform: translateY(-8px);
   }
+}
+
+/* 식사 기록이 없을 때 메시지 */
+.noMealsMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  background: #f8f9fa;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin: 16px 0;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+/* 메모가 없을 때 메시지 */
+.noMemoMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+  background: #f8f9fa;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 400;
+  min-height: 60px;
 }
