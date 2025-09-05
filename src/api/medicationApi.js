@@ -316,22 +316,18 @@ export const createMedicationFromOcr = async (file, petNo) => {
 
     // 요청 설정 확인
     console.log("🔍 요청 설정:", {
-      url: "/health-service/medical/medication/ocr",
+      url: `${MEDICATION_PREFIX}/ocr`,
       timeout: 30000,
       headers: { "Content-Type": undefined },
     });
 
-    const response = await api.post(
-      "/health-service/medical/medication/ocr",
-      formData,
-      {
-        timeout: 30000, // 30초 타임아웃
-        headers: {
-          // Content-Type을 명시적으로 제거하여 axios가 자동으로 multipart/form-data로 설정하도록 함
-          "Content-Type": undefined,
-        },
-      }
-    );
+    const response = await api.post(`${MEDICATION_PREFIX}/ocr`, formData, {
+      timeout: 30000, // 30초 타임아웃
+      headers: {
+        // Content-Type을 명시적으로 제거하여 axios가 자동으로 multipart/form-data로 설정하도록 함
+        "Content-Type": undefined,
+      },
+    });
 
     console.log("🔍 백엔드 원본 응답:", response.data);
     console.log("🔍 응답 코드:", response.data?.code);
