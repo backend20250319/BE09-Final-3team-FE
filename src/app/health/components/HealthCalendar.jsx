@@ -50,6 +50,23 @@ export default function HealthCalendar({
   onEventClick,
   activeTab = "투약", // 현재 활성 탭 추가
 }) {
+  // 캘린더 디버깅
+  console.log("🔍 HealthCalendar 렌더링됨");
+  console.log("🔍 받은 events:", events);
+  console.log("🔍 events 개수:", events.length);
+  console.log("🔍 activeTab:", activeTab);
+  console.log(
+    "🔍 events 상세:",
+    events.map((e) => ({
+      id: e.id,
+      title: e.title,
+      start: e.start,
+      end: e.end,
+      type: e.type,
+      schedule: e.schedule,
+    }))
+  );
+
   const [currentDate, setCurrentDate] = useState(defaultDate);
   const [currentView] = useState(defaultView);
   const [showMoreEvents, setShowMoreEvents] = useState(null);
@@ -96,6 +113,11 @@ export default function HealthCalendar({
       return !!activeFilters[eventType];
     });
   }, [events, activeFilters, activeTab]);
+
+  // 필터링된 이벤트 디버깅
+  console.log("🔍 필터링된 이벤트:", filteredEvents);
+  console.log("🔍 필터링된 이벤트 개수:", filteredEvents.length);
+  console.log("🔍 활성 필터:", activeFilters);
 
   // 필터 토글 함수
   const toggleFilter = (filterType) => {

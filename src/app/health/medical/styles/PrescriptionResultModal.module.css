@@ -170,6 +170,54 @@
   gap: 12px;
 }
 
+/* 성공 메시지 */
+.successMessage {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: #f0fdf4;
+  border: 1px solid #10b981;
+  border-radius: 8px;
+}
+
+.successIcon {
+  width: 48px;
+  height: 48px;
+  background: #10b981;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.successContent h5 {
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #065f46;
+  margin: 0 0 8px 0;
+}
+
+.successContent p {
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #047857;
+  margin: 0 0 4px 0;
+  line-height: 1.4;
+}
+
+.scheduleNumbers {
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  color: #6b7280;
+  margin: 0;
+  font-style: italic;
+}
+
 .medicationCard {
   display: flex;
   justify-content: space-between;

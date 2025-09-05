@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "../styles/AddScheduleModal.module.css";
 import { useSelectedPet } from "../../context/SelectedPetContext";
 import {
@@ -9,7 +9,9 @@ import {
   notificationTimingOptions,
   ICON_MAP,
   COLOR_MAP,
-} from "../../data/mockData";
+  SUBTYPE_LABEL_MAP,
+} from "../../constants";
+import CustomCalendar from "./CustomCalendar";
 
 export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
   const { selectedPetName } = useSelectedPet();
@@ -26,7 +28,317 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
     notificationTiming: "",
   });
 
+  const [showStartCalendar, setShowStartCalendar] = useState(false);
+  const [showEndCalendar, setShowEndCalendar] = useState(false);
+  const startCalendarButtonRef = React.useRef(null);
+  const endCalendarButtonRef = React.useRef(null);
+
   const [errors, setErrors] = useState({});
+
+  // 종료날짜 검증 함수
+  const validateEndDate = (startDate, endDate, frequency) => {
+    if (!endDate) return { valid: true }; // 종료날짜가 없으면 검증 통과
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // 기본 검증: 종료일이 시작일보다 이전이면 안됨
+    if (end < start) {
+      return {
+        valid: false,
+        message: "종료일은 시작일보다 이전일 수 없습니다.",
+      };
+    }
+
+    const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+
+    switch (frequency) {
+      case "매일":
+        if (daysDiff === 0) {
+          return {
+            valid: false,
+            message: "시작일과 종료일이 같을 수 없습니다.",
+          };
+        }
+        return { valid: true };
+      case "매주":
+        if (daysDiff < 7) {
+          const minDate = new Date(start);
+          minDate.setDate(minDate.getDate() + 7);
+          return {
+            valid: false,
+            message: `매주 일정의 종료일은 시작일로부터 최소 7일 이후여야 합니다. 최소 종료일: ${
+              minDate.toISOString().split("T")[0]
+            }`,
+          };
+        }
+        break;
+      case "매월":
+        if (daysDiff < 30) {
+          const minDate = new Date(start);
+          minDate.setDate(minDate.getDate() + 30);
+          return {
+            valid: false,
+            message: `매월 일정의 종료일은 시작일로부터 최소 30일 이후여야 합니다. 최소 종료일: ${
+              minDate.toISOString().split("T")[0]
+            }`,
+          };
+        }
+        break;
+      case "당일":
+        return { valid: true };
+    }
+
+    return { valid: true };
+  };
+
+  // 최소 종료날짜 계산 함수
+  const getMinEndDate = (startDate, frequency) => {
+    if (!startDate) return null;
+
+    const start = new Date(startDate);
+
+    switch (frequency) {
+      case "매일":
+        const nextDay = new Date(start);
+        nextDay.setDate(nextDay.getDate() + 1);
+        return nextDay;
+      case "매주":
+        const weekly = new Date(start);
+        weekly.setDate(weekly.getDate() + 7);
+        return weekly;
+      case "매월":
+        const monthly = new Date(start);
+        monthly.setDate(monthly.getDate() + 30);
+        return monthly;
+      case "당일":
+        return start;
+      default:
+        return start;
+    }
+  };
+
+  // 빈도별 힌트 메시지
+  const getEndDateHint = (frequency) => {
+    switch (frequency) {
+      case "매일":
+        return "종료일을 입력하지 않으면 시작일과 동일하게 설정됩니다.";
+      case "매주":
+        if (formData.startDate) {
+          const startDate = new Date(formData.startDate);
+          const dayOfWeek = startDate.getDay();
+          const weekdays = [
+            "일요일",
+            "월요일",
+            "화요일",
+            "수요일",
+            "목요일",
+            "금요일",
+            "토요일",
+          ];
+          return `선택해주신 ${weekdays[dayOfWeek]} 기준으로 매주 반복됩니다. 종료날짜는 ${weekdays[dayOfWeek]}만 선택할 수 있습니다.`;
+        }
+        return "종료일을 입력하지 않으면 1주일 후로 설정됩니다. (최소 7일 이후)";
+      case "매월":
+        if (formData.startDate) {
+          const startDate = new Date(formData.startDate);
+          const day = startDate.getDate();
+          return `선택해주신 ${day}일 기준으로 매월 반복됩니다. 종료날짜는 ${day}일만 선택할 수 있습니다.`;
+        }
+        return "종료일을 입력하지 않으면 1개월 후로 설정됩니다. (최소 30일 이후)";
+      case "당일":
+        return "종료일은 자동으로 시작일과 동일하게 설정됩니다.";
+      default:
+        return "종료날짜가 선택사항으로 되어있는데 선택을 안하면 자동 계산되어 종료일자가 설정됩니다.";
+    }
+  };
+
+  // 시간 선택을 위한 커스텀 드롭다운
+  const TimePicker = ({ value, onChange, placeholder }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const listRef = React.useRef(null);
+
+    // 외부 클릭 시 드롭다운 닫기
+    React.useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (isOpen && !event.target.closest(`.${styles.timePickerContainer}`)) {
+          setIsOpen(false);
+        }
+      };
+
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }, [isOpen]);
+
+    // 드롭다운이 열릴 때 선택된 시간 위치로 스크롤
+    React.useEffect(() => {
+      if (isOpen && value && listRef.current) {
+        const selectedIndex = timeOptions.findIndex((time) => time === value);
+        if (selectedIndex !== -1) {
+          const itemHeight = 48; // 각 시간 항목의 높이 (padding 포함)
+          const containerHeight = 200; // 드롭다운 컨테이너 높이
+          const scrollTop = Math.max(
+            0,
+            selectedIndex * itemHeight - containerHeight / 2
+          );
+          listRef.current.scrollTop = scrollTop;
+        }
+      }
+    }, [isOpen, value]);
+
+    const handleTimeSelect = (timeString) => {
+      onChange(timeString);
+      setIsOpen(false);
+    };
+
+    const formatTime = (timeString) => {
+      if (!timeString) return "";
+      const [hours, minutes] = timeString.split(":");
+      const hour = parseInt(hours);
+      const ampm = hour < 12 ? "오전" : "오후";
+      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+      return `${ampm} ${displayHour}:${minutes}`;
+    };
+
+    // 30분 간격 시간 옵션 생성
+    const timeOptions = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeString = `${hour.toString().padStart(2, "0")}:${minute
+          .toString()
+          .padStart(2, "0")}`;
+        timeOptions.push(timeString);
+      }
+    }
+
+    return (
+      <div className={styles.timePickerContainer}>
+        <div
+          className={`${styles.timePickerInput} ${isOpen ? styles.active : ""}`}
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <span className={value ? styles.timeValue : styles.timePlaceholder}>
+            {value ? formatTime(value) : placeholder}
+          </span>
+          <div className={styles.timePickerIcon}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="#9CA3AF" strokeWidth="2" />
+              <polyline
+                points="12,6 12,12 16,14"
+                stroke="#9CA3AF"
+                strokeWidth="2"
+              />
+            </svg>
+          </div>
+        </div>
+        {isOpen && (
+          <div className={styles.timePickerDropdown}>
+            <div className={styles.timePickerList} ref={listRef}>
+              {timeOptions.map((time) => (
+                <div
+                  key={time}
+                  className={`${styles.timePickerItem} ${
+                    value === time ? styles.timePickerItemSelected : ""
+                  }`}
+                  onClick={() => handleTimeSelect(time)}
+                >
+                  {formatTime(time)}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // 날짜 포맷팅 함수
+  const formatDateForDisplay = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}.${String(date.getDate()).padStart(2, "0")}`;
+  };
+
+  // 달력에서 날짜 선택 핸들러
+  const handleStartDateSelect = (dateString) => {
+    // 오늘 이전 날짜 검증
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(dateString);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      setErrors((prev) => ({
+        ...prev,
+        startDate: "시작날짜는 당일보다 이전일 수 없습니다.",
+      }));
+      return;
+    }
+
+    // 에러 메시지 제거
+    setErrors((prev) => ({
+      ...prev,
+      startDate: "",
+    }));
+
+    setFormData((prev) => ({
+      ...prev,
+      startDate: dateString,
+      date: dateString, // 호환성 유지
+    }));
+  };
+
+  // 외부 클릭 시 달력 닫기
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // 시작날짜 달력이 열려있고, 종료날짜 입력칸을 클릭한 경우
+      if (
+        showStartCalendar &&
+        event.target.closest(`.${styles.dateInputWrapper}`)
+      ) {
+        const clickedInput = event.target.closest(
+          `.${styles.dateInputWrapper}`
+        );
+        const allDateInputs = document.querySelectorAll(
+          `.${styles.dateInputWrapper}`
+        );
+        const clickedIndex = Array.from(allDateInputs).indexOf(clickedInput);
+
+        // 종료날짜 입력칸(두 번째)을 클릭한 경우 시작날짜 달력 닫기
+        if (clickedIndex === 1) {
+          setShowStartCalendar(false);
+        }
+      }
+
+      // 일반적인 외부 클릭 감지
+      if (
+        showStartCalendar &&
+        !event.target.closest(`.${styles.dateInputWrapper}`) &&
+        !event.target.closest(`.${styles.calendar}`)
+      ) {
+        setShowStartCalendar(false);
+      }
+      if (
+        showEndCalendar &&
+        !event.target.closest(`.${styles.dateInputWrapper}`) &&
+        !event.target.closest(`.${styles.calendar}`)
+      ) {
+        setShowEndCalendar(false);
+      }
+    };
+
+    if (showStartCalendar || showEndCalendar) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showStartCalendar, showEndCalendar]);
 
   const mainType = "돌봄";
 
@@ -34,10 +346,37 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
   const frequencyOptions = careFrequencyOptions;
 
   const handleInputChange = (field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setFormData((prev) => {
+      const newData = {
+        ...prev,
+        [field]: value,
+      };
+
+      // 빈도가 변경되면 종료날짜 처리
+      if (field === "frequency") {
+        if (value === "당일") {
+          if (prev.startDate) {
+            newData.endDate = prev.startDate;
+          }
+        } else if (value === "매주" || value === "매월") {
+          if (prev.startDate) {
+            newData.endDate = getMinEndDate(prev.startDate, value);
+          }
+        }
+      }
+
+      // 시작날짜가 변경되면 종료날짜 처리
+      if (field === "startDate") {
+        if (prev.frequency === "당일") {
+          newData.endDate = value;
+        } else if (prev.frequency === "매주" || prev.frequency === "매월") {
+          // 매주, 매월인 경우 종료날짜를 자동 계산
+          newData.endDate = getMinEndDate(value, prev.frequency);
+        }
+      }
+
+      return newData;
+    });
 
     if (errors[field]) {
       setErrors((prev) => ({
@@ -47,14 +386,84 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
     }
   };
 
+  // 종료날짜 선택 핸들러
+  const handleEndDateSelect = (dateString) => {
+    // 종료날짜가 시작날짜보다 이전인지 검증
+    if (formData.startDate && dateString < formData.startDate) {
+      setErrors((prev) => ({
+        ...prev,
+        endDate: "종료날짜는 시작날짜보다 이전일 수 없습니다.",
+      }));
+      return;
+    }
+
+    // 기존 종료날짜 검증
+    const validation = validateEndDate(
+      formData.startDate,
+      dateString,
+      formData.frequency
+    );
+
+    if (!validation.valid) {
+      setErrors((prev) => ({
+        ...prev,
+        endDate: validation.message,
+      }));
+      return;
+    }
+
+    // 검증 통과 시 종료날짜 설정
+    setFormData((prev) => ({
+      ...prev,
+      endDate: dateString,
+    }));
+
+    // 에러 메시지 제거
+    setErrors((prev) => ({
+      ...prev,
+      endDate: "",
+    }));
+
+    setShowEndCalendar(false);
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
     if (!formData.name.trim()) newErrors.name = "일정 이름을 입력해주세요";
     if (!formData.subType) newErrors.subType = "유형을 선택해주세요";
     if (!formData.frequency) newErrors.frequency = "빈도를 선택해주세요";
-    if (!formData.startDate) newErrors.startDate = "시작 날짜를 선택해주세요";
-    if (!formData.endDate) newErrors.endDate = "종료 날짜를 선택해주세요";
+    if (!formData.startDate) {
+      newErrors.startDate = "시작 날짜를 선택해주세요";
+    } else {
+      // 시작날짜가 오늘 이전인지 검증
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const selectedDate = new Date(formData.startDate);
+      selectedDate.setHours(0, 0, 0, 0);
+
+      if (selectedDate < today) {
+        newErrors.startDate = "시작날짜는 당일보다 이전일 수 없습니다.";
+      }
+    }
+
+    // 종료날짜가 선택사항이지만, 입력된 경우 검증
+    if (formData.endDate) {
+      // 종료날짜가 시작날짜보다 이전인지 검증
+      if (formData.startDate && formData.endDate < formData.startDate) {
+        newErrors.endDate = "종료날짜는 시작날짜보다 이전일 수 없습니다.";
+      } else {
+        const validation = validateEndDate(
+          formData.startDate,
+          formData.endDate,
+          formData.frequency
+        );
+        if (!validation.valid) {
+          newErrors.endDate = validation.message;
+        }
+      }
+    }
+
     if (!formData.scheduleTime)
       newErrors.scheduleTime = "일정 시간을 입력해주세요";
     if (!formData.notificationTiming)
@@ -77,7 +486,7 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
       const newSchedule = {
         id: Date.now(),
         name: formData.name,
-        type: mainType,
+        type: "돌봄",
         subType: formData.subType,
         frequency: formData.frequency,
         startDate: formData.startDate,
@@ -88,7 +497,7 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
         notificationTiming: formData.notificationTiming,
         petName: selectedPetName, // 선택된 펫 이름 추가
         icon: getIconForSubType(formData.subType),
-        color: getColorForType(mainType),
+        color: getColorForType("돌봄"),
         isNotified: true,
       };
 
@@ -110,6 +519,8 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
       notificationTiming: "",
     });
     setErrors({});
+    setShowStartCalendar(false); // 달력도 닫기
+    setShowEndCalendar(false); // 달력도 닫기
     onClose();
   };
 
@@ -181,7 +592,7 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
                 <option value="">유형을 선택하세요</option>
                 {subTypeOptions.map((option) => (
                   <option key={option} value={option}>
-                    {option}
+                    {SUBTYPE_LABEL_MAP[option] || option}
                   </option>
                 ))}
               </select>
@@ -245,15 +656,29 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
               <span className={styles.required}>*</span>
             </div>
             <div className={styles.inputContainer}>
-              <input
-                type="date"
-                className={styles.input}
-                value={formData.startDate}
-                onChange={(e) => {
-                  handleInputChange("startDate", e.target.value);
-                  handleInputChange("date", e.target.value); // 호환성 유지
-                }}
-              />
+              <div className={styles.dateInputWrapper}>
+                <input
+                  type="text"
+                  value={formatDateForDisplay(formData.startDate)}
+                  placeholder="시작 날짜를 선택하세요"
+                  className={styles.dateInput}
+                  readOnly
+                  onClick={() => setShowStartCalendar(true)}
+                />
+                <button
+                  ref={startCalendarButtonRef}
+                  type="button"
+                  className={styles.calendarButton}
+                  onClick={() => setShowStartCalendar(!showStartCalendar)}
+                >
+                  <img
+                    src="/health/calendar.png"
+                    alt="달력"
+                    width="16"
+                    height="16"
+                  />
+                </button>
+              </div>
             </div>
             {errors.startDate && (
               <span className={styles.error}>{errors.startDate}</span>
@@ -263,19 +688,54 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
           {/* 종료 날짜 */}
           <div className={styles.formGroup}>
             <div className={styles.labelContainer}>
-              <label className={styles.label}>종료 날짜</label>
-              <span className={styles.required}>*</span>
+              <label className={styles.label}>종료 날짜 (선택)</label>
             </div>
             <div className={styles.inputContainer}>
-              <input
-                type="date"
-                className={styles.input}
-                value={formData.endDate}
-                onChange={(e) => handleInputChange("endDate", e.target.value)}
-              />
+              <div className={styles.dateInputWrapper}>
+                <input
+                  type="text"
+                  value={formatDateForDisplay(formData.endDate)}
+                  placeholder="종료 날짜를 선택하세요 (선택사항)"
+                  className={`${styles.dateInput} ${
+                    formData.frequency === "당일" ? styles.disabled : ""
+                  }`}
+                  readOnly
+                  disabled={formData.frequency === "당일"}
+                  onClick={() => {
+                    if (formData.frequency !== "당일") {
+                      setShowEndCalendar(true);
+                    }
+                  }}
+                />
+                <button
+                  ref={endCalendarButtonRef}
+                  type="button"
+                  className={`${styles.calendarButton} ${
+                    formData.frequency === "당일" ? styles.disabled : ""
+                  }`}
+                  disabled={formData.frequency === "당일"}
+                  onClick={() => {
+                    if (formData.frequency !== "당일") {
+                      setShowEndCalendar(!showEndCalendar);
+                    }
+                  }}
+                >
+                  <img
+                    src="/health/calendar.png"
+                    alt="달력"
+                    width="16"
+                    height="16"
+                  />
+                </button>
+              </div>
             </div>
             {errors.endDate && (
               <span className={styles.error}>{errors.endDate}</span>
+            )}
+            {!errors.endDate && formData.frequency && (
+              <span className={styles.hint}>
+                {getEndDateHint(formData.frequency)}
+              </span>
             )}
           </div>
 
@@ -286,14 +746,13 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
               <span className={styles.required}>*</span>
             </div>
             <div className={styles.inputContainer}>
-              <input
-                type="time"
-                className={styles.input}
+              <TimePicker
                 value={formData.scheduleTime}
-                onChange={(e) => {
-                  handleInputChange("scheduleTime", e.target.value);
-                  handleInputChange("time", e.target.value); // 호환성 유지
+                onChange={(timeString) => {
+                  handleInputChange("scheduleTime", timeString);
+                  handleInputChange("time", timeString); // 호환성 유지
                 }}
+                placeholder="시간을 선택하세요"
               />
             </div>
             {errors.scheduleTime && (
@@ -317,8 +776,8 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
               >
                 <option value="">알림 시기를 선택하세요</option>
                 {notificationTimingOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </select>
@@ -358,6 +817,36 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
           </button>
         </div>
       </div>
+
+      {/* 커스텀 달력 */}
+      <CustomCalendar
+        isOpen={showStartCalendar}
+        onClose={() => setShowStartCalendar(false)}
+        onDateSelect={handleStartDateSelect}
+        selectedDate={formData.startDate}
+        buttonRef={startCalendarButtonRef}
+      />
+      <CustomCalendar
+        isOpen={showEndCalendar}
+        onClose={() => setShowEndCalendar(false)}
+        onDateSelect={handleEndDateSelect}
+        selectedDate={formData.endDate}
+        minDate={getMinEndDate(formData.startDate, formData.frequency)}
+        buttonRef={endCalendarButtonRef}
+        monthlyMode={formData.frequency === "매월"}
+        monthlyDay={
+          formData.frequency === "매월" && formData.startDate
+            ? new Date(formData.startDate).getDate()
+            : null
+        }
+        weeklyMode={formData.frequency === "매주"}
+        weeklyDayOfWeek={
+          formData.frequency === "매주" && formData.startDate
+            ? new Date(formData.startDate).getDay()
+            : null
+        }
+        showToday={false}
+      />
     </div>
   );
 }

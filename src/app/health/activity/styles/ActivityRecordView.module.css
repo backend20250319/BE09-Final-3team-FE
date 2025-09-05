@@ -10,7 +10,7 @@
   align-items: center;
   z-index: 1000;
   animation: fadeIn 0.3s ease-in-out;
-  padding-left: 50px;
+  padding-left: 10px;
 }
 
 .modal {
@@ -57,17 +57,36 @@
   border: 2px solid rgba(255, 255, 255, 0.8);
 }
 
+.petAvatarPlaceholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px dashed rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  font-weight: bold;
+}
+
 .closeButton {
   background: transparent;
   border: none;
   cursor: pointer;
   padding: 8px;
   border-radius: 4px;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .closeButton:hover {
-  background-color: #f3f4f6;
+  background-color: #8bc34a;
+  border-radius: 4px;
+}
+
+.closeButton:hover img {
+  filter: brightness(0) invert(1);
 }
 
 .content {
@@ -98,9 +117,114 @@
 
 .sectionHeader h3 {
   font-size: 18px;
+  margin: 0;
+}
+
+.mealCountButton {
+  font-size: 12px;
+  color: #ffffff;
+  background: #8bc34a;
+  padding: 6px 10px;
+  border-radius: 16px;
+  margin-left: auto;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 50px;
+  justify-content: center;
+}
+
+.mealCountButton:hover {
+  background: #7cb342;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(139, 195, 74, 0.4);
+}
+
+.mealCountText {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.mealCountIcon {
+  font-size: 10px;
+  opacity: 0.9;
+  transition: transform 0.2s ease;
+}
+
+.mealCountButton:hover .mealCountIcon {
+  transform: scale(1.1);
+}
+
+.mealDetails {
+  margin-top: 20px;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 20px;
+}
+
+.mealList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mealItem {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.mealItemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.mealType {
   font-weight: 600;
   color: #374151;
-  margin: 0;
+  background: #e5e7eb;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.mealNumber {
+  font-size: 12px;
+  color: #6b7280;
+  background: #d1d5db;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.mealItemData {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mealDataRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.mealDataRow span:first-child {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.mealDataRow span:last-child {
+  font-weight: 600;
+  color: #374151;
 }
 
 .dataGrid {
@@ -185,5 +309,267 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
+  }
+}
+
+/* 수정 모드 스타일 */
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.editButton,
+.saveButton {
+  background: #8bc34a;
+  border: 2px solid #8bc34a;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #ffffff;
+  min-width: 60px;
+  text-align: center;
+}
+
+.editButton:hover,
+.saveButton:hover {
+  background: #7cb342;
+  border-color: #7cb342;
+}
+
+.saveButton:disabled {
+  background: #7cb342;
+  border-color: #7cb342;
+  color: #ffffff;
+  cursor: not-allowed;
+}
+
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formGroup label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #ffffff;
+  color: #374151;
+  transition: border-color 0.2s ease;
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+  outline: none;
+  border-color: #8bc34a;
+  box-shadow: 0 0 0 3px rgba(139, 195, 74, 0.1);
+}
+
+.formGroup textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+/* 식사 수정 섹션 */
+.mealsEditSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mealEditItem {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  background: #f9fafb;
+}
+
+.mealEditHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.mealEditHeader select {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #ffffff;
+  font-size: 14px;
+  min-width: 120px;
+}
+
+.removeMealButton {
+  background: #ef4444;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.removeMealButton:hover {
+  background: #dc2626;
+}
+
+.mealEditForm {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.addMealButton {
+  background: #8bc34a;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  align-self: flex-start;
+}
+
+.addMealButton:hover {
+  background: #7cb342;
+}
+
+/* 칼로리 계산 결과 */
+.calorieCalculation {
+  background: #f0f8f0;
+  border: 1px solid #c8e6c9;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 8px;
+}
+
+.calorieItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.calorieItem:not(:last-child) {
+  border-bottom: 1px solid #c8e6c9;
+}
+
+.calorieLabel {
+  font-size: 14px;
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.calorieValue {
+  font-size: 16px;
+  color: #1b5e20;
+  font-weight: 600;
+}
+
+.mealCalorieCalculation {
+  background: #fff3e0;
+  border: 1px solid #ffcc80;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.mealCalorieCalculation .calorieItem {
+  padding: 6px 0;
+}
+
+.mealCalorieCalculation .calorieLabel {
+  color: #e65100;
+}
+
+.mealCalorieCalculation .calorieValue {
+  color: #bf360c;
+}
+
+/* 수정 액션 버튼 */
+.editActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 24px 32px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.cancelButton {
+  background: #6b7280;
+  border: 2px solid #6b7280;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #ffffff;
+  min-width: 60px;
+  text-align: center;
+}
+
+.cancelButton:hover {
+  background: #4b5563;
+  border-color: #4b5563;
+}
+
+.cancelButton:disabled {
+  background: #9ca3af;
+  border-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* 반응형 수정 폼 */
+@media (max-width: 768px) {
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+
+  .mealEditForm {
+    grid-template-columns: 1fr;
+  }
+
+  .editActions {
+    flex-direction: column;
+    padding: 20px 24px;
+  }
+
+  .cancelButton,
+  .saveButton {
+    width: 100%;
   }
 }

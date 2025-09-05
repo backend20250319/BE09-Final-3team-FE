@@ -186,3 +186,24 @@
 .editButton:hover {
   background: #7cb342;
 }
+
+.disabledButton {
+  background: #f3f4f6 !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+}
+
+.disabledButton:hover {
+  background: #f3f4f6 !important;
+}
+
+.pastScheduleMessage {
+  font-size: 12px;
+  color: #6b7280;
+  margin-right: 8px;
+  padding: 4px 8px;
+  background-color: #f3f4f6;
+  border-radius: 4px;
+  white-space: nowrap;
+}

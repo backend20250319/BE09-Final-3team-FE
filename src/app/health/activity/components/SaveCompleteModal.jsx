@@ -3,7 +3,13 @@
 import React from "react";
 import styles from "../styles/SaveCompleteModal.module.css";
 
-export default function SaveCompleteModal({ isOpen, onClose, petName, date }) {
+export default function SaveCompleteModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  petName,
+  date,
+}) {
   if (!isOpen) return null;
 
   return (
@@ -21,7 +27,7 @@ export default function SaveCompleteModal({ isOpen, onClose, petName, date }) {
           <p className={styles.message}>
             {petName}의 {date} 활동 기록이 저장되었습니다.
           </p>
-          <button className={styles.closeButton} onClick={onClose}>
+          <button className={styles.closeButton} onClick={onConfirm || onClose}>
             확인
           </button>
         </div>
@@ -29,5 +35,3 @@ export default function SaveCompleteModal({ isOpen, onClose, petName, date }) {
     </div>
   );
 }
-
-

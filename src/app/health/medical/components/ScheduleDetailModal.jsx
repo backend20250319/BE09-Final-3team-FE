@@ -2,6 +2,7 @@
 
 import React from "react";
 import styles from "../styles/ScheduleDetailModal.module.css";
+import { isSchedulePast } from "../utils/scheduleUtils";
 
 export default function ScheduleDetailModal({
   isOpen,
@@ -12,12 +13,70 @@ export default function ScheduleDetailModal({
 }) {
   if (!isOpen || !schedule) return null;
 
+  // 지난 일정인지 확인
+  // 투약일정의 경우 종료날짜를 기준으로, 다른 일정은 시작날짜를 기준으로 판단
+  const isMedication =
+    schedule.category === "medication" || schedule.type === "medication";
+
+  // 돌봄/접종 일정에서 특정 빈도는 종료날짜를 시작날짜와 동일하게 처리
+  const isCareOrVaccination =
+    schedule.category === "care" ||
+    schedule.category === "vaccination" ||
+    schedule.type === "care" ||
+    schedule.type === "vaccination";
+  const isFixedEndDate =
+    isCareOrVaccination &&
+    ["매일", "매주", "매월", "당일"].includes(schedule.frequency);
+
+  let scheduleDate, scheduleTime;
+
+  if (isMedication) {
+    // 투약일정: 종료날짜 기준
+    scheduleDate = schedule.endDate || schedule.startDate || schedule.date;
+    scheduleTime = schedule.scheduleTime || schedule.time;
+  } else if (isFixedEndDate) {
+    // 돌봄/접종 일정 중 특정 빈도: 시작날짜 기준 (종료날짜는 시작날짜와 동일)
+    scheduleDate = schedule.startDate || schedule.date;
+    scheduleTime = schedule.scheduleTime || schedule.time;
+  } else {
+    // 기타 일정: 시작날짜 기준
+    scheduleDate = schedule.startDate || schedule.date;
+    scheduleTime = schedule.scheduleTime || schedule.time;
+  }
+
+  const isPast = isSchedulePast(scheduleDate, scheduleTime);
+
   const formatTime = (timeStr) => {
     if (!timeStr) return "시간 미정";
     return timeStr
       .split(",")
       .map((t) => t.trim())
       .join(", ");
+  };
+
+  // 날짜 포맷팅 함수
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "-";
+
+    try {
+      // ISO 문자열인 경우 Date 객체로 변환
+      const date = new Date(dateStr);
+
+      // 유효한 날짜인지 확인
+      if (isNaN(date.getTime())) {
+        return dateStr; // 유효하지 않으면 원본 반환
+      }
+
+      // YYYY년 MM월 DD일 형태로 포맷팅
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+
+      return `${year}년 ${month}월 ${day}일`;
+    } catch (error) {
+      console.error("날짜 포맷팅 오류:", error);
+      return dateStr; // 오류 시 원본 반환
+    }
   };
 
   const getScheduleTypeLabel = (category) => {
@@ -94,13 +153,19 @@ export default function ScheduleDetailModal({
               {schedule.startDate && (
                 <div className={styles.infoItem}>
                   <span className={styles.label}>시작일</span>
-                  <span className={styles.value}>{schedule.startDate}</span>
+                  <span className={styles.value}>
+                    {formatDate(schedule.startDate)}
+                  </span>
                 </div>
               )}
               {schedule.endDate && (
                 <div className={styles.infoItem}>
                   <span className={styles.label}>종료일</span>
-                  <span className={styles.value}>{schedule.endDate}</span>
+                  <span className={styles.value}>
+                    {isFixedEndDate
+                      ? formatDate(schedule.startDate) + " (고정)"
+                      : formatDate(schedule.endDate)}
+                  </span>
                 </div>
               )}
             </div>
@@ -127,7 +192,18 @@ export default function ScheduleDetailModal({
             삭제
           </button>
           <div className={styles.actionButtons}>
-            <button className={styles.editButton} onClick={onEdit}>
+            {isPast && (
+              <div className={styles.pastScheduleMessage}>
+                지난 일정은 수정할 수 없습니다
+              </div>
+            )}
+            <button
+              className={`${styles.editButton} ${
+                isPast ? styles.disabledButton : ""
+              }`}
+              onClick={() => !isPast && onEdit()}
+              disabled={isPast}
+            >
               수정
             </button>
           </div>
