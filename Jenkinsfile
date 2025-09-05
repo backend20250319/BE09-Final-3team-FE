@@ -33,7 +33,7 @@ pipeline {
                         IMAGE_TAG = "v0.0.${currentBuild.number}"
 
                         // 나중에 ingress 정해지면 지정
-                        bat "docker build --build-arg NEXT_PUBLIC_API_URL=${env.NEXT_PUBLIC_API_URL} -t ${DOCKER_USER}/petful-frontend:${IMAGE_TAG} ."
+                        bat "docker buildx build --platform linux/amd64,linux/arm64 --build-arg NEXT_PUBLIC_API_URL=${env.NEXT_PUBLIC_API_URL} -t ${DOCKER_USER}/petful-frontend:${IMAGE_TAG} ."
                         
                         // bat "docker build -t ${DOCKER_USER}/petful-frontend:${IMAGE_TAG} ."
                         bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
