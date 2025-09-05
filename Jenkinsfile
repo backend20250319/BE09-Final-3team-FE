@@ -9,7 +9,7 @@ pipeline {
 
 
         // 환경변수 지정
-        NEXT_PUBLIC_API_URL = 'http://petful-alb-1782443739.ap-northeast-2.elb.amazonaws.com/api/v1'
+        NEXT_PUBLIC_API_URL = 'http://petful.site/api/v1'
     }
 
     stages {
