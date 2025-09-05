@@ -102,3 +102,22 @@ export const updateApplicant = async (applicantNo, content) => {
     throw error;
   }
 }
+
+/* 리뷰 API */
+// 1. 리뷰 조회
+export const getReview = async (applicantNo) => {
+  const res = await api.get(`${CAMPAIGN_PREFIX}/internal/review/${applicantNo}`);
+  return res.data.data;
+}
+
+// 2. 리뷰 수정
+export const updateReview = async (applicantNo, reviewUrl, reason) => {
+  try {
+    const reviewRequest = { reviewUrl, reason };
+    const res = await api.put(`${CAMPAIGN_PREFIX}/internal/review/${applicantNo}`, reviewRequest);
+    return res.data.data;
+  } catch (error) {
+    console.error('리뷰 수정 실패:', error);
+    throw error;
+  }
+}

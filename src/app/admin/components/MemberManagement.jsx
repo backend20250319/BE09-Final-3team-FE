@@ -169,7 +169,7 @@ export default function MemberManagement() {
 
   const handlePetStarReject = async (petNo, reason) => {
     try {
-      await rejectPetStar(petNo);
+      await rejectPetStar(petNo, reason);
       showAlert("펫스타 신청이 거절되었습니다.", "success");
       loadPetStarList(); // 목록 새로고침
     } catch (error) {

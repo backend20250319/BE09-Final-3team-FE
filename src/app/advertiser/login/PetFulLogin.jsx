@@ -8,7 +8,7 @@ import Image from "next/image";
 
 // 환경변수로 게이트웨이/백엔드 베이스 URL 관리
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  process.env.NEXT_PUBLIC_API_URL + "/advertiser-service" ||
   "http://localhost:8000/api/v1/advertiser-service";
 
 export default function PetFulLogin() {
