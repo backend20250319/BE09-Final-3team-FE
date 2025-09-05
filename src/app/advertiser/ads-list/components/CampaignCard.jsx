@@ -6,6 +6,7 @@ import Link from "next/link";
 import styles from "../styles/CampaignCard.module.css";
 import { useCampaign } from "../context/CampaignContext";
 import RejectionModal from "./RejectionModal";
+import SelectionModal from "./SelectionModal";
 import { getImageByAdNo } from '@/api/advertisementApi';
 import { getFileByAdvertiserNo } from '@/api/advertiserApi';
 
@@ -13,6 +14,7 @@ export default function CampaignCard({ campaign }) {
 
   const { activeTab } = useCampaign();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
   const [advImage, setAdvImage] = useState(null);
   const [adImage, setAdImage] = useState(null);
 
@@ -86,6 +88,14 @@ export default function CampaignCard({ campaign }) {
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
+
+  const handleSelectionClick = () => {
+    setIsSelectionModalOpen(true);
+  };
+
+  const handleCloseSelectionModal = () => {
+    setIsSelectionModalOpen(false);
+  };
   
   const cardContent = (
     <div
@@ -139,6 +149,9 @@ export default function CampaignCard({ campaign }) {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                if (campaign.adStatus === 'CLOSED') {
+                  handleSelectionClick();
+                }
               }}
             >
               {STATUSTEXT[campaign.adStatus.toLowerCase()]}
@@ -175,6 +188,11 @@ export default function CampaignCard({ campaign }) {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         rejectionData={rejectionData}
+      />
+      <SelectionModal 
+        isOpen={isSelectionModalOpen}
+        onClose={handleCloseSelectionModal}
+        campaign={campaign}
       />
     </>
   );

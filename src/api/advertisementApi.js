@@ -33,6 +33,7 @@ export const updateAdByAdvertiser = async (adNo, request) => {
   return res.data.data;
 };
 
+/* 광고 이미지 API */
 const FILE_PREFIX =
     (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_COMMUNITY_PREFIX) ||
     "/advertiser-service/file";
@@ -89,7 +90,11 @@ export const getApplicants = async(adNo) => {
 };
 
 // 2. 체험단 선정
-export const updateApplicant = async (applicantNo, status) => {
-  const res = await advertiserApi.put(`${CAMPAIGN_PREFIX}/advertiser/${applicantNo}?status=${status}`);
+export const updateApplicant = async (applicantNo, status, isSaved) => {
+  const body = {
+    status,
+    isSaved,
+  };
+  const res = await advertiserApi.put(`${CAMPAIGN_PREFIX}/applicant/${applicantNo}`, body);
   return res.data.data;
 };
