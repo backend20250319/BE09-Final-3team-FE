@@ -17,7 +17,7 @@ import {
 const ICON_MAP = {
   "notification.comment.created": { icon: FiMessageCircle, color: "blue" },
   "notification.post.liked": { icon: FiHeart, color: "red" },
-  "notification.campaign.new": { icon: FiGift, color: "purple" },
+  "campaign.applicant.selected": { icon: FiGift, color: "purple" },
   "health.schedule": { icon: "notification-icon.svg", color: "green" },
   "health.schedule.reserve": { icon: FiActivity, color: "blue" },
 };
@@ -112,8 +112,7 @@ const PetFulNotification = () => {
               console.log("🎨 아이콘 설정:", cfg);
               const IconComponent = cfg.icon;
               const colorClass = cfg.color;
-
-              const id = notification.id;
+              notification.id;
               const title = notification.title ?? "새로운 알림";
               const content = notification.content ?? "";
               const time =
@@ -125,7 +124,7 @@ const PetFulNotification = () => {
 
               return (
                 <div
-                  key={id}
+                  key={notification.id}
                   className={`notification-item ${
                     index === 0 ? "first-item" : ""
                   } ${!notification.isRead ? "unread" : ""}`}
