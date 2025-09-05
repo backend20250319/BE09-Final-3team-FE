@@ -1,0 +1,115 @@
+/* Additional Section */
+.additionalSection {
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.additionalTitle {
+  font-size: 18px;
+  font-weight: 500;
+  color: #594A3E;
+  margin: 0 0 20px 0;
+  line-height: 1.19;
+}
+
+.additionalTextarea {
+  width: 100%;
+  height: 128px;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 32px;
+  font-size: 16px;
+  font-weight: 400;
+  color: #ADAEBC;
+  line-height: 1.5;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.additionalTextarea:focus {
+  outline: none;
+  border-color: #F5A623;
+  color: #374151;
+}
+
+.additionalTextarea::placeholder {
+  color: #ADAEBC;
+}
+
+.additionalNote {
+  font-size: 14px;
+  font-weight: 400;
+  color: #6B7280;
+  margin: 20px 0 0 0;
+  line-height: 1.19;
+}
+
+/* Submit Button */
+.submitButton {
+  width: 100%;
+  background: #F5A623;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: all 0.2s ease;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: #E0941A;
+  transform: translateY(-1px);
+}
+
+.submitButton:disabled {
+  background: #D1D5DB;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Message Display */
+.message {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.message.success {
+  background: #D1FAE5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.message.error {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FCA5A5;
+}
+
+/* Duplicate Warning */
+.duplicateWarning {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #F59E0B;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 16px 0;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}

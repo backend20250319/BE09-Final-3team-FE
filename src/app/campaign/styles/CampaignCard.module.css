@@ -1,6 +1,5 @@
 .campaignCard {
   background: #ffffff;
-  border: 1px solid #6b7280;
   border-top: 4px solid;
   border-radius: 12px;
   overflow: hidden;
@@ -29,6 +28,13 @@
   object-fit: cover;
 }
 
+.brandImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%
+}
+
 .cardContent {
   padding: 16px;
   height: 184px;
@@ -37,16 +43,11 @@
   gap: 8px;
 }
 
-.cardHeader {
+.cardFooter {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-bottom: 8px;
-}
-
-.topInfo {
-  display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
 }
 
 .applicants {
@@ -67,6 +68,7 @@
   width: 12px;
   height: 12px;
   flex-shrink: 0;
+  margin-bottom: 3px;
 }
 
 .period {
@@ -92,7 +94,7 @@
 .brandIcon {
   width: 25px;
   height: 25px;
-  border: 0.1px solid #000000;
+  box-shadow: 0 0 0 0.1px #000000;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -105,17 +107,6 @@
   font-weight: 400;
   line-height: 1.67;
   color: #374151;
-}
-
-.heartIcon {
-  width: 12px;
-  height: 11px;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-.heartIcon:hover {
-  transform: scale(1.1);
 }
 
 .title {
@@ -147,12 +138,18 @@
 }
 
 .statusButton {
-  min-width: 86px;
   height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: opacity 0.2s ease;
+}
+
+.statusSpan {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .statusButton:hover {

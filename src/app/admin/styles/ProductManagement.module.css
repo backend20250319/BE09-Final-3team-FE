@@ -1,0 +1,644 @@
+/* Container */
+.container {
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  border: 2px solid #ced4da;
+  border-radius: 8px;
+}
+
+/* Header */
+.header {
+  width: 100%;
+  height: 77px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  height: 100%;
+}
+
+.logo h1 {
+  font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont,
+    sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.33;
+  color: #111827;
+  margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.notificationBtn {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notificationBadge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+}
+
+.profileBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Main Content Layout */
+.mainContent {
+  display: flex;
+  flex: 1;
+  height: auto;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 320px;
+  background: #fffcfc;
+  padding: 24px;
+}
+
+.sidebarNav {
+  width: 100%;
+}
+
+.navSection h3 {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1.19;
+  color: #111827;
+  text-align: center;
+  margin: 0 0 44px 0;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #4b5563;
+}
+
+.navIndicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  z-index: 1;
+  text-align: center;
+  color: #4b5563;
+}
+
+.navList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.navItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  height: 48px;
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+.navItem span {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #000000;
+  flex: 1;
+  text-align: center;
+}
+
+.navIcon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 16px;
+}
+
+.navItem svg:last-of-type {
+  margin-left: auto;
+}
+
+.activeIndicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: #fef9c3;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  z-index: 1;
+  text-align: center;
+}
+
+.activeIndicator span {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.19;
+  color: #000000;
+  margin-left: -10px;
+}
+
+/* Main Content */
+.main {
+  flex: 1;
+  padding: 24px;
+  background: #ffffff;
+  width: 135%;
+}
+
+.content {
+  width: 100%;
+  height: 100%;
+}
+
+/* Tab Navigation */
+.tabNavigation {
+  margin-bottom: 24px;
+}
+
+.tabs {
+  display: flex;
+  gap: 32px;
+}
+
+.tab {
+  background: none;
+  border: none;
+  padding: 8px 4px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.19;
+  color: #6b7280;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.tab.active {
+  font-weight: 500;
+  color: #d4a574;
+  border-bottom-color: #d4a574;
+}
+
+/* Search Section */
+.searchSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 44px;
+  padding: 0 24px;
+}
+
+.rightControls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.searchSection > div:last-child {
+  display: flex;
+  align-items: center;
+}
+
+.searchContainer {
+  position: relative;
+  width: 292px;
+  display: flex;
+  align-items: center;
+}
+
+.searchInput {
+  width: 100%;
+  height: 50px;
+  padding: 0 40px 0 40px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #adaebc;
+}
+
+.searchInput::placeholder {
+  color: #adaebc;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sortSelect {
+  width: 192px;
+  height: 48px;
+  padding: 0 40px 0 12px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.19;
+  color: #000000;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='16' height='10' viewBox='0 0 16 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L8 8L15 1' stroke='%23000000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+/* Product Section */
+.productSection {
+  margin-top: 44px;
+}
+
+.sectionTitle {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 1.4;
+  color: #111827;
+  margin: 0 0 44px 0;
+}
+
+.productList {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.productCard {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.productContent {
+  display: flex;
+  gap: 24px;
+  flex: 1;
+}
+
+.productImage {
+  width: 128px;
+  height: 128px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.productImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.productInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 600px;
+}
+
+.productTitle {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1.56;
+  color: #111827;
+  margin: 0;
+}
+
+.productDescription {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #4b5563;
+  margin: 0;
+  max-width: 858px;
+}
+
+.companyInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.companyLogo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.companyDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.companyName {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #111827;
+}
+
+.companyType {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.43;
+  color: #6b7280;
+}
+
+.productActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.deleteBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #dc2626;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.19;
+  color: #ffffff;
+  cursor: pointer;
+  margin: 100px 20px 0 0;
+}
+
+.rejectBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #dc2626;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.19;
+  color: #ffffff;
+  cursor: pointer;
+  margin: 100px 20px 0 0;
+}
+
+.approveBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #16a34a;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.19;
+  color: #ffffff;
+  cursor: pointer;
+  margin: 100px 20px 0 0;
+}
+
+.deleteBtn:hover {
+  background: #b91c1c;
+}
+
+.deleteBtn svg {
+  width: 12px;
+  height: 16px;
+}
+
+.rejectBtn svg {
+  width: 12px;
+  height: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .sidebar {
+    width: 280px;
+  }
+
+  .productContent {
+    gap: 16px;
+  }
+
+  .productImage {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+@media (max-width: 768px) {
+  .mainContent {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+  }
+
+  .searchSection {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .searchContainer {
+    width: 100%;
+  }
+
+  .sortSelect {
+    width: 100%;
+  }
+
+  .productCard {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .productActions {
+    justify-content: flex-start;
+  }
+}
+
+.reportItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 8px 0;
+}
+
+.reasonleft {
+  text-align: left;
+  flex: 1;
+}
+
+.reason {
+  text-align: center;
+  flex: 2;
+}
+
+.reasonright {
+  margin-top: 50px;
+  text-align: right;
+  flex: 1;
+}
+
+/* 페이지네이션 스타일 - 커뮤니티와 동일 */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 5px;
+  margin-top: 32px;
+}
+
+.paginationButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 35px;
+  height: 42px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.19;
+  color: #000000;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.paginationButton:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.paginationButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.paginationButton.active {
+  background: #f5a623;
+  border-color: #f5a623;
+  color: #ffffff;
+}
+
+/* 이전/다음 버튼 스타일 */
+.paginationButton:first-child,
+.paginationButton:last-child {
+  width: 36px;
+}
+
+/* 모바일 페이지네이션 */
+@media (max-width: 768px) {
+  .pagination {
+    gap: 6px;
+  }
+
+  .paginationButton {
+    width: 32px;
+    height: 38px;
+    font-size: 14px;
+  }
+
+  .paginationButton:first-child,
+  .paginationButton:last-child {
+    width: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pagination {
+    gap: 4px;
+  }
+
+  .paginationButton {
+    width: 28px;
+    height: 34px;
+    font-size: 13px;
+  }
+
+  .paginationButton:first-child,
+  .paginationButton:last-child {
+    width: 28px;
+  }
+}

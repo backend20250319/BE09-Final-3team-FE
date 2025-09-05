@@ -1,0 +1,58 @@
+.mainContent {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .container {
+    padding: 40px 20px;
+  }
+  
+  .mainContent {
+    flex-direction: column;
+    gap: 24px;
+  }
+  
+  .campaignSection,
+  .profileSection {
+    max-width: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 20px 16px;
+  }
+  
+  .title {
+    font-size: 24px;
+  }
+  
+  .petSelector {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .petTab {
+    justify-content: flex-start;
+    border-bottom: none;
+    border-left: 2px solid transparent;
+    padding: 12px 16px;
+  }
+  
+  .petTab.active {
+    border-left-color: #F5A623;
+    border-bottom-color: transparent;
+  }
+  
+  .statsGrid {
+    flex-direction: column;
+  }
+  
+  .detailGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}

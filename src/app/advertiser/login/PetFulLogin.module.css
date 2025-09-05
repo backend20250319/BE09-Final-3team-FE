@@ -1,0 +1,421 @@
+/* Import Pretendard Variable font */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css");
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.loginCard {
+  width: 448px;
+  height: 509px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1);
+  padding: 36px;
+  position: relative;
+}
+
+/* Header Section */
+.header {
+  margin-top: -35px;
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.logoContainer {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.logo {
+  width: 128px;
+  height: 128px;
+  object-fit: cover;
+}
+
+.title {
+  font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont,
+    system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo",
+    "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.43;
+  color: #4b5563;
+  text-align: center;
+  margin: -35;
+}
+
+/* Form Section */
+.form {
+  margin-bottom: 24px;
+}
+
+.fieldGroup {
+  margin-bottom: 24px;
+}
+
+.label {
+  display: block;
+  font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont,
+    system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo",
+    "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.19;
+  color: #594a3e;
+  margin-bottom: 8px;
+}
+
+.input {
+  width: 100%;
+  height: 50px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0 16px;
+  font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont,
+    system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo",
+    "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #000000;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.input::placeholder {
+  color: #adaebc;
+}
+
+.input:focus {
+  border-color: #f5a623;
+}
+
+.input:disabled {
+  background-color: #f9fafb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Password Container */
+.passwordContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 24px;
+}
+
+.eyeIcon {
+  width: 18px;
+  height: 14px;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+  filter: brightness(0.7);
+}
+
+.passwordToggle:hover .eyeIcon {
+  opacity: 1;
+  filter: brightness(1);
+}
+
+.passwordToggle:active .eyeIcon {
+  transform: scale(0.95);
+}
+
+/* Login Button */
+.loginButton {
+  width: 100%;
+  height: 48px;
+  background-color: #f5a623;
+  border: none;
+  border-radius: 9999px;
+  font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont,
+    system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo",
+    "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.19;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.loginButton:hover {
+  background-color: #e0941f;
+}
+
+.loginButton:active {
+  background-color: #d08a1d;
+}
+
+.loginButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Error Message */
+.errorMessage {
+  font-family: "Pretendard Variable";
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.4em;
+  color: #ef4444;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.footer {
+  display: flex;
+  justify-content: center; /* 가운데 정렬 */
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.linkGroup {
+  display: flex;
+  gap: 10px; /* 회원가입 - 비밀번호 찾기 사이 간격 */
+  margin-left: auto; /* 가능한 가장 오른쪽으로 밀기 */
+  margin-right: 110px; /* 🔧 여기서 px 단위로 조정 가능 */
+}
+
+.link {
+  font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont,
+    system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo",
+    "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.43;
+  color: #4b5563;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.link:hover {
+  color: #f5a623;
+}
+
+/* Terms */
+.terms {
+  font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont,
+    system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo",
+    "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 1.33;
+  color: #000000;
+  text-align: center;
+  opacity: 0.7;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .loginCard {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    min-height: 500px;
+    padding: 24px;
+  }
+
+  .container {
+    padding: 16px;
+  }
+
+  .logo {
+    width: 96px;
+    height: 96px;
+  }
+
+  .footer {
+    display: flex; /* ✅ 필수: flex 컨테이너 선언 */
+    flex-direction: column; /* 세로 방향 정렬 */
+    align-items: center; /* 가로 방향 중앙 정렬 */
+    gap: 8px; /* 링크 사이 간격 */
+    margin-top: 16px;
+  }
+}
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.modalContent {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0px 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0px 10px 10px -5px rgba(0, 0, 0, 0.04);
+  width: 90%;
+  max-width: 400px;
+  animation: slideIn 0.3s ease;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 0 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modalTitle {
+  font-family: "Pretendard Variable";
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1.4em;
+  color: #594a3e;
+  margin: 0;
+}
+
+.modalClose {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.modalClose:hover {
+  color: #6b7280;
+}
+
+.modalBody {
+  padding: 20px 24px;
+}
+
+.modalMessage {
+  font-family: "Pretendard Variable";
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5em;
+  color: #4b5563;
+  margin: 0;
+  text-align: center;
+  white-space: pre-line;
+}
+
+.modalFooter {
+  padding: 0 24px 20px 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.modalButton {
+  background: #f5a623;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-family: "Pretendard Variable";
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.5em;
+  padding: 12px 32px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  min-width: 100px;
+}
+
+.modalButton:hover {
+  background: #e0941a;
+}
+
+.modalButton:active {
+  background: #d68a16;
+}
+
+/* Modal Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive Modal */
+@media (max-width: 480px) {
+  .modalContent {
+    width: 95%;
+    margin: 20px;
+  }
+
+  .modalHeader {
+    padding: 16px 20px 0 20px;
+  }
+
+  .modalBody {
+    padding: 16px 20px;
+  }
+
+  .modalFooter {
+    padding: 0 20px 16px 20px;
+  }
+
+  .modalTitle {
+    font-size: 16px;
+  }
+
+  .modalMessage {
+    font-size: 14px;
+  }
+
+  .modalButton {
+    font-size: 14px;
+    padding: 10px 24px;
+  }
+}

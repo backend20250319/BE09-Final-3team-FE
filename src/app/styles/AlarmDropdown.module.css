@@ -1,0 +1,173 @@
+.dropdown {
+  position: absolute;
+  top: 56px;
+  right: 0;
+  width: 500px;
+  background: #fff;
+  border-radius: 25px 25px 25px 25px;
+  box-shadow: 0px 25px 50px 0px rgba(0, 0, 0, 0.25);
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  z-index: 100;
+  animation: dropdownFadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.header {
+  padding: 18px 24px 8px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+}
+.title {
+  font-size: 18px;
+  font-weight: 400;
+  color: #594a3e;
+}
+.list {
+  max-height: 530px;
+  overflow-y: auto;
+  background: #fff;
+}
+.item {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px 24px;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.2s;
+  position: relative;
+}
+.item:last-child {
+  border-bottom: none;
+}
+.item:hover {
+  background: #f9fafb;
+}
+
+/* 읽지 않은 알림 스타일 */
+.item.unread {
+  background: #fef7e0;
+  border-left: 3px solid #f5a623;
+}
+
+.item.unread:hover {
+  background: #fef3c7;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.closeBtn:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.closeBtn img {
+  width: 16px;
+  height: 16px;
+}
+.iconContainer {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+.iconContainer.orange {
+  background: #f5a623;
+}
+.iconContainer.green {
+  background: #8bc34a;
+}
+.iconContainer.red {
+  background: #ff7675;
+}
+.iconContainer.blue {
+  background: #60a5fa;
+}
+.iconContainer.purple {
+  background: #c084fc;
+}
+.icon {
+  width: 24px;
+  height: 24px;
+  filter: brightness(0) invert(1); /* 아이콘을 하얀색으로 변경 */
+}
+.textContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  position: relative;
+}
+.itemTitle {
+  font-size: 15px;
+  font-weight: 500;
+  color: #594a3e;
+}
+.message {
+  font-size: 14px;
+  color: #4b5563;
+  margin-top: 2px;
+}
+.time {
+  position: absolute;
+  bottom: 5px;
+  right: 25px;
+  font-size: 12px;
+  color: #b0b0b0;
+  margin-top: 2px;
+}
+.footer {
+  padding: 12px 24px 18px 24px;
+  background: #fff;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+  height: 48px;
+}
+.viewAllBtn {
+  background: #f5a623;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.viewAllBtn:hover {
+  background: #e5941a;
+}
+.empty {
+  padding: 40px 0;
+  text-align: center;
+  color: #b0b0b0;
+  font-size: 16px;
+}

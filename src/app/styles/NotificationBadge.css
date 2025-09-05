@@ -1,0 +1,27 @@
+/* Notification Badge Styles */
+.notification-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #ef4444;
+  color: white;
+  border-radius: 50%;
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 2px solid white;
+  z-index: 10;
+}
+
+/* 헤더의 알림 아이콘 컨테이너에 relative 포지션 필요 */
+.notification-icon-container {
+  position: relative;
+  display: inline-block;
+}

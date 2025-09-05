@@ -1,0 +1,176 @@
+.commentListSection {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  padding: 25px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 1.4;
+  color: #594a3e;
+}
+
+.filters {
+  display: flex;
+  gap: 16px;
+}
+
+.select {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 11px 12px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #000000;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' stroke='%23333' stroke-width='0' stroke-dasharray='0' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+.select:focus {
+  outline: none;
+  border-color: #f5a623;
+  box-shadow: 0 0 0 2px rgba(245, 166, 35, 0.2);
+}
+
+.searchContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchInput {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 11px 40px 11px 12px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #000000;
+  width: 250px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.searchInput::placeholder {
+  color: #9ca3af;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #f5a623;
+  box-shadow: 0 0 0 2px rgba(245, 166, 35, 0.2);
+}
+
+.searchIcon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  pointer-events: none;
+}
+
+.commentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 48px 16px;
+  color: #6b7280;
+  font-family: "Poppins", sans-serif;
+  font-size: 16px;
+}
+
+.paginationInfo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px 0;
+  border-top: 1px solid #f3f4f6;
+  margin-top: 16px;
+}
+
+.paginationInfo span {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #6b7280;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .commentListSection {
+    padding: 16px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+
+  .filters {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .select {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 14px;
+    padding-right: 32px;
+  }
+
+  .searchContainer {
+    width: 100%;
+  }
+
+  .searchInput {
+    width: 100%;
+    padding: 8px 32px 8px 12px;
+    font-size: 14px;
+  }
+
+  .commentsList {
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .paginationInfo {
+    padding: 12px 0;
+  }
+
+  .paginationInfo span {
+    font-size: 12px;
+  }
+}

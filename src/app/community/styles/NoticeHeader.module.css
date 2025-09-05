@@ -1,0 +1,144 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32px 16px;
+  width: 100%;
+}
+
+.tabContainer {
+  display: flex;
+  align-items: center;
+}
+
+.tabs {
+  display: flex;
+  gap: 16px;
+}
+
+.tab {
+  background: none;
+  border: none;
+  padding: 13px 24px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.19;
+  color: #594a3e;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.tab.active {
+  padding:0px 50px;
+  background: #f5a623;
+  color: #ffffff;
+}
+
+.tab:not(.active):hover {
+  background: rgba(245, 166, 35, 0.1);
+}
+
+.buttonContainer {
+  display: flex;
+  gap: 12px;
+}
+
+
+.myPostsBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 17px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.19;
+  color: #594a3e;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.myPostsBtn:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.myPostsBtn.active {
+  background-color: #7f8c8d;
+  color: white;
+  border-color: #7f8c8d;
+}
+
+.myPostsBtn svg {
+  width: 16px;
+  height: 20px;
+}
+
+.writeBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #8bc34a;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.19;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.writeBtn:hover {
+  background: #7cb342;
+}
+
+.writeBtn svg {
+  width: 12px;
+  height: 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .tabs {
+    justify-content: center;
+  }
+
+  .buttonContainer {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .tabs {
+    gap: 8px;
+  }
+
+  .tab {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  .buttonContainer {
+    flex-direction: column;
+  }
+
+  .myPostsBtn,
+  .writeBtn {
+    width: 100%;
+    justify-content: center;
+  }
+}

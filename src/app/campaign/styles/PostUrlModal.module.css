@@ -1,0 +1,314 @@
+/* Modal Overlay */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+/* Modal Container */
+.modalContainer {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1);
+  width: 600px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header Section */
+.modalHeader {
+  background: #F0F5EC;
+  padding: 24px 32px;
+  border-bottom: 1px solid #E5E7EB;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.headerContent {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+}
+
+.headerIcon {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.iconContainer {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  background: #8BC34A;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.headerText {
+  flex: 1;
+}
+
+.modalTitle {
+  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.19;
+  color: #594A3E;
+  margin: 0 0 8px 0;
+}
+
+.modalSubtitle {
+  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.19;
+  color: #4B5563;
+  margin: 0;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6B7280;
+  transition: background-color 0.2s ease;
+}
+
+.closeButton:hover {
+  background-color: #F3F4F6;
+}
+
+/* Body Section */
+.modalBody {
+  padding: 32px;
+  flex: 1;
+}
+
+.formSection {
+  margin-bottom: 32px;
+}
+
+.formSection:last-of-type {
+  margin-bottom: 0;
+}
+
+/* Form Elements */
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formLabel {
+  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.19;
+  color: #594A3E;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.required {
+  color: #EF4444;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+/* Input Group */
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inputContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.urlInput {
+  width: 100%;
+  height: 50px;
+  padding: 15.5px 13px;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  background: #FFFFFF;
+  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.19;
+  color: #000000;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.urlInput::placeholder {
+  color: #ADAEBC;
+}
+
+.urlInput:focus {
+  border-color: #8BC34A;
+}
+
+.inputIcon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6B7280;
+}
+
+/* Select and Input Styles */
+.select,
+.input {
+  width: 100%;
+  height: 50px;
+  padding: 15.5px 13px;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  background: #FFFFFF;
+  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.19;
+  color: #000000;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.select {
+  cursor: pointer;
+}
+
+.select:focus,
+.input:focus {
+  border-color: #8BC34A;
+}
+
+.select::placeholder,
+.input::placeholder {
+  color: #ADAEBC;
+}
+
+/* Error Message */
+.errorMessage {
+  color: #EF4444;
+  font-size: 14px;
+  padding: 8px 12px;
+  background-color: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 8px;
+  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Action Buttons */
+.modalActions {
+  background: #FFFFFF;
+  padding: 26px 32px;
+  border-top: 1px solid #E5E7EB;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin: 0;
+}
+
+.cancelButton {
+  width: 82px;
+  height: 49px;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.19;
+  color: #4B5563;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.cancelButton:hover {
+  background-color: #F9FAFB;
+}
+
+.submitButton {
+  width: 82px;
+  height: 49px;
+  background: #8BC34A;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.19;
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.submitButton:hover {
+  background-color: #7AB33A;
+}
+
+.submitButton:disabled {
+  background-color: #D1D5DB;
+  cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modalContainer {
+    width: 100%;
+    max-width: 100vw;
+    margin: 20px;
+  }
+  
+  .modalHeader {
+    padding: 20px 24px;
+  }
+  
+  .modalBody {
+    padding: 24px;
+  }
+  
+  .modalActions {
+    padding: 20px 24px;
+    margin: 0;
+  }
+  
+  .headerContent {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .headerText {
+    width: 100%;
+  }
+}

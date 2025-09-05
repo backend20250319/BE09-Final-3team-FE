@@ -1,0 +1,219 @@
+.container {
+  width: 1280px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0 0 12px 12px;
+  padding: 24px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  margin-top: -1px;
+}
+
+/* 처방전 사진 업로드 섹션 */
+.prescriptionSection {
+  margin-bottom: 24px;
+}
+
+.uploadArea {
+  background: #f8f9fa;
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+  position: relative;
+}
+
+.uploadIcon {
+  width: 48px;
+  height: 28px;
+  background: #f5a623;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.uploadText h3 {
+  font-size: 18px;
+  font-weight: 400;
+  color: #594a3e;
+  margin: 0 0 8px 0;
+}
+
+.uploadText p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 16px 0;
+}
+
+.uploadButton {
+  background: #f5a623;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 21px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  display: inline-block;
+}
+
+.uploadButton:hover {
+  background: #e0941a;
+}
+
+/* 복용약 및 영양제 섹션 */
+.medicationSection {
+  margin-bottom: 24px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.sectionHeader h3 {
+  font-size: 20px;
+  font-weight: 400;
+  color: #594a3e;
+  margin: 0;
+}
+
+.addButton {
+  background: #8bc34a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.addButton:hover {
+  background: #7cb342;
+}
+
+.addButton svg {
+  width: 14px;
+  height: 14px;
+}
+
+.medicationList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.medicationCard {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 17px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.medicationCard:hover {
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.medicationInfo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.medicationIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.medicationDetails h4 {
+  font-size: 16px;
+  font-weight: 400;
+  color: #594a3e;
+  margin: 0 0 4px 0;
+}
+
+.medicationDetails p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.scheduleTime {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+.medicationActions {
+  display: flex;
+  gap: 8px;
+}
+
+.actionButton {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.actionButton:hover {
+  background: #f3f4f6;
+}
+
+.actionButton img {
+  width: 20px;
+  height: 20px;
+}
+
+/* 페이징 */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.pageButton {
+  width: 10px;
+  height: 10px;
+  background: #e5e7eb;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.pageButton:hover:not(:disabled) {
+  background: #cbd5e1;
+}
+
+.pageButton.activePage {
+  background: #8bc34a;
+}
+
+.pageButton:disabled {
+  cursor: default;
+  opacity: 0.6;
+}

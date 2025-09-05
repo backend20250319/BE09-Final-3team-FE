@@ -1,0 +1,98 @@
+.formSection {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+}
+
+.label {
+  display: block;
+  font-size: 18px;
+  font-weight: 400;
+  color: #594a3e;
+  margin-bottom: 16px;
+}
+
+.required {
+  color: #ef4444;
+  margin-left: 4px;
+}
+
+.dateSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.dateField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 300px;
+}
+
+.dateLabel {
+  font-size: 15px;
+  font-weight: 400;
+  color: #594a3e;
+}
+
+.dateInputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dateInputs span {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.datePicker {
+  flex: 1;
+  padding: 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 400;
+  color: #594a3e;
+  background: white;
+  cursor: pointer;
+}
+
+.datePicker:focus {
+  outline: none;
+  border-color: #f5a623;
+}
+
+.datePickerContainer {
+  /* DatePicker 컨테이너 스타일 */
+}
+
+@media (max-width: 768px) {
+  .dateSection {
+    grid-template-columns: 1fr;
+  }
+}
+
+.input {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 400;
+  color: #594a3e;
+  background: white;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #f5a623;
+}
+
+.input::placeholder {
+  color: #adaebc;
+}

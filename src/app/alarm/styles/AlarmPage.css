@@ -1,0 +1,342 @@
+/* AlarmPage Styles */
+
+/* Container */
+.petful-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #f0f5ec 0%, #ffffff 100%);
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
+}
+
+/* Notification Card */
+.notification-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0px 10px 15px 0px rgba(0, 0, 0, 0.1),
+    0px 4px 6px 0px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  width: 100%;
+  max-width: 768px;
+}
+
+/* Header */
+.header {
+  padding: 24px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.header-text {
+  flex: 1;
+}
+
+.header-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #594a3e;
+  margin-bottom: 8px;
+  line-height: 1.33;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 16px;
+  font-weight: 400;
+  color: #4b5563;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Notification List */
+.notification-list {
+  background: #ffffff;
+}
+
+/* No Notifications */
+.no-notifications {
+  padding: 40px 20px;
+  text-align: center;
+  color: #b0b0b0;
+  font-size: 16px;
+  background: #ffffff;
+  margin: 0;
+}
+
+/* Notification Item */
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.2s ease;
+}
+
+.notification-item.first-item {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.notification-item:hover {
+  background-color: #f9fafb;
+}
+
+/* 읽지 않은 알림 스타일 */
+.notification-item.unread {
+  background-color: #fef7e0;
+  border-left: 3px solid #f5a623;
+}
+
+.notification-item.unread:hover {
+  background-color: #fef3c7;
+}
+
+.notification-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+}
+
+/* Icon Container */
+.icon-container {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+.icon-container.orange {
+  background-color: #f5a623;
+}
+
+.icon-container.green {
+  background-color: #8bc34a;
+}
+
+.icon-container.red {
+  background-color: #ff7675;
+}
+
+.icon-container.blue {
+  background-color: #60a5fa;
+}
+
+.icon-container.purple {
+  background-color: #c084fc;
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+  filter: brightness(0) invert(1); /* 아이콘을 하얀색으로 변경 */
+}
+
+/* Text Content */
+.text-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: #594a3e;
+  margin-bottom: 4px;
+  line-height: 1.19;
+  margin: 0 0 4px 0;
+}
+
+.notification-message {
+  font-size: 14px;
+  font-weight: 400;
+  color: #4b5563;
+  line-height: 1.19;
+  margin-bottom: 8px;
+  word-wrap: break-word;
+  margin: 0 0 8px 0;
+}
+
+.notification-time {
+  font-size: 12px;
+  font-weight: 400;
+  color: #9ca3af;
+  line-height: 1.19;
+  margin: 0;
+}
+
+/* Close Button */
+.close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  background-color: #f3f4f6;
+}
+
+.close-btn img {
+  width: 9px;
+  height: 9px;
+  opacity: 0.6;
+}
+
+/* Footer */
+.footer {
+  padding: 17px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: center;
+  background: #ffffff;
+}
+
+.more-btn {
+  background: none;
+  border: none;
+  color: #f5a623;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  font-family: inherit;
+}
+
+.more-btn:hover {
+  background-color: #fef7e0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .petful-container {
+    padding: 16px;
+  }
+
+  .notification-card {
+    border-radius: 8px;
+  }
+
+  .header {
+    padding: 20px 16px;
+  }
+
+  .header-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .header-actions {
+    justify-content: center;
+  }
+
+  .notification-item {
+    padding: 16px 20px;
+  }
+
+  .notification-content {
+    gap: 10px;
+  }
+
+  .icon-container {
+    width: 48px;
+    height: 48px;
+  }
+
+  .icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .petful-container {
+    padding: 10px;
+  }
+
+  .notification-card {
+    border-radius: 6px;
+  }
+
+  .header {
+    padding: 16px;
+  }
+
+  .header-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .header-actions {
+    justify-content: center;
+  }
+
+  .notification-item {
+    padding: 14px 18px;
+  }
+
+  .icon-container {
+    width: 44px;
+    height: 44px;
+  }
+
+  .icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .notification-title {
+    font-size: 14px;
+  }
+
+  .notification-message {
+    font-size: 13px;
+  }
+
+  .notification-time {
+    font-size: 11px;
+  }
+}

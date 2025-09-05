@@ -1,0 +1,45 @@
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #594A3E;
+  background-color: transparent;
+  font-size: 16px;
+  font-weight: 400;
+  transition: color 0.2s ease;
+}
+
+.backButton:hover {
+  color: #F5A623;
+}
+
+.backIcon {
+  margin-right: 20px;
+}
+
+.header {
+  margin-top: 30px;
+  margin-bottom: 50px;
+}
+
+.headerContent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.title {
+  font-size: 30px;
+  font-weight: 500;
+  color: #594A3E;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: 16px;
+  font-weight: 400;
+  color: #4B5563;
+  margin: 0;
+  line-height: 1.5;
+}

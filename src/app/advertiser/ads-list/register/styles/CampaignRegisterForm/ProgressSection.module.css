@@ -1,0 +1,54 @@
+.progressHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.progressHeader h3 {
+  font-size: 14px;
+  font-weight: 400;
+  color: #4B5563;
+  margin: 0;
+}
+
+.progressHeader span {
+  font-size: 14px;
+  font-weight: 400;
+  color: #4B5563;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background-color: #E5E7EB;
+  border-radius: 9999px;
+  margin-bottom: 32px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background-color: #F5A623;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+.stepsContainer {
+  display: flex;
+  gap: 117px;
+}
+
+
+/* 반응형 디자인 */
+@media (max-width: 1200px) {
+  .progressSection {
+    width: 100%;
+  }
+
+  .stepsContainer {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+}

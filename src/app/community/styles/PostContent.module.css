@@ -1,0 +1,138 @@
+.container {
+  padding: 32px;
+}
+
+.top{
+  display: flex;
+  justify-content: space-between; /* 양 끝 배치 */
+  align-items: center;
+}
+
+.header {
+  margin-bottom: 32px;
+}
+
+.title {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 1.2;
+  color: #594a3e;
+  margin: 0 0 16px 0;
+  word-wrap: break-word;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.date {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.43;
+  color: #4b5563;
+}
+
+.authorSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.commentCount {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #6b7280;
+}
+
+.commentCount svg {
+  width: 16px;
+  height: 16px;
+}
+
+.count {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.43;
+  color: #6b7280;
+}
+
+.author {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.43;
+  color: #594a3e;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.paragraph {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.625;
+  color: #374151;
+  margin: 0;
+  word-wrap: break-word;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 24px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .content {
+    gap: 20px;
+  }
+
+  .paragraph {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 20px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .meta {
+    gap: 12px;
+  }
+
+  .content {
+    gap: 16px;
+  }
+
+  .paragraph {
+    font-size: 14px;
+  }
+}
+
+.deleteText {
+  color: #f0ad4e;   /* 노란색 */
+  cursor: pointer;
+}
+.deleteText:hover {
+  text-decoration: underline;
+}

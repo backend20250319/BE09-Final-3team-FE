@@ -1,0 +1,30 @@
+.followerGrowthCard {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  padding: 25px;
+  margin-bottom: 32px;
+}
+
+.chartTitle {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1.2;
+  color: #594a3e;
+  margin-bottom: 24px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .followerGrowthCard {
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+
+  .chartTitle {
+    font-size: 16px;
+    margin-bottom: 16px;
+  }
+}

@@ -1,0 +1,343 @@
+.container {
+  margin: 0 auto;
+  background: linear-gradient(90deg, #EFF6FF 0%, #FCFBF8 100%);
+  min-height: 100vh;
+}
+
+/* Navigation */
+.navigation {
+  margin-bottom: 20px;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #594A3E;
+}
+
+.breadcrumbRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #594A3E;
+  background-color: transparent;
+  font-size: 16px;
+  font-weight: 400;
+  transition: color 0.2s ease;
+}
+
+.backButton:hover {
+  color: #F5A623;
+}
+
+.breadcrumbText {
+  gap: 80px;
+  font-weight: 400;
+  line-height: 1.43;
+}
+
+.campaignContainer {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  margin-bottom: 32px;
+}
+
+/* Campaign Header */
+.campaignHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 33px;
+  padding: 33px 33px 0 33px;
+}
+
+.campaignTitle {
+  font-size: 30px;
+  font-weight: 700;
+  color: #594A3E;
+  margin: 0;
+  line-height: 1.19;
+}
+
+.editButton {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: #F5A623;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  color: #FFFFFF;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.editButton:hover {
+  background: #E0941A;
+}
+
+/* Campaign Content */
+.campaignContent {
+  display: flex;
+  gap: 32px;
+  padding: 0 33px 50px 33px;
+}
+
+.campaignImageSection {
+  flex-shrink: 0;
+}
+
+.campaignImage {
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.campaignDetails {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  white-space: pre-wrap;
+}
+
+/* Sections */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #594A3E;
+  margin: 0;
+  line-height: 1.56;
+}
+
+.productDescription {
+  font-size: 16px;
+  font-weight: 400;
+  color: #4B5563;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Mission Section */
+.missionHeader {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.missionTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #594A3E;
+  margin: 0;
+  line-height: 1.56;
+}
+
+.objective {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.missionDescription {
+  font-size: 16px;
+  font-weight: 400;
+  color: #4B5563;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.tasksList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.taskItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 400;
+  color: #374151;
+  line-height: 1.25;
+}
+
+/* Keywords */
+.keywordsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.keyword {
+  background: rgba(245, 166, 35, 0.1);
+  border-radius: 9999px;
+  padding: 5px 12px;
+  font-size: 14px;
+  font-weight: 400;
+  color: #F5A623;
+  line-height: 1.19;
+}
+
+/* Requirements */
+.requirementsList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.requirementItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 400;
+  color: #374151;
+  line-height: 1.25;
+}
+
+/* Product Link */
+.productLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.storeLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #F5A623;
+  font-size: 16px;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.storeLink:hover {
+  color: #E0941A;
+}
+
+/* Stats Section */
+.statsSection {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 32px;
+  padding: 24px;
+  margin-top: 50px;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.statValue {
+  font-size: 24px;
+  font-weight: 700;
+  color: #F5A623;
+  line-height: 1.19;
+}
+
+.statLabel {
+  font-size: 14px;
+  font-weight: 400;
+  color: #6B7280;
+  line-height: 1.19;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .campaignContent {
+    flex-direction: column;
+  }
+  
+  .campaignImageSection {
+    align-self: center;
+  }
+  
+  .statsSection {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px 20px;
+  }
+  
+  .campaignHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .campaignTitle {
+    font-size: 24px;
+  }
+  
+  .statsSection {
+    grid-template-columns: 1fr;
+  }
+  
+  .keywordsList {
+    gap: 6px;
+  }
+  
+  .keyword {
+    font-size: 12px;
+    padding: 4px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 12px 16px;
+  }
+  
+  .campaignTitle {
+    font-size: 20px;
+  }
+  
+  .editButton {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .sectionTitle {
+    font-size: 16px;
+  }
+  
+  .productDescription,
+  .missionDescription {
+    font-size: 14px;
+  }
+}
+

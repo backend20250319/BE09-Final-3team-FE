@@ -10,7 +10,7 @@
 
 .sectionTitle {
   font-size: 30px;
-  font-weight: 400;
+  font-weight: 500;
   line-height: 1.2;
   color: #594a3e;
   text-align: center;
@@ -19,8 +19,21 @@
 .cardsGrid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 24px;
-  padding: 0 16px;
+  gap: 20px;
+  padding: 0 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.cardLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.cardLink:hover {
+  transform: none; /* Link hover effect handled by card */
 }
 
 .card {
@@ -28,19 +41,21 @@
   border: 1px solid #e5e7eb;
   border-top: 4px solid;
   border-radius: 12px;
-  padding: 28px 24px;
+  padding: 20px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1), 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1),
+    0px 2px 4px 0px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  height: 268px;
+  height: 240px;
 }
 
 .card:hover {
   transform: translateY(-4px);
-  box-shadow: 0px 8px 12px 0px rgba(0, 0, 0, 0.15), 0px 4px 8px 0px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 8px 12px 0px rgba(0, 0, 0, 0.15),
+    0px 4px 8px 0px rgba(0, 0, 0, 0.1);
 }
 
 .cardIcon {
@@ -50,6 +65,14 @@
   width: 64px;
   height: 64px;
   margin-bottom: 16px;
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
 }
 
 .cardTitle {
@@ -70,6 +93,7 @@
   flex: 1;
   display: flex;
   align-items: center;
+  white-space: pre-line;
 }
 
 /* Responsive Design */
@@ -78,7 +102,7 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
   }
-  
+
   .card {
     padding: 24px 20px;
     height: auto;
@@ -90,37 +114,37 @@
   .featureCardsSection {
     padding: 40px 0;
   }
-  
+
   .sectionHeader {
     margin-bottom: 40px;
   }
-  
+
   .sectionTitle {
     font-size: 24px;
   }
-  
+
   .cardsGrid {
     grid-template-columns: 1fr;
     gap: 16px;
     padding: 0;
   }
-  
+
   .card {
     padding: 20px 16px;
     min-height: 200px;
   }
-  
+
   .cardIcon {
     width: 48px;
     height: 48px;
     margin-bottom: 12px;
   }
-  
+
   .cardTitle {
     font-size: 18px;
     margin-bottom: 12px;
   }
-  
+
   .cardDescription {
     font-size: 14px;
   }

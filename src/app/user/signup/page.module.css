@@ -1,0 +1,507 @@
+/* Import Pretendard Variable font */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css");
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100%;
+  margin-left: 20px;
+}
+
+.body {
+  width: 1440px;
+  min-height: 1500px;
+  position: relative;
+}
+
+.main {
+  position: absolute;
+  top: 66px;
+  left: -6px;
+  width: 1440px;
+  min-height: 1598px;
+}
+
+.formContainer {
+  position: absolute;
+  top: -3px;
+  left: 387px;
+  width: 600px;
+  min-height: 1400px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0px 10px 15px 0px rgba(0, 0, 0, 0.1),
+    0px 4px 6px 0px rgba(0, 0, 0, 0.1);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  width: 536px;
+  height: 76px;
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.title {
+  font-family: "Pretendard Variable";
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 1.2em;
+  color: #594a3e;
+  margin: 0 0 16px 0;
+  text-align: center;
+}
+
+.subtitle {
+  font-family: "Pretendard Variable";
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5em;
+  color: #4b5563;
+  margin: 0;
+  text-align: center;
+}
+
+.form {
+  width: 536px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.formGroup {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 80px;
+}
+
+.label {
+  font-family: "Pretendard Variable";
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.193359375em;
+  color: #594a3e;
+  margin: 0;
+}
+
+.inputGroup {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.input {
+  flex: 1;
+  width: 536px;
+  height: 50px;
+  padding: 0 16px;
+  box-sizing: border-box;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-family: "Pretendard Variable";
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5em;
+  color: #000000;
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.input::placeholder {
+  color: #adaebc;
+}
+
+.input:focus {
+  border-color: #f5a623;
+}
+
+.verifyButton {
+  width: 148.17px;
+  height: 50px;
+  box-sizing: border-box;
+  background: #f5a623;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-family: "Pretendard Variable";
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.193359375em;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.verifyButton:hover {
+  background: #e0941a;
+}
+
+.verifyButton:active {
+  background: #d68a16;
+}
+
+.birthLabel {
+  margin-bottom: 8px;
+}
+
+.birthInputs {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.birthInputGroup {
+  position: relative;
+  flex: 1;
+}
+
+.birthInput {
+  width: 100%;
+  height: 50px;
+  padding: 0 44px 0 16px; /* 오른쪽 아이콘 자리 확보 */
+  box-sizing: border-box;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-family: "Pretendard Variable";
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5em;
+  color: #000000;
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.2s ease;
+
+  /* 기본 드롭다운 화살표 제거 */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+/* 구형 IE/Edge 기본 화살표 제거 */
+select.birthInput::-ms-expand {
+  display: none;
+}
+
+.birthInput::placeholder {
+  color: #adaebc;
+}
+
+.birthInput:focus {
+  border-color: #f5a623;
+}
+
+.dropdownIcon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 21px;
+  height: 18px;
+  background: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjEiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAyMSAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEwLjUgMTMuNUwxOCA2TDE3LjA3IDUuMDdMMTAuNSAxMS42NEwzLjkzIDUuMDdMMyA2TDEwLjUgMTMuNVoiIGZpbGw9IiM5OTk5OTkiLz4KPC9zdmc+")
+    no-repeat center;
+  background-size: contain;
+  pointer-events: none;
+}
+
+.loginLink {
+  font-family: "Pretendard Variable";
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 1.6666666666666667em;
+  color: #000000;
+  text-align: center;
+  margin-top: 30px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.loginLink:hover {
+  color: #f5a623;
+}
+
+.submitButton {
+  width: 536px;
+  height: 60px;
+  background: #f5a623;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-family: "Pretendard Variable";
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1.193359375em;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 24px;
+  flex-shrink: 0;
+}
+
+.submitButton:hover {
+  background: #e0941a;
+}
+
+.submitButton:active {
+  background: #d68a16;
+}
+
+.errorMessage {
+  font-family: "Pretendard Variable";
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5em;
+  color: #dc2626;
+  margin-top: 4px;
+  margin-left: 4px;
+}
+
+.successMessage {
+  font-family: "Pretendard Variable";
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5em;
+  color: #16a34a;
+  margin-top: 4px;
+  margin-left: 4px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .body {
+    width: 100%;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .main {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+  }
+
+  .formContainer {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    margin: 20px auto;
+    padding: 20px;
+  }
+
+  .header {
+    width: 100%;
+    height: auto;
+  }
+
+  .form {
+    width: 100%;
+    height: auto;
+  }
+
+  .inputGroup {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .verifyButton {
+    width: 100%;
+  }
+
+  .birthInputs {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .birthInputGroup {
+    width: 100%;
+  }
+
+  .submitButton {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .formContainer {
+    padding: 16px;
+    margin: 10px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+}
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.modalContent {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0px 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0px 10px 10px -5px rgba(0, 0, 0, 0.04);
+  width: 90%;
+  max-width: 400px;
+  animation: slideIn 0.3s ease;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 0 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modalTitle {
+  font-family: "Pretendard Variable";
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1.4em;
+  color: #594a3e;
+  margin: 0;
+}
+
+.modalClose {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.modalClose:hover {
+  color: #6b7280;
+}
+
+.modalBody {
+  padding: 20px 24px;
+}
+
+.modalMessage {
+  font-family: "Pretendard Variable";
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5em;
+  color: #4b5563;
+  margin: 0;
+  text-align: center;
+  white-space: pre-line;
+}
+
+.modalFooter {
+  padding: 0 24px 20px 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.modalButton {
+  background: #f5a623;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-family: "Pretendard Variable";
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.5em;
+  padding: 12px 32px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  min-width: 100px;
+}
+
+.modalButton:hover {
+  background: #e0941a;
+}
+
+.modalButton:active {
+  background: #d68a16;
+}
+
+/* Modal Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive Modal */
+@media (max-width: 480px) {
+  .modalContent {
+    width: 95%;
+    margin: 20px;
+  }
+
+  .modalHeader {
+    padding: 16px 20px 0 20px;
+  }
+
+  .modalBody {
+    padding: 16px 20px;
+  }
+
+  .modalFooter {
+    padding: 0 20px 16px 20px;
+  }
+
+  .modalTitle {
+    font-size: 16px;
+  }
+
+  .modalMessage {
+    font-size: 14px;
+  }
+
+  .modalButton {
+    font-size: 14px;
+    padding: 10px 24px;
+  }
+}

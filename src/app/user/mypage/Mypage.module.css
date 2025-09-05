@@ -1,0 +1,1018 @@
+/* 전체 컨테이너 */
+.container {
+  width: 100%;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 전체 바디 */
+.body {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.pageTitle {
+  font-size: 32px;
+  font-weight: 600;
+  color: #594a3e;
+  margin-bottom: 20px;
+  font-family: "Pretendard Variable", sans-serif;
+  text-align: left;
+  align-self: flex-start;
+  margin-left: 130px;
+}
+
+/* 메인 콘텐츠 */
+.main {
+  width: 100%;
+  max-width: 1280px;
+  min-height: calc(100vh - 100px);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+/* 로딩 상태 */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 18px;
+  color: #594a3e;
+  font-family: "Pretendard Variable", sans-serif;
+}
+
+/* 편집 모드 알림 */
+.editModeAlert {
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+  color: #92400e;
+  padding: 12px 24px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 16px;
+  font-weight: 500;
+  font-family: "Pretendard Variable", sans-serif;
+  text-align: center;
+  max-width: 600px;
+  animation: fadeInDown 0.3s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 에러 메시지 */
+.errorMessage {
+  background-color: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-family: "Pretendard Variable", sans-serif;
+  text-align: center;
+  max-width: 600px;
+}
+
+/* 수정하기 버튼 섹션 */
+.editSection {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  padding: 0 80px;
+  margin-top: -50px;
+}
+
+.editToggleButton {
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  font-family: "Pretendard Variable", sans-serif;
+}
+
+.editToggleButton:hover {
+  background-color: #f5f5f5;
+}
+
+/* 프로필 섹션 */
+.profileSection {
+  width: 1020px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1);
+  margin: 55px 80px 0 80px;
+  padding: 32px;
+  box-sizing: border-box;
+}
+
+.profileContent {
+  display: flex;
+  gap: 32px;
+}
+
+/* 프로필 이미지 컨테이너 */
+.profileImageContainer {
+  width: 128px;
+  height: 128px;
+  position: relative;
+}
+
+.profileImage {
+  width: 128px;
+  height: 128px;
+  background: #f3f4f6;
+  border: 4px solid #e5e7eb;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.profileImage:hover {
+  border-color: #6be6bd;
+  transform: scale(1.05);
+}
+
+.imageLoading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  color: #594a3e;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: "Pretendard Variable", sans-serif;
+}
+
+.loadingSpinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e9ecef;
+  border-top: 2px solid #6be6bd;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 8px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.imageOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  font-size: 10px;
+  padding: 4px 8px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  font-family: "Pretendard Variable", sans-serif;
+}
+
+.profileImage:hover .imageOverlay {
+  opacity: 1;
+}
+
+.cameraIcon {
+  position: absolute;
+  bottom: -40px;
+  right: 57px;
+  transform: translate(50%, 50%);
+}
+
+/* 파일 업로드 버튼 */
+.uploadButtonContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+  width: 100%;
+}
+
+.uploadButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #6be6bd;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 140px;
+  justify-content: center;
+}
+
+.uploadButton:hover {
+  background: #5dd4a8;
+  transform: translateY(-1px);
+}
+
+.uploadButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.uploadButton:active {
+  transform: scale(0.98);
+}
+
+/* 프로필 정보 */
+.profileInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* 이름 컨테이너 */
+.nameContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+  width: 100%;
+}
+
+.nameLabel {
+  display: block;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #594a3e;
+}
+
+.nameInputWrapper {
+  width: 100%;
+}
+
+.nameInput {
+  width: 100%;
+  height: 50px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 16px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #adaebc; /* 기본 회색 - 아래에서 검정으로 덮어씀 */
+  box-sizing: border-box;
+}
+
+.nameInput:focus {
+  outline: none;
+  border-color: #6be6bd;
+}
+
+.editButton {
+  width: 35px;
+  height: 35px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 100px;
+  right: 180px;
+}
+.editButton svg {
+  fill: #f5a623;
+}
+
+/* 자기소개 */
+.bioContainer {
+  margin-top: 20px;
+}
+
+.bioLabel {
+  display: block;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #594a3e;
+  margin-bottom: 8px;
+}
+
+.bioTextarea {
+  width: 100%;
+  height: 107px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 13px 10px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #adaebc; /* 기본 회색 - 아래에서 검정으로 덮어씀 */
+  resize: none;
+  box-sizing: border-box;
+}
+
+.bioTextarea:focus {
+  outline: none;
+  border-color: #6be6bd;
+}
+
+/* 주소 컨테이너 */
+.addressContainer {
+  margin-top: 20px;
+}
+
+.addressLabel {
+  display: block;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #594a3e;
+  margin-bottom: 8px;
+}
+
+.addressRow {
+  display: flex;
+  gap: 16px;
+}
+
+.addressInput,
+.detailAddressInput {
+  flex: 1;
+  height: 50px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 16px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #adaebc; /* 기본 회색 - 아래에서 검정으로 덮어씀 */
+  box-sizing: border-box;
+}
+
+.addressInput:focus,
+.detailAddressInput:focus {
+  outline: none;
+  border-color: #6be6bd;
+}
+
+/* 생년월일 */
+.birthContainer {
+  margin-top: 5px;
+}
+
+.birthLabel {
+  display: block;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #594a3e;
+  margin-bottom: 8px;
+}
+
+.birthInput {
+  width: 100%;
+  height: 50px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 16px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #adaebc; /* 기본 회색 - 아래에서 검정으로 덮어씀 */
+  box-sizing: border-box;
+}
+
+.birthInput:focus {
+  outline: none;
+  border-color: #6be6bd;
+}
+
+/* 추가 정보 섹션 */
+.additionalInfoSection {
+  width: 1020px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1);
+  margin: 20px 80px 0 80px;
+  padding: 32px;
+  box-sizing: border-box;
+}
+
+.sectionTitle {
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: #594a3e;
+  margin: 0 0 24px 0;
+  line-height: 1.193;
+}
+
+.formRow {
+  display: flex;
+  gap: 24px;
+}
+
+.formGroup {
+  flex: 1;
+}
+
+.label {
+  display: block;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #594a3e;
+  margin-bottom: 8px;
+}
+
+.input {
+  width: 100%;
+  height: 50px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 16px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #adaebc; /* 기본 회색 - 아래에서 검정으로 덮어씀 */
+  box-sizing: border-box;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #6be6bd;
+}
+
+/* 소셜 미디어 섹션 */
+.socialMediaSection {
+  width: 1020px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1);
+  margin: 20px 80px 0 80px;
+  padding: 32px;
+  box-sizing: border-box;
+}
+
+.socialMediaRow {
+  margin-top: 0;
+}
+
+.instagramContainer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 50px;
+  margin-bottom: 20px;
+}
+
+.instagramIcon {
+  width: 35px;
+  height: 31px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.instagramInput {
+  flex: 1;
+  height: 37px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 16px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #adaebc; /* 기본 회색 - 아래에서 검정으로 덮어씀 */
+  box-sizing: border-box;
+}
+
+.instagramInput:focus {
+  outline: none;
+  border-color: #6be6bd;
+}
+
+.connectButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  background: #6be6bd;
+  border: none;
+  border-radius: 8px;
+  padding: 0 32px;
+  cursor: pointer;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 17px;
+  font-weight: 400;
+  color: #ffffff;
+  line-height: 1.193;
+}
+
+.connectButton:hover {
+  background: #5dd4a8;
+}
+
+.connectButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.connectIcon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 인스타그램 정보 표시 */
+.instagramInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.instagramLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #594a3e;
+}
+
+.instagramValue {
+  font-size: 16px;
+  color: #adaebc;
+  font-weight: 400;
+}
+
+/* 연결된 프로필 리스트 */
+.connectedProfilesContainer {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.connectedProfilesTitle {
+  font-size: 16px;
+  font-weight: 500;
+  color: #594a3e;
+  margin-bottom: 16px;
+}
+
+.connectedProfilesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.connectedProfileItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.profileAvatar {
+  flex-shrink: 0;
+}
+
+.avatarImage {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profileInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profileName {
+  font-size: 16px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.profileUsername {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.profileStats {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.profileStatus {
+  flex-shrink: 0;
+}
+
+.connectedBadge {
+  display: inline-flex;
+  align-items: center;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+/* 에러 및 성공 메시지 스타일 */
+.errorMessage {
+  margin: 20px 80px 0 80px;
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.successMessage {
+  margin: 20px 80px 0 80px;
+  padding: 12px 16px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  color: #16a34a;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+/* 버튼 섹션 */
+.buttonSection {
+  display: flex;
+  gap: 36px;
+  justify-content: center;
+  margin-top: 20px;
+  padding: 0 80px;
+}
+
+.saveButton {
+  width: 107px;
+  height: 48px;
+  background: #f5a623;
+  border: none;
+  border-radius: 8px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #ffffff;
+  cursor: pointer;
+  line-height: 1.193;
+}
+
+.saveButton:hover {
+  background: #e0941a;
+}
+
+.cancelButton {
+  width: 96px;
+  height: 48px;
+  background: #e5e7eb;
+  border: none;
+  border-radius: 8px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #594a3e;
+  cursor: pointer;
+  line-height: 1.193;
+}
+
+.cancelButton:hover {
+  background: #d1d5db;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1440px) {
+  .body {
+    width: 100%;
+    max-width: 100%;
+  }
+  .profileSection,
+  .additionalInfoSection,
+  .socialMediaSection {
+    width: calc(100% - 160px);
+    margin-left: 80px;
+    margin-right: 80px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+  .body {
+    height: auto;
+    min-height: 100vh;
+  }
+  .main {
+    height: auto;
+  }
+  .profileSection,
+  .additionalInfoSection,
+  .socialMediaSection {
+    width: calc(100% - 40px);
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+  .profileContent {
+    flex-direction: column;
+    align-items: center;
+  }
+  .formRow {
+    flex-direction: column;
+  }
+  .addressRow {
+    flex-direction: column;
+  }
+  .instagramContainer {
+    flex-direction: column;
+    height: auto;
+    gap: 12px;
+  }
+  .buttonSection {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+}
+
+/* ===== Placeholder & 입력값 색상 통일 (전역 적용) ===== */
+.input::placeholder,
+.textarea::placeholder,
+.nameInput::placeholder,
+.bioTextarea::placeholder,
+.birthInput::placeholder,
+.addressInput::placeholder,
+.detailAddressInput::placeholder,
+.instagramInput::placeholder {
+  color: #9ca3af; /* placeholder 회색 통일 */
+}
+
+/* 입력값은 항상 검정 */
+.input,
+.textarea {
+  color: #000;
+}
+
+/* readOnly일 때도 검정 유지 (브라우저 기본 흐림 제거) */
+.input:read-only,
+.textarea:read-only {
+  color: #000;
+  opacity: 1;
+  -webkit-text-fill-color: #000; /* Safari/Chrome autofill 대응 */
+}
+
+/* 자동완성된 값도 검정으로 */
+.input:-webkit-autofill,
+.textarea:-webkit-autofill {
+  -webkit-text-fill-color: #000 !important;
+  box-shadow: 0 0 0 1000px #fff inset !important;
+}
+
+/* 기존에 회색으로 지정된 클래스들 덮어쓰기 */
+.nameInput,
+.bioTextarea,
+.birthInput,
+.addressInput,
+.detailAddressInput,
+.input,
+.instagramInput {
+  color: #000 !important; /* 검정으로 강제 */
+}
+
+/* 버튼 비활성화 상태 */
+.saveButton:disabled,
+.cancelButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #9ca3af;
+}
+
+.saveButton:disabled:hover,
+.cancelButton:disabled:hover {
+  background-color: #9ca3af;
+  transform: none;
+}
+
+/* ===== 모달 스타일 ===== */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.15);
+  width: 400px;
+  max-width: 90vw;
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modalHeader {
+  padding: 24px 24px 16px 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modalHeader h3 {
+  margin: 0;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: #594a3e;
+  text-align: center;
+}
+
+.modalBody {
+  padding: 20px 24px;
+}
+
+.modalBody p {
+  margin: 0;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #594a3e;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.modalFooter {
+  padding: 16px 24px 24px 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.modalButton {
+  width: 120px;
+  height: 44px;
+  background: #f5a623;
+  border: none;
+  border-radius: 8px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.modalButton:hover {
+  background: #e0941a;
+}
+
+.modalButton:active {
+  transform: scale(0.98);
+}
+
+/* 로딩 스피너 스타일 */
+.loadingSpinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.loadingSpinner p {
+  margin: 0;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #594a3e;
+  text-align: center;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #f5a623;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* 회원탈퇴 버튼 컨테이너 */
+.withdrawButtonContainer {
+  display: flex;
+  justify-content: flex-end;
+  width: 1020px;
+  margin: 20px 80px 0 80px;
+  padding: 0;
+}
+
+/* 회원탈퇴 버튼 */
+.withdrawButton {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+  transition: all 0.3s ease;
+  font-family: "Pretendard Variable", sans-serif;
+}
+
+.withdrawButton:hover {
+  background-color: #c0392b;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(231, 76, 60, 0.4);
+}
+
+.withdrawButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+}

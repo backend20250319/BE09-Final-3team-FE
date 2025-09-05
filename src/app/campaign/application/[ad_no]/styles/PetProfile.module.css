@@ -1,0 +1,337 @@
+/* Profile Section */
+.profileSection {
+  flex: 1;
+  max-width: 800px;
+}
+
+.petSelector {
+  display: flex;
+  border-bottom: 1px solid #E5E7EB;
+  margin-bottom: 20px;
+}
+
+.petTab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 400;
+  color: #4B5563;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.petTab.active {
+  color: #F5A623;
+  border-bottom-color: #F5A623;
+  font-weight: 500;
+}
+
+.petImage {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.petProfileCard {
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  padding: 27px;
+  margin-bottom: 24px;
+}
+
+.petHeader {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 25px;
+}
+
+.petImageContainer {
+  width: 128px;
+  height: 128px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.petProfileImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.petAvatarPlaceholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px dashed rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  font-weight: bold;
+  background: #f3f4f6;
+  border: 2px dashed #d1d5db;
+  color: #6b7280;
+}
+
+.petInfo {
+  display: flex;
+  flex-direction: column; 
+  gap: 12px;  
+  align-items: flex-start;
+}
+
+.petDetail {
+  display: flex;
+  flex-direction: row; 
+  align-items: center;
+  gap: 16px;
+}
+
+.petName {
+  font-size: 24px;
+  font-weight: 500;
+  color: #594A3E;
+  margin: 0;
+  line-height: 1.33;
+}
+
+.instagramSection {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.instagramHandle {
+  font-size: 14px;
+  font-weight: 400;
+  color: #4B5563;
+  line-height: 1.43;
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 40px;
+}
+
+.detailItem {
+  display: flex;
+  gap: 8px;
+}
+
+.detailLabel {
+  font-size: 14px;
+  font-weight: 400;
+  color: #6B7280;
+  line-height: 1.43;
+  min-width: 50px;
+}
+
+.detailValue {
+  font-size: 14px;
+  font-weight: 400;
+  color: #374151;
+  line-height: 1.43;
+}
+
+.petDescription {
+  margin-bottom: 25px;
+}
+
+.descriptionTitle {
+  font-size: 18px;
+  font-weight: 500;
+  color: #594A3E;
+  margin: 0 0 16px 0;
+  line-height: 1.56;
+}
+
+.descriptionText {
+  font-size: 16px;
+  font-weight: 400;
+  color: #4B5563;
+  line-height: 1.63;
+  margin: 0;
+}
+
+.petPersonality {
+  margin-bottom: 25px;
+}
+
+.personalityTitle {
+  font-size: 18px;
+  font-weight: 500;
+  color: #594A3E;
+  margin: 0 0 16px 0;
+  line-height: 1.56;
+}
+
+.personalityText {
+  font-size: 16px;
+  font-weight: 400;
+  color: #4B5563;
+  line-height: 1.63;
+  margin: 0;
+}
+
+.statsGrid {
+  display: flex;
+  gap: 7px;
+  margin-bottom: 25px;
+}
+
+.statCard {
+  flex: 1;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F9FAFB 100%);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.statValue {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1F2937;
+  line-height: 1.19;
+  margin-bottom: 8px;
+}
+
+.statLabel {
+  font-size: 14px;
+  font-weight: 400;
+  color: #4B5563;
+  line-height: 1.19;
+}
+
+.ownerInfo {
+  margin-bottom: 25px;
+}
+
+.ownerTitle {
+  font-size: 18px;
+  font-weight: 500;
+  color: #594A3E;
+  margin: 0 0 16px 0;
+  line-height: 1.56;
+}
+
+.ownerProfile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.ownerImage {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.ownerDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ownerName {
+  font-size: 16px;
+  font-weight: 500;
+  color: #594A3E;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.ownerIntro {
+  font-size: 14px;
+  font-weight: 400;
+  color: #4B5563;
+  margin: 0;
+  line-height: 1.43;
+}
+
+.ownerContact {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+}
+
+.contactItem {
+  display: flex;
+  gap: 8px;
+}
+
+.contactLabel {
+  font-size: 14px;
+  font-weight: 400;
+  color: #6B7280;
+  line-height: 1.43;
+  min-width: 60px;
+}
+
+.contactValue {
+  font-size: 14px;
+  font-weight: 400;
+  color: #374151;
+  line-height: 1.43;
+}
+
+/* Activity History */
+.activityContent {
+  margin-bottom: 30px;
+}
+
+.activityTitle {
+  font-size: 18px;
+  font-weight: 500;
+  color: #594A3E;
+  margin: 0 0 16px 0;
+  line-height: 1.56;
+}
+
+.activityInfo {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.activityPeriod {
+  font-size: 14px;
+  font-weight: 400;
+  color: #4B5563;
+  line-height: 1.43;
+}
+
+.activityInput {
+  font-size: 14px;
+  font-weight: 400;
+  color: #4B5563;
+  line-height: 1.43;
+}
+
+.loadingHistoryMessage {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6B7280;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.noActivityMessage {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6B7280;
+  font-size: 16px;
+  font-weight: 400;
+}

@@ -1,0 +1,589 @@
+/* Activity Section */
+.activitySection {
+  width: 1280px;
+  min-height: 883px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0 0 12px 12px;
+  margin-top: -2px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+/* 저장 완료 후 activitySection 높이 조정 */
+.activitySection.saved {
+  min-height: 700px;
+}
+
+/* Activity Content */
+.activityContent {
+  padding: 30px;
+  min-height: 822px;
+}
+
+.activityGrid {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+/* Left and Right Columns */
+.leftColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.leftColumn .activityCard {
+  min-height: 346px;
+}
+
+.rightColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Activity Cards */
+.activityCard {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 21px;
+  min-height: 162px;
+  transition: all 0.3s ease;
+}
+
+.activityCard.walking {
+  background: #f0f5ec;
+}
+
+.activityCard.feeding {
+  background: #fff3e0;
+  min-height: 347px;
+}
+
+.activityCard.sleep {
+  background: #e8def8;
+}
+
+.activityCard.weight {
+  background: #fffadd;
+}
+
+.activityCard.bathroom {
+  background: #fff0f5;
+}
+
+.activityCard.notes {
+  background: #f0f8ff;
+  min-height: 175px;
+  padding: 21px 21px 0 21px;
+}
+
+.activityHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.activityIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 25px;
+  height: 18px;
+}
+
+.smallIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.activityHeader h3 {
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1.19em;
+  color: #594a3e;
+  margin: 0;
+}
+
+.infoButton {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  background: #fff;
+  color: #666;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 20px;
+}
+
+.infoButton:hover {
+  background: #fafafa;
+}
+
+.infoDropdown {
+  position: absolute;
+  margin-top: 90px;
+  margin-left: 80px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #374151;
+  z-index: 5;
+}
+
+/* Form Styles */
+.activityForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.activityCard.notes .formGroup {
+  gap: 2;
+}
+
+.formGroup label {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.19em;
+  color: #374151;
+}
+
+.formGroup input,
+.formGroup textarea {
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5em;
+  background: #ffffff;
+  color: #adaebc;
+  transition: all 0.3s ease;
+  resize: none;
+  overflow-y: auto;
+}
+
+/* Unify react-select height and spacing with inputs */
+.formGroup :global(.react-select__control) {
+  min-height: 50px;
+  height: 50px;
+  border-radius: 8px;
+}
+.formGroup :global(.react-select__value-container) {
+  padding: 0 12px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+}
+.formGroup :global(.react-select__indicators) {
+  height: 50px;
+  display: flex;
+  align-items: center;
+}
+.formGroup :global(.react-select__input-container) {
+  margin: 0;
+  padding: 0;
+}
+
+.formGroup input:focus,
+.formGroup textarea:focus {
+  outline: none;
+  color: #374151;
+}
+
+.formGroup textarea {
+  resize: none;
+  min-height: 74px;
+}
+
+.walking input:focus,
+.walking textarea:focus {
+  border-color: #8bc34a;
+  box-shadow: 0 0 0 3px rgba(139, 195, 74, 0.1);
+}
+
+.weight input:focus,
+.weight textarea:focus {
+  border-color: #ffe96b;
+  box-shadow: 0 0 0 3px rgba(255, 233, 107, 0.3);
+}
+
+.notesTextarea {
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  min-height: 104px; /* 83px에서 104px로 변경하여 다른 textarea와 일치 */
+  border-radius: 8px;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5em;
+  background: #ffffff;
+  color: #374151;
+  resize: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  font-family: "Pretendard Variable", sans-serif;
+}
+
+.notesTextarea::placeholder {
+  color: #94a3b8;
+}
+
+.notesTextarea:focus {
+  border-color: #4eadff;
+  box-shadow: 0 0 0 2px rgba(78, 173, 255, 0.2);
+  outline: none;
+}
+
+/* 글자수 제한 표시 */
+.characterCount {
+  text-align: right;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+/* 유효성 검사 오류 스타일 */
+.errorLabel {
+  color: #dc2626 !important;
+}
+
+.errorInput {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+.errorInput:focus {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2) !important;
+}
+
+.errorSelect :global(.react-select__control) {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+.errorSelect :global(.react-select__control):focus {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2) !important;
+}
+
+.bathroom input:focus,
+.bathroom textarea:focus {
+  border-color: #ff8cb2;
+  box-shadow: 0 0 0 3px rgba(255, 240, 245, 0.4);
+}
+
+.sleep input:focus,
+.sleep textarea:focus {
+  border-color: #b282ff;
+  box-shadow: 0 0 0 3px rgba(232, 222, 248, 0.3);
+}
+
+.feeding input:focus,
+.feeding textarea:focus {
+  border-color: #fad291;
+  box-shadow: 0 0 0 3px rgba(255, 243, 224, 0.3);
+}
+
+/* Meals list */
+
+.headerRight {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.addMealButton {
+  background: #ffb339;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.addMealButton:hover {
+  background: #e09417;
+}
+
+.mealList {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mealItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.mealSummary {
+  display: flex;
+  gap: 12px;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.removeMealButton {
+  background: transparent;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.removeMealButton:hover {
+  background: rgba(239, 68, 68, 0.06);
+}
+
+/* Calorie Info */
+.calorieInfo {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.calorieItem {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  flex: 1;
+  text-align: center;
+}
+
+.calorieItem p:first-child {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.19em;
+  color: #4b5563;
+  margin: 0 0 8px 0;
+}
+
+.calorieValue {
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1.19em;
+  color: #8bc34a;
+  margin: 0;
+}
+
+.feeding .calorieValue {
+  color: #f5a623;
+}
+
+/* Bathroom Inputs */
+.bathroomInputs {
+  display: flex;
+  gap: 16px;
+}
+
+.bathroomInputs .formGroup {
+  flex: 1;
+}
+
+/* Weight Card Special Styling */
+.activityCard.weight .activityForm {
+  margin-top: 22px;
+}
+
+.activityCard.weight .formGroup {
+  margin-top: 0px;
+}
+
+.horizontalInputs {
+  display: flex;
+  gap: 20px;
+}
+
+.horizontalInputs .formGroup {
+  flex: 1;
+}
+
+/* Save Section */
+.saveSection {
+  display: flex;
+  justify-content: flex-end;
+  padding-bottom: 6px;
+  min-height: 48px;
+}
+
+.saveButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #8bc34a;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 27px;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.19em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 127px;
+  height: 48px;
+  justify-content: center;
+}
+
+.saveButton:hover {
+  background: #7cb342;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 195, 74, 0.3);
+}
+
+.saveButton img {
+  width: 25px;
+  height: 25px;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.overlayMessage {
+  position: relative;
+  background-color: #d4edda;
+  color: #155724;
+  padding: 30px 50px;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  font-weight: 700;
+  font-size: 20px;
+  text-align: center;
+  user-select: none;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  padding: 0;
+}
+
+.closeButton img {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+/* Responsive Design */
+@media (max-width: 1440px) {
+  .container,
+  .body,
+  .main {
+    width: 100%;
+    max-width: 1440px;
+    min-height: auto;
+  }
+
+  .content {
+    width: 100%;
+    max-width: 1280px;
+    margin: 32px auto;
+    min-height: auto;
+  }
+
+  .header,
+  .activitySection {
+    width: 100%;
+    min-height: auto;
+  }
+}
+
+@media (max-width: 1200px) {
+  .activityGrid {
+    flex-direction: column;
+    max-width: 800px;
+    margin: 0 auto 32px auto;
+  }
+
+  .content {
+    margin: 32px 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .content {
+    margin: 32px 20px;
+  }
+
+  .calorieInfo {
+    flex-direction: column;
+  }
+
+  .bathroomInputs {
+    flex-direction: column;
+  }
+
+  .tabNavigation {
+    flex-direction: column;
+  }
+
+  .tab {
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+  }
+
+  .activityCard {
+    padding: 16px;
+  }
+
+  .navTab {
+    padding: 14px 16px;
+    font-size: 14px;
+    min-width: auto;
+  }
+
+  .content {
+    margin: 32px 10px;
+  }
+}

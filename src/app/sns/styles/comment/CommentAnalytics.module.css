@@ -1,0 +1,262 @@
+.analyticsSection {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  padding: 25px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 1.33;
+  color: #594a3e;
+}
+
+.autoManage {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.autoManageContent {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.autoManageLabel {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.43;
+  color: #4b5563;
+}
+
+.infoIcon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: help;
+  color: #f5a623;
+  transition: color 0.2s ease;
+}
+
+.infoIcon:hover {
+  color: #e6941c;
+}
+
+.tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  background: #374151;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 400;
+  border-radius: 6px;
+  white-space: nowrap;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: #374151;
+}
+
+.toggle {
+  width: 44px;
+  height: 24px;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 9999px;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.toggle.enabled {
+  background: #f5a623;
+}
+
+.toggleSwitch {
+  width: 16px;
+  height: 16px;
+  background: #ffffff;
+  border-radius: 50%;
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  transition: transform 0.2s ease;
+}
+
+.toggle.enabled .toggleSwitch {
+  transform: translateX(20px);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .analyticsSection {
+    padding: 16px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .autoManage {
+    gap: 8px;
+  }
+
+  .autoManageLabel {
+    font-size: 12px;
+  }
+}
+
+/* 모달 스타일 */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  width: 400px;
+  max-width: 90vw;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.modalTitle {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  color: #594a3e;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.confirmMessage {
+  font-family: "Poppins", sans-serif;
+  font-size: 14px;
+  color: #4b5563;
+  text-align: center;
+  margin-bottom: 24px;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.modalButtons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.cancelButton {
+  padding: 10px 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #6b7280;
+  font-family: "Poppins", sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.confirmButton {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #f5a623;
+  color: #ffffff;
+  font-family: "Poppins", sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.confirmButton:hover {
+  background: #e6941f;
+}
+
+/* 반응형 모달 */
+@media (max-width: 768px) {
+  .modalContent {
+    width: 320px;
+    padding: 20px;
+  }
+
+  .modalTitle {
+    font-size: 16px;
+  }
+
+  .modalButtons {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .cancelButton,
+  .confirmButton {
+    padding: 12px;
+    font-size: 14px;
+  }
+}

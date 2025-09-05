@@ -1,0 +1,92 @@
+.cta {
+  background: #8d7b75;
+  padding: 64px 0;
+  padding-bottom: 100px;
+}
+
+.container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 80px;
+  text-align: center;
+}
+
+.title {
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1.2em;
+  color: white;
+  margin-bottom: 24px;
+}
+
+.subtitle {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.56em;
+  color: white;
+  margin-bottom: 52px;
+  max-width: 708px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+}
+
+.signUpButton {
+  background: #f5a623;
+  color: white;
+  border: none;
+  border-radius: 9999px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.19;
+  padding: 16px 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 160px;
+}
+
+.signUpButton:hover {
+  background: #e6951f;
+  transform: translateY(-2px);
+  box-shadow: 0px 10px 15px 0px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 1024px) {
+  .container {
+    padding: 0 40px;
+  }
+
+  .title {
+    font-size: 26px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 20px;
+  }
+
+  .title {
+    font-size: 22px;
+    margin-bottom: 16px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 32px;
+  }
+
+  .signUpButton {
+    font-size: 14px;
+    padding: 12px 20px;
+  }
+}

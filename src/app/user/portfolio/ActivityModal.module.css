@@ -1,0 +1,882 @@
+/* 모달 오버레이 */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* 모달 컨테이너 */
+.modalContainer {
+  width: 90vw;
+  max-width: 800px;
+  height: 90vh;
+  max-height: 900px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 헤더 */
+.modalHeader {
+  width: 100%;
+  height: 80px;
+  background: #f0f5ec;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.headerIcon {
+  width: 40px;
+  height: 40px;
+  background: #8bc34a;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.modalTitle {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  color: #594a3e;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.modalSubtitle {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.closeButton {
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.closeButton:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* 이미지 업로드 섹션 */
+.imageUploadSection {
+  padding: 16px 24px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* 업로드 영역 */
+.uploadArea {
+  width: 100%;
+  height: 120px;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  background: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.uploadArea:hover {
+  border-color: #8bc34a;
+  background: #f0f5ec;
+}
+
+.uploadIcon {
+  margin-bottom: 8px;
+}
+
+.uploadText {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #374151;
+  text-align: center;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* 이미지 미리보기 그리드 */
+.imagePreviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.imagePreview {
+  position: relative;
+  width: 70px;
+  height: 70px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.previewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.removeImageButton {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  transition: background 0.2s ease;
+}
+
+.removeImageButton:hover {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+/* 이미지 추가 버튼 */
+.addImageButton {
+  width: 70px;
+  height: 70px;
+  border: 2px dashed #d1d5db;
+  border-radius: 6px;
+  background: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addImageButton:hover {
+  border-color: #8bc34a;
+  background: #f0f5ec;
+}
+
+.addImageIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.addImageText {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 11px;
+  color: #6b7280;
+  line-height: 1;
+}
+
+/* 폼 섹션 */
+.formSection {
+  padding: 0 24px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.formLabel {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.2;
+  text-align: left;
+  width: 100%;
+  margin: 0;
+}
+
+.formInput {
+  width: 100%;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #374151;
+  background: #ffffff;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: #8bc34a;
+  box-shadow: 0 0 0 2px rgba(139, 195, 74, 0.1);
+}
+
+.formInput::placeholder {
+  color: #9ca3af;
+}
+
+.formTextarea {
+  width: 100%;
+  height: 60px;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #374151;
+  background: #ffffff;
+  resize: none;
+  box-sizing: border-box;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.formTextarea[name="detailedContent"] {
+  height: 80px;
+}
+
+.formTextarea:focus {
+  outline: none;
+  border-color: #8bc34a;
+  box-shadow: 0 0 0 2px rgba(139, 195, 74, 0.1);
+}
+
+.formTextarea::placeholder {
+  color: #9ca3af;
+}
+
+/* 버튼 섹션 */
+.buttonSection {
+  padding: 16px 24px 20px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-shrink: 0;
+  border-top: 1px solid #f3f4f6;
+}
+
+.editButton {
+  width: 120px;
+  height: 40px;
+  background: #8bc34a;
+  border: none;
+  border-radius: 20px;
+  color: #ffffff;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.editButton:hover {
+  background: #7cb342;
+  transform: translateY(-1px);
+}
+
+.deleteButton {
+  width: 100px;
+  height: 40px;
+  background: #ef4444;
+  border: none;
+  border-radius: 20px;
+  color: #ffffff;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.deleteButton:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+/* 임시저장 버튼 */
+.tempSaveButton {
+  width: 100px;
+  height: 40px;
+  background: #6b7280;
+  border: none;
+  border-radius: 20px;
+  color: #ffffff;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.tempSaveButton:hover {
+  background: #4b5563;
+  transform: translateY(-1px);
+}
+
+/* 알림 모달 */
+.alertModal {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.15);
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.alertContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.alertIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.successIcon {
+  background: #10b981;
+}
+
+.warningIcon {
+  background: #f59e0b;
+}
+
+.errorIcon {
+  background: #ef4444;
+}
+
+.questionIcon {
+  background: #3b82f6;
+}
+
+.alertTitle {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  color: #374151;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.alertButton {
+  width: 120px;
+  height: 40px;
+  background: #8bc34a;
+  border: none;
+  border-radius: 20px;
+  color: #ffffff;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.alertButton:hover {
+  background: #7cb342;
+  transform: translateY(-1px);
+}
+
+.confirmButtons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.confirmButton {
+  width: 100px;
+  height: 40px;
+  background: #8bc34a;
+  border: none;
+  border-radius: 20px;
+  color: #ffffff;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.confirmButton:hover {
+  background: #7cb342;
+  transform: translateY(-1px);
+}
+
+.cancelButton {
+  width: 100px;
+  height: 40px;
+  background: #6b7280;
+  border: none;
+  border-radius: 20px;
+  color: #ffffff;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover {
+  background: #4b5563;
+  transform: translateY(-1px);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 900px) {
+  .modalContainer {
+    width: 95%;
+    max-width: 700px;
+    height: 95vh;
+    max-height: 95vh;
+    overflow-y: auto;
+  }
+
+  .uploadArea {
+    width: 100%;
+    height: 120px;
+  }
+
+  .formInput,
+  .formTextarea {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .modalContainer {
+    width: 95%;
+    margin: 20px;
+    height: auto;
+    max-height: 95vh;
+  }
+
+  .modalHeader {
+    padding: 16px 20px;
+    height: 70px;
+  }
+
+  .headerLeft {
+    gap: 10px;
+  }
+
+  .headerIcon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .modalTitle {
+    font-size: 16px;
+  }
+
+  .modalSubtitle {
+    font-size: 11px;
+  }
+
+  .imageUploadSection {
+    padding: 20px;
+  }
+
+  .uploadArea {
+    height: 100px;
+  }
+
+  .formSection {
+    padding: 0 20px 20px;
+  }
+
+  .buttonSection {
+    padding: 12px 20px 16px;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .editButton,
+  .deleteButton {
+    width: 100%;
+    height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modalContainer {
+    width: 98%;
+    margin: 10px;
+    height: auto;
+    max-height: 98vh;
+  }
+
+  .modalHeader {
+    padding: 12px 16px;
+    height: 60px;
+  }
+
+  .headerIcon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .modalTitle {
+    font-size: 15px;
+  }
+
+  .modalSubtitle {
+    font-size: 10px;
+  }
+
+  .imageUploadSection {
+    padding: 16px;
+  }
+
+  .uploadArea {
+    height: 80px;
+  }
+
+  .uploadText {
+    font-size: 12px;
+  }
+
+  .formSection {
+    padding: 0 16px 16px;
+  }
+
+  .formLabel {
+    font-size: 12px;
+  }
+
+  .formInput {
+    height: 32px;
+    font-size: 13px;
+  }
+
+  .formTextarea {
+    height: 60px;
+    font-size: 13px;
+  }
+
+  .formTextarea[name="detailedContent"] {
+    height: 80px;
+  }
+
+  .buttonSection {
+    padding: 10px 16px 12px;
+  }
+
+  .editButton,
+  .deleteButton {
+    height: 40px;
+    font-size: 13px;
+  }
+}
+
+/* 날짜 입력 그룹 */
+.dateInputGroup {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  width: 100%;
+}
+
+.dateInputContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dateLabel {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.dateInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.dateInput {
+  width: 100%;
+  height: 40px;
+  padding: 0 40px 0 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #374151;
+  background: #ffffff;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.dateInput:focus {
+  border-color: #f5a623;
+}
+
+.dateInput::placeholder {
+  color: #9ca3af;
+}
+
+.calendarButton {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.calendarButton:hover {
+  background-color: #f3f4f6;
+}
+
+.dateSeparator {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  color: #6b7280;
+  margin-bottom: 4px;
+  padding: 0 4px;
+}
+
+/* 캘린더 오버레이 */
+.calendarOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.calendar {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  padding: 16px;
+  min-width: 280px;
+}
+
+.calendarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.calendarNavButton {
+  background: none;
+  border: none;
+  font-size: 18px;
+  font-weight: bold;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.calendarNavButton:hover {
+  background-color: #f3f4f6;
+}
+
+.calendarTitle {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  color: #374151;
+}
+
+.calendarGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.calendarWeekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendarWeekday {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.calendarDays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendarDay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  border: none;
+  background: none;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.calendarDay:hover:not(:disabled) {
+  background-color: #f3f4f6;
+}
+
+.calendarDay.otherMonth {
+  color: #d1d5db;
+  cursor: not-allowed;
+}
+
+.calendarDay.selected {
+  background-color: #f5a623;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.calendarDay.today {
+  background-color: #fef3c7;
+  color: #92400e;
+  font-weight: 500;
+}
+
+.calendarDay.selected.today {
+  background-color: #f5a623;
+  color: #ffffff;
+}
+
+.calendarDay.disabled {
+  color: #d1d5db;
+  cursor: not-allowed;
+  background-color: #f9fafb;
+}
+
+.calendarDay.disabled:hover {
+  background-color: #f9fafb;
+}
