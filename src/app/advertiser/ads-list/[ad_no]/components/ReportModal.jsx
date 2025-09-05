@@ -13,6 +13,9 @@ export default function ReportModal({
 }) {
   const [reportReason, setReportReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("info");
 
   if (!isOpen) return null;
 
@@ -34,7 +37,11 @@ export default function ReportModal({
       handleCancel();
     } catch (error) {
       console.error("신고 제출 실패:", error);
-      alert(error?.response?.data?.message || "신고 제출에 실패했습니다.");
+      setAlertMessage(
+        error?.response?.data?.message || "신고 제출에 실패했습니다."
+      );
+      setAlertType("error");
+      setShowAlertModal(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -134,6 +141,16 @@ export default function ReportModal({
           </div>
         </div>
       </div>
+
+      {/* 알림 모달 */}
+      <AlertModal
+        isOpen={showAlertModal}
+        onClose={() => setShowAlertModal(false)}
+        title="알림"
+        message={alertMessage}
+        type={alertType}
+        confirmText="확인"
+      />
     </div>
   );
 }
