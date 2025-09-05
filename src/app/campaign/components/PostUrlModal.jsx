@@ -98,7 +98,7 @@ export default function PostUrlModal({ isOpen, onClose, adNo }) {
       setError('');
       
       // updateReview API 호출하여 reviewUrl 저장 (reason은 빈 값으로 설정하여 반려 사유 제거)
-      await updateReview(selectedPet.applicantNo, postUrl);
+      await updateReview(selectedPet.applicantNo, postUrl, "");
       
       console.log('게시물 URL 저장 성공:', { applicantNo: selectedPet.applicantNo, postUrl });
       

@@ -222,8 +222,9 @@ export default function PetProfile() {
           </div>
           <div className={styles.statCard}>
           <div className={styles.statValue} style={{ color: '#8BC34A' }}>
-              {history?.applicants?.filter(applicant => applicant.status === 'completed')?.length || 0}
-            </div>
+              {history?.applicants?.filter(applicant => applicant.status === 'COMPLETED')?.length || 0}    
+          </div>
+          <div className={styles.statLabel}>체험단 참여 수</div>
           </div>
         </div>
 
@@ -238,8 +239,8 @@ export default function PetProfile() {
               </div>
             )}
             <div className={styles.ownerDetails}>
-              <h5 className={styles.ownerName}>{}</h5>
-              <p className={styles.ownerIntro}>{userData.selfIntroduction}</p>
+              <h5 className={styles.ownerName}>{userData.name}</h5>
+              <p className={styles.ownerIntro}>{userData?.selfIntroduction || "작성된 소개가 없습니다."}</p>
             </div>
           </div>
           <div className={styles.ownerContact}>

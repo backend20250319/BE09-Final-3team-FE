@@ -23,8 +23,8 @@ export default function AdditionalSection({ selectedPetNo, onSuccess }) {
       
       try {
         const res = await getApplicants(adNo);
+        console.log("res",res);
         const applicants = res.applicants;
-        console.log('현재 신청자 목록:', applicants);
         
         if (applicants && Array.isArray(applicants)) {
           const isDuplicate = applicants.some(applicant => 
