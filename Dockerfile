@@ -12,6 +12,11 @@ RUN npm ci
 # Stage 2: 빌드
 FROM node:18-alpine AS builder
 WORKDIR /app
+
+# 빌드 인수 선언
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
