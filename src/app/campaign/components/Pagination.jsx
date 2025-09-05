@@ -1,30 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "../styles/Pagination.module.css";
 
-export default function Pagination() {
-  const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = 1;
+export default function Pagination({ currentPage, totalPages, onPageChange }) {
 
   const handlePrevious = () => {
     if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
+      onPageChange(currentPage - 1);
     }
   };
 
   const handleNext = () => {
     if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
+      onPageChange(currentPage + 1);
     }
   };
 
   const handlePageClick = (page) => {
-    setCurrentPage(page);
+    onPageChange(page);
   };
 
   const renderPageNumbers = () => {
     const pages = [];
+
+    // 페이지가 1개 이하면 pagination 숨김
+    if (totalPages <= 1) {
+      return null;
+    }
 
     // Previous button
     pages.push(
@@ -48,33 +51,60 @@ export default function Pagination() {
       </button>
     );
 
-    const visiblePages = [1];
+    // 페이지 번호 생성 로직
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
 
-    visiblePages.forEach((page) => {
+    // 시작 페이지가 1이 아니면 첫 페이지 추가
+    if (startPage > 1) {
       pages.push(
         <button
-          key={page}
+          key={1}
           className={`${styles.pageButton} ${
-            currentPage === page ? styles.active : ""
+            currentPage === 1 ? styles.active : ""
           }`}
-          onClick={() => handlePageClick(page)}
+          onClick={() => handlePageClick(1)}
         >
-          {page}
+          1
         </button>
       );
-    });
-
-    // Ellipsis
-    if (totalPages > 4) {
-      pages.push(
-        <span key="ellipsis" className={styles.ellipsis}>
-          ...
-        </span>
-      );
+      
+      if (startPage > 2) {
+        pages.push(
+          <span key="ellipsis1" className={styles.ellipsis}>
+            ...
+          </span>
+        );
+      }
     }
 
-    // Last page
-    if (totalPages > 3) {
+    // 현재 페이지 주변 페이지들
+    for (let i = startPage; i <= endPage; i++) {
+      if (i !== 1 || startPage === 1) { // 첫 페이지는 이미 추가했으므로 제외
+        pages.push(
+          <button
+            key={i}
+            className={`${styles.pageButton} ${
+              currentPage === i ? styles.active : ""
+            }`}
+            onClick={() => handlePageClick(i)}
+          >
+            {i}
+          </button>
+        );
+      }
+    }
+
+    // 마지막 페이지가 끝 페이지가 아니면 마지막 페이지 추가
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        pages.push(
+          <span key="ellipsis2" className={styles.ellipsis}>
+            ...
+          </span>
+        );
+      }
+      
       pages.push(
         <button
           key={totalPages}

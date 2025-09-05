@@ -18,7 +18,7 @@
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1);
-  width: 600px;
+  width: 700px;
   max-width: 90vw;
   max-height: 90vh;
   overflow: hidden;
@@ -28,7 +28,7 @@
 
 /* Header Section */
 .modalHeader {
-  background: #F0F5EC;
+  background: #f1f7fe;
   padding: 24px 32px;
   border-bottom: 1px solid #E5E7EB;
   display: flex;
@@ -53,7 +53,7 @@
   position: relative;
   width: 40px;
   height: 40px;
-  background: #8BC34A;
+  background: #3B82F6;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -103,172 +103,231 @@
 .modalBody {
   padding: 32px;
   flex: 1;
+  overflow-y: auto;
 }
 
-.formSection {
-  margin-bottom: 32px;
+/* Search Container */
+.searchContainer {
+  margin-bottom: 24px;
 }
 
-.formSection:last-of-type {
-  margin-bottom: 0;
-}
-
-/* Form Elements */
-.formGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.formLabel {
-  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 1.19;
-  color: #594A3E;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.required {
-  color: #EF4444;
-  font-size: 14px;
-  font-weight: 400;
-}
-
-/* Input Group */
-.inputGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.inputContainer {
+.searchInputWrapper {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-.urlInput {
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  z-index: 1;
+}
+
+.searchInput {
   width: 100%;
-  height: 50px;
-  padding: 15.5px 13px;
+  height: 44px;
+  padding: 12px 12px 12px 40px;
   border: 1px solid #E5E7EB;
   border-radius: 8px;
-  background: #FFFFFF;
   font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 1.19;
-  color: #000000;
+  font-size: 14px;
+  color: #111827;
+  background: #FFFFFF;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.searchInput:focus {
   outline: none;
-  transition: border-color 0.2s ease;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.urlInput::placeholder {
-  color: #ADAEBC;
+.searchInput::placeholder {
+  color: #9CA3AF;
 }
 
-.urlInput:focus {
-  border-color: #8BC34A;
-}
-
-.inputIcon {
+.clearButton {
   position: absolute;
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6B7280;
+  transition: background-color 0.2s ease;
 }
 
-/* Select and Input Styles */
-.select,
-.input {
-  width: 100%;
-  height: 50px;
-  padding: 15.5px 13px;
-  border: 1px solid #E5E7EB;
-  border-radius: 8px;
-  background: #FFFFFF;
+.clearButton:hover {
+  background-color: #F3F4F6;
+}
+
+/* Loading Container */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  gap: 16px;
+}
+
+.loadingSpinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #E5E7EB;
+  border-top: 3px solid #3B82F6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loadingContainer p {
   font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 1.19;
-  color: #000000;
-  outline: none;
-  transition: border-color 0.2s ease;
+  font-size: 14px;
+  color: #6B7280;
+  margin: 0;
 }
 
-.select {
-  cursor: pointer;
-}
-
-.select:focus,
-.input:focus {
-  border-color: #8BC34A;
-}
-
-.select::placeholder,
-.input::placeholder {
-  color: #ADAEBC;
-}
-
-/* Rejection Warning */
-.rejectionWarning {
-  margin: 16px 0;
-  padding: 16px;
-  background-color: #FEF2F2;
-  border: 1px solid #FECACA;
-  border-radius: 8px;
-  border-left: 4px solid #DC2626;
-}
-
-.warningHeader {
+/* Empty Container */
+.emptyContainer {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  justify-content: center;
+  padding: 40px;
 }
 
-.warningTitle {
+.emptyContainer p {
   font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: #DC2626;
-}
-
-.rejectionReason {
-  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  color: #991B1B;
-  margin: 0 0 8px 0;
-  padding: 8px 12px;
-  background-color: #FEE2E2;
-  border-radius: 6px;
-}
-
-.warningMessage {
-  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 13px;
-  color: #7F1D1D;
+  font-size: 16px;
+  color: #6B7280;
   margin: 0;
+}
+
+/* Applicants List */
+.applicantsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.applicantCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #FFFFFF;
+}
+
+.applicantCard:hover {
+  border-color: #3B82F6;
+  background: #F9FAFB;
+}
+
+/* 선택된 카드 스타일 */
+.applicantCard.selected {
+  border-color: #8BC34A;
+  background: #f1f8e9;
+}
+
+.applicantInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.petInfo h4 {
+  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 4px 0;
+}
+
+.petInfo p {
+  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  color: #6B7280;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
   line-height: 1.4;
+  max-height: calc(1.4em * 3);
+}
+
+.ownerInfo {
+  display: flex;
+  gap: 16px;
+}
+
+.ownerInfo p {
+  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 12px;
+  color: #9CA3AF;
+  margin: 0;
+}
+
+.statusBadge {
+  margin-top: 4px;
+}
+
+.statusText {
+  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 12px;
+  display: inline-block;
+}
+
+.statusText.selected {
+  background-color: #8BC34A;
+  color: #FFFFFF;
+}
+
+.selectionIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid #E5E7EB;
+  border-radius: 50%;
+  background: #FFFFFF;
+  transition: all 0.2s ease;
+}
+
+.applicantCard.selected .selectionIndicator {
+  border-color: #3B82F6;
+  background: #3B82F6;
 }
 
 /* Error Message */
 .errorMessage {
   color: #EF4444;
   font-size: 14px;
-  padding: 8px 12px;
+  padding: 12px 16px;
   background-color: #FEF2F2;
   border: 1px solid #FECACA;
   border-radius: 8px;
   font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+  margin-top: 16px;
 }
 
 /* Action Buttons */
@@ -302,9 +361,9 @@
 }
 
 .submitButton {
-  width: 82px;
+  min-width: 120px;
   height: 49px;
-  background: #8BC34A;
+  background: #3B82F6;
   border: 1px solid #E5E7EB;
   border-radius: 8px;
   font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -317,7 +376,7 @@
 }
 
 .submitButton:hover {
-  background-color: #7AB33A;
+  background-color: #2563EB;
 }
 
 .submitButton:disabled {
@@ -353,5 +412,29 @@
   
   .headerText {
     width: 100%;
+  }
+
+  .applicantCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .selectionIndicator {
+    align-self: flex-end;
+  }
+
+  .ownerInfo {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .searchContainer {
+    margin-bottom: 20px;
+  }
+
+  .searchInput {
+    height: 40px;
+    font-size: 16px; /* iOS zoom 방지 */
   }
 }

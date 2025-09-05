@@ -30,8 +30,8 @@ const CampaignActivityDetailModal = ({
   };
 
   return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modalContainer}>
+    <div className={styles.modalOverlay} onClick={handleClose}>
+      <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
         {/* 헤더 */}
         <div className={styles.modalHeader}>
           <div className={styles.headerContent}>
