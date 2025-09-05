@@ -193,3 +193,164 @@
     font-size: 13px;
   }
 }
+
+/* 모달 스타일 */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContainer {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.modalTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6B7280;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.closeButton:hover {
+  background-color: #F3F4F6;
+}
+
+.modalBody {
+  padding: 24px;
+}
+
+.modalDescription {
+  font-size: 14px;
+  color: #6B7280;
+  margin: 0 0 20px 0;
+}
+
+.applicantList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.applicantItem {
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 12px;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.applicantItem:hover {
+  border-color: #D1D5DB;
+  background-color: #F9FAFB;
+}
+
+.applicantLabel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #8BC34A;
+}
+
+.petName {
+  font-weight: 500;
+  color: #1F2937;
+}
+
+.status {
+  font-size: 12px;
+  color: #6B7280;
+  margin-left: auto;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #E5E7EB;
+  background-color: #F9FAFB;
+}
+
+.cancelButton {
+  padding: 8px 16px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  background: white;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelButton:hover {
+  background-color: #F3F4F6;
+  border-color: #9CA3AF;
+}
+
+.confirmButton {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #8BC34A;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.confirmButton:hover:not(:disabled) {
+  background-color: #7AB33A;
+}
+
+.confirmButton:disabled {
+  background-color: #D1D5DB;
+  cursor: not-allowed;
+}

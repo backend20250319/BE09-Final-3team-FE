@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import styles from "../styles/CampaignCard.module.css";
 import { useCampaign } from "../context/CampaignContext";
-import { getAdvertiserFile, getImageByAdNo, getApplicantsByAd } from '@/api/campaignApi';
+import { getAdvertiserFile, getImageByAdNo, getApplicantsByAd, deleteApplicant } from '@/api/campaignApi';
 import EditApplicationModal from './EditApplicationModal';
 import PostUrlModal from './PostUrlModal';
 
@@ -14,10 +14,13 @@ export default function CampaignCard({ campaign, openModal }) {
   const { activeTab } = useCampaign();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPostUrlModalOpen, setIsPostUrlModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [userStatus, setUserStatus] = useState(null);
+  const [applicants, setApplicants] = useState([]);
+  const [selectedApplicants, setSelectedApplicants] = useState([]);
 
   const showRecruitingButton = activeTab === "recruiting" && 
-    campaign.adStatus === "APPROVED" && new Date() >= new Date(campaign.campaignSelect);
+    campaign.adStatus === "APPROVED" && new Date() >= new Date(campaign.announceStart);
   const showEndedButton = activeTab === "ended" && 
     ["ENDED", "CLOSED", "TRIAL"].includes(campaign.adStatus);
 
@@ -85,8 +88,9 @@ export default function CampaignCard({ campaign, openModal }) {
     const fetchUserStatus = async () => {
       if (activeTab === "applied" && campaign.adNo) {
         try {
-          const applicants = await getApplicantsByAd(campaign.adNo);
-          const userStatus = determineUserStatus(applicants);
+          const applicantsData = await getApplicantsByAd(campaign.adNo);
+          setApplicants(applicantsData);
+          const userStatus = determineUserStatus(applicantsData);
           setUserStatus(userStatus);
         } catch (error) {
           console.error('사용자 상태 조회 실패:', error);
@@ -104,7 +108,7 @@ export default function CampaignCard({ campaign, openModal }) {
     const statuses = applicants.map(applicant => applicant.status);
     
     // selected: 하나라도 selected인 경우
-    if (statuses.some(status => status === 'SELECTED')) {
+    if (statuses.some(status => status === 'SELECTED') && applicants.every(applicant => applicant.isSaved === true)) {
       return 'selected';
     }
     
@@ -120,6 +124,62 @@ export default function CampaignCard({ campaign, openModal }) {
     
     // pending: 그 외의 경우
     return 'pending';
+  };
+
+  // 신청 취소 모달 열기
+  const handleCancelApplication = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!applicants || applicants.length === 0) {
+      alert('취소할 신청이 없습니다.');
+      return;
+    }
+
+    // 선택된 신청자 초기화
+    setSelectedApplicants([]);
+    setIsCancelModalOpen(true);
+  };
+
+  // 신청자 선택/해제
+  const handleApplicantSelect = (applicantNo) => {
+    setSelectedApplicants(prev => {
+      if (prev.includes(applicantNo)) {
+        return prev.filter(id => id !== applicantNo);
+      } else {
+        return [...prev, applicantNo];
+      }
+    });
+  };
+
+  // 선택된 신청자 삭제 실행
+  const handleConfirmCancel = async () => {
+    if (selectedApplicants.length === 0) {
+      alert('삭제할 신청을 선택해주세요.');
+      return;
+    }
+
+    const confirmed = window.confirm(`선택한 ${selectedApplicants.length}개의 신청을 정말로 취소하시겠습니까?`);
+    if (!confirmed) return;
+
+    try {
+      // 선택된 신청자에 대해서만 삭제 API 호출
+      const deletePromises = selectedApplicants.map(applicantNo => 
+        deleteApplicant(applicantNo)
+      );
+      
+      await Promise.all(deletePromises);
+      
+      alert('선택한 신청이 성공적으로 취소되었습니다.');
+      
+      // 모달 닫기 및 페이지 새로고침
+      setIsCancelModalOpen(false);
+      window.location.reload();
+      
+    } catch (error) {
+      console.error('신청 취소 실패:', error);
+      alert('신청 취소에 실패했습니다. 다시 시도해주세요.');
+    }
   };
   
   const cardContent = (
@@ -176,11 +236,15 @@ export default function CampaignCard({ campaign, openModal }) {
                 }}>
                 수정
               </button>
-              <button style={getStatusStyle("applied")} className={styles.actionBtn}>
+              <button 
+                style={getStatusStyle("applied")} 
+                className={styles.actionBtn}
+                onClick={handleCancelApplication}
+              >
                 취소
               </button>
             </div>
-          ) : userStatus === "selected" && campaign.adStatus === "TRIAL" || campaign.adStatus === "ENDED" ? (
+          ) : userStatus === "selected" ? (
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -192,7 +256,7 @@ export default function CampaignCard({ campaign, openModal }) {
             >
               {STATUSTEXT["selected"]}
             </button>
-          ) : userStatus && !(userStatus === "rejected" && campaign.adStatus !== "TRIAL") ? (
+          ) : userStatus ? (
             <span 
               style={getStatusStyle(userStatus)}
               className={styles.statusSpan}>
@@ -233,6 +297,57 @@ export default function CampaignCard({ campaign, openModal }) {
         onClose={() => setIsPostUrlModalOpen(false)}
         adNo={campaign.adNo}
       />
+
+      {/* 신청 취소 모달 */}
+      {isCancelModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => setIsCancelModalOpen(false)}>
+          <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>신청 취소</h3>
+              <button 
+                className={styles.closeButton}
+                onClick={() => setIsCancelModalOpen(false)}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className={styles.modalBody}>
+              <p className={styles.modalDescription}>
+                체험단 신청을 취소할 반려 동물을 선택해주세요
+              </p>
+              
+              <div className={styles.applicantList}>
+                {applicants.map((applicant) => (
+                  <div key={applicant.applicantNo} className={styles.applicantItem}>
+                    <label className={styles.applicantLabel}>
+                      <input
+                        type="checkbox"
+                        checked={selectedApplicants.includes(applicant.applicantNo)}
+                        onChange={() => handleApplicantSelect(applicant.applicantNo)}
+                        className={styles.checkbox}
+                      />
+                      <span className={styles.petName}>
+                        {applicant.pet?.name || `펫 ${applicant.applicantNo}`}
+                      </span>
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className={styles.modalActions}>
+              <button
+                className={styles.confirmButton}
+                onClick={handleConfirmCancel}
+                disabled={selectedApplicants.length === 0}
+              >
+                체험단 신청 취소 ({selectedApplicants.length})
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
