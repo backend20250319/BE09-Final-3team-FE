@@ -16,7 +16,8 @@ export default function CampaignCard({ campaign, openModal }) {
   const [isPostUrlModalOpen, setIsPostUrlModalOpen] = useState(false);
   const [userStatus, setUserStatus] = useState(null);
 
-  const showRecruitingButton = activeTab === "recruiting" && campaign.adStatus === "APPROVED";
+  const showRecruitingButton = activeTab === "recruiting" && 
+    campaign.adStatus === "APPROVED" && new Date() >= new Date(campaign.campaignSelect);
   const showEndedButton = activeTab === "ended" && 
     ["ENDED", "CLOSED", "TRIAL"].includes(campaign.adStatus);
 
@@ -179,7 +180,7 @@ export default function CampaignCard({ campaign, openModal }) {
                 취소
               </button>
             </div>
-          ) : userStatus === "selected" ? (
+          ) : userStatus === "selected" && campaign.adStatus === "TRIAL" || campaign.adStatus === "ENDED" ? (
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -191,7 +192,7 @@ export default function CampaignCard({ campaign, openModal }) {
             >
               {STATUSTEXT["selected"]}
             </button>
-          ) : userStatus ? (
+          ) : userStatus && !(userStatus === "rejected" && campaign.adStatus !== "TRIAL") ? (
             <span 
               style={getStatusStyle(userStatus)}
               className={styles.statusSpan}>

@@ -17,8 +17,7 @@ function sortCampaigns(campaigns, sortBy, activeTab) {
     case "popular":
       // 인기순 (신청자 수 내림차순)
       return [...campaigns].sort((a, b) => {
-        const getApplicantsNum = (str) => Number((str || "0").split("/")[0].trim()) || 0;
-        return getApplicantsNum(b.applicants) - getApplicantsNum(a.applicants);
+        return b.applicants -a.applicants;
       });
     case "endedRecent":
       // 종료일 최신순 (공고 종료일 내림차순)
@@ -61,12 +60,14 @@ function filterCampaigns(campaigns, searchQuery) {
   });
 }
 
-export default function CampaignGrid({searchQuery, sortBy, openModal}) {
+export default function CampaignGrid({searchQuery, sortBy, openModal, currentPage, onPageChange, onTotalPagesChange}) {
 
   const { activeTab } = useCampaign();
 
   const [campaigns, setCampaigns] = useState({ recruitingAds: [], endedAds: [] });
   const [appliedCampaigns, setAppliedCampaigns] = useState([]);
+  
+  const ITEMS_PER_PAGE = 9;
 
   useEffect(() => {
     const fetchCampaigns = async () => {
@@ -94,6 +95,25 @@ export default function CampaignGrid({searchQuery, sortBy, openModal}) {
   
   // 정렬 적용
   const sortedCampaigns = sortCampaigns(searchFilteredCampaigns, sortBy, activeTab);
+  
+  // Pagination 계산
+  const totalItems = sortedCampaigns.length;
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedCampaigns = sortedCampaigns.slice(startIndex, endIndex);
+
+  // 페이지 변경 시 상단으로 스크롤
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage]);
+
+  // totalPages 변경 시 부모 컴포넌트에 알림
+  useEffect(() => {
+    if (onTotalPagesChange) {
+      onTotalPagesChange(totalPages);
+    }
+  }, [totalPages, onTotalPagesChange]);
 
   return (
     <section className={styles.campaignGrid}>
@@ -103,8 +123,8 @@ export default function CampaignGrid({searchQuery, sortBy, openModal}) {
         </div>
       )}
       <div className={styles.grid}>
-        {sortedCampaigns.length > 0 ? (
-          sortedCampaigns.map((campaign) => (
+        {paginatedCampaigns.length > 0 ? (
+          paginatedCampaigns.map((campaign) => (
             <CampaignCard key={campaign.adNo} campaign={campaign} openModal={openModal} />
           ))
         ) : (

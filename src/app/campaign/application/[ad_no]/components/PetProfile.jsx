@@ -222,18 +222,25 @@ export default function PetProfile() {
           </div>
           <div className={styles.statCard}>
           <div className={styles.statValue} style={{ color: '#8BC34A' }}>
-              {history?.applicants?.filter(applicant => applicant.status === 'completed')?.length || 0}
-            </div>
+              {history?.applicants?.filter(applicant => applicant.status === 'COMPLETED')?.length || 0}    
+          </div>
+          <div className={styles.statLabel}>체험단 참여 수</div>
           </div>
         </div>
 
         <div className={styles.ownerInfo}>
           <h4 className={styles.ownerTitle}>반려인 정보</h4>
           <div className={styles.ownerProfile}>
-            <Image src={userData.profileImageUrl} alt="Owner" width={48} height={48} className={styles.ownerImage} />
+            {userData.profileImageUrl ? (
+              <Image src={userData.profileImageUrl} alt="Owner" width={48} height={48} className={styles.ownerImage} />
+            ) : (
+              <div className={styles.ownerAvatarPlaceholder}>
+                <span>?</span>
+              </div>
+            )}
             <div className={styles.ownerDetails}>
-              <h5 className={styles.ownerName}>{}</h5>
-              <p className={styles.ownerIntro}>{userData.selfIntroduction}</p>
+              <h5 className={styles.ownerName}>{userData.name}</h5>
+              <p className={styles.ownerIntro}>{userData?.selfIntroduction || "작성된 소개가 없습니다."}</p>
             </div>
           </div>
           <div className={styles.ownerContact}>
