@@ -26,6 +26,7 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
 
   const [showStartCalendar, setShowStartCalendar] = useState(false);
   const calendarButtonRef = React.useRef(null);
+  const [errors, setErrors] = useState({});
 
   // 날짜 포맷팅 함수
   const formatDateForDisplay = (dateString) => {
@@ -39,6 +40,26 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
 
   // 달력에서 날짜 선택 핸들러
   const handleStartDateSelect = (dateString) => {
+    // 오늘 이전 날짜 검증
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(dateString);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      setErrors((prev) => ({
+        ...prev,
+        startDate: "시작날짜는 당일보다 이전일 수 없습니다.",
+      }));
+      return;
+    }
+
+    // 에러 메시지 제거
+    setErrors((prev) => ({
+      ...prev,
+      startDate: "",
+    }));
+
     setFormData((prev) => ({
       ...prev,
       startDate: dateString,
@@ -130,7 +151,6 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
   };
 
   const timeOptions = generateTimeOptions();
-  const [errors, setErrors] = useState({});
   const [showFrequencyInfo, setShowFrequencyInfo] = useState(false);
 
   // 시간 선택을 위한 커스텀 드롭다운
@@ -249,10 +269,43 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
       }));
     } else {
       // 다른 필드는 일반적으로 업데이트
-      setFormData((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
+      setFormData((prev) => {
+        const newData = {
+          ...prev,
+          [field]: value,
+        };
+
+        // 복용 기간이나 시작날짜가 변경되면 종료날짜 검증
+        if (
+          (field === "duration" || field === "startDate") &&
+          newData.startDate &&
+          newData.duration
+        ) {
+          const startDateObj = new Date(newData.startDate);
+          const endDateObj = new Date(startDateObj);
+          endDateObj.setDate(
+            startDateObj.getDate() + Number(newData.duration) - 1
+          );
+
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          endDateObj.setHours(0, 0, 0, 0);
+
+          if (endDateObj < today) {
+            setErrors((prev) => ({
+              ...prev,
+              duration: "복용 기간을 설정하면 종료일이 오늘 이전이 됩니다.",
+            }));
+          } else {
+            setErrors((prev) => ({
+              ...prev,
+              duration: "",
+            }));
+          }
+        }
+
+        return newData;
+      });
     }
 
     // 에러 메시지 제거
@@ -287,6 +340,34 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
 
     if (!formData.startDate) {
       newErrors.startDate = "시작 날짜를 선택해주세요";
+    } else {
+      // 시작날짜가 오늘 이전인지 검증
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const selectedDate = new Date(formData.startDate);
+      selectedDate.setHours(0, 0, 0, 0);
+
+      if (selectedDate < today) {
+        newErrors.startDate = "시작날짜는 당일보다 이전일 수 없습니다.";
+      }
+    }
+
+    // 투약의 경우 종료날짜도 검증 (시작일과 복용기간으로 계산된 종료일)
+    if (formData.startDate && formData.duration) {
+      const startDateObj = new Date(formData.startDate);
+      const endDateObj = new Date(startDateObj);
+      endDateObj.setDate(
+        startDateObj.getDate() + Number(formData.duration) - 1
+      );
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      endDateObj.setHours(0, 0, 0, 0);
+
+      if (endDateObj < today) {
+        newErrors.duration =
+          "복용 기간을 설정하면 종료일이 오늘 이전이 됩니다.";
+      }
     }
 
     if (!formData.scheduleTime) {

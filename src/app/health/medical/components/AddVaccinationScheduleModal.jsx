@@ -376,6 +376,15 @@ export default function AddVaccinationScheduleModal({
 
   // 종료날짜 선택 핸들러
   const handleEndDateSelect = (dateString) => {
+    // 종료날짜가 시작날짜보다 이전인지 검증
+    if (formData.startDate && dateString < formData.startDate) {
+      setErrors((prev) => ({
+        ...prev,
+        endDate: "종료날짜는 시작날짜보다 이전일 수 없습니다.",
+      }));
+      return;
+    }
+
     // 종료날짜 검증
     const validation = validateEndDate(
       formData.startDate,
@@ -416,13 +425,18 @@ export default function AddVaccinationScheduleModal({
 
     // 종료날짜가 선택사항이지만, 입력된 경우 검증
     if (formData.endDate) {
-      const validation = validateEndDate(
-        formData.startDate,
-        formData.endDate,
-        formData.frequency
-      );
-      if (!validation.valid) {
-        newErrors.endDate = validation.message;
+      // 종료날짜가 시작날짜보다 이전인지 검증
+      if (formData.startDate && formData.endDate < formData.startDate) {
+        newErrors.endDate = "종료날짜는 시작날짜보다 이전일 수 없습니다.";
+      } else {
+        const validation = validateEndDate(
+          formData.startDate,
+          formData.endDate,
+          formData.frequency
+        );
+        if (!validation.valid) {
+          newErrors.endDate = validation.message;
+        }
       }
     }
 

@@ -176,6 +176,28 @@ export default function EditScheduleModal({
 
   // 달력에서 날짜 선택 핸들러
   const handleStartDateSelect = (dateString) => {
+    // 투약 일정의 경우 오늘 이전 날짜 검증
+    if (type === "medication") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const selectedDate = new Date(dateString);
+      selectedDate.setHours(0, 0, 0, 0);
+
+      if (selectedDate < today) {
+        setErrors((prev) => ({
+          ...prev,
+          startDate: "시작날짜는 당일보다 이전일 수 없습니다.",
+        }));
+        return;
+      }
+
+      // 에러 메시지 제거
+      setErrors((prev) => ({
+        ...prev,
+        startDate: "",
+      }));
+    }
+
     setFormData((prev) => ({
       ...prev,
       startDate: dateString,
@@ -185,6 +207,19 @@ export default function EditScheduleModal({
 
   // 종료날짜 선택 핸들러
   const handleEndDateSelect = (dateString) => {
+    // 돌봄/접종 일정의 경우 종료날짜가 시작날짜보다 이전인지 검증
+    if (
+      (type === "care" || type === "vaccination") &&
+      formData.startDate &&
+      dateString < formData.startDate
+    ) {
+      setErrors((prev) => ({
+        ...prev,
+        endDate: "종료날짜는 시작날짜보다 이전일 수 없습니다.",
+      }));
+      return;
+    }
+
     // 종료날짜 검증
     const validation = validateEndDate(
       formData.startDate,
@@ -537,6 +572,36 @@ export default function EditScheduleModal({
         }
       }
 
+      // 투약의 경우 복용 기간이나 시작날짜가 변경되면 종료날짜 검증
+      if (
+        type === "medication" &&
+        (field === "duration" || field === "startDate") &&
+        newData.startDate &&
+        newData.duration
+      ) {
+        const startDateObj = new Date(newData.startDate);
+        const endDateObj = new Date(startDateObj);
+        endDateObj.setDate(
+          startDateObj.getDate() + Number(newData.duration) - 1
+        );
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        endDateObj.setHours(0, 0, 0, 0);
+
+        if (endDateObj < today) {
+          setErrors((prev) => ({
+            ...prev,
+            duration: "복용 기간을 설정하면 종료일이 오늘 이전이 됩니다.",
+          }));
+        } else {
+          setErrors((prev) => ({
+            ...prev,
+            duration: "",
+          }));
+        }
+      }
+
       return newData;
     });
 
@@ -566,6 +631,21 @@ export default function EditScheduleModal({
     // 시작날짜 검증
     if (!formData.startDate && !formData.date) {
       newErrors.startDate = "시작 날짜를 선택해주세요";
+    } else {
+      const startDateToCheck = formData.startDate || formData.date;
+      if (startDateToCheck) {
+        // 투약 일정의 경우 오늘 이전 날짜 검증
+        if (type === "medication") {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const selectedDate = new Date(startDateToCheck);
+          selectedDate.setHours(0, 0, 0, 0);
+
+          if (selectedDate < today) {
+            newErrors.startDate = "시작날짜는 당일보다 이전일 수 없습니다.";
+          }
+        }
+      }
     }
 
     // 종료날짜 검증
@@ -577,13 +657,18 @@ export default function EditScheduleModal({
     } else if (type === "care" || type === "vaccination") {
       // 돌봄/접종은 종료날짜가 선택사항이지만, 입력된 경우 검증
       if (formData.endDate) {
-        const validation = validateEndDate(
-          formData.startDate,
-          formData.endDate,
-          formData.frequency
-        );
-        if (!validation.valid) {
-          newErrors.endDate = validation.message;
+        // 종료날짜가 시작날짜보다 이전인지 검증
+        if (formData.startDate && formData.endDate < formData.startDate) {
+          newErrors.endDate = "종료날짜는 시작날짜보다 이전일 수 없습니다.";
+        } else {
+          const validation = validateEndDate(
+            formData.startDate,
+            formData.endDate,
+            formData.frequency
+          );
+          if (!validation.valid) {
+            newErrors.endDate = validation.message;
+          }
         }
       }
     }
@@ -606,6 +691,26 @@ export default function EditScheduleModal({
       (isNaN(formData.duration) || Number(formData.duration) <= 0)
     ) {
       newErrors.duration = "유효한 복용 기간(숫자)을 입력해주세요";
+    } else if (
+      type === "medication" &&
+      formData.startDate &&
+      formData.duration
+    ) {
+      // 투약의 경우 종료날짜도 검증 (시작일과 복용기간으로 계산된 종료일)
+      const startDateObj = new Date(formData.startDate);
+      const endDateObj = new Date(startDateObj);
+      endDateObj.setDate(
+        startDateObj.getDate() + Number(formData.duration) - 1
+      );
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      endDateObj.setHours(0, 0, 0, 0);
+
+      if (endDateObj < today) {
+        newErrors.duration =
+          "복용 기간을 설정하면 종료일이 오늘 이전이 됩니다.";
+      }
     }
 
     // 투약의 경우 알림 시간도 필수
