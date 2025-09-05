@@ -14,8 +14,36 @@ export default function ScheduleDetailModal({
   if (!isOpen || !schedule) return null;
 
   // 지난 일정인지 확인
-  const scheduleDate = schedule.startDate || schedule.date;
-  const scheduleTime = schedule.scheduleTime || schedule.time;
+  // 투약일정의 경우 종료날짜를 기준으로, 다른 일정은 시작날짜를 기준으로 판단
+  const isMedication =
+    schedule.category === "medication" || schedule.type === "medication";
+
+  // 돌봄/접종 일정에서 특정 빈도는 종료날짜를 시작날짜와 동일하게 처리
+  const isCareOrVaccination =
+    schedule.category === "care" ||
+    schedule.category === "vaccination" ||
+    schedule.type === "care" ||
+    schedule.type === "vaccination";
+  const isFixedEndDate =
+    isCareOrVaccination &&
+    ["매일", "매주", "매월", "당일"].includes(schedule.frequency);
+
+  let scheduleDate, scheduleTime;
+
+  if (isMedication) {
+    // 투약일정: 종료날짜 기준
+    scheduleDate = schedule.endDate || schedule.startDate || schedule.date;
+    scheduleTime = schedule.scheduleTime || schedule.time;
+  } else if (isFixedEndDate) {
+    // 돌봄/접종 일정 중 특정 빈도: 시작날짜 기준 (종료날짜는 시작날짜와 동일)
+    scheduleDate = schedule.startDate || schedule.date;
+    scheduleTime = schedule.scheduleTime || schedule.time;
+  } else {
+    // 기타 일정: 시작날짜 기준
+    scheduleDate = schedule.startDate || schedule.date;
+    scheduleTime = schedule.scheduleTime || schedule.time;
+  }
+
   const isPast = isSchedulePast(scheduleDate, scheduleTime);
 
   const formatTime = (timeStr) => {
@@ -134,7 +162,9 @@ export default function ScheduleDetailModal({
                 <div className={styles.infoItem}>
                   <span className={styles.label}>종료일</span>
                   <span className={styles.value}>
-                    {formatDate(schedule.endDate)}
+                    {isFixedEndDate
+                      ? formatDate(schedule.startDate) + " (고정)"
+                      : formatDate(schedule.endDate)}
                   </span>
                 </div>
               )}
