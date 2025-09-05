@@ -18,6 +18,7 @@ export default function CustomCalendar({
   showToday = true, // 오늘 날짜 표시 여부
 }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [calendarPosition, setCalendarPosition] = useState({});
 
   const monthNames = [
     "1월",
@@ -74,6 +75,59 @@ export default function CustomCalendar({
 
   const days = generateCalendarDays();
 
+  // 달력 위치 업데이트 함수
+  const updateCalendarPosition = () => {
+    if (isOpen && buttonRef && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const viewportWidth = window.innerWidth;
+      const calendarHeight = 300; // 달력의 예상 높이
+      const calendarWidth = 280; // 달력의 너비
+
+      let top = rect.bottom + 8;
+      let left = rect.right - calendarWidth;
+
+      // 화면 하단을 벗어나는 경우 위쪽에 표시
+      if (top + calendarHeight > viewportHeight) {
+        top = rect.top - calendarHeight - 8;
+      }
+
+      // 화면 우측을 벗어나는 경우 왼쪽에 표시
+      if (left < 8) {
+        left = rect.left;
+      }
+
+      // 화면 좌측을 벗어나는 경우
+      if (left + calendarWidth > viewportWidth - 8) {
+        left = viewportWidth - calendarWidth - 8;
+      }
+
+      setCalendarPosition({
+        top: Math.max(8, top),
+        left: Math.max(8, left),
+        transform: "none",
+      });
+    }
+  };
+
+  // 달력이 열릴 때와 스크롤/리사이즈 시 위치 업데이트
+  useEffect(() => {
+    if (isOpen) {
+      updateCalendarPosition();
+
+      const handleScroll = () => updateCalendarPosition();
+      const handleResize = () => updateCalendarPosition();
+
+      window.addEventListener("scroll", handleScroll, true);
+      window.addEventListener("resize", handleResize);
+
+      return () => {
+        window.removeEventListener("scroll", handleScroll, true);
+        window.removeEventListener("resize", handleResize);
+      };
+    }
+  }, [isOpen, buttonRef]);
+
   const prevMonth = () => {
     setCurrentMonth(
       new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1)
@@ -87,6 +141,16 @@ export default function CustomCalendar({
   };
 
   const handleDateClick = (date) => {
+    // 오늘 이전 날짜 선택 제한
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // 시간을 00:00:00으로 설정
+    const selectedDate = new Date(date);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      return; // 오늘 이전 날짜는 선택할 수 없음
+    }
+
     // 매월 모드일 때는 특정 일만 선택 가능
     if (monthlyMode && monthlyDay !== null) {
       if (date.getDate() !== monthlyDay) {
@@ -119,19 +183,6 @@ export default function CustomCalendar({
     )}.${String(date.getDate()).padStart(2, "0")}`;
   };
 
-  // 달력 위치 계산 (오른쪽 아래)
-  const getCalendarPosition = () => {
-    if (buttonRef && buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      return {
-        top: rect.bottom + 8,
-        left: rect.right - 280, // 달력 너비(280px)만큼 왼쪽으로 이동
-        transform: "none",
-      };
-    }
-    return {};
-  };
-
   if (!isOpen) return null;
 
   return (
@@ -139,7 +190,7 @@ export default function CustomCalendar({
       <div
         className={styles.calendar}
         onClick={(e) => e.stopPropagation()}
-        style={getCalendarPosition()}
+        style={calendarPosition}
       >
         <div className={styles.calendarHeader}>
           <button onClick={prevMonth} className={styles.calendarNavButton}>
@@ -170,8 +221,16 @@ export default function CustomCalendar({
                 selectedDate === date.toISOString().split("T")[0];
               const isToday = date.toDateString() === new Date().toDateString();
 
+              // 오늘 이전 날짜 제한
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const currentDate = new Date(date);
+              currentDate.setHours(0, 0, 0, 0);
+              const isPastDate = currentDate < today;
+
               // 최소/최대 날짜 제한
               const isDisabled =
+                isPastDate ||
                 (minDate && date.toISOString().split("T")[0] < minDate) ||
                 (maxDate && date.toISOString().split("T")[0] > maxDate);
 

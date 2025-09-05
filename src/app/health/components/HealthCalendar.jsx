@@ -174,6 +174,7 @@ export default function HealthCalendar({
       const colorKey =
         event.type && EVENT_TYPE_COLORS[event.type] ? event.type : "etc";
       const backgroundColor = EVENT_TYPE_COLORS[colorKey];
+
       return {
         style: {
           backgroundColor,

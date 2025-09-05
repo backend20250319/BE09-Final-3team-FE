@@ -2,6 +2,7 @@
 
 import React from "react";
 import styles from "../styles/ScheduleDetailModal.module.css";
+import { isSchedulePast } from "../utils/scheduleUtils";
 
 export default function ScheduleDetailModal({
   isOpen,
@@ -12,12 +13,42 @@ export default function ScheduleDetailModal({
 }) {
   if (!isOpen || !schedule) return null;
 
+  // 지난 일정인지 확인
+  const scheduleDate = schedule.startDate || schedule.date;
+  const scheduleTime = schedule.scheduleTime || schedule.time;
+  const isPast = isSchedulePast(scheduleDate, scheduleTime);
+
   const formatTime = (timeStr) => {
     if (!timeStr) return "시간 미정";
     return timeStr
       .split(",")
       .map((t) => t.trim())
       .join(", ");
+  };
+
+  // 날짜 포맷팅 함수
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "-";
+
+    try {
+      // ISO 문자열인 경우 Date 객체로 변환
+      const date = new Date(dateStr);
+
+      // 유효한 날짜인지 확인
+      if (isNaN(date.getTime())) {
+        return dateStr; // 유효하지 않으면 원본 반환
+      }
+
+      // YYYY년 MM월 DD일 형태로 포맷팅
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+
+      return `${year}년 ${month}월 ${day}일`;
+    } catch (error) {
+      console.error("날짜 포맷팅 오류:", error);
+      return dateStr; // 오류 시 원본 반환
+    }
   };
 
   const getScheduleTypeLabel = (category) => {
@@ -94,13 +125,17 @@ export default function ScheduleDetailModal({
               {schedule.startDate && (
                 <div className={styles.infoItem}>
                   <span className={styles.label}>시작일</span>
-                  <span className={styles.value}>{schedule.startDate}</span>
+                  <span className={styles.value}>
+                    {formatDate(schedule.startDate)}
+                  </span>
                 </div>
               )}
               {schedule.endDate && (
                 <div className={styles.infoItem}>
                   <span className={styles.label}>종료일</span>
-                  <span className={styles.value}>{schedule.endDate}</span>
+                  <span className={styles.value}>
+                    {formatDate(schedule.endDate)}
+                  </span>
                 </div>
               )}
             </div>
@@ -127,7 +162,18 @@ export default function ScheduleDetailModal({
             삭제
           </button>
           <div className={styles.actionButtons}>
-            <button className={styles.editButton} onClick={onEdit}>
+            {isPast && (
+              <div className={styles.pastScheduleMessage}>
+                지난 일정은 수정할 수 없습니다
+              </div>
+            )}
+            <button
+              className={`${styles.editButton} ${
+                isPast ? styles.disabledButton : ""
+              }`}
+              onClick={() => !isPast && onEdit()}
+              disabled={isPast}
+            >
               수정
             </button>
           </div>

@@ -16,6 +16,7 @@ import {
   COLOR_MAP,
   SUBTYPE_LABEL_MAP,
 } from "../../constants";
+import { isSchedulePast } from "../utils/scheduleUtils";
 
 export default function EditScheduleModal({
   isOpen,
@@ -209,6 +210,26 @@ export default function EditScheduleModal({
 
   // 달력에서 날짜 선택 핸들러
   const handleStartDateSelect = (dateString) => {
+    // 오늘 이전 날짜 검증
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(dateString);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      setErrors((prev) => ({
+        ...prev,
+        startDate: "시작날짜는 당일보다 이전일 수 없습니다.",
+      }));
+      return;
+    }
+
+    // 에러 메시지 제거
+    setErrors((prev) => ({
+      ...prev,
+      startDate: "",
+    }));
+
     setFormData((prev) => ({
       ...prev,
       startDate: dateString,
@@ -464,6 +485,12 @@ export default function EditScheduleModal({
         // notificationTiming은 표시용 문자열이므로 사용하지 않음
         note: "notificationTiming은 표시용 문자열이므로 사용하지 않음",
       });
+
+      // 지난 일정인지 확인 (EditScheduleModal에서는 체크하지 않음 - 상위에서 처리)
+      const scheduleDate = scheduleData.startDate || scheduleData.date;
+      const scheduleTime = scheduleData.scheduleTime || scheduleData.time;
+      const isPast = isSchedulePast(scheduleDate, scheduleTime);
+      console.log("EditScheduleModal - 지난 일정 여부:", isPast);
       // frequency 값 처리
       const frequency = (() => {
         if (type === "medication") {
@@ -607,6 +634,19 @@ export default function EditScheduleModal({
     // 시작날짜 검증
     if (!formData.startDate && !formData.date) {
       newErrors.startDate = "시작 날짜를 선택해주세요";
+    } else {
+      const startDateToCheck = formData.startDate || formData.date;
+      if (startDateToCheck) {
+        // 시작날짜가 오늘 이전인지 검증
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const selectedDate = new Date(startDateToCheck);
+        selectedDate.setHours(0, 0, 0, 0);
+
+        if (selectedDate < today) {
+          newErrors.startDate = "시작날짜는 당일보다 이전일 수 없습니다.";
+        }
+      }
     }
 
     // 종료날짜 검증

@@ -263,7 +263,13 @@ export default function CareManagement({
               end: eTime,
               allDay: false,
               type: getScheduleLabel(s.subType) || "산책",
-              schedule: s,
+              schedule: {
+                ...s,
+                category: "care",
+                type: "돌봄",
+                icon: getScheduleIcon(s.subType),
+                color: COLOR_MAP[s.subType] || "#E8F5E8",
+              },
             });
             console.log(
               `🔍 당일 일정 생성: ${s.title || s.name} - ${formatDateToLocal(
@@ -288,7 +294,13 @@ export default function CareManagement({
                 end: eTime,
                 allDay: false,
                 type: getScheduleLabel(s.subType) || "산책",
-                schedule: s,
+                schedule: {
+                  ...s,
+                  category: "care",
+                  type: "돌봄",
+                  icon: getScheduleIcon(s.subType),
+                  color: COLOR_MAP[s.subType] || "#E8F5E8",
+                },
               });
               dayCount++;
               console.log(
@@ -317,7 +329,13 @@ export default function CareManagement({
                 end: eTime,
                 allDay: false,
                 type: getScheduleLabel(s.subType) || "산책",
-                schedule: s,
+                schedule: {
+                  ...s,
+                  category: "care",
+                  type: "돌봄",
+                  icon: getScheduleIcon(s.subType),
+                  color: COLOR_MAP[s.subType] || "#E8F5E8",
+                },
               });
               weekCount++;
               console.log(
@@ -346,7 +364,13 @@ export default function CareManagement({
                 end: eTime,
                 allDay: false,
                 type: getScheduleLabel(s.subType) || "산책",
-                schedule: s,
+                schedule: {
+                  ...s,
+                  category: "care",
+                  type: "돌봄",
+                  icon: getScheduleIcon(s.subType),
+                  color: COLOR_MAP[s.subType] || "#E8F5E8",
+                },
               });
               monthCount++;
               console.log(
@@ -369,7 +393,13 @@ export default function CareManagement({
             end: eTime,
             allDay: false,
             type: getScheduleLabel(s.subType) || "산책",
-            schedule: s,
+            schedule: {
+              ...s,
+              category: "care",
+              type: "돌봄",
+              icon: getScheduleIcon(s.subType),
+              color: COLOR_MAP[s.subType] || "#E8F5E8",
+            },
           });
         }
       });
@@ -411,7 +441,13 @@ export default function CareManagement({
               end: eTime,
               allDay: false,
               type: getScheduleLabel(s.subType) || "예방접종",
-              schedule: s,
+              schedule: {
+                ...s,
+                category: "vaccination",
+                type: "접종",
+                icon: getScheduleIcon(s.subType),
+                color: COLOR_MAP[s.subType] || "#F3E5F5",
+              },
             });
             console.log(
               `🔍 접종 당일 일정 생성: ${
@@ -436,7 +472,13 @@ export default function CareManagement({
                 end: eTime,
                 allDay: false,
                 type: getScheduleLabel(s.subType) || "예방접종",
-                schedule: s,
+                schedule: {
+                  ...s,
+                  category: "vaccination",
+                  type: "접종",
+                  icon: getScheduleIcon(s.subType),
+                  color: COLOR_MAP[s.subType] || "#F3E5F5",
+                },
               });
               dayCount++;
               console.log(
@@ -465,7 +507,13 @@ export default function CareManagement({
                 end: eTime,
                 allDay: false,
                 type: getScheduleLabel(s.subType) || "예방접종",
-                schedule: s,
+                schedule: {
+                  ...s,
+                  category: "vaccination",
+                  type: "접종",
+                  icon: getScheduleIcon(s.subType),
+                  color: COLOR_MAP[s.subType] || "#F3E5F5",
+                },
               });
               weekCount++;
               console.log(
@@ -494,7 +542,13 @@ export default function CareManagement({
                 end: eTime,
                 allDay: false,
                 type: getScheduleLabel(s.subType) || "예방접종",
-                schedule: s,
+                schedule: {
+                  ...s,
+                  category: "vaccination",
+                  type: "접종",
+                  icon: getScheduleIcon(s.subType),
+                  color: COLOR_MAP[s.subType] || "#F3E5F5",
+                },
               });
               monthCount++;
               console.log(
@@ -518,7 +572,13 @@ export default function CareManagement({
             end: eTime,
             allDay: false,
             type: getScheduleLabel(s.subType) || "예방접종",
-            schedule: s,
+            schedule: {
+              ...s,
+              category: "vaccination",
+              type: "접종",
+              icon: getScheduleIcon(s.subType),
+              color: COLOR_MAP[s.subType] || "#F3E5F5",
+            },
           });
         }
       });
@@ -1085,7 +1145,20 @@ export default function CareManagement({
   const handleDetailModalEdit = () => {
     if (selectedSchedule) {
       setEditingSchedule(selectedSchedule);
-      setEditingType(selectedSchedule.type === "돌봄" ? "care" : "vaccination");
+      // schedule 객체에서 category 또는 type을 확인하여 올바른 편집 타입 설정
+      const scheduleCategory =
+        selectedSchedule.category || selectedSchedule.type;
+      if (scheduleCategory === "care" || scheduleCategory === "돌봄") {
+        setEditingType("care");
+      } else if (
+        scheduleCategory === "vaccination" ||
+        scheduleCategory === "접종"
+      ) {
+        setEditingType("vaccination");
+      } else {
+        // 기본값으로 돌봄 설정
+        setEditingType("care");
+      }
       setShowDetailModal(false);
       setShowEditModal(true);
     }

@@ -265,6 +265,26 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
 
   // 달력에서 날짜 선택 핸들러
   const handleStartDateSelect = (dateString) => {
+    // 오늘 이전 날짜 검증
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(dateString);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      setErrors((prev) => ({
+        ...prev,
+        startDate: "시작날짜는 당일보다 이전일 수 없습니다.",
+      }));
+      return;
+    }
+
+    // 에러 메시지 제거
+    setErrors((prev) => ({
+      ...prev,
+      startDate: "",
+    }));
+
     setFormData((prev) => ({
       ...prev,
       startDate: dateString,
@@ -404,7 +424,19 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
     if (!formData.name.trim()) newErrors.name = "일정 이름을 입력해주세요";
     if (!formData.subType) newErrors.subType = "유형을 선택해주세요";
     if (!formData.frequency) newErrors.frequency = "빈도를 선택해주세요";
-    if (!formData.startDate) newErrors.startDate = "시작 날짜를 선택해주세요";
+    if (!formData.startDate) {
+      newErrors.startDate = "시작 날짜를 선택해주세요";
+    } else {
+      // 시작날짜가 오늘 이전인지 검증
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const selectedDate = new Date(formData.startDate);
+      selectedDate.setHours(0, 0, 0, 0);
+
+      if (selectedDate < today) {
+        newErrors.startDate = "시작날짜는 당일보다 이전일 수 없습니다.";
+      }
+    }
 
     // 종료날짜가 선택사항이지만, 입력된 경우 검증
     if (formData.endDate) {
