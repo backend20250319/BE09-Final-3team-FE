@@ -80,7 +80,31 @@ const PetFulNotification = () => {
   };
 
   useEffect(() => {
-    handleMoreNotifications();
+    const loadInitialNotifications = async () => {
+      if (loading || !hasNext) return;
+      setLoading(true);
+      try {
+        const data = await getNotifications({ page: 0, size: 5 });
+
+        console.log("📦 서버 응답:", data);
+
+        const content = data?.notifications ?? [];
+        console.log("📋 content:", content);
+
+        // 초기 로드시에는 기존 알림을 덮어쓰기
+        setNotifications(content);
+        // Page/Slice 공통: last=true면 더 없음
+        const noMore = data?.last === true || content.length === 0;
+        setHasNext(!noMore);
+        setPage(1);
+      } catch (e) {
+        console.error("🔴 알림 불러오기 실패:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadInitialNotifications();
   }, []);
 
   return (
@@ -101,18 +125,17 @@ const PetFulNotification = () => {
 
         {/* Notification List */}
         <div className="notification-list">
-          {loading && notifications.length === 0 ? (
+          {loading && (!notifications || notifications.length === 0) ? (
             <p className="no-notifications">로딩 중...</p>
-          ) : notifications.length === 0 ? (
+          ) : !notifications || notifications.length === 0 ? (
             <p className="no-notifications">받은 알림이 없습니다.</p>
-          ) : (
+          ) : Array.isArray(notifications) ? (
             notifications.map((notification, index) => {
               console.log("🔍 알림 타입:", notification.type);
               const cfg = ICON_MAP[notification.type] || DEFAULT_ICON;
               console.log("🎨 아이콘 설정:", cfg);
               const IconComponent = cfg.icon;
               const colorClass = cfg.color;
-              notification.id;
               const title = notification.title ?? "새로운 알림";
               const content = notification.content ?? "";
               const time =
@@ -124,7 +147,7 @@ const PetFulNotification = () => {
 
               return (
                 <div
-                  key={notification.id}
+                  key={notification.id || `notification-${index}`}
                   className={`notification-item ${
                     index === 0 ? "first-item" : ""
                   } ${!notification.isRead ? "unread" : ""}`}
@@ -166,6 +189,8 @@ const PetFulNotification = () => {
                 </div>
               );
             })
+          ) : (
+            <p className="no-notifications">알림을 불러올 수 없습니다.</p>
           )}
         </div>
 
