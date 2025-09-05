@@ -121,8 +121,13 @@ export default function PetFulLogin() {
           // 로그인 성공 모달 표시
           setModal({
             isOpen: true,
-            message:
-              "로그인에 성공했습니다! 확인 버튼을 클릭하면 광고주 대시보드로 이동합니다.",
+            message: (
+              <>
+                로그인에 성공했습니다!
+                <br />
+                확인 버튼을 클릭하면 광고주 대시보드로 이동합니다.
+              </>
+            ),
             isSuccess: true,
           });
         } else {

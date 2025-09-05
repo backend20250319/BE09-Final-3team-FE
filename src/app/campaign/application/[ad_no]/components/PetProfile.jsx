@@ -221,8 +221,9 @@ export default function PetProfile() {
             <div className={styles.statLabel}>단가</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statValue} style={{ color: '#8BC34A' }}>{history?.applicants?.length || 0}</div>
-            <div className={styles.statLabel}>체험단 참여 횟수</div>
+          <div className={styles.statValue} style={{ color: '#8BC34A' }}>
+              {history?.applicants?.filter(applicant => applicant.status === 'completed')?.length || 0}
+            </div>
           </div>
         </div>
 

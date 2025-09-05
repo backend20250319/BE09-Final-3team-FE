@@ -493,12 +493,13 @@
   color: #374151;
   line-height: 1.4;
   min-height: 24px;
-  display: block;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
   word-wrap: break-word;
   overflow-wrap: break-word;
   white-space: pre-wrap;
-  max-height: none;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .titleWithEdit {

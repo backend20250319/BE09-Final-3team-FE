@@ -2,17 +2,20 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { reportUser } from "@/api/userApi";
 import styles from "../styles/ReportModal.module.css";
+import { reportUser } from "@/api/advertiserApi";
 
 export default function ReportModal({
   isOpen,
   onClose,
+  selectedPetName,
   applicantName,
-  onReportSuccess,
 }) {
   const [reportReason, setReportReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("info");
 
   if (!isOpen) return null;
 
@@ -28,12 +31,17 @@ export default function ReportModal({
 
       await reportUser(payload);
 
+      console.log(payload);
+
       alert("신고가 접수되었습니다.");
-      onReportSuccess?.();
       handleCancel();
     } catch (error) {
       console.error("신고 제출 실패:", error);
-      alert(error?.response?.data?.message || "신고 제출에 실패했습니다.");
+      setAlertMessage(
+        error?.response?.data?.message || "신고 제출에 실패했습니다."
+      );
+      setAlertType("error");
+      setShowAlertModal(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -62,7 +70,7 @@ export default function ReportModal({
               <div className={styles.headerText}>
                 <h3 className={styles.reportTitle}>신고하기</h3>
                 <p className={styles.reportSubtitle}>
-                  {applicantName}님을 신고하시겠습니까?
+                  {selectedPetName}님을 신고하시겠습니까?
                 </p>
               </div>
             </div>
@@ -133,6 +141,16 @@ export default function ReportModal({
           </div>
         </div>
       </div>
+
+      {/* 알림 모달 */}
+      <AlertModal
+        isOpen={showAlertModal}
+        onClose={() => setShowAlertModal(false)}
+        title="알림"
+        message={alertMessage}
+        type={alertType}
+        confirmText="확인"
+      />
     </div>
   );
 }
