@@ -50,6 +50,14 @@ export default function HealthPage() {
     );
   }, []);
 
+  // 날짜를 YYYY-MM-DD 형식으로 변환하는 헬퍼 함수 (로컬 시간대 사용)
+  const formatDateToLocal = useCallback((date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }, []);
+
   // 통합된 캘린더 이벤트 구성 (투약 + 돌봄 + 접종 모두 포함)
   const buildAllCalendarEvents = useCallback(() => {
     const events = [];
@@ -68,7 +76,7 @@ export default function HealthPage() {
             const s = dateAtTime(current, hm);
             const e = new Date(s.getTime() + 60 * 60 * 1000);
             events.push({
-              id: `med-${med.id}-${current.toISOString().slice(0, 10)}-${hm}`,
+              id: `med-${med.id}-${formatDateToLocal(current)}-${hm}`,
               title: `${med.icon || "💊"} ${med.name}`,
               start: s,
               end: e,
@@ -102,7 +110,7 @@ export default function HealthPage() {
           const sTime = dateAtTime(start, s.scheduleTime || "09:00");
           const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
           events.push({
-            id: `care-${s.id}-${start.toISOString().slice(0, 10)}`,
+            id: `care-${s.id}-${formatDateToLocal(start)}`,
             title: `${s.icon || "🐕"} ${s.name}`,
             start: sTime,
             end: eTime,
@@ -117,7 +125,7 @@ export default function HealthPage() {
             const sTime = dateAtTime(current, s.scheduleTime || "09:00");
             const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
             events.push({
-              id: `care-${s.id}-${current.toISOString().slice(0, 10)}`,
+              id: `care-${s.id}-${formatDateToLocal(current)}`,
               title: `${s.icon || "🐕"} ${s.name}`,
               start: sTime,
               end: eTime,
@@ -134,7 +142,7 @@ export default function HealthPage() {
             const sTime = dateAtTime(current, s.scheduleTime || "09:00");
             const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
             events.push({
-              id: `care-${s.id}-${current.toISOString().slice(0, 10)}`,
+              id: `care-${s.id}-${formatDateToLocal(current)}`,
               title: `${s.icon || "🐕"} ${s.name}`,
               start: sTime,
               end: eTime,
@@ -151,7 +159,7 @@ export default function HealthPage() {
             const sTime = dateAtTime(current, s.scheduleTime || "09:00");
             const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
             events.push({
-              id: `care-${s.id}-${current.toISOString().slice(0, 10)}`,
+              id: `care-${s.id}-${formatDateToLocal(current)}`,
               title: `${s.icon || "🐕"} ${s.name}`,
               start: sTime,
               end: eTime,
@@ -196,7 +204,7 @@ export default function HealthPage() {
           const sTime = dateAtTime(start, s.scheduleTime || "10:00");
           const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
           events.push({
-            id: `vac-${s.id}-${start.toISOString().slice(0, 10)}`,
+            id: `vac-${s.id}-${formatDateToLocal(start)}`,
             title: `${s.icon || "💉"} ${s.name}`,
             start: sTime,
             end: eTime,
@@ -216,7 +224,7 @@ export default function HealthPage() {
             const sTime = dateAtTime(current, s.scheduleTime || "10:00");
             const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
             events.push({
-              id: `vac-${s.id}-${current.toISOString().slice(0, 10)}`,
+              id: `vac-${s.id}-${formatDateToLocal(current)}`,
               title: `${s.icon || "💉"} ${s.name}`,
               start: sTime,
               end: eTime,
@@ -238,7 +246,7 @@ export default function HealthPage() {
             const sTime = dateAtTime(current, s.scheduleTime || "10:00");
             const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
             events.push({
-              id: `vac-${s.id}-${current.toISOString().slice(0, 10)}`,
+              id: `vac-${s.id}-${formatDateToLocal(current)}`,
               title: `${s.icon || "💉"} ${s.name}`,
               start: sTime,
               end: eTime,
@@ -260,7 +268,7 @@ export default function HealthPage() {
             const sTime = dateAtTime(current, s.scheduleTime || "10:00");
             const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
             events.push({
-              id: `vac-${s.id}-${current.toISOString().slice(0, 10)}`,
+              id: `vac-${s.id}-${formatDateToLocal(current)}`,
               title: `${s.icon || "💉"} ${s.name}`,
               start: sTime,
               end: eTime,

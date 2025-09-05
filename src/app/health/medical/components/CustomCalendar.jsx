@@ -11,6 +11,11 @@ export default function CustomCalendar({
   minDate,
   maxDate,
   buttonRef,
+  monthlyMode = false, // 매월 모드 여부
+  monthlyDay = null, // 매월 반복할 일 (예: 5일)
+  weeklyMode = false, // 매주 모드 여부
+  weeklyDayOfWeek = null, // 매주 반복할 요일 (0=일요일, 1=월요일, ...)
+  showToday = true, // 오늘 날짜 표시 여부
 }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -82,9 +87,25 @@ export default function CustomCalendar({
   };
 
   const handleDateClick = (date) => {
-    // 한국 시간대로 변환 (UTC +9시간)
-    const koreanDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
-    const formattedDate = koreanDate.toISOString().split("T")[0];
+    // 매월 모드일 때는 특정 일만 선택 가능
+    if (monthlyMode && monthlyDay !== null) {
+      if (date.getDate() !== monthlyDay) {
+        return; // 선택된 일이 아니면 무시
+      }
+    }
+
+    // 매주 모드일 때는 특정 요일만 선택 가능
+    if (weeklyMode && weeklyDayOfWeek !== null) {
+      if (date.getDay() !== weeklyDayOfWeek) {
+        return; // 선택된 요일이 아니면 무시
+      }
+    }
+
+    // 날짜를 YYYY-MM-DD 형식으로 변환 (로컬 시간대 그대로 사용)
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const formattedDate = `${year}-${month}-${day}`;
     onDateSelect(formattedDate);
     onClose();
   };
@@ -154,16 +175,47 @@ export default function CustomCalendar({
                 (minDate && date.toISOString().split("T")[0] < minDate) ||
                 (maxDate && date.toISOString().split("T")[0] > maxDate);
 
+              // 매월 모드일 때는 특정 일만 활성화
+              const isMonthlyDay =
+                monthlyMode &&
+                monthlyDay !== null &&
+                date.getDate() === monthlyDay;
+              const isMonthlyDisabled =
+                monthlyMode &&
+                monthlyDay !== null &&
+                date.getDate() !== monthlyDay;
+
+              // 매주 모드일 때는 특정 요일만 활성화
+              const isWeeklyDay =
+                weeklyMode &&
+                weeklyDayOfWeek !== null &&
+                date.getDay() === weeklyDayOfWeek;
+              const isWeeklyDisabled =
+                weeklyMode &&
+                weeklyDayOfWeek !== null &&
+                date.getDay() !== weeklyDayOfWeek;
+
               return (
                 <button
                   key={index}
                   className={`${styles.calendarDay} ${
                     !isCurrentMonth ? styles.otherMonth : ""
                   } ${isSelected ? styles.selected : ""} ${
-                    isToday ? styles.today : ""
-                  } ${isDisabled ? styles.disabled : ""}`}
+                    isToday && showToday && !monthlyMode && !weeklyMode
+                      ? styles.today
+                      : ""
+                  } ${isDisabled ? styles.disabled : ""} ${
+                    isMonthlyDay ? styles.monthlyDay : ""
+                  } ${isMonthlyDisabled ? styles.monthlyDisabled : ""} ${
+                    isWeeklyDay ? styles.weeklyDay : ""
+                  } ${isWeeklyDisabled ? styles.weeklyDisabled : ""}`}
                   onClick={() => handleDateClick(date)}
-                  disabled={!isCurrentMonth || isDisabled}
+                  disabled={
+                    !isCurrentMonth ||
+                    isDisabled ||
+                    isMonthlyDisabled ||
+                    isWeeklyDisabled
+                  }
                 >
                   {date.getDate()}
                 </button>

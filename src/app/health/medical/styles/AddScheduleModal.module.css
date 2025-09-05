@@ -842,3 +842,49 @@
   margin-top: 4px;
   font-style: italic;
 }
+
+/* 매월 모드 스타일 */
+.monthlyDay {
+  background-color: #dbeafe;
+  color: #1e40af;
+  font-weight: 600;
+}
+
+.monthlyDay:hover {
+  background-color: #bfdbfe;
+}
+
+.monthlyDisabled {
+  background-color: #f9fafb;
+  color: #d1d5db;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.monthlyDisabled:hover {
+  background-color: #f9fafb;
+  color: #d1d5db;
+}
+
+/* 매주 모드 스타일 */
+.weeklyDay {
+  background-color: #dbeafe;
+  color: #1e40af;
+  font-weight: 600;
+}
+
+.weeklyDay:hover {
+  background-color: #bfdbfe;
+}
+
+.weeklyDisabled {
+  background-color: #f9fafb;
+  color: #d1d5db;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.weeklyDisabled:hover {
+  background-color: #f9fafb;
+  color: #d1d5db;
+}

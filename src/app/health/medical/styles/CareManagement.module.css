@@ -133,6 +133,14 @@
   line-height: 1.2;
 }
 
+.scheduleDate {
+  font-size: 13px;
+  font-weight: 500;
+  color: #059669;
+  margin: 2px 0 !important;
+  line-height: 1.2;
+}
+
 .scheduleTime {
   font-size: 12px;
   color: #9ca3af;

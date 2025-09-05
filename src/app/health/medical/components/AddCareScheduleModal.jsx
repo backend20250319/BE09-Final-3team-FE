@@ -124,8 +124,27 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
       case "매일":
         return "종료일을 입력하지 않으면 시작일과 동일하게 설정됩니다.";
       case "매주":
+        if (formData.startDate) {
+          const startDate = new Date(formData.startDate);
+          const dayOfWeek = startDate.getDay();
+          const weekdays = [
+            "일요일",
+            "월요일",
+            "화요일",
+            "수요일",
+            "목요일",
+            "금요일",
+            "토요일",
+          ];
+          return `선택해주신 ${weekdays[dayOfWeek]} 기준으로 매주 반복됩니다. 종료날짜는 ${weekdays[dayOfWeek]}만 선택할 수 있습니다.`;
+        }
         return "종료일을 입력하지 않으면 1주일 후로 설정됩니다. (최소 7일 이후)";
       case "매월":
+        if (formData.startDate) {
+          const startDate = new Date(formData.startDate);
+          const day = startDate.getDate();
+          return `선택해주신 ${day}일 기준으로 매월 반복됩니다. 종료날짜는 ${day}일만 선택할 수 있습니다.`;
+        }
         return "종료일을 입력하지 않으면 1개월 후로 설정됩니다. (최소 30일 이후)";
       case "당일":
         return "종료일은 자동으로 시작일과 동일하게 설정됩니다.";
@@ -768,6 +787,19 @@ export default function AddCareScheduleModal({ isOpen, onClose, onAdd }) {
         selectedDate={formData.endDate}
         minDate={getMinEndDate(formData.startDate, formData.frequency)}
         buttonRef={endCalendarButtonRef}
+        monthlyMode={formData.frequency === "매월"}
+        monthlyDay={
+          formData.frequency === "매월" && formData.startDate
+            ? new Date(formData.startDate).getDate()
+            : null
+        }
+        weeklyMode={formData.frequency === "매주"}
+        weeklyDayOfWeek={
+          formData.frequency === "매주" && formData.startDate
+            ? new Date(formData.startDate).getDay()
+            : null
+        }
+        showToday={false}
       />
     </div>
   );

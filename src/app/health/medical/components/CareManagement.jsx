@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import styles from "../styles/CareManagement.module.css";
 import { useSelectedPet } from "../../context/SelectedPetContext";
 import AddCareScheduleModal from "./AddCareScheduleModal";
@@ -52,6 +52,7 @@ export default function CareManagement({
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState("inactive");
   const [showToast, setShowToast] = useState(false);
+  const [calendarEvents, setCalendarEvents] = useState([]);
 
   // 필터링 상태 - 통합된 CARE 메인타입으로 변경
   const [careFilter, setCareFilter] = useState("전체");
@@ -154,16 +155,401 @@ export default function CareManagement({
     })),
   ];
 
+  // 캘린더 이벤트 구성 (투약 + 돌봄/접종) - useEffect 이전에 선언
+  const buildCalendarEvents = useCallback(() => {
+    console.log("🔍 buildCalendarEvents 함수 호출됨");
+    console.log("🔍 현재 돌봄 일정 데이터:", careSchedules);
+    console.log("🔍 현재 접종 일정 데이터:", vaccinationSchedules);
+
+    const parseDateTime = (d, t) => {
+      const [y, m, day] = d.split("-").map(Number);
+      const [hh = 9, mm = 0] = (t || "09:00").split(":").map(Number);
+      return new Date(y, m - 1, day, hh, mm, 0, 0); // 초와 밀리초는 0으로 설정
+    };
+
+    // 날짜를 YYYY-MM-DD 형식으로 변환하는 헬퍼 함수 (로컬 시간대 사용)
+    const formatDateToLocal = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
+    // 투약 이벤트 - 선택된 펫의 투약만 필터링
+    const medEvents = [];
+    medications
+      .filter((med) => !selectedPetName || med.petName === selectedPetName)
+      .forEach((med) => {
+        if (med.startDate && med.endDate) {
+          const start = new Date(med.startDate);
+          const end = new Date(med.endDate);
+          const times = (med.scheduleTime || "09:00").split(",").map((t) => {
+            // 시간 문자열에서 초 제거 (예: "09:00:00" -> "09:00")
+            const trimmed = t.trim();
+            if (trimmed.includes(":")) {
+              const parts = trimmed.split(":");
+              if (parts.length >= 2) {
+                return `${parts[0]}:${parts[1]}`;
+              }
+            }
+            return trimmed;
+          });
+          const current = new Date(start);
+          while (current <= end) {
+            times.forEach((hm) => {
+              const s = parseDateTime(formatDateToLocal(current), hm);
+              const e = new Date(s.getTime() + 60 * 60 * 1000); // 1시간 후
+              medEvents.push({
+                id: `med-${med.id}-${formatDateToLocal(current)}-${hm}`,
+                title: `${med.icon || "💊"} ${med.name}`,
+                start: s,
+                end: e,
+                allDay: false,
+                // 캘린더 필터와 색상 매핑을 위해 투약 유형(복용약/영양제)로 설정
+                type: med.type || "복용약",
+                schedule: {
+                  ...med,
+                  category: "medication",
+                  type: med.type || "복용약",
+                },
+              });
+            });
+            current.setDate(current.getDate() + 1);
+          }
+        }
+      });
+
+    const careEvents = [];
+    console.log("🔍 돌봄 일정 처리 시작");
+    careSchedules
+      .filter((s) => !selectedPetName || s.petName === selectedPetName)
+      .forEach((s) => {
+        console.log("🔍 돌봄 일정 처리 중:", s);
+        if (s.startDate && s.endDate) {
+          // 새로운 형식: startDate와 endDate 사용
+          const start = new Date(s.startDate);
+          const end = new Date(s.endDate);
+          const frequency = s.frequency || s.careFrequency;
+
+          console.log("🔍 돌봄 일정 빈도 처리:", {
+            frequency: frequency,
+            startDate: s.startDate,
+            endDate: s.endDate,
+          });
+
+          // 시간 파싱 - times 배열 또는 scheduleTime 문자열에서 첫 번째 시간 추출
+          const getFirstTime = () => {
+            if (s.times && s.times.length > 0) {
+              // 백엔드에서 온 times 배열 사용
+              return s.times[0];
+            } else if (s.scheduleTime) {
+              // scheduleTime 문자열에서 첫 번째 시간 추출
+              const times = s.scheduleTime.split(",").map((t) => t.trim());
+              return times[0] || "09:00";
+            }
+            return "09:00";
+          };
+
+          // 빈도에 따른 일정 생성
+          if (frequency === "당일") {
+            // 당일: 시작일 하루만
+            const firstTime = getFirstTime();
+            const sTime = parseDateTime(formatDateToLocal(start), firstTime);
+            const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+            careEvents.push({
+              id: `care-${s.id}-${formatDateToLocal(start)}`,
+              title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
+              start: sTime,
+              end: eTime,
+              allDay: false,
+              type: getScheduleLabel(s.subType) || "산책",
+              schedule: s,
+            });
+            console.log(
+              `🔍 당일 일정 생성: ${s.title || s.name} - ${formatDateToLocal(
+                start
+              )}`
+            );
+          } else if (frequency === "매일") {
+            // 매일: 시작일부터 종료일까지 모든 날
+            const current = new Date(start);
+            let dayCount = 0;
+            while (current <= end) {
+              const firstTime = getFirstTime();
+              const sTime = parseDateTime(
+                formatDateToLocal(current),
+                firstTime
+              );
+              const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+              careEvents.push({
+                id: `care-${s.id}-${formatDateToLocal(current)}`,
+                title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
+                start: sTime,
+                end: eTime,
+                allDay: false,
+                type: getScheduleLabel(s.subType) || "산책",
+                schedule: s,
+              });
+              dayCount++;
+              console.log(
+                `🔍 매일 일정 생성 [${dayCount}]: ${
+                  s.title || s.name
+                } - ${formatDateToLocal(current)}`
+              );
+              current.setDate(current.getDate() + 1);
+            }
+            console.log(`🔍 매일 일정 총 생성 개수: ${dayCount}개`);
+          } else if (frequency === "매주") {
+            // 매주: 7일마다
+            const current = new Date(start);
+            let weekCount = 0;
+            while (current <= end) {
+              const firstTime = getFirstTime();
+              const sTime = parseDateTime(
+                formatDateToLocal(current),
+                firstTime
+              );
+              const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+              careEvents.push({
+                id: `care-${s.id}-${formatDateToLocal(current)}`,
+                title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
+                start: sTime,
+                end: eTime,
+                allDay: false,
+                type: getScheduleLabel(s.subType) || "산책",
+                schedule: s,
+              });
+              weekCount++;
+              console.log(
+                `🔍 매주 일정 생성 [${weekCount}]: ${
+                  s.title || s.name
+                } - ${formatDateToLocal(current)}`
+              );
+              current.setDate(current.getDate() + 7);
+            }
+            console.log(`🔍 매주 일정 총 생성 개수: ${weekCount}개`);
+          } else if (frequency === "매월") {
+            // 매월: 매월 같은 날짜
+            const current = new Date(start);
+            let monthCount = 0;
+            while (current <= end) {
+              const firstTime = getFirstTime();
+              const sTime = parseDateTime(
+                formatDateToLocal(current),
+                firstTime
+              );
+              const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+              careEvents.push({
+                id: `care-${s.id}-${formatDateToLocal(current)}`,
+                title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
+                start: sTime,
+                end: eTime,
+                allDay: false,
+                type: getScheduleLabel(s.subType) || "산책",
+                schedule: s,
+              });
+              monthCount++;
+              console.log(
+                `🔍 매월 일정 생성 [${monthCount}]: ${
+                  s.title || s.name
+                } - ${formatDateToLocal(current)}`
+              );
+              current.setMonth(current.getMonth() + 1);
+            }
+            console.log(`🔍 매월 일정 총 생성 개수: ${monthCount}개`);
+          }
+        } else if (s.date) {
+          // 기존 형식: date 사용 (호환성 유지)
+          const sTime = parseDateTime(s.date, s.scheduleTime || "09:00");
+          const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+          careEvents.push({
+            id: `care-${s.id}`,
+            title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
+            start: sTime,
+            end: eTime,
+            allDay: false,
+            type: getScheduleLabel(s.subType) || "산책",
+            schedule: s,
+          });
+        }
+      });
+
+    const vacEvents = [];
+    vaccinationSchedules
+      .filter((s) => !selectedPetName || s.petName === selectedPetName)
+      .forEach((s) => {
+        if (s.startDate && s.endDate) {
+          // 새로운 형식: startDate와 endDate 사용
+          const start = new Date(s.startDate);
+          const end = new Date(s.endDate);
+          const frequency = s.frequency || s.careFrequency;
+          // 백엔드에서 이미 한글 label 값으로 오므로 변환 불필요
+
+          // 시간 파싱 - times 배열 또는 scheduleTime 문자열에서 첫 번째 시간 추출
+          const getFirstTime = () => {
+            if (s.times && s.times.length > 0) {
+              // 백엔드에서 온 times 배열 사용
+              return s.times[0];
+            } else if (s.scheduleTime) {
+              // scheduleTime 문자열에서 첫 번째 시간 추출
+              const times = s.scheduleTime.split(",").map((t) => t.trim());
+              return times[0] || "10:00";
+            }
+            return "10:00";
+          };
+
+          // 빈도에 따른 일정 생성
+          if (frequency === "당일") {
+            // 당일: 시작일 하루만
+            const firstTime = getFirstTime();
+            const sTime = parseDateTime(formatDateToLocal(start), firstTime);
+            const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+            vacEvents.push({
+              id: `vac-${s.id}-${formatDateToLocal(start)}`,
+              title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
+              start: sTime,
+              end: eTime,
+              allDay: false,
+              type: getScheduleLabel(s.subType) || "예방접종",
+              schedule: s,
+            });
+            console.log(
+              `🔍 접종 당일 일정 생성: ${
+                s.title || s.name
+              } - ${formatDateToLocal(start)}`
+            );
+          } else if (frequency === "매일") {
+            // 매일: 시작일부터 종료일까지 모든 날
+            const current = new Date(start);
+            let dayCount = 0;
+            while (current <= end) {
+              const firstTime = getFirstTime();
+              const sTime = parseDateTime(
+                formatDateToLocal(current),
+                firstTime
+              );
+              const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+              vacEvents.push({
+                id: `vac-${s.id}-${formatDateToLocal(current)}`,
+                title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
+                start: sTime,
+                end: eTime,
+                allDay: false,
+                type: getScheduleLabel(s.subType) || "예방접종",
+                schedule: s,
+              });
+              dayCount++;
+              console.log(
+                `🔍 접종 매일 일정 생성 [${dayCount}]: ${
+                  s.title || s.name
+                } - ${formatDateToLocal(current)}`
+              );
+              current.setDate(current.getDate() + 1);
+            }
+            console.log(`🔍 접종 매일 일정 총 생성 개수: ${dayCount}개`);
+          } else if (frequency === "매주") {
+            // 매주: 7일마다
+            const current = new Date(start);
+            let weekCount = 0;
+            while (current <= end) {
+              const firstTime = getFirstTime();
+              const sTime = parseDateTime(
+                formatDateToLocal(current),
+                firstTime
+              );
+              const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+              vacEvents.push({
+                id: `vac-${s.id}-${formatDateToLocal(current)}`,
+                title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
+                start: sTime,
+                end: eTime,
+                allDay: false,
+                type: getScheduleLabel(s.subType) || "예방접종",
+                schedule: s,
+              });
+              weekCount++;
+              console.log(
+                `🔍 접종 매주 일정 생성 [${weekCount}]: ${
+                  s.title || s.name
+                } - ${formatDateToLocal(current)}`
+              );
+              current.setDate(current.getDate() + 7);
+            }
+            console.log(`🔍 접종 매주 일정 총 생성 개수: ${weekCount}개`);
+          } else if (frequency === "매월") {
+            // 매월: 매월 같은 날짜
+            const current = new Date(start);
+            let monthCount = 0;
+            while (current <= end) {
+              const firstTime = getFirstTime();
+              const sTime = parseDateTime(
+                formatDateToLocal(current),
+                firstTime
+              );
+              const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+              vacEvents.push({
+                id: `vac-${s.id}-${formatDateToLocal(current)}`,
+                title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
+                start: sTime,
+                end: eTime,
+                allDay: false,
+                type: getScheduleLabel(s.subType) || "예방접종",
+                schedule: s,
+              });
+              monthCount++;
+              console.log(
+                `🔍 접종 매월 일정 생성 [${monthCount}]: ${
+                  s.title || s.name
+                } - ${formatDateToLocal(current)}`
+              );
+              current.setMonth(current.getMonth() + 1);
+            }
+            console.log(`🔍 접종 매월 일정 총 생성 개수: ${monthCount}개`);
+          }
+        } else {
+          // 기존 형식: date 사용 (호환성 유지)
+          const dateStr = s.date || new Date().toISOString().slice(0, 10);
+          const sTime = parseDateTime(dateStr, s.scheduleTime || "10:00");
+          const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+          vacEvents.push({
+            id: `vac-${s.id}`,
+            title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
+            start: sTime,
+            end: eTime,
+            allDay: false,
+            type: getScheduleLabel(s.subType) || "예방접종",
+            schedule: s,
+          });
+        }
+      });
+
+    const allEvents = [...medEvents, ...careEvents, ...vacEvents];
+    console.log("🔍 최종 캘린더 이벤트 결과:", {
+      medEvents: medEvents.length,
+      careEvents: careEvents.length,
+      vacEvents: vacEvents.length,
+      total: allEvents.length,
+      careEventsDetail: careEvents,
+      vacEventsDetail: vacEvents,
+    });
+    return allEvents;
+  }, [medications, careSchedules, vaccinationSchedules, selectedPetName]);
+
   // 캘린더 이벤트를 상위 컴포넌트로 전달
   useEffect(() => {
     console.log("🔍 CareManagement - 캘린더 이벤트 업데이트 시작");
     console.log("🔍 현재 돌봄 일정:", careSchedules);
     console.log("🔍 현재 접종 일정:", vaccinationSchedules);
 
+    const events = buildCalendarEvents();
+    console.log("🔍 CareManagement - 생성된 캘린더 이벤트:", events);
+    console.log("🔍 CareManagement - 이벤트 개수:", events.length);
+
+    // 로컬 상태 업데이트
+    setCalendarEvents(events);
+
+    // 상위 컴포넌트로 전달
     if (onCalendarEventsChange) {
-      const events = buildCalendarEvents();
-      console.log("🔍 CareManagement - 생성된 캘린더 이벤트:", events);
-      console.log("🔍 CareManagement - 이벤트 개수:", events.length);
       onCalendarEventsChange(events);
       console.log("🔍 CareManagement - 상위 컴포넌트로 이벤트 전달 완료");
     }
@@ -173,6 +559,7 @@ export default function CareManagement({
     medications,
     selectedPetName,
     onCalendarEventsChange,
+    buildCalendarEvents,
   ]);
 
   // 돌봄 일정 추가 버튼 클릭
@@ -235,28 +622,71 @@ export default function CareManagement({
 
       // 즉시 로컬 상태 업데이트 (빠른 UI 반응)
       if (isVaccinationSubType(newSchedule.subType)) {
-        onVaccinationSchedulesUpdate((prev) => [...prev, updatedSchedule]);
+        onVaccinationSchedulesUpdate((prev) => {
+          console.log("🔍 접종 일정 추가 전:", prev.length);
+          const updated = [...prev, updatedSchedule];
+          console.log("🔍 접종 일정 추가 후:", updated.length);
+          console.log("🔍 추가된 접종 일정:", updatedSchedule);
+          return updated;
+        });
+        // 접종 일정 추가 후 페이지를 1로 리셋
+        setVaccinationPage(1);
       } else if (isCareSubType(newSchedule.subType)) {
-        onCareSchedulesUpdate((prev) => [...prev, updatedSchedule]);
+        onCareSchedulesUpdate((prev) => {
+          console.log("🔍 돌봄 일정 추가 전:", prev.length);
+          const updated = [...prev, updatedSchedule];
+          console.log("🔍 돌봄 일정 추가 후:", updated.length);
+          console.log("🔍 추가된 돌봄 일정:", updatedSchedule);
+          return updated;
+        });
+        // 돌봄 일정 추가 후 페이지를 1로 리셋
+        setCarePage(1);
       }
 
-      setToastMessage(`${newSchedule.name} 일정이 추가되었습니다.`);
+      // 생성된 일정 개수 계산
+      const startDate = new Date(newSchedule.startDate);
+      const endDate = new Date(newSchedule.endDate);
+      let scheduleCount = 1; // 기본값
+
+      if (newSchedule.frequency === "매일") {
+        const timeDiff = endDate.getTime() - startDate.getTime();
+        const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
+        scheduleCount = daysDiff;
+      } else if (newSchedule.frequency === "매주") {
+        const timeDiff = endDate.getTime() - startDate.getTime();
+        const weeksDiff = Math.ceil(timeDiff / (1000 * 3600 * 24 * 7)) + 1;
+        scheduleCount = weeksDiff;
+      } else if (newSchedule.frequency === "매월") {
+        const yearDiff = endDate.getFullYear() - startDate.getFullYear();
+        const monthDiff = endDate.getMonth() - startDate.getMonth();
+        scheduleCount = yearDiff * 12 + monthDiff + 1;
+      }
+
+      setToastMessage(
+        `${scheduleCount}개의 ${newSchedule.name} 일정이 추가되었습니다.`
+      );
       setToastType("active");
       setShowToast(true);
       setShowAddModal(false); // 모달 닫기
 
       // 캘린더 이벤트 즉시 업데이트
+      console.log("🔍 일정 추가 후 캘린더 이벤트 생성 시작");
       const events = buildCalendarEvents();
+      console.log("🔍 생성된 캘린더 이벤트 개수:", events.length);
+      console.log("🔍 생성된 캘린더 이벤트:", events);
+      setCalendarEvents(events);
       if (onCalendarEventsChange) {
         onCalendarEventsChange(events);
+        console.log("🔍 상위 컴포넌트로 캘린더 이벤트 전달 완료");
       }
 
       // 백그라운드에서 데이터 동기화 (1초 후)
       setTimeout(() => {
         // 돌봄/접종 일정은 별도의 fetch 함수가 없으므로
         // 상위 컴포넌트에서 데이터를 다시 가져오도록 알림
+        const updatedEvents = buildCalendarEvents();
+        setCalendarEvents(updatedEvents);
         if (onCalendarEventsChange) {
-          const updatedEvents = buildCalendarEvents();
           onCalendarEventsChange(updatedEvents);
         }
       }, 1000);
@@ -327,10 +757,14 @@ export default function CareManagement({
         onVaccinationSchedulesUpdate((prev) =>
           prev.map((s) => (s.id === updatedSchedule.id ? updatedSchedule : s))
         );
+        // 접종 일정 수정 후 페이지를 1로 리셋
+        setVaccinationPage(1);
       } else if (isCareSubType(updatedSchedule.subType)) {
         onCareSchedulesUpdate((prev) =>
           prev.map((s) => (s.id === updatedSchedule.id ? updatedSchedule : s))
         );
+        // 돌봄 일정 수정 후 페이지를 1로 리셋
+        setCarePage(1);
       }
 
       setToastMessage(`${updatedSchedule.name} 일정이 수정되었습니다.`);
@@ -339,14 +773,16 @@ export default function CareManagement({
 
       // 캘린더 이벤트 즉시 업데이트
       const events = buildCalendarEvents();
+      setCalendarEvents(events);
       if (onCalendarEventsChange) {
         onCalendarEventsChange(events);
       }
 
       // 백그라운드에서 데이터 동기화 (1초 후)
       setTimeout(() => {
+        const updatedEvents = buildCalendarEvents();
+        setCalendarEvents(updatedEvents);
         if (onCalendarEventsChange) {
-          const updatedEvents = buildCalendarEvents();
           onCalendarEventsChange(updatedEvents);
         }
       }, 1000);
@@ -454,6 +890,8 @@ export default function CareManagement({
             (schedule) => schedule.id !== toDeleteId
           );
           onCareSchedulesUpdate(updated);
+          // 돌봄 일정 삭제 후 페이지를 1로 리셋
+          setCarePage(1);
 
           // 토스트 메시지 표시
           setToastMessage(`${careSchedule.name} 일정이 삭제되었습니다.`);
@@ -464,6 +902,8 @@ export default function CareManagement({
             (schedule) => schedule.id !== toDeleteId
           );
           onVaccinationSchedulesUpdate(updated);
+          // 접종 일정 삭제 후 페이지를 1로 리셋
+          setVaccinationPage(1);
 
           // 토스트 메시지 표시
           setToastMessage(`${vaccinationSchedule.name} 일정이 삭제되었습니다.`);
@@ -486,6 +926,7 @@ export default function CareManagement({
 
       // 캘린더 이벤트 즉시 업데이트
       const events = buildCalendarEvents();
+      setCalendarEvents(events);
       if (onCalendarEventsChange) {
         onCalendarEventsChange(events);
       }
@@ -515,8 +956,80 @@ export default function CareManagement({
     setDeleteType("");
   };
 
-  // 필터링된 일정들 (최신순 정렬 포함)
-  const filteredCareSchedules = careSchedules
+  // 일정을 빈도별로 확장하여 표시하는 함수
+  const expandSchedulesByFrequency = (schedules) => {
+    const expandedSchedules = [];
+
+    schedules.forEach((schedule) => {
+      if (schedule.startDate && schedule.endDate) {
+        const start = new Date(schedule.startDate);
+        const end = new Date(schedule.endDate);
+        const frequency = schedule.frequency || schedule.careFrequency;
+
+        if (frequency === "당일") {
+          // 당일: 1개만 추가
+          expandedSchedules.push({
+            ...schedule,
+            displayDate: schedule.startDate,
+            displayKey: `${schedule.id}-${schedule.startDate}`,
+          });
+        } else if (frequency === "매일") {
+          // 매일: 각 날짜별로 추가
+          const current = new Date(start);
+          while (current <= end) {
+            expandedSchedules.push({
+              ...schedule,
+              displayDate: formatDateToLocal(current),
+              displayKey: `${schedule.id}-${formatDateToLocal(current)}`,
+            });
+            current.setDate(current.getDate() + 1);
+          }
+        } else if (frequency === "매주") {
+          // 매주: 각 주별로 추가
+          const current = new Date(start);
+          while (current <= end) {
+            expandedSchedules.push({
+              ...schedule,
+              displayDate: formatDateToLocal(current),
+              displayKey: `${schedule.id}-${formatDateToLocal(current)}`,
+            });
+            current.setDate(current.getDate() + 7);
+          }
+        } else if (frequency === "매월") {
+          // 매월: 각 월별로 추가
+          const current = new Date(start);
+          while (current <= end) {
+            expandedSchedules.push({
+              ...schedule,
+              displayDate: formatDateToLocal(current),
+              displayKey: `${schedule.id}-${formatDateToLocal(current)}`,
+            });
+            current.setMonth(current.getMonth() + 1);
+          }
+        }
+      } else {
+        // 기존 형식: date 사용
+        expandedSchedules.push({
+          ...schedule,
+          displayDate: schedule.date || new Date().toISOString().slice(0, 10),
+          displayKey: schedule.id,
+        });
+      }
+    });
+
+    return expandedSchedules;
+  };
+
+  // 날짜를 YYYY-MM-DD 형식으로 변환하는 헬퍼 함수 (로컬 시간대 사용)
+  const formatDateToLocal = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  // 필터링된 원본 일정들 (최신순 정렬 포함)
+  const filteredOriginalCareSchedules = careSchedules
     .filter(
       (schedule) =>
         (careFilter === "전체" || schedule.subType === careFilter) &&
@@ -528,7 +1041,7 @@ export default function CareManagement({
       return idB - idA; // 내림차순 (최신이 위로)
     });
 
-  const filteredVaccinationSchedules = vaccinationSchedules
+  const filteredOriginalVaccinationSchedules = vaccinationSchedules
     .filter(
       (schedule) =>
         (vaccinationFilter === "전체" ||
@@ -541,12 +1054,20 @@ export default function CareManagement({
       return idB - idA; // 내림차순 (최신이 위로)
     });
 
-  // 페이징된 일정들
-  const paginatedCareSchedules = filteredCareSchedules.slice(
+  // 모든 원본 일정을 확장한 후 페이징
+  const allExpandedCareSchedules = expandSchedulesByFrequency(
+    filteredOriginalCareSchedules
+  );
+  const allExpandedVaccinationSchedules = expandSchedulesByFrequency(
+    filteredOriginalVaccinationSchedules
+  );
+
+  // 확장된 일정 기준으로 페이징
+  const paginatedCareSchedules = allExpandedCareSchedules.slice(
     (carePage - 1) * careItemsPerPage,
     carePage * careItemsPerPage
   );
-  const paginatedVaccinationSchedules = filteredVaccinationSchedules.slice(
+  const paginatedVaccinationSchedules = allExpandedVaccinationSchedules.slice(
     (vaccinationPage - 1) * vaccinationItemsPerPage,
     vaccinationPage * vaccinationItemsPerPage
   );
@@ -558,316 +1079,6 @@ export default function CareManagement({
 
   const handleVaccinationPageChange = (page) => {
     setVaccinationPage(page);
-  };
-
-  // 캘린더 이벤트 구성 (투약 + 돌봄/접종)
-  const buildCalendarEvents = () => {
-    console.log("🔍 buildCalendarEvents 함수 호출됨");
-    console.log("🔍 현재 돌봄 일정 데이터:", careSchedules);
-    console.log("🔍 현재 접종 일정 데이터:", vaccinationSchedules);
-
-    const parseDateTime = (d, t) => {
-      const [y, m, day] = d.split("-").map(Number);
-      const [hh = 9, mm = 0] = (t || "09:00").split(":").map(Number);
-      return new Date(y, m - 1, day, hh, mm, 0, 0); // 초와 밀리초는 0으로 설정
-    };
-
-    // 투약 이벤트 - 선택된 펫의 투약만 필터링
-    const medEvents = [];
-    medications
-      .filter((med) => !selectedPetName || med.petName === selectedPetName)
-      .forEach((med) => {
-        if (med.startDate && med.endDate) {
-          const start = new Date(med.startDate);
-          const end = new Date(med.endDate);
-          const times = (med.scheduleTime || "09:00").split(",").map((t) => {
-            // 시간 문자열에서 초 제거 (예: "09:00:00" -> "09:00")
-            const trimmed = t.trim();
-            if (trimmed.includes(":")) {
-              const parts = trimmed.split(":");
-              if (parts.length >= 2) {
-                return `${parts[0]}:${parts[1]}`;
-              }
-            }
-            return trimmed;
-          });
-          const current = new Date(start);
-          while (current <= end) {
-            times.forEach((hm) => {
-              const s = parseDateTime(current.toISOString().slice(0, 10), hm);
-              const e = new Date(s.getTime() + 60 * 60 * 1000); // 1시간 후
-              medEvents.push({
-                id: `med-${med.id}-${current.toISOString().slice(0, 10)}-${hm}`,
-                title: `${med.icon || "💊"} ${med.name}`,
-                start: s,
-                end: e,
-                allDay: false,
-                // 캘린더 필터와 색상 매핑을 위해 투약 유형(복용약/영양제)로 설정
-                type: med.type || "복용약",
-                schedule: {
-                  ...med,
-                  category: "medication",
-                  type: med.type || "복용약",
-                },
-              });
-            });
-            current.setDate(current.getDate() + 1);
-          }
-        }
-      });
-
-    const careEvents = [];
-    console.log("🔍 돌봄 일정 처리 시작");
-    careSchedules
-      .filter((s) => !selectedPetName || s.petName === selectedPetName)
-      .forEach((s) => {
-        console.log("🔍 돌봄 일정 처리 중:", s);
-        if (s.startDate && s.endDate) {
-          // 새로운 형식: startDate와 endDate 사용
-          const start = new Date(s.startDate);
-          const end = new Date(s.endDate);
-          const frequency = s.frequency || s.careFrequency;
-
-          console.log("🔍 돌봄 일정 빈도 처리:", {
-            frequency: frequency,
-            startDate: s.startDate,
-            endDate: s.endDate,
-          });
-
-          // 빈도에 따른 일정 생성
-          if (frequency === "당일") {
-            // 당일: 시작일 하루만
-            // times 배열에서 첫 번째 시간 사용 (백엔드에서 ["09:00", "18:00"] 형태로 옴)
-            const firstTime =
-              s.times && s.times.length > 0 ? s.times[0] : "09:00";
-            const sTime = parseDateTime(
-              start.toISOString().slice(0, 10),
-              firstTime
-            );
-            const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
-            careEvents.push({
-              id: `care-${s.id}-${start.toISOString().slice(0, 10)}`,
-              title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
-              start: sTime,
-              end: eTime,
-              allDay: false,
-              type: getScheduleLabel(s.subType) || "산책",
-              schedule: s,
-            });
-          } else if (frequency === "매일") {
-            // 매일: 시작일부터 종료일까지 모든 날
-            const current = new Date(start);
-            while (current <= end) {
-              // times 배열에서 첫 번째 시간 사용
-              const firstTime =
-                s.times && s.times.length > 0 ? s.times[0] : "09:00";
-              const sTime = parseDateTime(
-                current.toISOString().slice(0, 10),
-                firstTime
-              );
-              const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
-              careEvents.push({
-                id: `care-${s.id}-${current.toISOString().slice(0, 10)}`,
-                title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
-                start: sTime,
-                end: eTime,
-                allDay: false,
-                type: getScheduleLabel(s.subType) || "산책",
-                schedule: s,
-              });
-              current.setDate(current.getDate() + 1);
-            }
-          } else if (frequency === "매주") {
-            // 매주: 7일마다
-            const current = new Date(start);
-            while (current <= end) {
-              // times 배열에서 첫 번째 시간 사용
-              const firstTime =
-                s.times && s.times.length > 0 ? s.times[0] : "09:00";
-              const sTime = parseDateTime(
-                current.toISOString().slice(0, 10),
-                firstTime
-              );
-              const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
-              careEvents.push({
-                id: `care-${s.id}-${current.toISOString().slice(0, 10)}`,
-                title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
-                start: sTime,
-                end: eTime,
-                allDay: false,
-                type: getScheduleLabel(s.subType) || "산책",
-                schedule: s,
-              });
-              current.setDate(current.getDate() + 7);
-            }
-          } else if (frequency === "매월") {
-            // 매월: 매월 같은 날짜
-            const current = new Date(start);
-            while (current <= end) {
-              // times 배열에서 첫 번째 시간 사용
-              const firstTime =
-                s.times && s.times.length > 0 ? s.times[0] : "09:00";
-              const sTime = parseDateTime(
-                current.toISOString().slice(0, 10),
-                firstTime
-              );
-              const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
-              careEvents.push({
-                id: `care-${s.id}-${current.toISOString().slice(0, 10)}`,
-                title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
-                start: sTime,
-                end: eTime,
-                allDay: false,
-                type: getScheduleLabel(s.subType) || "산책",
-                schedule: s,
-              });
-              current.setMonth(current.getMonth() + 1);
-            }
-          }
-        } else if (s.date) {
-          // 기존 형식: date 사용 (호환성 유지)
-          const sTime = parseDateTime(s.date, s.scheduleTime || "09:00");
-          const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
-          careEvents.push({
-            id: `care-${s.id}`,
-            title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
-            start: sTime,
-            end: eTime,
-            allDay: false,
-            type: getScheduleLabel(s.subType) || "산책",
-            schedule: s,
-          });
-        }
-      });
-
-    const vacEvents = [];
-    vaccinationSchedules
-      .filter((s) => !selectedPetName || s.petName === selectedPetName)
-      .forEach((s) => {
-        if (s.startDate && s.endDate) {
-          // 새로운 형식: startDate와 endDate 사용
-          const start = new Date(s.startDate);
-          const end = new Date(s.endDate);
-          const frequency = s.frequency || s.careFrequency;
-          // 백엔드에서 이미 한글 label 값으로 오므로 변환 불필요
-
-          // 빈도에 따른 일정 생성
-          if (frequency === "당일") {
-            // 당일: 시작일 하루만
-            // times 배열에서 첫 번째 시간 사용
-            const firstTime =
-              s.times && s.times.length > 0 ? s.times[0] : "10:00";
-            const sTime = parseDateTime(
-              start.toISOString().slice(0, 10),
-              firstTime
-            );
-            const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
-            vacEvents.push({
-              id: `vac-${s.id}-${start.toISOString().slice(0, 10)}`,
-              title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
-              start: sTime,
-              end: eTime,
-              allDay: false,
-              type: getScheduleLabel(s.subType) || "예방접종",
-              schedule: s,
-            });
-          } else if (frequency === "매일") {
-            // 매일: 시작일부터 종료일까지 모든 날
-            const current = new Date(start);
-            while (current <= end) {
-              // times 배열에서 첫 번째 시간 사용
-              const firstTime =
-                s.times && s.times.length > 0 ? s.times[0] : "10:00";
-              const sTime = parseDateTime(
-                current.toISOString().slice(0, 10),
-                firstTime
-              );
-              const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
-              vacEvents.push({
-                id: `vac-${s.id}-${current.toISOString().slice(0, 10)}`,
-                title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
-                start: sTime,
-                end: eTime,
-                allDay: false,
-                type: getScheduleLabel(s.subType) || "예방접종",
-                schedule: s,
-              });
-              current.setDate(current.getDate() + 1);
-            }
-          } else if (frequency === "매주") {
-            // 매주: 7일마다
-            const current = new Date(start);
-            while (current <= end) {
-              // times 배열에서 첫 번째 시간 사용
-              const firstTime =
-                s.times && s.times.length > 0 ? s.times[0] : "10:00";
-              const sTime = parseDateTime(
-                current.toISOString().slice(0, 10),
-                firstTime
-              );
-              const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
-              vacEvents.push({
-                id: `vac-${s.id}-${current.toISOString().slice(0, 10)}`,
-                title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
-                start: sTime,
-                end: eTime,
-                allDay: false,
-                type: getScheduleLabel(s.subType) || "예방접종",
-                schedule: s,
-              });
-              current.setDate(current.getDate() + 7);
-            }
-          } else if (frequency === "매월") {
-            // 매월: 매월 같은 날짜
-            const current = new Date(start);
-            while (current <= end) {
-              // times 배열에서 첫 번째 시간 사용
-              const firstTime =
-                s.times && s.times.length > 0 ? s.times[0] : "10:00";
-              const sTime = parseDateTime(
-                current.toISOString().slice(0, 10),
-                firstTime
-              );
-              const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
-              vacEvents.push({
-                id: `vac-${s.id}-${current.toISOString().slice(0, 10)}`,
-                title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
-                start: sTime,
-                end: eTime,
-                allDay: false,
-                type: getScheduleLabel(s.subType) || "예방접종",
-                schedule: s,
-              });
-              current.setMonth(current.getMonth() + 1);
-            }
-          }
-        } else {
-          // 기존 형식: date 사용 (호환성 유지)
-          const dateStr = s.date || new Date().toISOString().slice(0, 10);
-          const sTime = parseDateTime(dateStr, s.scheduleTime || "10:00");
-          const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
-          vacEvents.push({
-            id: `vac-${s.id}`,
-            title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
-            start: sTime,
-            end: eTime,
-            allDay: false,
-            type: getScheduleLabel(s.subType) || "예방접종",
-            schedule: s,
-          });
-        }
-      });
-
-    const allEvents = [...medEvents, ...careEvents, ...vacEvents];
-    console.log("🔍 최종 캘린더 이벤트 결과:", {
-      medEvents: medEvents.length,
-      careEvents: careEvents.length,
-      vacEvents: vacEvents.length,
-      total: allEvents.length,
-      careEventsDetail: careEvents,
-      vacEventsDetail: vacEvents,
-    });
-    return allEvents;
   };
 
   // 일정 상세 모달 핸들러
@@ -904,6 +1115,8 @@ export default function CareManagement({
           (schedule) => schedule.id !== scheduleId
         );
         onCareSchedulesUpdate(updated);
+        // 돌봄 일정 삭제 후 페이지를 1로 리셋
+        setCarePage(1);
         setToastMessage(`${selectedSchedule.name} 일정이 삭제되었습니다.`);
       } else if (vaccinationSchedule) {
         // 접종 일정 삭제
@@ -911,6 +1124,8 @@ export default function CareManagement({
           (schedule) => schedule.id !== scheduleId
         );
         onVaccinationSchedulesUpdate(updated);
+        // 접종 일정 삭제 후 페이지를 1로 리셋
+        setVaccinationPage(1);
         setToastMessage(`${selectedSchedule.name} 일정이 삭제되었습니다.`);
       } else if (selectedSchedule.category === "medication") {
         // 투약 일정 삭제
@@ -923,6 +1138,7 @@ export default function CareManagement({
 
       // 캘린더 이벤트 즉시 업데이트
       const events = buildCalendarEvents();
+      setCalendarEvents(events);
       if (onCalendarEventsChange) {
         onCalendarEventsChange(events);
       }
@@ -930,52 +1146,76 @@ export default function CareManagement({
     setShowDetailModal(false);
   };
 
-  const renderScheduleCard = (schedule, type) => (
-    <div key={schedule.id} className={styles.scheduleCard}>
-      <div className={styles.scheduleInfo}>
-        <div
-          className={styles.scheduleIcon}
-          style={{ backgroundColor: COLOR_MAP[schedule.subType] || "#e8f5e8" }}
-        >
-          {getScheduleIcon(schedule.subType)}
+  const renderScheduleCard = (schedule, type) => {
+    // 확장된 일정의 경우 날짜 정보 표시
+    const getDateInfo = () => {
+      if (schedule.displayDate && schedule.displayDate !== schedule.startDate) {
+        const displayDate = new Date(schedule.displayDate);
+        const formattedDate = `${
+          displayDate.getMonth() + 1
+        }월 ${displayDate.getDate()}일`;
+        return formattedDate;
+      }
+      return null;
+    };
+
+    const dateInfo = getDateInfo();
+
+    return (
+      <div
+        key={schedule.displayKey || schedule.id}
+        className={styles.scheduleCard}
+      >
+        <div className={styles.scheduleInfo}>
+          <div
+            className={styles.scheduleIcon}
+            style={{
+              backgroundColor: COLOR_MAP[schedule.subType] || "#e8f5e8",
+            }}
+          >
+            {getScheduleIcon(schedule.subType)}
+          </div>
+          <div className={styles.scheduleDetails}>
+            <h4>{schedule.title || schedule.name}</h4>
+            <p>{schedule.frequency || schedule.careFrequency}</p>
+            {dateInfo && <p className={styles.scheduleDate}>{dateInfo}</p>}
+            <p className={styles.scheduleTime}>
+              {formatTime(schedule.scheduleTime)}
+            </p>
+          </div>
         </div>
-        <div className={styles.scheduleDetails}>
-          <h4>{schedule.title || schedule.name}</h4>
-          <p>{schedule.frequency || schedule.careFrequency}</p>
-          <p className={styles.scheduleTime}>
-            {formatTime(schedule.scheduleTime)}
-          </p>
+        <div className={styles.scheduleActions}>
+          <button
+            className={styles.actionButton}
+            onClick={() => handleEditSchedule(schedule.id, type)}
+          >
+            <img src="/health/note.png" alt="수정" width={22} height={22} />
+          </button>
+          <button
+            className={styles.actionButton}
+            onClick={() => requestDeleteSchedule(schedule.id, type)}
+          >
+            <img src="/health/trash.png" alt="삭제" width={24} height={24} />
+          </button>
+          <button
+            className={styles.actionButton}
+            onClick={() => toggleNotification(schedule.id, type)}
+          >
+            <img
+              src={
+                schedule.isNotified
+                  ? "/health/notifi.png"
+                  : "/health/notifi2.png"
+              }
+              alt="알림"
+              width={24}
+              height={24}
+            />
+          </button>
         </div>
       </div>
-      <div className={styles.scheduleActions}>
-        <button
-          className={styles.actionButton}
-          onClick={() => handleEditSchedule(schedule.id, type)}
-        >
-          <img src="/health/note.png" alt="수정" width={22} height={22} />
-        </button>
-        <button
-          className={styles.actionButton}
-          onClick={() => requestDeleteSchedule(schedule.id, type)}
-        >
-          <img src="/health/trash.png" alt="삭제" width={24} height={24} />
-        </button>
-        <button
-          className={styles.actionButton}
-          onClick={() => toggleNotification(schedule.id, type)}
-        >
-          <img
-            src={
-              schedule.isNotified ? "/health/notifi.png" : "/health/notifi2.png"
-            }
-            alt="알림"
-            width={24}
-            height={24}
-          />
-        </button>
-      </div>
-    </div>
-  );
+    );
+  };
 
   const renderPagination = (currentPage, totalPages, onPageChange) => {
     const pages = [];
@@ -1072,10 +1312,10 @@ export default function CareManagement({
           )}
         </div>
 
-        {filteredCareSchedules.length > careItemsPerPage &&
+        {allExpandedCareSchedules.length > careItemsPerPage &&
           renderPagination(
             carePage,
-            Math.ceil(filteredCareSchedules.length / careItemsPerPage),
+            Math.ceil(allExpandedCareSchedules.length / careItemsPerPage),
             handleCarePageChange
           )}
       </div>
@@ -1127,11 +1367,11 @@ export default function CareManagement({
           )}
         </div>
 
-        {filteredVaccinationSchedules.length > vaccinationItemsPerPage &&
+        {allExpandedVaccinationSchedules.length > vaccinationItemsPerPage &&
           renderPagination(
             vaccinationPage,
             Math.ceil(
-              filteredVaccinationSchedules.length / vaccinationItemsPerPage
+              allExpandedVaccinationSchedules.length / vaccinationItemsPerPage
             ),
             handleVaccinationPageChange
           )}
