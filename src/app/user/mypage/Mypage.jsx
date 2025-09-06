@@ -3,12 +3,14 @@ import React, { useState, useRef, useEffect } from "react";
 import styles from "./Mypage.module.css";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import {
+  getProfile,
+  updateProfile,
+  uploadProfileImage,
+  withdraw,
+} from "../../../api/userApi";
 
 const MyPage = () => {
-  const router = useRouter();
-  const USER_API_BASE = "http://localhost:8000/api/v1/user-service";
-
   // ✅ 컨트롤드 입력을 위한 초기 빈 값
   const [formData, setFormData] = useState({
     name: "",
@@ -169,13 +171,7 @@ const MyPage = () => {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const response = await apiCall(`${USER_API_BASE}/auth/profile`);
-
-      if (!response) {
-        return;
-      }
-
-      const userData = response.data.data; // ApiResponse 구조에서 실제 데이터 추출
+      const userData = await getProfile();
 
       // 주소 데이터 설정
       const addressValue = userData.roadAddress || userData.address || "";
@@ -267,14 +263,7 @@ const MyPage = () => {
         // birthDate는 수정 불가능하므로 제외
       };
 
-      const response = await apiCall(`${USER_API_BASE}/auth/profile`, {
-        method: "PATCH",
-        data: profileData,
-      });
-
-      if (!response) {
-        return;
-      }
+      await updateProfile(profileData);
 
       // 성공 시 편집 모드 종료
       setIsEditable(false);
@@ -407,36 +396,18 @@ const MyPage = () => {
 
   const uploadImageToFTP = async (file) => {
     try {
-      const token =
-        localStorage.getItem("token") || localStorage.getItem("accessToken");
-
-      if (!token) {
-        router.push("/user/login");
-        return;
-      }
-
-      // FormData 생성
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("userNo", localStorage.getItem("userNo") || "");
-
-      // FTP 업로드 API 호출
-      const response = await axios.post(
-        `${USER_API_BASE}/auth/profile/image`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      // 프로필 이미지 업로드 API 호출
+      const response = await uploadProfileImage(file);
 
       // 업로드된 이미지 URL로 미리보기 설정
-      const imageUrl = response.data.data.imageUrl;
-      setProfileImage(imageUrl);
-      setFormData((prev) => ({ ...prev, profileImageUrl: imageUrl }));
-      setImageLoadError(false); // 이미지 로드 에러 상태 초기화
+      const imageUrl = response?.data?.imageUrl || response?.imageUrl;
+      if (imageUrl) {
+        setProfileImage(imageUrl);
+        setFormData((prev) => ({ ...prev, profileImageUrl: imageUrl }));
+        setImageLoadError(false); // 이미지 로드 에러 상태 초기화
+      } else {
+        console.warn("이미지 URL을 찾을 수 없습니다:", response);
+      }
 
       setError("");
     } catch (error) {
@@ -492,19 +463,7 @@ const MyPage = () => {
       setLoading(true);
       setError("");
 
-      const withdrawData = {
-        password: withdrawPassword,
-        reason: withdrawReason || "사용자 요청",
-      };
-
-      const response = await apiCall(`${USER_API_BASE}/auth/withdraw`, {
-        method: "DELETE",
-        data: withdrawData,
-      });
-
-      if (!response) {
-        return;
-      }
+      await withdraw(withdrawPassword, withdrawReason || "사용자 요청");
 
       // 회원탈퇴 성공 시 로컬스토리지 클리어
       localStorage.clear();
