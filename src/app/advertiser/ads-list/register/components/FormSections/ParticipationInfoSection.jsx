@@ -46,6 +46,7 @@ export default function ParticipationInfoSection({ formData, setFormData }) {
               dateFormat="yyyy-MM-dd"
               placeholderText="종료일"
               className={styles.datePicker}
+              minDate={formData.announceStart}
             />
           </div>
         </div>
@@ -59,6 +60,7 @@ export default function ParticipationInfoSection({ formData, setFormData }) {
               dateFormat="yyyy-MM-dd"
               placeholderText="시작일"
               className={styles.datePicker}
+              minDate={formData.campaignSelect}
             />
             <span>~</span>
             <DatePicker
@@ -67,6 +69,7 @@ export default function ParticipationInfoSection({ formData, setFormData }) {
               dateFormat="yyyy-MM-dd"
               placeholderText="종료일"
               className={styles.datePicker}
+              minDate={formData.campaignStart}
             />
           </div>
         </div>
@@ -80,6 +83,7 @@ export default function ParticipationInfoSection({ formData, setFormData }) {
               dateFormat="yyyy-MM-dd"
               placeholderText="체험단 선정일"
               className={styles.datePicker}
+              minDate={formData.announceEnd}
             />
           </div>
         </div>
