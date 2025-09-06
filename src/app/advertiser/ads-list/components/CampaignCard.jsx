@@ -7,6 +7,7 @@ import styles from "../styles/CampaignCard.module.css";
 import { useCampaign } from "../context/CampaignContext";
 import RejectionModal from "./RejectionModal";
 import SelectionModal from "./SelectionModal";
+import ReviewStatusModal from "../components/ReviewStatusModal";
 import { getImageByAdNo } from '@/api/advertisementApi';
 import { getFileByAdvertiserNo } from '@/api/advertiserApi';
 
@@ -15,6 +16,7 @@ export default function CampaignCard({ campaign }) {
   const { activeTab } = useCampaign();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
+  const [isReviewStatusModalOpen, setIsReviewStatusModalOpen] = useState(false);
   const [advImage, setAdvImage] = useState(null);
   const [adImage, setAdImage] = useState(null);
 
@@ -47,7 +49,7 @@ export default function CampaignCard({ campaign }) {
   const STATUSTEXT = {
     approved: "삭제",
     closed: "선정",
-    trial: "리뷰 URL 관리",
+    trial: "URL 제출 현황",
     ended: "삭제",
     pending: "취소"
   };
@@ -95,6 +97,14 @@ export default function CampaignCard({ campaign }) {
 
   const handleCloseSelectionModal = () => {
     setIsSelectionModalOpen(false);
+  };
+
+  const handleReviewStatusClick = () => {
+    setIsReviewStatusModalOpen(true);
+  };
+
+  const handleCloseReviewStatusModal = () => {
+    setIsReviewStatusModalOpen(false);
   };
   
   const cardContent = (
@@ -151,6 +161,8 @@ export default function CampaignCard({ campaign }) {
                 e.stopPropagation();
                 if (campaign.adStatus === 'CLOSED') {
                   handleSelectionClick();
+                } else if (campaign.adStatus === 'TRIAL') {
+                  handleReviewStatusClick();
                 }
               }}
             >
@@ -193,6 +205,11 @@ export default function CampaignCard({ campaign }) {
         isOpen={isSelectionModalOpen}
         onClose={handleCloseSelectionModal}
         campaign={campaign}
+      />
+      <ReviewStatusModal
+        isOpen={isReviewStatusModalOpen}
+        onClose={handleCloseReviewStatusModal}
+        adNo={campaign.adNo}
       />
     </>
   );
