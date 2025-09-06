@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import SubHeader from "@/app/components/SubHeader";
 import SearchAndSort from "./components/SearchAndSort";
-import Pagination from "@/app/campaign/components/Pagination";
 import PetstarGrid from "./components/PetStarGrid";
 
 export default function PetStarListPage() {
@@ -34,7 +33,6 @@ export default function PetStarListPage() {
         setSortBy={setSortBy}
       />
       <PetstarGrid searchQuery={searchQuery} sortBy={sortBy} />
-      <Pagination />
     </main>
   );
 }

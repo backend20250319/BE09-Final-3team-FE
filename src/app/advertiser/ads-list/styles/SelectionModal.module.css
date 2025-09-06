@@ -438,3 +438,35 @@
     font-size: 16px; /* iOS zoom 방지 */
   }
 }
+
+/* Completed State Styles */
+.completedContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 40px;
+  text-align: center;
+}
+
+.completedIcon {
+  margin-bottom: 24px;
+}
+
+.completedTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0 0 16px 0;
+  line-height: 1.33;
+}
+
+.completedMessage {
+  font-size: 16px;
+  font-weight: 400;
+  color: #6B7280;
+  margin: 0;
+  line-height: 1.5;
+  max-width: 400px;
+}
+

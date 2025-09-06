@@ -253,7 +253,7 @@ export default function CampaignDetail({ campaignData, adNo }) {
         applicants={applicants}
         currentPage={applicantPage}
         onPageChange={handleApplicantPageChange}
-        loading={loading}
+        campaign={campaignData}
       />
       
       {/* Petstar List */}

@@ -81,6 +81,20 @@ const ProfileCard = () => {
   };
 
   const handleSave = async () => {
+    // 웹사이트와 이메일 필드 검증
+    const websiteInput = document.querySelector('input[type="url"]');
+    const emailInput = document.querySelector('input[type="email"]');
+    
+    if (websiteInput && !websiteInput.checkValidity()) {
+      websiteInput.reportValidity();
+      return;
+    }
+    
+    if (emailInput && !emailInput.checkValidity()) {
+      emailInput.reportValidity();
+      return;
+    }
+
   try {
     const phone = phoneFields.join("-");
     const updatedData = { ...editData, phone };

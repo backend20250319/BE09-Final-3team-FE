@@ -1,0 +1,92 @@
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+  margin-bottom: 40px;
+}
+
+.paginationContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pageButton {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.19;
+  color: #000000;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pageButton:hover:not(.disabled) {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.pageButton.active {
+  background: #f5a623;
+  border-color: transparent;
+  color: #ffffff;
+}
+
+.pageButton.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: #9ca3af;
+}
+
+.navButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navButton svg {
+  width: 10px;
+  height: 16px;
+}
+
+.ellipsis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #9ca3af;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .pagination {
+    margin-bottom: 40px;
+  }
+  
+  .paginationContainer {
+    gap: 4px;
+  }
+  
+  .pageButton {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+  
+  .ellipsis {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+}

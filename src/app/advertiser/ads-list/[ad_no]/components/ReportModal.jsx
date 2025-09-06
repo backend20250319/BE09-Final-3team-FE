@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import styles from "../styles/ReportModal.module.css";
-import { reportUser } from "@/api/advertiserApi";
+import { reportUser } from "@/api/advertisementApi";
+import AlertModal from "@/app/community/components/AlertModal";
 
 export default function ReportModal({
   isOpen,
