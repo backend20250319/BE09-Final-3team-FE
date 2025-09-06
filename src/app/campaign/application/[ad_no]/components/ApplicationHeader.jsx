@@ -10,7 +10,7 @@ export default function ApplicationHeader() {
   const params = useParams();
 
   const handleBack = () => {
-    router.push(`/campaign/${params.ad_no}`);
+    router.push(`/campaign/info/${params.ad_no}`);
   };
   
   return(

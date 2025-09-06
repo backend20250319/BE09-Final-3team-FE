@@ -283,6 +283,10 @@
   gap: 16px;
 }
 
+.ownerContact:not(:first-child) {
+  margin-top: 12px;
+}
+
 .contactItem {
   display: flex;
   gap: 8px;
