@@ -10,6 +10,20 @@ import { getApplicantsByPetNo, getPets, getPortfolio, getUser, getHistory, getIn
 
 export default function PetProfile() {
 
+  // Instagram URL을 핸들 형식으로 변환하는 함수
+  const formatInstagramHandle = (snsUrl) => {
+    if (!snsUrl) return '';
+    
+    // www.instagram.com/broccoli 형식을 @broccoli로 변환
+    const match = snsUrl.match(/instagram\.com\/([^\/\?]+)/);
+    if (match) {
+      return `@${match[1]}`;
+    }
+    
+    // 그 외의 경우 원본 반환
+    return snsUrl;
+  };
+
   const [selectedPet, setSelectedPet] = useState(null);
   const [activityCards, setActivityCards] = useState([]);
   const [petData, setPetData] = useState([]);
@@ -165,7 +179,7 @@ export default function PetProfile() {
                   alt="instagram.png"
                   width={16}
                   height={16} />
-                <span className={styles.instagramHandle}>{selectedPetInfo.instagram}</span>
+                <span className={styles.instagramHandle}>{formatInstagramHandle(selectedPetInfo.snsUrl) || 'SNS 정보 없음'}</span>
               </div>
             </div>
             <div className={styles.detailGrid}>

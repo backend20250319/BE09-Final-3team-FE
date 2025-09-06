@@ -175,44 +175,6 @@ export const updateFile = async (
   return res.data.data;
 };
 
-/* PET API */
-const PET_PREFIX =
-  (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_PET_PREFIX) ||
-  "/advertiser-service/pet";
-
-// 1. 포트폴리오 조회
-export const getPortfolio = async (petNo) => {
-  const res = await advertiserApi.get(`${PET_PREFIX}/portfolio/${petNo}`);
-  return res.data.data;
-}
-
-// 2. 활동이력 조회
-export const getHistory = async (petNo) => {
-  const res = await advertiserApi.get(`${PET_PREFIX}/history/${petNo}`);
-  return res.data.data;
-}
-
-/* USER API */
-const USER_PREFIX =
-  (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_USER_PREFIX) ||
-  "/advertiser-service/user";
-
-// 1. 사용자 조회
-export const getUser = async (uerNo) => {
-  const res = await advertiserApi.get(`${USER_PREFIX}/profile/${uerNo}`);
-  return res.data.data;
-}
-
-// 2. 사용자 신고하기
-export const reportUser = async (reportRequest) => {
-  const res = await advertiserApi.post(`${USER_PREFIX}/reports`, reportRequest, {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-  return res.data.data;
-};
-
 //=====================================================================================
 
 // 광고주 신청 목록 조회 (관리자용)

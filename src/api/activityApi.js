@@ -49,80 +49,58 @@ export const getActivityDataByPeriod = async (startDate, endDate, petNo) => {
   return res.data?.data ?? res.data;
 };
 
-// 활동 리포트 데이터 조회 (차트용) - 기존 API 개선
+// 활동 리포트 데이터 조회 (차트용) - 단순화된 API
 export const getActivityReport = async (
   petNo,
-  periodType = "WEEK",
   startDate = null,
   endDate = null
 ) => {
-  // periodType이 이미 백엔드 형식("DAY", "WEEK", "MONTH", "YEAR")으로 전달됨
-  const backendPeriodType = periodType;
-
-  // startDate, endDate가 제공되지 않은 경우 기존 로직 사용
+  // 파라미터 없이 호출하면 당일 데이터 자동 조회 (한국 시간대 기준)
   if (!startDate || !endDate) {
-    const endDate = new Date().toISOString().split("T")[0];
-    let startDate;
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    const todayString = `${year}-${month}-${day}`;
+    startDate = todayString;
+    endDate = todayString;
+  }
 
-    switch (backendPeriodType) {
-      case "DAY":
-        startDate = endDate;
-        break;
-      case "WEEK":
-        startDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-          .toISOString()
-          .split("T")[0];
-        break;
-      case "MONTH":
-        startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-          .toISOString()
-          .split("T")[0];
-        break;
-      case "YEAR":
-        startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
-          .toISOString()
-          .split("T")[0];
-        break;
-      default:
-        startDate = endDate;
+  // 날짜 범위 검증
+  const startDateObj = new Date(startDate);
+  const endDateObj = new Date(endDate);
+  const daysDiff =
+    Math.ceil((endDateObj - startDateObj) / (1000 * 60 * 60 * 24)) + 1;
+
+  // 7일 제한 체크 (서버에서도 체크하지만 클라이언트에서도 미리 체크)
+  if (daysDiff > 7) {
+    throw new Error("최대 7일까지 조회 가능합니다.");
+  }
+
+  // 시작일이 종료일보다 늦으면 오류
+  if (startDateObj > endDateObj) {
+    throw new Error("시작일은 종료일보다 이전이어야 합니다.");
+  }
+
+  const params = { petNo, startDate, endDate };
+  const res = await api.get(`${ACTIVITY_PREFIX}/chart`, { params });
+
+  // 에러 응답 처리
+  if (res.data?.success === false) {
+    const errorCode = res.data?.code;
+    const errorMessage = res.data?.message;
+
+    if (errorCode === "1004") {
+      throw new Error(errorMessage || "잘못된 날짜 범위입니다.");
+    } else if (errorCode === "9000") {
+      throw new Error("서버 내부 오류가 발생했습니다.");
+    } else {
+      throw new Error(errorMessage || "알 수 없는 오류가 발생했습니다.");
     }
   }
 
-  const params = { petNo, periodType: backendPeriodType, startDate, endDate };
-
-  console.log("getActivityReport API 호출:", {
-    url: `${ACTIVITY_PREFIX}/chart`,
-    params,
-    periodType: backendPeriodType,
-  });
-
-  const res = await api.get(`${ACTIVITY_PREFIX}/chart`, { params });
-  return res.data?.data ?? res.data;
-};
-
-// 새로운 활동 요약 API (새로 추가)
-export const getActivitySummary = async (
-  petNo,
-  periodType,
-  startDate = null,
-  endDate = null
-) => {
-  let url = `${ACTIVITY_PREFIX}/summary?petNo=${petNo}&periodType=${periodType}`;
-
-  if (periodType === "CUSTOM" && startDate && endDate) {
-    url += `&startDate=${startDate}&endDate=${endDate}`;
-  }
-
-  console.log("getActivitySummary API 호출:", {
-    url,
-    petNo,
-    periodType,
-    startDate,
-    endDate,
-  });
-
-  const res = await api.get(url);
-  return res.data?.data ?? res.data;
+  // 성공 응답에서 데이터 추출
+  return res.data?.data;
 };
 
 // 활동 데이터 수정

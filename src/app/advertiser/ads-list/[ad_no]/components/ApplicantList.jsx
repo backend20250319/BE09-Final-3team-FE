@@ -5,26 +5,83 @@ import Image from 'next/image';
 import styles from '../styles/ApplicantList.module.css';
 import PortfolioModal from './PortfolioModal';
 import ReportModal from './ReportModal';
-import { getPortfolio, getUser } from '@/api/advertiserApi';
+import SelectionModal from '../../components/SelectionModal';
+import ReviewUrlModal from './ReviewUrlModal';
+import { getPortfolio, getUser, getPersonalReview } from '@/api/advertisementApi';
 
-export default function ApplicantList({ applicants, currentPage, onPageChange }) {
+export default function ApplicantList({ applicants, currentPage, onPageChange, campaign }) {
   const [isPortfolioModalOpen, setIsPortfolioModalOpen] = useState(false);
   const [selectedPetData, setSelectedPetData] = useState(null);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [selectedUserData, setSelectedUserData] = useState(null);
   const [petPortfolios, setPetPortfolios] = useState({});
+  const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
+  const [isReviewUrlModalOpen, setIsReviewUrlModalOpen] = useState(false);
+  const [selectedApplicantForReview, setSelectedApplicantForReview] = useState(null);
+  const [activeTab, setActiveTab] = useState('all');
+  const [reviews, setReviews] = useState({});
+  const [isLoadingReviews, setIsLoadingReviews] = useState(false);
+  const [tabCounts, setTabCounts] = useState({
+    all: 0,
+    pending: 0,
+    reviewing: 0,
+    rejected: 0,
+    approved: 0
+  });
   
   // 페이지당 보여줄 신청자 수
   const ITEMS_PER_PAGE = 6;
   
+  // 상태별 신청자 필터링
+  const baseFilteredApplicants = (() => {
+    if (campaign?.adStatus === 'TRIAL') {
+      // TRIAL 상태일 때 SELECTED 신청자만 필터링
+      return applicants.filter(applicant => applicant.status === 'SELECTED');
+    } else if (campaign?.adStatus === 'ENDED') {
+      // ENDED 상태일 때 COMPLETED 신청자만 필터링
+      return applicants.filter(applicant => applicant.status === 'COMPLETED');
+    }
+    return applicants;
+  })();
+
+  // 탭별 필터링
+  const getFilteredApplicantsByTab = () => {
+    // ENDED 상태이거나 TRIAL이 아닌 경우 탭 필터링 없이 전체 반환
+    if (campaign?.adStatus === 'ENDED' || campaign?.adStatus !== 'TRIAL' || activeTab === 'all') {
+      return baseFilteredApplicants;
+    }
+
+    return baseFilteredApplicants.filter(applicant => {
+      const review = reviews[applicant.applicantNo];
+      
+      // 리뷰 데이터가 없는 경우 기본적으로 PENDING 상태로 처리
+      const reviewStatus = review ? review.isApproved : 'PENDING';
+
+      switch (activeTab) {
+        case 'pending':
+          return reviewStatus === 'PENDING';
+        case 'reviewing':
+          return reviewStatus === 'REVIEWING';
+        case 'rejected':
+          return reviewStatus === 'REJECTED';
+        case 'approved':
+          return reviewStatus === 'APPROVED';
+        default:
+          return true;
+      }
+    });
+  };
+
+  const filteredApplicants = getFilteredApplicantsByTab();
+  
   // 현재 페이지에 해당하는 신청자들만 필터링
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentApplicants = applicants.slice(startIndex, endIndex);
+  const currentApplicants = filteredApplicants.slice(startIndex, endIndex);
   
   // 총 페이지 수 계산
-  const totalPages = Math.ceil(applicants.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredApplicants.length / ITEMS_PER_PAGE);
 
   // 신청자 선택 시 사용자 정보 조회
   const handleApplicantSelect = async (applicant) => {
@@ -65,13 +122,219 @@ export default function ApplicantList({ applicants, currentPage, onPageChange })
     fetchPetPortfolios();
   }, [applicants, currentPage]);
 
+  // TRIAL 또는 ENDED 상태일 때 각 신청자의 리뷰 상태 조회 및 탭 카운트 계산
+  useEffect(() => {
+    const fetchReviewsAndCalculateCounts = async () => {
+      if ((campaign?.adStatus === 'TRIAL' || campaign?.adStatus === 'ENDED') && applicants.length > 0 && Object.keys(reviews).length === 0) {
+        setIsLoadingReviews(true);
+        try {
+          const reviewsData = {};
+          const targetApplicants = (() => {
+            if (campaign?.adStatus === 'TRIAL') {
+              return applicants.filter(applicant => applicant.status === 'SELECTED');
+            } else if (campaign?.adStatus === 'ENDED') {
+              return applicants.filter(applicant => applicant.status === 'COMPLETED');
+            }
+            return applicants;
+          })();
+            
+          // 리뷰 데이터 조회
+          for (const applicant of targetApplicants) {
+            try {
+              const review = await getPersonalReview(applicant.applicantNo);
+              reviewsData[applicant.applicantNo] = review;
+            } catch (error) {
+              // 리뷰가 없는 경우 기본값 설정
+              reviewsData[applicant.applicantNo] = { isApproved: 'PENDING' };
+            }
+          }
+          
+          // 탭 카운트 계산 (리뷰 데이터 조회와 동시에)
+          const counts = {
+            all: targetApplicants.length,
+            pending: 0,
+            reviewing: 0,
+            rejected: 0,
+            approved: 0
+          };
+          
+          targetApplicants.forEach(applicant => {
+            const review = reviewsData[applicant.applicantNo];
+            const reviewStatus = review ? review.isApproved : 'PENDING';
+            
+            switch (reviewStatus) {
+              case 'PENDING':
+                counts.pending++;
+                break;
+              case 'REVIEWING':
+                counts.reviewing++;
+                break;
+              case 'REJECTED':
+                counts.rejected++;
+                break;
+              case 'APPROVED':
+                counts.approved++;
+                break;
+            }
+          });
+          
+          // 한번에 상태 업데이트
+          setReviews(reviewsData);
+          setTabCounts(counts);
+        } catch (error) {
+          console.error('리뷰 데이터 조회 실패:', error);
+        } finally {
+          setIsLoadingReviews(false);
+        }
+      }
+    };
+
+    fetchReviewsAndCalculateCounts();
+  }, [campaign?.adStatus, applicants]);
+
+  // Instagram URL을 핸들 형식으로 변환하는 함수
+  const formatInstagramHandle = (snsUrl) => {
+    if (!snsUrl) return '';
+    
+    // www.instagram.com/broccoli 형식을 @broccoli로 변환
+    const match = snsUrl.match(/instagram\.com\/([^\/\?]+)/);
+    if (match) {
+      return `@${match[1]}`;
+    }
+    
+    // 그 외의 경우 원본 반환
+    return snsUrl;
+  };
+
+  // 게시물 URL 관리 모달 열기
+  const handleReviewUrlClick = (applicant) => {
+    setSelectedApplicantForReview(applicant);
+    setIsReviewUrlModalOpen(true);
+  };
+
+  // 탭 변경 핸들러
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    onPageChange(1); // 탭 변경 시 첫 페이지로 이동
+  };
+
+  // 리뷰 업데이트 핸들러
+  const handleReviewUpdate = async (applicantNo) => {
+    if (campaign?.adStatus === 'TRIAL' && applicantNo) {
+      try {
+        const review = await getPersonalReview(applicantNo);
+        setReviews(prev => ({
+          ...prev,
+          [applicantNo]: review
+        }));
+        
+        // 탭 카운트 재계산
+        const targetApplicants = campaign?.adStatus === 'TRIAL' 
+          ? applicants.filter(applicant => applicant.status === 'SELECTED')
+          : applicants;
+          
+        const counts = {
+          all: targetApplicants.length,
+          pending: 0,
+          reviewing: 0,
+          rejected: 0,
+          approved: 0
+        };
+        
+        targetApplicants.forEach(applicant => {
+          const reviewData = applicant.applicantNo === applicantNo ? review : reviews[applicant.applicantNo];
+          const reviewStatus = reviewData ? reviewData.isApproved : 'PENDING';
+          
+          switch (reviewStatus) {
+            case 'PENDING':
+              counts.pending++;
+              break;
+            case 'REVIEWING':
+              counts.reviewing++;
+              break;
+            case 'REJECTED':
+              counts.rejected++;
+              break;
+            case 'APPROVED':
+              counts.approved++;
+              break;
+          }
+        });
+        
+        setTabCounts(counts);
+      } catch (error) {
+        console.error('리뷰 데이터 조회 실패:', error);
+        setReviews(prev => ({
+          ...prev,
+          [applicantNo]: { isApproved: 'PENDING' }
+        }));
+      }
+    }
+  };
+
   return (
     <div className={styles.container}>
       {/* Header */}
       <div className={styles.header}>
-        <h2 className={styles.title}>체험단 신청자 목록</h2>
-        <span>총 {applicants.length} 마리</span>
+        <div className={styles.headerLeft}>
+          <h2 className={styles.title}>
+            {campaign?.adStatus === 'TRIAL' ? '체험단 목록' : 
+             campaign?.adStatus === 'ENDED' ? '완료된 체험단 목록' : '체험단 신청자 목록'}
+          </h2>
+          <span>총 {baseFilteredApplicants.length} 마리</span>
+        </div>
+        {campaign?.adStatus === 'CLOSED' && (
+          <button 
+            className={styles.selectionButton}
+            onClick={() => setIsSelectionModalOpen(true)}
+          >
+            체험단 선정
+          </button>
+        )}
       </div>
+
+      {/* Tabs - TRIAL 상태일 때만 표시 */}
+      {campaign?.adStatus === 'TRIAL' && (
+        <div className={styles.tabContainer}>
+          {isLoadingReviews && (
+            <div className={styles.loadingIndicator}>
+              리뷰 데이터를 불러오는 중
+            </div>
+          )}
+          <div>
+            <button 
+              className={`${styles.tab} ${activeTab === 'all' ? styles.activeTab : ''}`}
+              onClick={() => handleTabChange('all')}
+            >
+              전체 ({tabCounts.all})
+            </button>
+            <button 
+              className={`${styles.tab} ${activeTab === 'pending' ? styles.activeTab : ''}`}
+              onClick={() => handleTabChange('pending')}
+            >
+              미제출 ({tabCounts.pending})
+            </button>
+            <button 
+              className={`${styles.tab} ${activeTab === 'reviewing' ? styles.activeTab : ''}`}
+              onClick={() => handleTabChange('reviewing')}
+            >
+              검토 요망 ({tabCounts.reviewing})
+            </button>
+            <button 
+              className={`${styles.tab} ${activeTab === 'rejected' ? styles.activeTab : ''}`}
+              onClick={() => handleTabChange('rejected')}
+            >
+              반려됨 ({tabCounts.rejected})
+            </button>
+            <button 
+              className={`${styles.tab} ${activeTab === 'approved' ? styles.activeTab : ''}`}
+              onClick={() => handleTabChange('approved')}
+            >
+              승인됨 ({tabCounts.approved})
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Applicant Grid */}
       <div className={styles.applicantGrid}>
@@ -89,7 +352,7 @@ export default function ApplicantList({ applicants, currentPage, onPageChange })
             <div className={styles.applicantInfo}>
               <div className={styles.applicantDiv}>
                 <h3 className={styles.applicantName}>{applicant?.pet?.name}</h3>
-                <p className={styles.applicantUsername}>{applicant?.pet?.snsUrl}</p>
+                <p className={styles.applicantUsername}>{formatInstagramHandle(applicant?.pet?.snsUrl)}</p>
               </div>
               <p className={styles.applicantDescription}>
                 {petPortfolios[applicant?.pet?.petNo]?.content}
@@ -104,6 +367,22 @@ export default function ApplicantList({ applicants, currentPage, onPageChange })
                 >
                   포트폴리오
                 </button>
+                {campaign?.adStatus === 'TRIAL' && (
+                  <button 
+                    className={styles.reviewUrlButton}
+                    onClick={() => handleReviewUrlClick(applicant)}
+                  >
+                    게시물 URL 관리
+                  </button>
+                )}
+                {campaign?.adStatus === 'ENDED' && (
+                  <button 
+                    className={styles.reviewUrlButton}
+                    onClick={() => handleReviewUrlClick(applicant)}
+                  >
+                    게시물 URL 확인
+                  </button>
+                )}
                 <button 
                   className={styles.sirenButton}
                   onClick={() => handleApplicantSelect(applicant)}
@@ -192,7 +471,22 @@ export default function ApplicantList({ applicants, currentPage, onPageChange })
         selectedPetName={selectedApplicant?.pet?.name}
         applicantName={selectedUserData?.name}
       />
+
+      {/* Selection Modal */}
+      <SelectionModal
+        isOpen={isSelectionModalOpen}
+        onClose={() => setIsSelectionModalOpen(false)}
+        campaign={campaign}
+      />
+
+      {/* Review URL Modal */}
+      <ReviewUrlModal
+        isOpen={isReviewUrlModalOpen}
+        onClose={() => setIsReviewUrlModalOpen(false)}
+        applicant={selectedApplicantForReview}
+        onReviewUpdate={handleReviewUpdate}
+        campaign={campaign}
+      />
     </div>
   );
 }
-
