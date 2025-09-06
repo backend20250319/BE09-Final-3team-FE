@@ -5,11 +5,14 @@ import { useState } from "react";
 import Image from "next/image"; // ✅ 이미지 사용 시 필수
 import { useRouter } from "next/navigation";
 import styles from "./PasswordResetForm.module.css";
-import axios from "axios";
+import {
+  requestPasswordReset,
+  verifyPasswordResetCode,
+  changePassword,
+} from "../../../api/userAuthApi";
 
 export default function PasswordResetForm() {
   const router = useRouter();
-  const USER_API_BASE = "http://localhost:8000/api/v1/user-service";
 
   const [email, setEmail] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
@@ -37,31 +40,10 @@ export default function PasswordResetForm() {
 
     try {
       console.log("비밀번호 재설정 요청 시작");
-      console.log("요청 URL:", `${USER_API_BASE}/auth/password/reset`);
 
-      const response = await axios.post(
-        `${USER_API_BASE}/auth/password/reset`,
-        {
-          email,
-        }
-      );
+      const data = await requestPasswordReset(email);
 
-      console.log(
-        "비밀번호 재설정 요청 응답 상태:",
-        response.status,
-        response.statusText
-      );
-      console.log("비밀번호 재설정 요청 응답 데이터:", response.data);
-
-      const data = response.data;
-
-      if (response.status !== 200) {
-        throw new Error(
-          data.message ||
-            `비밀번호 재설정 요청에 실패했습니다. (${response.status})`
-        );
-      }
-
+      console.log("비밀번호 재설정 요청 응답 데이터:", data);
       console.log("비밀번호 재설정 요청 성공:", data);
 
       // 인증번호 발송 성공 시 모달 표시
@@ -96,26 +78,12 @@ export default function PasswordResetForm() {
 
     try {
       console.log("인증번호 확인 시작");
-      console.log("요청 URL:", `${USER_API_BASE}/auth/password/verify`);
       console.log("요청 데이터:", { email, verificationCode });
 
       // 비밀번호 재설정 인증번호 확인
-      const response = await axios.post(
-        `${USER_API_BASE}/auth/password/verify`,
-        {
-          email,
-          code: verificationCode,
-        }
-      );
+      const data = await verifyPasswordResetCode(email, verificationCode);
 
-      console.log(
-        "인증번호 확인 응답 상태:",
-        response.status,
-        response.statusText
-      );
-      console.log("인증번호 확인 응답 데이터:", response.data);
-
-      const data = response.data;
+      console.log("인증번호 확인 응답 데이터:", data);
 
       // 응답 확인
       if (!data.data || !data.data.verified) {
@@ -167,32 +135,15 @@ export default function PasswordResetForm() {
 
     try {
       console.log("비밀번호 변경 시작");
-      console.log("요청 URL:", `${USER_API_BASE}/auth/password/change`);
 
-      const response = await axios.post(
-        `${USER_API_BASE}/auth/password/change`,
-        {
-          email,
-          verificationCode,
-          newPassword,
-          confirmPassword,
-        }
+      const data = await changePassword(
+        email,
+        verificationCode,
+        newPassword,
+        confirmPassword
       );
 
-      console.log(
-        "비밀번호 변경 응답 상태:",
-        response.status,
-        response.statusText
-      );
-      console.log("비밀번호 변경 응답 데이터:", response.data);
-
-      const data = response.data;
-
-      if (response.status !== 200) {
-        throw new Error(
-          data.message || `비밀번호 변경에 실패했습니다. (${response.status})`
-        );
-      }
+      console.log("비밀번호 변경 응답 데이터:", data);
 
       console.log("비밀번호 변경 성공:", data);
 

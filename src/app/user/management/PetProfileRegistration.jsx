@@ -2,15 +2,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import styles from "./PetProfileRegistration.module.css";
-import axios from "axios";
-
-const PET_API_BASE = "http://localhost:8000/api/v1/pet-service";
+import { createPet, updatePet, uploadPetImage } from "../../../api/petApi";
 
 const PetProfileRegistration = ({
   isOpen,
   onClose,
-  petData,
-  isEditMode,
+  petData = null,
+  isEditMode = false,
   onSuccess,
   onSuccessMessage,
 }) => {
@@ -31,7 +29,7 @@ const PetProfileRegistration = ({
 
   // 수정 모드일 때 기존 데이터를 폼에 불러오기
   useEffect(() => {
-    if (isEditMode && petData) {
+    if (isEditMode && petData && petData.petNo) {
       console.log("수정 모드 - 기존 펫 데이터:", petData);
       const updatedFormData = {
         name: petData.name || "",
@@ -146,6 +144,14 @@ const PetProfileRegistration = ({
 
   const handleSubmit = async () => {
     try {
+      // 수정 모드일 때 petData 검증
+      if (isEditMode && (!petData || !petData.petNo)) {
+        if (onSuccessMessage) {
+          onSuccessMessage("펫 데이터가 올바르지 않습니다.");
+        }
+        return;
+      }
+
       // 필수 필드 검증
       if (
         !formData.name ||
@@ -182,62 +188,31 @@ const PetProfileRegistration = ({
       console.log("formData.snsUrl === null:", formData.snsUrl === null);
       console.log(
         "API 엔드포인트:",
-        isEditMode
-          ? `${PET_API_BASE}/pets/${petData.petNo}`
-          : `${PET_API_BASE}/pets`
+        isEditMode && petData ? `PUT /pets/${petData.petNo}` : `POST /pets`
       );
 
       let petResponse;
       if (isEditMode && petData) {
         // 수정
-        console.log("PUT 요청 시작 - 펫 번호:", petData.petNo);
-        petResponse = await axios.put(
-          `${PET_API_BASE}/pets/${petData.petNo}`,
-          requestData,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              ...(token && { Authorization: `Bearer ${token}` }),
-              ...(userNo && { "X-User-No": userNo }),
-            },
-          }
-        );
-        console.log("PUT 요청 응답:", petResponse.data);
+        console.log("PUT 요청 시작 - 펫 번호:", petData?.petNo);
+        petResponse = await updatePet(petData?.petNo, requestData);
+        console.log("PUT 요청 응답:", petResponse);
       } else {
         // 등록
-        petResponse = await axios.post(`${PET_API_BASE}/pets`, requestData, {
-          headers: {
-            "Content-Type": "application/json",
-            ...(token && { Authorization: `Bearer ${token}` }),
-            ...(userNo && { "X-User-No": userNo }),
-          },
-        });
+        petResponse = await createPet(requestData);
       }
 
       // 반려동물 등록/수정 성공 후 이미지 업로드
-      if (formData.imageFile && petResponse.data.code === "2000") {
-        const petNo = petResponse.data.data.petNo;
-
-        const imageFormData = new FormData();
-        imageFormData.append("file", formData.imageFile);
+      if (formData.imageFile && petResponse?.data?.code === "2000") {
+        const petNo = petResponse?.data?.data?.petNo;
 
         try {
-          const imageResponse = await axios.post(
-            `${PET_API_BASE}/pets/${petNo}/image`,
-            imageFormData,
-            {
-              headers: {
-                ...(token && { Authorization: `Bearer ${token}` }),
-                ...(userNo && { "X-User-No": userNo }),
-                "Content-Type": "multipart/form-data",
-              },
-            }
-          );
+          const imageResponse = await uploadPetImage(petNo, formData.imageFile);
 
-          if (imageResponse.data.code === "2000") {
+          if (imageResponse?.data?.code === "2000") {
             console.log("이미지 업로드 성공:", imageResponse.data.data);
             // 이미지 업로드 성공 시 새로운 이미지 URL로 업데이트
-            const newImageUrl = imageResponse.data.data.fileUrl;
+            const newImageUrl = imageResponse?.data?.data?.fileUrl;
             setFormData((prev) => ({
               ...prev,
               imageUrl: newImageUrl,
@@ -255,7 +230,7 @@ const PetProfileRegistration = ({
       console.log(
         isEditMode ? "펫 프로필 수정 성공!" : "펫 프로필 등록 성공!",
         {
-          petNo: petResponse.data.data.petNo,
+          petNo: petResponse?.data?.data?.petNo,
           name: formData.name,
           type: formData.type,
           age: formData.age,
@@ -263,7 +238,7 @@ const PetProfileRegistration = ({
           weight: formData.weight,
           imageUrl: formData.imageUrl,
           snsUrl: formData.snsUrl,
-          response: petResponse.data,
+          response: petResponse?.data,
         }
       );
 
