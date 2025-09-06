@@ -10,11 +10,30 @@ import Toast from "./Toast";
 import EditScheduleModal from "./EditScheduleModal";
 import ScheduleDetailModal from "./ScheduleDetailModal";
 import Select from "../../activity/components/ClientOnlySelect";
+import ScheduleCard from "./common/ScheduleCard";
+import MedicalFilter from "./common/MedicalFilter";
+import EmptyState from "./common/EmptyState";
 import {
   careSubTypeOptions,
   vaccinationSubTypeOptions,
   SUBTYPE_LABEL_MAP,
   ICON_MAP,
+  careFilterOptions,
+  vaccinationFilterOptions,
+  PAGINATION_CONFIG,
+  TIME_CONFIG,
+  formatTime,
+  formatDateToLocal,
+  CARE_LABELS,
+  VACCINATION_LABELS,
+  CARE_MESSAGES,
+  VACCINATION_MESSAGES,
+  COMMON_MESSAGES,
+  paginateArray,
+  sortByLatest,
+  filterByCondition,
+  deepClone,
+  isEmpty,
 } from "../../constants";
 import { careFrequencyMapping } from "../../constants/care";
 import { vaccinationFrequencyMapping } from "../../constants/vaccination";
@@ -61,8 +80,8 @@ export default function CareManagement({
   // 페이징 상태 - 돌봄 3개, 접종 2개로 수정
   const [carePage, setCarePage] = useState(1);
   const [vaccinationPage, setVaccinationPage] = useState(1);
-  const careItemsPerPage = 3; // 돌봄 3개
-  const vaccinationItemsPerPage = 2; // 접종 2개
+  const careItemsPerPage = PAGINATION_CONFIG.CARE.itemsPerPage; // 돌봄 3개
+  const vaccinationItemsPerPage = PAGINATION_CONFIG.VACCINATION.itemsPerPage; // 접종 2개
 
   // 서브타입 기반 분류 함수들
   const isCareSubType = (subType) => {
@@ -81,20 +100,7 @@ export default function CareManagement({
     return SUBTYPE_LABEL_MAP[subType] || subType;
   };
 
-  // 시간 형식을 HH:MM으로 변환하는 함수
-  const formatTime = (timeString) => {
-    if (!timeString) return "09:00";
-
-    // "08:00:00" -> "08:00" 변환
-    if (timeString.includes(":")) {
-      const parts = timeString.split(":");
-      if (parts.length >= 2) {
-        return `${parts[0]}:${parts[1]}`;
-      }
-    }
-
-    return timeString;
-  };
+  // 시간 형식 변환은 constants에서 import
 
   // react-select 공통 스타일 (활동관리 산책 드롭다운과 동일 톤)
   const selectStyles = {
@@ -139,21 +145,7 @@ export default function CareManagement({
     }),
   };
 
-  // 드롭다운 옵션 - 서브타입 기반으로 수정
-  const careFilterOptions = [
-    { value: "전체", label: "전체" },
-    ...careSubTypeOptions.map((o) => ({
-      value: o,
-      label: getScheduleLabel(o),
-    })),
-  ];
-  const vaccinationFilterOptions = [
-    { value: "전체", label: "전체" },
-    ...vaccinationSubTypeOptions.map((o) => ({
-      value: o,
-      label: getScheduleLabel(o),
-    })),
-  ];
+  // 드롭다운 옵션은 constants에서 import
 
   // 캘린더 이벤트 구성 (투약 + 돌봄/접종) - useEffect 이전에 선언
   const buildCalendarEvents = useCallback(() => {
@@ -1080,13 +1072,7 @@ export default function CareManagement({
     return expandedSchedules;
   };
 
-  // 날짜를 YYYY-MM-DD 형식으로 변환하는 헬퍼 함수 (로컬 시간대 사용)
-  const formatDateToLocal = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
+  // 날짜 형식 변환은 constants에서 import
 
   // 필터링된 원본 일정들 (최신순 정렬 포함)
   const filteredOriginalCareSchedules = careSchedules
@@ -1123,13 +1109,15 @@ export default function CareManagement({
   );
 
   // 확장된 일정 기준으로 페이징
-  const paginatedCareSchedules = allExpandedCareSchedules.slice(
-    (carePage - 1) * careItemsPerPage,
-    carePage * careItemsPerPage
+  const paginatedCareSchedules = paginateArray(
+    allExpandedCareSchedules,
+    carePage,
+    careItemsPerPage
   );
-  const paginatedVaccinationSchedules = allExpandedVaccinationSchedules.slice(
-    (vaccinationPage - 1) * vaccinationItemsPerPage,
-    vaccinationPage * vaccinationItemsPerPage
+  const paginatedVaccinationSchedules = paginateArray(
+    allExpandedVaccinationSchedules,
+    vaccinationPage,
+    vaccinationItemsPerPage
   );
 
   // 페이징 핸들러
@@ -1219,76 +1207,7 @@ export default function CareManagement({
     setShowDetailModal(false);
   };
 
-  const renderScheduleCard = (schedule, type) => {
-    // 확장된 일정의 경우 날짜 정보 표시
-    const getDateInfo = () => {
-      if (schedule.displayDate && schedule.displayDate !== schedule.startDate) {
-        const displayDate = new Date(schedule.displayDate);
-        const formattedDate = `${
-          displayDate.getMonth() + 1
-        }월 ${displayDate.getDate()}일`;
-        return formattedDate;
-      }
-      return null;
-    };
-
-    const dateInfo = getDateInfo();
-
-    return (
-      <div
-        key={schedule.displayKey || schedule.id}
-        className={styles.scheduleCard}
-      >
-        <div className={styles.scheduleInfo}>
-          <div
-            className={styles.scheduleIcon}
-            style={{
-              backgroundColor: COLOR_MAP[schedule.subType] || "#e8f5e8",
-            }}
-          >
-            {getScheduleIcon(schedule.subType)}
-          </div>
-          <div className={styles.scheduleDetails}>
-            <h4>{schedule.title || schedule.name}</h4>
-            <p>{schedule.frequency || schedule.careFrequency}</p>
-            {dateInfo && <p className={styles.scheduleDate}>{dateInfo}</p>}
-            <p className={styles.scheduleTime}>
-              {formatTime(schedule.scheduleTime)}
-            </p>
-          </div>
-        </div>
-        <div className={styles.scheduleActions}>
-          <button
-            className={styles.actionButton}
-            onClick={() => handleEditSchedule(schedule.id, type)}
-          >
-            <img src="/health/note.png" alt="수정" width={22} height={22} />
-          </button>
-          <button
-            className={styles.actionButton}
-            onClick={() => requestDeleteSchedule(schedule.id, type)}
-          >
-            <img src="/health/trash.png" alt="삭제" width={24} height={24} />
-          </button>
-          <button
-            className={styles.actionButton}
-            onClick={() => toggleNotification(schedule.id, type)}
-          >
-            <img
-              src={
-                schedule.isNotified
-                  ? "/health/notifi.png"
-                  : "/health/notifi2.png"
-              }
-              alt="알림"
-              width={24}
-              height={24}
-            />
-          </button>
-        </div>
-      </div>
-    );
-  };
+  // renderScheduleCard는 ScheduleCard 컴포넌트로 대체됨
 
   const renderPagination = (currentPage, totalPages, onPageChange) => {
     const pages = [];
@@ -1345,15 +1264,14 @@ export default function CareManagement({
         <div className={styles.sectionHeader}>
           <h3>돌봄</h3>
           <div className={styles.headerControls}>
-            <Select
+            <MedicalFilter
+              type="care"
               options={careFilterOptions}
-              value={careFilterOptions.find((o) => o.value === careFilter)}
-              onChange={(opt) => {
-                setCareFilter(opt?.value || "전체");
+              value={careFilter}
+              onChange={(value) => {
+                setCareFilter(value || "전체");
                 setCarePage(1);
               }}
-              placeholder="유형 선택"
-              classNamePrefix="react-select"
               styles={selectStyles}
             />
             <button
@@ -1373,24 +1291,30 @@ export default function CareManagement({
 
         <div className={styles.scheduleList}>
           {paginatedCareSchedules.length === 0 ? (
-            <div className={styles.emptyContainer}>
-              <div className={styles.emptyIcon}>🐕</div>
-              <p>등록된 일정이 없습니다.</p>
-              <p>새로운 돌봄 일정을 추가해보세요!</p>
-            </div>
+            <EmptyState type="care" className={styles.emptyContainer} />
           ) : (
-            paginatedCareSchedules.map((schedule) =>
-              renderScheduleCard(schedule, "돌봄")
-            )
+            paginatedCareSchedules.map((schedule) => (
+              <ScheduleCard
+                key={schedule.displayKey || schedule.id}
+                schedule={schedule}
+                type="돌봄"
+                onEdit={handleEditSchedule}
+                onDelete={requestDeleteSchedule}
+                onToggleNotification={toggleNotification}
+              />
+            ))
           )}
         </div>
 
-        {allExpandedCareSchedules.length > careItemsPerPage &&
-          renderPagination(
-            carePage,
-            Math.ceil(allExpandedCareSchedules.length / careItemsPerPage),
-            handleCarePageChange
-          )}
+        {allExpandedCareSchedules.length > careItemsPerPage && (
+          <div className={styles.pagination}>
+            {renderPagination(
+              carePage,
+              Math.ceil(allExpandedCareSchedules.length / careItemsPerPage),
+              handleCarePageChange
+            )}
+          </div>
+        )}
       </div>
 
       {/* 예방접종 일정 섹션 */}
@@ -1398,17 +1322,14 @@ export default function CareManagement({
         <div className={styles.sectionHeader}>
           <h3>접종</h3>
           <div className={styles.headerControls}>
-            <Select
+            <MedicalFilter
+              type="vaccination"
               options={vaccinationFilterOptions}
-              value={vaccinationFilterOptions.find(
-                (o) => o.value === vaccinationFilter
-              )}
-              onChange={(opt) => {
-                setVaccinationFilter(opt?.value || "전체");
+              value={vaccinationFilter}
+              onChange={(value) => {
+                setVaccinationFilter(value || "전체");
                 setVaccinationPage(1);
               }}
-              placeholder="유형 선택"
-              classNamePrefix="react-select"
               styles={selectStyles}
             />
             <button
@@ -1428,26 +1349,32 @@ export default function CareManagement({
 
         <div className={styles.scheduleList}>
           {paginatedVaccinationSchedules.length === 0 ? (
-            <div className={styles.emptyContainer}>
-              <div className={styles.emptyIcon}>💉</div>
-              <p>등록된 일정이 없습니다.</p>
-              <p>새로운 접종 일정을 추가해보세요!</p>
-            </div>
+            <EmptyState type="vaccination" className={styles.emptyContainer} />
           ) : (
-            paginatedVaccinationSchedules.map((schedule) =>
-              renderScheduleCard(schedule, "접종")
-            )
+            paginatedVaccinationSchedules.map((schedule) => (
+              <ScheduleCard
+                key={schedule.displayKey || schedule.id}
+                schedule={schedule}
+                type="접종"
+                onEdit={handleEditSchedule}
+                onDelete={requestDeleteSchedule}
+                onToggleNotification={toggleNotification}
+              />
+            ))
           )}
         </div>
 
-        {allExpandedVaccinationSchedules.length > vaccinationItemsPerPage &&
-          renderPagination(
-            vaccinationPage,
-            Math.ceil(
-              allExpandedVaccinationSchedules.length / vaccinationItemsPerPage
-            ),
-            handleVaccinationPageChange
-          )}
+        {allExpandedVaccinationSchedules.length > vaccinationItemsPerPage && (
+          <div className={styles.pagination}>
+            {renderPagination(
+              vaccinationPage,
+              Math.ceil(
+                allExpandedVaccinationSchedules.length / vaccinationItemsPerPage
+              ),
+              handleVaccinationPageChange
+            )}
+          </div>
+        )}
       </div>
 
       {/* 일정 추가 모달: 돌봄 */}

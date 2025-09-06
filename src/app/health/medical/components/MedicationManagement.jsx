@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import styles from "../styles/MedicationManagement.module.css";
 import { useSelectedPet } from "../../context/SelectedPetContext";
+import { useMedicalData } from "../../hooks/useMedicalData";
+import { useMedicalModal } from "../../hooks/useMedicalModal";
 import ConfirmModal from "../components/ConfirmModal";
 import Toast from "../components/Toast";
 import AddMedicationModal from "./AddMedicationModal";
@@ -11,6 +13,10 @@ import PrescriptionResultModal from "./PrescriptionResultModal";
 import PrescriptionErrorModal from "./PrescriptionErrorModal";
 import ScheduleDetailModal from "./ScheduleDetailModal";
 import Select from "../../activity/components/ClientOnlySelect";
+import MedicationCard from "./common/MedicationCard";
+import MedicalFilter from "./common/MedicalFilter";
+import EmptyState from "./common/EmptyState";
+import LoadingSpinner from "./common/LoadingSpinner";
 import {
   createMedication,
   listMedications,
@@ -21,7 +27,27 @@ import {
   createMedicationFromOcr,
   listCareSchedules,
 } from "../../../../api/medicationApi";
-import { STORAGE_KEYS, frequencyMapping } from "../../constants";
+import {
+  STORAGE_KEYS,
+  frequencyMapping,
+  medicationFilterOptions,
+  PAGINATION_CONFIG,
+  TIME_CONFIG,
+  FILE_UPLOAD_CONFIG,
+  getDefaultTimes,
+  getMedicationIcon,
+  formatTime,
+  formatDateToLocal,
+  MEDICATION_LABELS,
+  MEDICATION_MESSAGES,
+  COMMON_MESSAGES,
+  VALIDATION_MESSAGES,
+  paginateArray,
+  sortByLatest,
+  filterByCondition,
+  deepClone,
+  isEmpty,
+} from "../../constants";
 import { careFrequencyMapping } from "../../constants/care";
 import { vaccinationFrequencyMapping } from "../../constants/vaccination";
 import { COLOR_MAP } from "../../constants/colors";
@@ -40,15 +66,36 @@ export default function MedicationManagement({
   setSelectedSchedule,
 }) {
   const { selectedPetName, selectedPetNo } = useSelectedPet();
+  const medicalData = useMedicalData();
+  const modal = useMedicalModal();
   const LOCAL_STORAGE_KEY = STORAGE_KEYS.MEDICATION_NOTIFICATIONS;
 
-  // 투약 일정 필터 옵션
-  const medicationFilterOptions = [
-    { value: "전체", label: "전체" },
-    { value: "복용약", label: "복용약" },
-    { value: "영양제", label: "영양제" },
-    { value: "처방전", label: "처방전" },
-  ];
+  // 상태 변수들
+  const [isLoading, setIsLoading] = useState(false);
+  const [medicationFilter, setMedicationFilter] = useState("전체");
+  const [medicationPage, setMedicationPage] = useState(1);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [toDeleteId, setToDeleteId] = useState(null);
+  const [deleteType, setDeleteType] = useState("");
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState("success");
+  const [calendarEvents, setCalendarEvents] = useState([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showPrescriptionResultModal, setShowPrescriptionResultModal] =
+    useState(false);
+  const [showPrescriptionErrorModal, setShowPrescriptionErrorModal] =
+    useState(false);
+  const [editingMedication, setEditingMedication] = useState(null);
+  const [prescriptionResult, setPrescriptionResult] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [errorDetails, setErrorDetails] = useState("");
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [ocrResult, setOcrResult] = useState(null);
+
+  // 투약 일정 필터 옵션은 constants에서 import
 
   // 빈도 매핑 (한글 → Enum)
   const frequencyToEnum = {
@@ -65,39 +112,7 @@ export default function MedicationManagement({
     영양제: "SUPPLEMENT",
   };
 
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [toDeleteId, setToDeleteId] = useState(null);
-  const [deleteType, setDeleteType] = useState(""); // "medication", "care", "vaccination"
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingMedication, setEditingMedication] = useState(null);
-
-  // 투약 일정 필터링 상태
-  const [medicationFilter, setMedicationFilter] = useState("전체");
-
-  // 토스트 메시지 상태
-  const [toastMessage, setToastMessage] = useState("");
-  const [toastType, setToastType] = useState("inactive");
-  const [showToast, setShowToast] = useState(false);
-
-  // OCR 결과 모달 상태
-  const [showResultModal, setShowResultModal] = useState(false);
-  const [ocrResult, setOcrResult] = useState(null);
-
-  // OCR 에러 모달 상태
-  const [showErrorModal, setShowErrorModal] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [errorDetails, setErrorDetails] = useState("");
-
-  // 페이징 상태
-  const [medicationPage, setMedicationPage] = useState(1);
-  const itemsPerPage = 3;
-
-  // 캘린더 이벤트 상태 (돌봄 일정과 동일하게 추가)
-  const [calendarEvents, setCalendarEvents] = useState([]);
-
-  // 로딩 상태
-  const [isLoading, setIsLoading] = useState(false);
+  const itemsPerPage = PAGINATION_CONFIG.MEDICATION.itemsPerPage;
 
   // 서브타입 기반 분류 함수들
   const isCareSubType = (subType) => {
@@ -734,23 +749,21 @@ export default function MedicationManagement({
           typeof selectedPetNo
         );
 
-        // 파일 크기 제한 (10MB)
-        if (file.size > 10 * 1024 * 1024) {
-          setErrorMessage("파일 크기가 너무 큽니다.");
-          setErrorDetails("파일 크기는 10MB 이하여야 합니다.");
+        // 파일 크기 제한
+        if (file.size > FILE_UPLOAD_CONFIG.MAX_SIZE) {
+          setErrorMessage(MEDICATION_MESSAGES.OCR_FILE_TOO_LARGE);
+          setErrorDetails(
+            `파일 크기는 ${
+              FILE_UPLOAD_CONFIG.MAX_SIZE / (1024 * 1024)
+            }MB 이하여야 합니다.`
+          );
           setShowErrorModal(true);
           return;
         }
 
         // 지원하는 이미지 형식 확인
-        const allowedTypes = [
-          "image/jpeg",
-          "image/jpg",
-          "image/png",
-          "image/gif",
-        ];
-        if (!allowedTypes.includes(file.type)) {
-          setErrorMessage("지원하지 않는 파일 형식입니다.");
+        if (!FILE_UPLOAD_CONFIG.ALLOWED_TYPES.includes(file.type)) {
+          setErrorMessage(MEDICATION_MESSAGES.OCR_INVALID_FORMAT);
           setErrorDetails("JPEG, PNG, GIF 형식의 이미지만 업로드 가능합니다.");
           setShowErrorModal(true);
           return;
@@ -874,57 +887,7 @@ export default function MedicationManagement({
 
   const handleAddMedication = () => setShowAddModal(true);
 
-  // 복용 빈도에 따른 기본 시간 설정
-  const getDefaultTimes = (frequency) => {
-    switch (frequency) {
-      case "DAILY_ONCE":
-        return ["09:00"];
-      case "DAILY_TWICE":
-        return ["08:00", "20:00"];
-      case "DAILY_THREE_TIMES":
-        return ["08:00", "12:00", "20:00"];
-      default:
-        return ["09:00"];
-    }
-  };
-
-  // 약물명에 따라 이모지를 결정하는 함수
-  const getMedicationIcon = (medicationName) => {
-    if (!medicationName) return "💊";
-
-    const name = medicationName.toLowerCase();
-
-    // 항생제
-    if (name.includes("amoxicillin") || name.includes("항생제")) {
-      return "💊";
-    }
-    // 소염진통제
-    if (
-      name.includes("firocoxib") ||
-      name.includes("소염") ||
-      name.includes("진통")
-    ) {
-      return "💊";
-    }
-    // 심장약
-    if (name.includes("heart") || name.includes("심장")) {
-      return "💊";
-    }
-    // 비타민/영양제
-    if (
-      name.includes("vitamin") ||
-      name.includes("비타민") ||
-      name.includes("영양")
-    ) {
-      return "💊";
-    }
-    // 알레르기약
-    if (name.includes("allergy") || name.includes("알레르기")) {
-      return "💊";
-    }
-    // 기본 약물 이모지
-    return "💊";
-  };
+  // 복용 빈도에 따른 기본 시간 설정과 약물 아이콘은 constants에서 import
 
   const handleAddNewMedication = async (newMedication) => {
     try {
@@ -1190,9 +1153,10 @@ export default function MedicationManagement({
 
   // 백엔드에서 이미 필터링된 데이터를 사용하므로 추가 필터링 불필요
   const filteredMedications = medications; // 최신순 정렬 (ID 내림차순)
-  const paginatedMedications = filteredMedications.slice(
-    (medicationPage - 1) * itemsPerPage,
-    medicationPage * itemsPerPage
+  const paginatedMedications = paginateArray(
+    filteredMedications,
+    medicationPage,
+    itemsPerPage
   );
 
   // 페이징 핸들러
@@ -1412,13 +1376,11 @@ export default function MedicationManagement({
           <h3>투약</h3>
           <div className={styles.headerControls}>
             <div className={styles.filterContainer}>
-              <Select
+              <MedicalFilter
+                type="medication"
                 options={medicationFilterOptions}
-                value={medicationFilterOptions.find(
-                  (o) => o.value === medicationFilter
-                )}
-                onChange={(option) => setMedicationFilter(option.value)}
-                placeholder="필터 선택"
+                value={medicationFilter}
+                onChange={setMedicationFilter}
                 className={styles.filterSelect}
               />
             </div>
@@ -1437,108 +1399,35 @@ export default function MedicationManagement({
 
         <div className={styles.medicationList}>
           {isLoading ? (
-            <div className={styles.loadingContainer}>
-              <div className={styles.loadingSpinner}></div>
-              <p>투약 데이터를 불러오는 중...</p>
-            </div>
+            <LoadingSpinner
+              message={MEDICATION_LABELS.LOADING_MEDICATIONS}
+              className={styles.loadingContainer}
+            />
           ) : paginatedMedications.length === 0 ? (
-            <div className={styles.emptyContainer}>
-              <div className={styles.emptyIcon}>💊</div>
-              <p>등록된 투약 일정이 없습니다.</p>
-              <p>새로운 투약 일정을 추가해보세요!</p>
-            </div>
+            <EmptyState type="medication" className={styles.emptyContainer} />
           ) : (
             paginatedMedications.map((medication, index) => (
-              <div
+              <MedicationCard
                 key={`medication-${medication.id || medication.calNo || index}`}
-                className={styles.medicationCard}
-              >
-                <div className={styles.medicationInfo}>
-                  <div
-                    className={styles.medicationIcon}
-                    style={{
-                      backgroundColor: COLOR_MAP[medication.type] || "#e8f5e8",
-                    }}
-                  >
-                    {medication.icon}
-                  </div>
-                  <div className={styles.medicationDetails}>
-                    <div className={styles.medicationHeader}>
-                      <h4>{medication.name}</h4>
-                      {medication.isPrescription && (
-                        <span className={styles.prescriptionBadge}>처방전</span>
-                      )}
-                    </div>
-                    <p>
-                      {medication.type} • {medication.frequency}
-                    </p>
-                    <p className={styles.scheduleTime}>
-                      {medication.scheduleTime}
-                    </p>
-                  </div>
-                </div>
-                <div className={styles.medicationActions}>
-                  <button
-                    className={styles.actionButton}
-                    onClick={() => handleEditMedication(medication.id)}
-                  >
-                    <img
-                      src="/health/note.png"
-                      alt="수정"
-                      width={22}
-                      height={22}
-                    />
-                  </button>
-                  <button
-                    className={styles.actionButton}
-                    onClick={() => requestDeleteMedication(medication.id)}
-                  >
-                    <img
-                      src="/health/trash.png"
-                      alt="삭제"
-                      width={24}
-                      height={24}
-                    />
-                  </button>
-                  <button
-                    className={styles.actionButton}
-                    onClick={() => toggleNotification(medication.id)}
-                    title={(() => {
-                      if (medication.reminderDaysBefore === null) {
-                        return `알림 비활성화 (마지막 설정: ${
-                          medication.lastReminderDaysBefore || 0
-                        }일전)`;
-                      } else {
-                        return medication.reminderDaysBefore === 0
-                          ? "당일 알림"
-                          : `${medication.reminderDaysBefore}일 전 알림`;
-                      }
-                    })()}
-                  >
-                    <img
-                      src={
-                        medication.reminderDaysBefore !== null
-                          ? "/health/notifi.png"
-                          : "/health/notifi2.png"
-                      }
-                      alt="알림"
-                      width={24}
-                      height={24}
-                    />
-                  </button>
-                </div>
-              </div>
+                medication={medication}
+                onEdit={handleEditMedication}
+                onDelete={requestDeleteMedication}
+                onToggleNotification={toggleNotification}
+              />
             ))
           )}
         </div>
 
         {/* 페이징 */}
-        {filteredMedications.length > itemsPerPage &&
-          renderPagination(
-            medicationPage,
-            Math.ceil(filteredMedications.length / itemsPerPage),
-            handleMedicationPageChange
-          )}
+        {filteredMedications.length > itemsPerPage && (
+          <div className={styles.pagination}>
+            {renderPagination(
+              medicationPage,
+              Math.ceil(filteredMedications.length / itemsPerPage),
+              handleMedicationPageChange
+            )}
+          </div>
+        )}
       </div>
 
       {/* 삭제 확인 모달 */}

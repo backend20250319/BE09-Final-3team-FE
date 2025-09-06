@@ -15,6 +15,34 @@ import {
   frequencyMapping,
   COLOR_MAP,
   SUBTYPE_LABEL_MAP,
+  getDefaultTimes,
+  getTimeInputCount,
+  formatDateForDisplay,
+  MEDICATION_LABELS,
+  CARE_LABELS,
+  VACCINATION_LABELS,
+  VALIDATION_MESSAGES,
+  FREQUENCY_HINTS,
+  NOTIFICATION_MESSAGES,
+  deepClone,
+  isEmpty,
+  formatDate,
+  parseDate,
+  addDays,
+  addMonths,
+  isSameDay,
+  isBefore,
+  isAfter,
+  getDayOfWeek,
+  getDayOfMonth,
+  validateForm,
+  validateMedicationForm,
+  validateCareForm,
+  validateVaccinationForm,
+  validateDateRange,
+  validateTimeInput,
+  validateDuration,
+  validateFrequency
 } from "../../constants";
 
 export default function EditScheduleModal({
@@ -45,15 +73,7 @@ export default function EditScheduleModal({
   const calendarButtonRef = React.useRef(null);
   const endCalendarButtonRef = React.useRef(null);
 
-  // 날짜 포맷팅 함수
-  const formatDateForDisplay = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}.${String(date.getDate()).padStart(2, "0")}`;
-  };
+  // 날짜 포맷팅은 constants에서 import
 
   // 종료날짜 검증 함수
   const validateEndDate = (startDate, endDate, frequency) => {
@@ -299,43 +319,7 @@ export default function EditScheduleModal({
     };
   }, [showStartCalendar, showEndCalendar]);
 
-  // 복용 빈도에 따른 기본 시간 설정
-  const getDefaultTimes = (frequency) => {
-    // 투약의 경우에만 시간 설정
-    if (type === "medication") {
-      switch (frequency) {
-        case "DAILY_ONCE":
-          return ["09:00"];
-        case "DAILY_TWICE":
-          return ["08:00", "20:00"];
-        case "DAILY_THREE_TIMES":
-          return ["08:00", "12:00", "20:00"];
-        default:
-          return ["09:00"];
-      }
-    }
-    // 돌봄과 접종의 경우 기본 시간 1개만
-    return ["09:00"];
-  };
-
-  // 복용 빈도에 따른 시간 입력 칸 개수
-  const getTimeInputCount = (frequency) => {
-    // 투약의 경우에만 여러 시간 입력 칸
-    if (type === "medication") {
-      switch (frequency) {
-        case "DAILY_ONCE":
-          return 1;
-        case "DAILY_TWICE":
-          return 2;
-        case "DAILY_THREE_TIMES":
-          return 3;
-        default:
-          return 1;
-      }
-    }
-    // 돌봄과 접종의 경우 시간 입력 칸 1개만
-    return 1;
-  };
+  // 복용 빈도에 따른 기본 시간 설정과 시간 입력 칸 개수는 constants에서 import
 
   // 시간 옵션 생성 (30분 간격)
   const generateTimeOptions = () => {
