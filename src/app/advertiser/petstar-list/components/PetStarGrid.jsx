@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import styles from '../styles/PetStarGrid.module.css';
 import PortfolioModal from '../../ads-list/[ad_no]/components/PortfolioModal';
+import Pagination from '../../ads-list/components/Pagination';
 import { getPetstar, getPortfolio } from '@/api/advertisementApi';
 
 export default function PetstarGrid({ searchQuery, sortBy }) {
@@ -12,6 +13,8 @@ export default function PetstarGrid({ searchQuery, sortBy }) {
   const [petstars, setPetstars] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   // API에서 펫스타 데이터 가져오기
   useEffect(() => {
@@ -77,6 +80,26 @@ export default function PetstarGrid({ searchQuery, sortBy }) {
     return sorted;
   }, [searchQuery, sortBy, petstars]);
 
+  // 페이지네이션을 위한 데이터 분할
+  const paginatedPetstars = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return sortedPetstars.slice(startIndex, endIndex);
+  }, [sortedPetstars, currentPage, itemsPerPage]);
+
+  // 총 페이지 수 계산
+  const totalPages = Math.ceil(sortedPetstars.length / itemsPerPage);
+
+  // 페이지 변경 핸들러
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  // 검색이나 정렬이 변경될 때 첫 페이지로 리셋
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortBy]);
+
   // 로딩 상태 처리
   if (loading) {
     return (
@@ -116,7 +139,7 @@ export default function PetstarGrid({ searchQuery, sortBy }) {
   return (
     <div className={styles.container}>
       <div className={styles.petstarGrid}>
-        {sortedPetstars.map((petstar) => (
+        {paginatedPetstars.map((petstar) => (
           <div key={petstar.petNo} className={styles.petstarCard}>
             <div className={styles.petstarImage}>
               <Image 
@@ -187,6 +210,13 @@ export default function PetstarGrid({ searchQuery, sortBy }) {
           </div>
         ))}
       </div>
+
+      {/* Pagination */}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
 
       <PortfolioModal
         isOpen={isPortfolioModalOpen}
