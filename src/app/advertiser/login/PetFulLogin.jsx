@@ -5,11 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./PetFulLogin.module.css";
 import Image from "next/image";
-
-// 환경변수로 게이트웨이/백엔드 베이스 URL 관리
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL + "/advertiser-service" ||
-  "http://localhost:8000/api/v1/advertiser-service";
+import { advertiserLogin } from "../../../api/advertiserAuthApi";
 
 export default function PetFulLogin() {
   const [email, setEmail] = useState("");
@@ -30,123 +26,100 @@ export default function PetFulLogin() {
     setError("");
 
     try {
-      const response = await fetch(`${API_BASE}/advertiser/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        mode: "cors",
-        credentials: "omit",
-        body: JSON.stringify({
-          userId: email, // 백엔드에서는 userId로 받음
-          password: password,
-        }),
-      });
+      const data = await advertiserLogin(email, password);
 
-      let data = {};
-      try {
-        const responseText = await response.text();
-        if (responseText.trim()) {
-          data = JSON.parse(responseText);
-        }
-      } catch (parseError) {
-        console.error("로그인 JSON 파싱 에러:", parseError);
+      // 백엔드 응답 구조 디버깅
+      console.log("백엔드 응답 전체:", data);
+      console.log("data.data 내용:", data.data);
+
+      // 로그인 성공 - 토큰 저장
+      // 백엔드 응답 구조에 따라 토큰 위치 확인
+      let token = null;
+
+      if (data.data && data.data.token) {
+        // ApiResponse 구조: { data: { token: "..." } }
+        token = data.data.token;
+      } else if (data.data && data.data.accessToken) {
+        // ApiResponse 구조: { data: { accessToken: "..." } }
+        token = data.data.accessToken;
+      } else if (data.data && data.data.access_token) {
+        // ApiResponse 구조: { data: { access_token: "..." } }
+        token = data.data.access_token;
+      } else if (data.data && data.data.jwt) {
+        // ApiResponse 구조: { data: { jwt: "..." } }
+        token = data.data.jwt;
+      } else if (data.token) {
+        // 직접 토큰 구조: { token: "..." }
+        token = data.token;
+      } else if (data.accessToken) {
+        // accessToken 구조: { accessToken: "..." }
+        token = data.accessToken;
+      } else if (data.access_token) {
+        // access_token 구조: { access_token: "..." }
+        token = data.access_token;
       }
 
-      if (response.ok) {
-        // 백엔드 응답 구조 디버깅
-        console.log("백엔드 응답 전체:", data);
-        console.log("data.data 내용:", data.data);
-
-        // 로그인 성공 - 토큰 저장
-        // 백엔드 응답 구조에 따라 토큰 위치 확인
-        let token = null;
-
-        if (data.data && data.data.token) {
-          // ApiResponse 구조: { data: { token: "..." } }
-          token = data.data.token;
-        } else if (data.data && data.data.accessToken) {
-          // ApiResponse 구조: { data: { accessToken: "..." } }
-          token = data.data.accessToken;
-        } else if (data.data && data.data.access_token) {
-          // ApiResponse 구조: { data: { access_token: "..." } }
-          token = data.data.access_token;
-        } else if (data.data && data.data.jwt) {
-          // ApiResponse 구조: { data: { jwt: "..." } }
-          token = data.data.jwt;
-        } else if (data.token) {
-          // 직접 토큰 구조: { token: "..." }
-          token = data.token;
-        } else if (data.accessToken) {
-          // accessToken 구조: { accessToken: "..." }
-          token = data.accessToken;
-        } else if (data.access_token) {
-          // access_token 구조: { access_token: "..." }
-          token = data.access_token;
-        }
-
-        if (token) {
-          // JWT 토큰 디코딩하여 payload 확인
-          try {
-            const tokenParts = token.split(".");
-            if (tokenParts.length === 3) {
-              const payload = JSON.parse(atob(tokenParts[1]));
-              console.log("JWT 토큰 payload:", payload);
-            }
-          } catch (decodeError) {
-            console.error("JWT 토큰 디코딩 실패:", decodeError);
+      if (token) {
+        // JWT 토큰 디코딩하여 payload 확인
+        try {
+          const tokenParts = token.split(".");
+          if (tokenParts.length === 3) {
+            const payload = JSON.parse(atob(tokenParts[1]));
+            console.log("JWT 토큰 payload:", payload);
           }
-
-          // 토큰들을 localStorage에 저장
-          localStorage.setItem("advertiserToken", token);
-          localStorage.setItem(
-            "advertiserRefreshToken",
-            data.data.refreshToken
-          );
-          localStorage.setItem("advertiserEmail", email);
-          localStorage.setItem("advertiserNo", data.data.advertiserNo);
-          localStorage.setItem("userType", data.data.userType);
-
-          console.log("토큰 저장 완료:", {
-            accessToken: token,
-            refreshToken: data.data.refreshToken,
-            advertiserNo: data.data.advertiserNo,
-            userType: data.data.userType,
-          });
-
-          // 헤더 상태 업데이트를 위한 커스텀 이벤트 발생
-          window.dispatchEvent(new Event("loginStatusChanged"));
-
-          // 로그인 성공 모달 표시
-          setModal({
-            isOpen: true,
-            message: (
-              <>
-                로그인에 성공했습니다!
-                <br />
-                확인 버튼을 클릭하면 광고주 대시보드로 이동합니다.
-              </>
-            ),
-            isSuccess: true,
-          });
-        } else {
-          console.error("토큰을 찾을 수 없습니다. 응답 구조:", data);
-          setError("로그인 응답에 토큰이 없습니다.");
+        } catch (decodeError) {
+          console.error("JWT 토큰 디코딩 실패:", decodeError);
         }
+
+        // 토큰들을 localStorage에 저장
+        localStorage.setItem("advertiserToken", token);
+        localStorage.setItem("advertiserRefreshToken", data.data.refreshToken);
+        localStorage.setItem("advertiserEmail", email);
+        localStorage.setItem("advertiserNo", data.data.advertiserNo);
+        localStorage.setItem("userType", data.data.userType);
+
+        console.log("토큰 저장 완료:", {
+          accessToken: token,
+          refreshToken: data.data.refreshToken,
+          advertiserNo: data.data.advertiserNo,
+          userType: data.data.userType,
+        });
+
+        // 헤더 상태 업데이트를 위한 커스텀 이벤트 발생
+        window.dispatchEvent(new Event("loginStatusChanged"));
+
+        // 로그인 성공 모달 표시
+        setModal({
+          isOpen: true,
+          message: (
+            <>
+              로그인에 성공했습니다!
+              <br />
+              확인 버튼을 클릭하면 광고주 대시보드로 이동합니다.
+            </>
+          ),
+          isSuccess: true,
+        });
       } else {
-        // 로그인 실패
-        if (response.status === 401) {
+        console.error("토큰을 찾을 수 없습니다. 응답 구조:", data);
+        setError("로그인 응답에 토큰이 없습니다.");
+      }
+    } catch (error) {
+      console.error("Login failed:", error);
+      if (error.response) {
+        // axios 에러 응답 처리
+        const { status, data } = error.response;
+        if (status === 401) {
           setError("이메일 또는 비밀번호가 올바르지 않습니다.");
-        } else if (response.status === 400) {
+        } else if (status === 400) {
           setError(data.message || "잘못된 요청입니다.");
         } else {
           setError(data.message || "로그인에 실패했습니다. 다시 시도해주세요.");
         }
-      }
-    } catch (error) {
-      console.error("Login failed:", error);
-      if (error.name === "TypeError" && error.message.includes("fetch")) {
+      } else if (
+        error.name === "TypeError" &&
+        error.message.includes("fetch")
+      ) {
         setError("네트워크 연결을 확인해주세요.");
       } else {
         setError(

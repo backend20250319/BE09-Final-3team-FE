@@ -84,30 +84,53 @@ export default function PasswordResetForm() {
       const data = await verifyPasswordResetCode(email, verificationCode);
 
       console.log("인증번호 확인 응답 데이터:", data);
+      console.log("응답 상태:", data?.code || "unknown");
 
-      // 응답 확인
-      if (!data.data || !data.data.verified) {
-        throw new Error("인증번호가 일치하지 않습니다.");
+      // 응답 확인 - 백엔드에서 성공 응답이 왔는지 확인
+      // 성공 조건: code가 "2000"이거나, code가 없고 message가 성공 관련이거나, HTTP 200 응답
+      const isSuccess =
+        data &&
+        (data.code === "2000" ||
+          data.code === 2000 ||
+          (data.code === undefined && !data.message?.includes("실패")) ||
+          data.message?.includes("성공") ||
+          data.message?.includes("완료"));
+
+      if (isSuccess) {
+        console.log("인증번호 확인 성공:", data);
+
+        // 인증 성공 시 모달 표시
+        setShowVerificationModal(true);
+
+        // 2초 후 모달 닫고 다음 단계로 진행
+        setTimeout(() => {
+          setShowVerificationModal(false);
+          setStep(2);
+        }, 2000);
+      } else {
+        // 백엔드에서 실패 응답이 온 경우
+        const errorMessage = data?.message || "인증번호가 일치하지 않습니다.";
+        console.error("인증 실패:", errorMessage);
+        setError(errorMessage);
       }
-
-      console.log("인증번호 확인 성공:", data);
-
-      // 인증 성공 시 모달 표시
-      setShowVerificationModal(true);
-
-      // 2초 후 모달 닫고 다음 단계로 진행
-      setTimeout(() => {
-        setShowVerificationModal(false);
-        setStep(2);
-      }, 2000);
     } catch (error) {
       console.error("인증번호 확인 실패:", error);
+      console.error("에러 응답:", error?.response?.data);
+      console.error("에러 상태:", error?.response?.status);
+
       if (error.response) {
         // axios 에러 응답 처리
         const { status, data } = error.response;
-        setError(data.message || "인증번호 확인에 실패했습니다.");
+        const errorMessage = data.message || "인증번호가 올바르지 않습니다.";
+        setError(errorMessage);
+        // 모달 대신 에러 상태로 표시 (비밀번호 찾기 페이지는 모달이 없음)
+        setError(errorMessage);
+        console.error("백엔드 에러 메시지:", errorMessage);
       } else {
-        setError(error.message || "인증번호 확인에 실패했습니다.");
+        const errorMessage = error.message || "인증번호 확인에 실패했습니다.";
+        setError(errorMessage);
+        // 모달 대신 에러 상태로 표시 (비밀번호 찾기 페이지는 모달이 없음)
+        setError(errorMessage);
       }
     } finally {
       setLoading(false);
