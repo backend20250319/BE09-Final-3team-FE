@@ -112,9 +112,15 @@ export default function ActivityManagement() {
 
     const fetchActivityData = async () => {
       try {
-        const today = new Date().toISOString().split("T")[0];
+        // 한국 시간대 기준으로 오늘 날짜 계산
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, "0");
+        const day = String(today.getDate()).padStart(2, "0");
+        const todayString = `${year}-${month}-${day}`;
+
         if (!selectedPetNo) return;
-        const savedData = await getActivityData(today, selectedPetNo);
+        const savedData = await getActivityData(todayString, selectedPetNo);
 
         if (savedData && savedData.activityNo) {
           console.log("🔍 저장된 데이터 로드:", savedData);
@@ -475,10 +481,16 @@ export default function ActivityManagement() {
       return sum + intake;
     }, 0);
 
-    // 백엔드 API 형식에 맞게 데이터 변환
+    // 백엔드 API 형식에 맞게 데이터 변환 (한국 시간대 기준)
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    const todayString = `${year}-${month}-${day}`;
+
     const dataToSave = {
       petNo: selectedPetNo,
-      activityDate: new Date().toISOString().split("T")[0],
+      activityDate: todayString,
       walkingDistanceKm: parseFloat(formData.walkingDistance),
       activityLevel: formData.activityLevel, // enum 문자열 그대로 전송 (LOW, MEDIUM_LOW, MEDIUM_HIGH, HIGH)
       weightKg: parseFloat(formData.weight),
@@ -501,9 +513,8 @@ export default function ActivityManagement() {
       setIsSubmittedToday(true);
       setShowSaveComplete(true);
 
-      // 저장 완료 후 데이터 다시 불러오기
-      const today = new Date().toISOString().split("T")[0];
-      const savedData = await getActivityData(today, selectedPetNo);
+      // 저장 완료 후 데이터 다시 불러오기 (한국 시간대 기준)
+      const savedData = await getActivityData(todayString, selectedPetNo);
 
       if (savedData && savedData.activityNo) {
         console.log("🔍 저장 후 데이터 다시 로드:", savedData);
@@ -1319,7 +1330,13 @@ export default function ActivityManagement() {
           }
         }}
         petName={selectedPetName}
-        date={new Date().toISOString().split("T")[0]}
+        date={(() => {
+          const today = new Date();
+          const year = today.getFullYear();
+          const month = String(today.getMonth() + 1).padStart(2, "0");
+          const day = String(today.getDate()).padStart(2, "0");
+          return `${year}-${month}-${day}`;
+        })()}
       />
 
       {/* 저장 확인 모달 */}
@@ -1328,7 +1345,13 @@ export default function ActivityManagement() {
         onClose={handleSaveCancel}
         onConfirm={handleSaveConfirm}
         petName={selectedPetName}
-        date={new Date().toISOString().split("T")[0]}
+        date={(() => {
+          const today = new Date();
+          const year = today.getFullYear();
+          const month = String(today.getMonth() + 1).padStart(2, "0");
+          const day = String(today.getDate()).padStart(2, "0");
+          return `${year}-${month}-${day}`;
+        })()}
       />
     </div>
   );
