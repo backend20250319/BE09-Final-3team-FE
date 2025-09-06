@@ -16,13 +16,11 @@ import {
   ComposedChart,
 } from "recharts";
 import styles from "../styles/ActivityReport.module.css";
-import {
-  getActivityReport,
-  getActivitySummary,
-} from "../../../../api/activityApi";
+import { getActivityReport } from "../../../../api/activityApi";
 import { useSelectedPet } from "../../context/SelectedPetContext";
+import DateRangeCalendar from "./DateRangeCalendar";
 
-// 메트릭 설정 - 사용자가 자주 볼 것 같은 핵심 차트만
+// 메트릭 설정 - 2x2 그리드 배치 (산책-식사, 배변-수면)
 const activityMetrics = [
   {
     id: 1,
@@ -35,6 +33,15 @@ const activityMetrics = [
   },
   {
     id: 2,
+    title: "섭취 칼로리",
+    icon: "/health/meal.png",
+    colorActual: "#FF9800",
+    colorRecommended: "#FFB74D",
+    type: "bar",
+    hasRecommended: true,
+  },
+  {
+    id: 3,
     title: "배변 횟수",
     icon: "/health/bathroom.png",
     colorActual: "#FF7675",
@@ -42,13 +49,33 @@ const activityMetrics = [
     type: "line",
     hasRecommended: false,
   },
+  {
+    id: 4,
+    title: "수면 시간",
+    icon: "/health/sleep.png",
+    colorActual: "#6C5CE7",
+    colorRecommended: "#A29BFE",
+    type: "bar",
+    hasRecommended: true,
+  },
 ];
 
 export default function ActivityReport() {
-  const [mainPeriod, setMainPeriod] = useState("선택");
-  const [subPeriod, setSubPeriod] = useState("");
-  const [showMainDropdown, setShowMainDropdown] = useState(false);
-  const [showSubDropdown, setShowSubDropdown] = useState(false);
+  // 날짜 상태 - 기본값을 당일로 설정 (한국 시간대 기준)
+  const [startDate, setStartDate] = useState(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  });
+  const [endDate, setEndDate] = useState(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  });
   const [reportData, setReportData] = useState({
     daily: { common: [], poop: [] },
     weekly: { common: [], poop: [] },
@@ -58,72 +85,39 @@ export default function ActivityReport() {
   const [loading, setLoading] = useState(false);
   const [noData, setNoData] = useState(false);
   const [summaryData, setSummaryData] = useState(null);
-  const [customStartDate, setCustomStartDate] = useState("");
-  const [customEndDate, setCustomEndDate] = useState("");
-  const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
   const { selectedPetName, selectedPetNo } = useSelectedPet();
 
-  // 데이터 상태 구분을 위한 상태 추가
-  const [hasSelectedPeriod, setHasSelectedPeriod] = useState(false);
+  // 데이터 상태 구분을 위한 상태 추가 - 기본적으로 당일 데이터 조회
+  const [hasSelectedPeriod, setHasSelectedPeriod] = useState(true);
+  const [backendError, setBackendError] = useState(false);
 
-  // 외부 클릭 시 드롭다운 닫기
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest(`.${styles.dropdownContainer}`)) {
-        setShowMainDropdown(false);
-        setShowSubDropdown(false);
-      }
-    };
+  // 커스텀 캘린더 관련 상태
+  const [showStartCalendar, setShowStartCalendar] = useState(false);
+  const [showEndCalendar, setShowEndCalendar] = useState(false);
+  const [startDateButtonRef, setStartDateButtonRef] = useState(null);
+  const [endDateButtonRef, setEndDateButtonRef] = useState(null);
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  // 날짜 범위 선택 핸들러
+  const handleDateRangeSelect = (selectedStartDate, selectedEndDate) => {
+    setStartDate(selectedStartDate);
+    setEndDate(selectedEndDate);
+    setHasSelectedPeriod(true);
+  };
 
-  // 2단계 드롭다운을 위한 기간 옵션 구조
-  const periodOptions = {
-    일별: [
-      { key: "TODAY", label: "오늘", periodType: "TODAY", apiType: "summary" },
-      {
-        key: "LAST_3_DAYS",
-        label: "최근 3일",
-        periodType: "LAST_3_DAYS",
-        apiType: "summary",
-      },
-      {
-        key: "LAST_7_DAYS",
-        label: "최근 7일",
-        periodType: "LAST_7_DAYS",
-        apiType: "summary",
-      },
-    ],
-    주별: [
-      {
-        key: "THIS_WEEK",
-        label: "이번 주",
-        periodType: "THIS_WEEK",
-        apiType: "summary",
-      },
-      { key: "WEEK", label: "주간별", periodType: "WEEK", apiType: "chart" },
-    ],
-    월별: [
-      {
-        key: "THIS_MONTH",
-        label: "이번 달",
-        periodType: "THIS_MONTH",
-        apiType: "summary",
-      },
-      { key: "MONTH", label: "월별", periodType: "MONTH", apiType: "chart" },
-    ],
-    "사용자 지정": [
-      {
-        key: "CUSTOM",
-        label: "날짜 선택",
-        periodType: "CUSTOM",
-        apiType: "summary",
-      },
-    ],
+  // 시작일 캘린더 열기
+  const handleStartDateClick = (e) => {
+    e.preventDefault();
+    setStartDateButtonRef(e.currentTarget);
+    setShowStartCalendar(true);
+    setShowEndCalendar(false);
+  };
+
+  // 종료일 캘린더 열기
+  const handleEndDateClick = (e) => {
+    e.preventDefault();
+    setEndDateButtonRef(e.currentTarget);
+    setShowEndCalendar(true);
+    setShowStartCalendar(false);
   };
 
   // 건강 점수 계산 함수 - 반려동물 맞춤 기준
@@ -201,13 +195,13 @@ export default function ActivityReport() {
     return 30;
   };
 
-  // 날짜 라벨 포맷팅 함수
+  // 날짜 라벨 포맷팅 함수 - n월 n일 형식
   const formatDateLabel = (dateStr) => {
-    if (!dateStr) return "일";
+    if (!dateStr) return "오늘";
 
     // displayDate가 '일'인 경우 실제 date 필드 사용
     if (dateStr === "일") {
-      return "오늘";
+      return "일";
     }
 
     try {
@@ -215,10 +209,13 @@ export default function ActivityReport() {
       const today = new Date();
       const isToday = date.toDateString() === today.toDateString();
 
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+
       if (isToday) {
-        return `${date.getDate()}일(오늘)`;
+        return `${month}월 ${day}일(오늘)`;
       } else {
-        return `${date.getDate()}일`;
+        return `${month}월 ${day}일`;
       }
     } catch (error) {
       console.log("날짜 파싱 실패:", dateStr, error);
@@ -246,213 +243,77 @@ export default function ActivityReport() {
 
   // 백엔드에서 리포트 데이터 가져오기
   useEffect(() => {
-    let isMounted = true; // 컴포넌트 마운트 상태 추적
-    let isFetching = false; // API 호출 중복 방지
+    let isMounted = true;
 
     const fetchReportData = async () => {
-      // 중복 API 호출 방지
-      if (isFetching) {
-        console.log("이미 API 호출 중입니다. 중복 실행 차단");
-        return;
-      }
-
-      console.log(
-        "API 호출 시작 - isFetching:",
-        isFetching,
-        "isMounted:",
-        isMounted
-      );
-
-      // useEffect 중복 실행 방지를 위한 추가 체크
-      if (isMounted === false) {
-        console.log("컴포넌트가 언마운트되었습니다. API 호출 중단");
-        return;
-      }
-
-      // 새로운 요약 API 호출 함수
-      const fetchActivitySummary = async () => {
-        if (!selectedPetNo) return;
-
-        try {
-          const summary = await getActivitySummary(
-            selectedPetNo,
-            selectedPeriod
-          );
-          console.log("활동 요약 데이터:", summary);
-          setSummaryData(summary);
-        } catch (error) {
-          console.error("활동 요약 데이터 조회 실패:", error);
-        }
-      };
-
-      // 사용자 지정 기간 데이터 조회 함수
-      const fetchCustomPeriodData = async () => {
-        if (!selectedPetNo || !customStartDate || !customEndDate) return;
-
-        try {
-          setLoading(true);
-          const summary = await getActivitySummary(
-            selectedPetNo,
-            "CUSTOM",
-            customStartDate,
-            customEndDate
-          );
-          console.log("사용자 지정 기간 요약 데이터:", summary);
-
-          if (summary && summary.data) {
-            setSummaryData(summary);
-            // 차트 데이터도 함께 설정
-            if (summary.data.activities) {
-              const chartData = {
-                chartData: summary.data.activities,
-                periodType: "CUSTOM",
-              };
-              // 차트 데이터 처리 로직 호출
-              processChartData(chartData);
-            }
-          }
-        } catch (error) {
-          console.error("사용자 지정 기간 데이터 조회 실패:", error);
-          alert("데이터 조회 중 오류가 발생했습니다.");
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      // 차트 데이터 처리 함수
-      const processChartData = (chartData) => {
-        if (!chartData || !chartData.chartData) return;
-
-        // 기존 차트 데이터 처리 로직과 동일하게 처리
-        const data = chartData;
-        const chartDataArray = data.chartData || [];
-
-        if (chartDataArray.length === 0) {
-          setNoData(true);
-          return;
-        }
-
-        // 데이터 유효성 검사 및 변환 로직은 기존과 동일
-        // 여기서 차트 데이터를 reportData에 설정
-        setNoData(false);
-        // 추가적인 차트 데이터 처리 로직...
-      };
-
       if (!selectedPetName || !selectedPetNo) {
         console.log("펫이 선택되지 않음:", { selectedPetName, selectedPetNo });
         if (isMounted) {
           setNoData(true);
+          setHasSelectedPeriod(false);
         }
         return;
       }
 
-      console.log("펫 변경 감지 - 데이터 재조회:", {
-        selectedPetName,
-        selectedPetNo,
-      });
-
-      if (isMounted) {
-        isFetching = true;
-        console.log("isFetching을 true로 설정");
-        setLoading(true);
-        // 펫 변경 시 기존 데이터 초기화
-        setReportData({
-          daily: { common: [], poop: [] },
-          weekly: { common: [], poop: [] },
-          monthly: { common: [], poop: [] },
-          yearly: { common: [], poop: [] },
-        });
-        // noData를 즉시 true로 설정하여 차트 렌더링 차단
-        setNoData(true);
-        // 기간 선택 상태도 초기화
-        setHasSelectedPeriod(false);
-        // 로딩 상태도 초기화
-        setLoading(false);
-        console.log("noData를 true로 설정 (펫 변경 시)");
-      }
-
-      // 메인 드롭다운이 선택되지 않았을 때는 API 호출하지 않음
-      if (mainPeriod === "선택") {
-        console.log("기간이 선택되지 않음:", mainPeriod);
+      // 날짜가 선택되지 않았을 때는 API 호출하지 않음
+      if (!startDate || !endDate) {
+        console.log("날짜가 선택되지 않음:", { startDate, endDate });
         if (isMounted) {
           setNoData(true);
-          setLoading(false);
           setHasSelectedPeriod(false);
         }
         return;
       }
 
       try {
-        // 선택된 기간 옵션 찾기
-        const selectedOption = periodOptions[mainPeriod]?.find(
-          (option) => option.key === subPeriod
-        );
+        setLoading(true);
+        // 단순화된 Chart API 호출
+        const data = await getActivityReport(selectedPetNo, startDate, endDate);
 
-        if (!selectedOption) {
-          console.error("선택된 기간을 찾을 수 없습니다:", subPeriod);
-          return;
-        }
-
-        console.log(
-          "선택된 기간:",
-          mainPeriod,
-          "→",
-          subPeriod,
-          "→ 백엔드 periodType:",
-          selectedOption.periodType,
-          "→ API 타입:",
-          selectedOption.apiType
-        );
-
-        let data = null;
-        let summary = null;
-
-        // API 타입에 따라 적절한 API 호출
-        if (selectedOption.apiType === "chart") {
-          // 기존 차트 API 호출
-          data = await getActivityReport(
-            selectedPetNo,
-            selectedOption.periodType
-          );
-          console.log("차트 API 응답:", data);
-        } else if (selectedOption.apiType === "summary") {
-          // 새로운 요약 API 호출
-          summary = await getActivitySummary(
-            selectedPetNo,
-            selectedOption.periodType
-          );
-          console.log("요약 API 응답:", summary);
-
-          // 요약 API에서 차트 데이터도 함께 제공하는 경우
-          if (summary && summary.data && summary.data.activities) {
-            data = {
-              chartData: summary.data.activities,
-              periodType: selectedOption.periodType,
-            };
+        if (data) {
+          // 백엔드 에러 응답 확인
+          if (data.code === "9000") {
+            setBackendError(true);
+          } else {
+            setBackendError(false);
           }
         }
 
-        console.log("백엔드 API 응답:", data);
-
-        // 요약 데이터 설정
-        if (summary && summary.data) {
-          setSummaryData(summary);
+        // 요약 데이터 설정 (Chart API에서 summaryStats 제공)
+        if (data && data.summaryStats) {
+          setSummaryData({
+            data: {
+              summaryStats: data.summaryStats,
+              startDate: startDate,
+              endDate: endDate,
+            },
+          });
         } else {
-          setSummaryData(null);
+          // summaryStats가 없어도 기본값으로 설정하여 UI가 깨지지 않도록 함
+          setSummaryData({
+            data: {
+              summaryStats: {
+                totalDays: 0,
+                totalWalkingDistance: 0,
+                averageWalkingDistance: 0,
+                averageCaloriesBurned: 0,
+                averageCaloriesIntake: 0,
+                averageSleepHours: 0,
+                totalPoopCount: 0,
+                totalPeeCount: 0,
+                averagePoopCount: 0,
+                averagePeeCount: 0,
+              },
+              startDate: startDate,
+              endDate: endDate,
+            },
+          });
         }
 
         if (data && data.chartData) {
-          // 백엔드 데이터를 프론트엔드 형식에 맞게 변환
           const chartData = data.chartData || [];
-          const responsePeriodType = data.periodType;
-
           // 데이터가 비어있는지 확인
           if (chartData.length === 0) {
-            console.log("선택된 펫의 데이터가 없습니다:", {
-              selectedPetName,
-              selectedPetNo,
-            });
-            // 빈 데이터로 차트 초기화하고 noData 상태 설정
             setReportData({
               daily: { common: [], poop: [] },
               weekly: { common: [], poop: [] },
@@ -471,73 +332,12 @@ export default function ActivityReport() {
               (item.peeCount || 0) > 0 || (item.poopCount || 0) > 0;
             const hasSleepData = (item.sleepHours || 0) > 0;
 
-            console.log("데이터 유효성 검사:", {
-              item,
-              hasWalkingData,
-              hasMealData,
-              hasBathroomData,
-              hasSleepData,
-              actualCaloriesBurned: item.actualCaloriesBurned,
-              actualCaloriesIntake: item.actualCaloriesIntake,
-              peeCount: item.peeCount,
-              poopCount: item.poopCount,
-              sleepHours: item.sleepHours,
-            });
-
             return (
               hasWalkingData || hasMealData || hasBathroomData || hasSleepData
             );
           });
 
-          console.log("전체 데이터 유효성:", hasValidData);
-
-          // 기간별 데이터 유효성 추가 확인 (주/월/년 데이터도 체크)
-          const hasWeeklyData = chartData.some(
-            (item) => (item.actualCaloriesBurned || 0) > 0
-          );
-          const hasMonthlyData = chartData.some(
-            (item) => (item.actualCaloriesBurned || 0) > 0
-          );
-          const hasYearlyData = chartData.some(
-            (item) => (item.actualCaloriesBurned || 0) > 0
-          );
-
-          console.log("기간별 데이터 유효성:", {
-            daily: hasValidData,
-            weekly: hasWeeklyData,
-            monthly: hasMonthlyData,
-            yearly: hasYearlyData,
-          });
-
-          // 현재 선택된 기간에 데이터가 있는지 확인
-          const currentPeriodHasData = (() => {
-            switch (selectedPeriod) {
-              case "일":
-                return hasValidData;
-              case "주":
-                return hasWeeklyData;
-              case "월":
-                return hasMonthlyData;
-              case "년":
-                return hasYearlyData;
-              default:
-                return hasValidData;
-            }
-          })();
-
-          console.log("현재 선택된 기간 데이터 유효성:", {
-            selectedPeriod,
-            hasData: currentPeriodHasData,
-          });
-
-          if (!currentPeriodHasData) {
-            console.log("현재 선택된 기간에 데이터가 없습니다:", {
-              selectedPetName,
-              selectedPetNo,
-              selectedPeriod,
-              chartData,
-            });
-            // 현재 기간에 데이터가 없으면 noData 상태 설정
+          if (!hasValidData) {
             if (isMounted) {
               setReportData({
                 daily: { common: [], poop: [] },
@@ -546,29 +346,11 @@ export default function ActivityReport() {
                 yearly: { common: [], poop: [] },
               });
               setNoData(true);
-              console.log(
-                "현재 기간에 데이터가 없어 noData 상태를 true로 설정했습니다."
-              );
             }
             return;
           }
 
-          console.log(
-            "데이터 유효성 검사 통과 - 차트 렌더링을 위한 데이터 준비 완료"
-          );
-
-          console.log("백엔드 응답 periodType:", responsePeriodType);
-          console.log(
-            "요청 vs 응답 periodType:",
-            selectedOption?.periodType,
-            "vs",
-            responsePeriodType
-          );
-          console.log("차트 데이터 상세:", chartData);
-          console.log("첫 번째 아이템:", chartData[0]);
-
           // 백엔드 데이터를 프론트엔드 차트 형식으로 변환
-          // 기간별로 다른 데이터 구조 생성
           const convertedData = {
             daily: {
               // 산책 소모 칼로리 - 달성률 + 목표 대비 현황
@@ -603,18 +385,9 @@ export default function ActivityReport() {
                   item.poopCount || 0,
                   "poop"
                 );
-                // 소변과 대변 건강점수의 평균을 통합 건강점수로 사용
                 const overallHealthScore = Math.round(
                   (peeScore + poopScore) / 2
                 );
-
-                console.log("배변 데이터 변환:", {
-                  peeCount: item.peeCount,
-                  poopCount: item.poopCount,
-                  peeScore,
-                  poopScore,
-                  overallHealthScore,
-                });
 
                 return {
                   date: formatDateLabel(item.date || item.displayDate),
@@ -623,19 +396,16 @@ export default function ActivityReport() {
                   통합건강점수: overallHealthScore,
                 };
               }),
-              // 수면 시간 - 단순화된 구조
+              // 수면 시간 - 품질 점수 포함
               sleep: chartData.map((item) => {
-                console.log("수면 데이터 아이템:", item);
-                console.log("sleepHours 값:", item.sleepHours);
-
-                // sleepHours가 너무 작은 경우 테스트용 값 사용 (백엔드 연결 후 제거)
                 const actualHours = item.sleepHours > 0 ? item.sleepHours : 12;
-
+                const quality = calculateSleepQuality(actualHours);
                 return {
                   date: formatDateLabel(item.date || item.displayDate),
                   category: "수면 시간",
                   actual: actualHours,
                   recommended: 13.0, // 반려동물 권장 수면 시간 (13시간)
+                  quality: quality, // 수면 품질 점수
                 };
               }),
             },
@@ -677,22 +447,22 @@ export default function ActivityReport() {
             },
           };
 
-          console.log("백엔드 데이터 변환 결과:", {
-            original: data,
-            chartData: chartData,
-            converted: convertedData,
-          });
-
           setReportData(convertedData);
           if (isMounted) {
             setNoData(false);
-            console.log("백엔드 데이터로 noData를 false로 설정했습니다.");
+            setHasSelectedPeriod(true);
           }
         } else {
-          // 백엔드에서 데이터가 없을 경우
-          console.log("백엔드에서 데이터 없음");
+          console.log("=== 차트 데이터 없음 디버깅 ===");
+          console.log("data:", data);
+          console.log("data.chartData:", data?.chartData);
+          console.log("data가 null인가?", data === null);
+          console.log("data가 undefined인가?", data === undefined);
+          console.log("data가 객체인가?", typeof data === "object");
+          console.log("data의 키들:", data ? Object.keys(data) : "N/A");
+          console.log("백엔드에서 데이터가 없을 경우 - 기본값으로 설정");
 
-          // 빈 데이터 구조로 설정
+          // 차트 데이터가 없어도 기본 구조로 설정하여 UI가 깨지지 않도록 함
           setReportData({
             daily: { common: [], poop: [] },
             weekly: { common: [], poop: [] },
@@ -702,12 +472,11 @@ export default function ActivityReport() {
 
           if (isMounted) {
             setNoData(true);
-            console.log("데이터 없음으로 noData를 true로 설정했습니다.");
+            setHasSelectedPeriod(true); // 데이터가 없어도 선택된 기간으로 표시
           }
         }
       } catch (error) {
         console.error("리포트 데이터 조회 실패:", error);
-        // 에러 발생 시 기본 구조 제공
         if (isMounted) {
           setReportData({
             daily: { common: [], poop: [] },
@@ -715,23 +484,32 @@ export default function ActivityReport() {
             monthly: { common: [], poop: [] },
             yearly: { common: [], poop: [] },
           });
-          setNoData(true); // 오류 발생 시 noData = true
+          setNoData(true);
+
+          // 에러 메시지 표시
+          if (error.message.includes("최대 7일까지")) {
+            alert("최대 7일까지 조회 가능합니다.");
+          } else if (error.message.includes("잘못된 날짜 범위")) {
+            alert("잘못된 날짜 범위입니다.");
+          } else if (error.message.includes("서버 내부 오류")) {
+            alert("서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+          } else {
+            alert("데이터를 불러오는 중 오류가 발생했습니다.");
+          }
         }
       } finally {
         if (isMounted) {
           setLoading(false);
-          isFetching = false; // API 호출 완료 표시
         }
       }
     };
 
     fetchReportData();
 
-    // cleanup 함수
     return () => {
       isMounted = false;
     };
-  }, [selectedPetName, selectedPetNo, subPeriod]);
+  }, [selectedPetName, selectedPetNo, startDate, endDate]);
 
   function getDataAndKey(metric) {
     // noData 상태이거나 reportData가 아직 초기화되지 않았거나 undefined인 경우 빈 배열 반환
@@ -743,134 +521,182 @@ export default function ActivityReport() {
       });
       return {
         data: [],
-        xKey: "day",
+        xKey: "date",
       };
     }
 
-    // subPeriod 기반으로 period 매핑
-    const periodMap = {
-      TODAY: "daily",
-      LAST_3_DAYS: "daily",
-      LAST_7_DAYS: "daily",
-      THIS_WEEK: "weekly",
-      WEEK: "weekly",
-      THIS_MONTH: "monthly",
-      MONTH: "monthly",
-      CUSTOM: "daily", // 사용자 지정은 일별로 처리
-    };
-    const period = periodMap[subPeriod];
+    // 일별 데이터만 사용 (단순화)
+    const getData = (dataType) => {
+      if (!reportData.daily) return [];
 
-    // 안전하게 데이터에 접근
-    const getData = (periodKey, dataType) => {
-      if (!reportData[periodKey]) return [];
+      let data = [];
+      switch (dataType) {
+        case "walking":
+          data = reportData.daily.walking || [];
+          break;
+        case "meal":
+          data = reportData.daily.meal || [];
+          break;
+        case "bathroom":
+          data = reportData.daily.bathroom || [];
+          break;
+        case "sleep":
+          data = reportData.daily.sleep || [];
+          break;
+        default:
+          data = reportData.daily.common || [];
+      }
 
-      if (periodKey === "daily") {
-        // 일별 데이터는 새로운 구조 사용
-        let data = [];
-        switch (dataType) {
-          case "walking":
-            data = reportData[periodKey].walking || [];
-            break;
-          case "meal":
-            data = reportData[periodKey].meal || [];
-            break;
-          case "bathroom":
-            data = reportData[periodKey].bathroom || [];
-            break;
-          case "sleep":
-            data = reportData[periodKey].sleep || [];
-            break;
-          default:
-            data = reportData[periodKey].common || [];
-        }
+      // 데이터가 있지만 실제 값들이 모두 0인지 확인
+      if (data.length > 0) {
+        const hasValidValues = data.some((item) => {
+          if (dataType === "walking")
+            return (item.actual || 0) > 0 || (item.target || 0) > 0;
+          if (dataType === "meal")
+            return (item.actual || 0) > 0 || (item.target || 0) > 0;
+          if (dataType === "bathroom")
+            return (item.소변 || 0) > 0 || (item.대변 || 0) > 0;
+          if (dataType === "sleep") return (item.actual || 0) > 0;
+          return true;
+        });
 
-        // 데이터가 있지만 실제 값들이 모두 0인지 확인
-        if (data.length > 0) {
-          const hasValidValues = data.some((item) => {
-            if (dataType === "walking")
-              return (item.actual || 0) > 0 || (item.target || 0) > 0;
-            if (dataType === "meal")
-              return (item.actual || 0) > 0 || (item.target || 0) > 0;
-            if (dataType === "bathroom")
-              return (item.소변 || 0) > 0 || (item.대변 || 0) > 0;
-            if (dataType === "sleep") return (item.actual || 0) > 0;
-            return true;
-          });
-
-          if (!hasValidValues) {
-            console.log(
-              `${dataType} 데이터가 있지만 실제 값들이 모두 0입니다:`,
-              data
-            );
-            return [];
-          }
-        }
-
-        return data;
-      } else {
-        // 주/월/년 데이터는 기존 구조 사용
-        if (dataType === "poop") {
-          return reportData[periodKey].poop || [];
-        } else if (dataType === "sleep") {
-          return reportData[periodKey].sleep || [];
-        } else {
-          return reportData[periodKey].common || [];
+        if (!hasValidValues) {
+          console.log(
+            `${dataType} 데이터가 있지만 실제 값들이 모두 0입니다:`,
+            data
+          );
+          return [];
         }
       }
+
+      return data;
     };
 
-    switch (subPeriod) {
-      case "TODAY":
-      case "LAST_3_DAYS":
-      case "LAST_7_DAYS":
-      case "CUSTOM":
-        return {
-          data:
-            metric.title === "산책 소모 칼로리"
-              ? getData("daily", "walking")
-              : metric.title === "섭취 칼로리"
-              ? getData("daily", "meal")
-              : metric.title === "배변 횟수"
-              ? getData("daily", "bathroom")
-              : metric.title === "수면 시간"
-              ? getData("daily", "sleep")
-              : getData("daily", "common"),
-          xKey: metric.title === "배변 횟수" ? "date" : "date",
-        };
-      case "THIS_WEEK":
-      case "WEEK":
-        return {
-          data:
-            metric.type === "line"
-              ? getData("weekly", "poop")
-              : metric.type === "area"
-              ? getData("weekly", "sleep")
-              : getData("weekly", "common"),
-          xKey: "week",
-        };
-      case "THIS_MONTH":
-      case "MONTH":
-        return {
-          data:
-            metric.type === "line"
-              ? getData("monthly", "poop")
-              : metric.type === "area"
-              ? getData("monthly", "sleep")
-              : getData("monthly", "common"),
-          xKey: "month",
-        };
-      default:
-        return {
-          data:
-            metric.type === "line"
-              ? getData("daily", "poop")
-              : metric.type === "area"
-              ? getData("daily", "sleep")
-              : getData("daily", "common"),
-          xKey: "day",
-        };
-    }
+    return {
+      data:
+        metric.title === "산책 소모 칼로리"
+          ? getData("walking")
+          : metric.title === "섭취 칼로리"
+          ? getData("meal")
+          : metric.title === "배변 횟수"
+          ? getData("bathroom")
+          : metric.title === "수면 시간"
+          ? getData("sleep")
+          : getData("common"),
+      xKey: "date",
+    };
   }
+
+  // ✅ 커스텀 툴팁 컴포넌트 - 모든 차트에 적용
+  const CustomTooltip = ({ active, payload, label, metricTitle }) => {
+    if (active && payload && payload.length) {
+      // 각 차트별 순서 정의
+      const getOrder = (metricTitle) => {
+        switch (metricTitle) {
+          case "산책 소모 칼로리":
+            return { 권장량: 1, 소모량: 2, "달성률(%)": 3 };
+          case "섭취 칼로리":
+            return { 권장량: 1, 식사량: 2, "균형도(%)": 3 };
+          case "배변 횟수":
+            return { 소변: 1, 대변: 2, 통합건강점수: 3 };
+          case "수면 시간":
+            return { "권장 수면": 1, "실제 수면": 2, "수면 품질(%)": 3 };
+          default:
+            return {};
+        }
+      };
+
+      // 단위 정의
+      const getUnit = (metricTitle, dataKey) => {
+        // 퍼센트 값들
+        if (
+          dataKey === "achievement" ||
+          dataKey === "balance" ||
+          dataKey === "quality"
+        ) {
+          return "%";
+        }
+
+        // 차트별 기본 단위
+        switch (metricTitle) {
+          case "산책 소모 칼로리":
+            return dataKey === "target" || dataKey === "actual" ? "kcal" : "";
+          case "섭취 칼로리":
+            return dataKey === "target" || dataKey === "actual" ? "kcal" : "";
+          case "수면 시간":
+            return dataKey === "actual" || dataKey === "recommended"
+              ? "시간"
+              : "";
+          case "배변 횟수":
+            return dataKey === "소변" || dataKey === "대변" ? "회" : "";
+          default:
+            return "";
+        }
+      };
+
+      // 순서에 따라 정렬
+      const order = getOrder(metricTitle);
+      const sortedPayload = payload.sort((a, b) => {
+        return (order[a.name] || 999) - (order[b.name] || 999);
+      });
+
+      return (
+        <div
+          style={{
+            background: "white",
+            border: "1px solid #e5e7eb",
+            borderRadius: "8px",
+            padding: "12px",
+            boxShadow:
+              "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+            zIndex: 10000,
+            minWidth: "120px",
+          }}
+        >
+          <p
+            style={{
+              margin: "0 0 8px 0",
+              fontWeight: "600",
+              fontSize: "13px",
+              color: "#374151",
+            }}
+          >
+            {label}
+          </p>
+          {sortedPayload.map((entry, index) => {
+            const unit = getUnit(metricTitle, entry.dataKey);
+            return (
+              <p
+                key={index}
+                style={{
+                  margin: "4px 0",
+                  color: entry.color,
+                  fontSize: "12px",
+                  fontWeight: "500",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                <span
+                  style={{
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                    backgroundColor: entry.color,
+                    display: "inline-block",
+                  }}
+                />
+                {entry.name}: {entry.value}
+                {unit && ` ${unit}`}
+              </p>
+            );
+          })}
+        </div>
+      );
+    }
+    return null;
+  };
 
   // ✅ Tooltip 포맷 함수
   const customTooltipFormatter = (metricTitle) => (value, name) => {
@@ -884,7 +710,9 @@ export default function ActivityReport() {
         recommendedValue: "권장량",
       },
       "수면 시간": {
-        actualValue: "수면",
+        actualValue: "실제 수면",
+        recommendedValue: "권장 수면",
+        quality: "수면 품질",
       },
       "배변 횟수": {
         소변: "소변",
@@ -910,185 +738,64 @@ export default function ActivityReport() {
       {selectedPetName && selectedPetNo && (
         <div className={styles.dateRangeContainer}>
           <div className={styles.dateRangeHeader}>
-            <span className={styles.dateRangeLabel}></span>
-            {/* 2단계 드롭다운 기간 선택 */}
-            <div className={styles.periodDropdowns}>
-              {/* 메인 드롭다운 */}
-              <div className={styles.dropdownContainer}>
+            {/* 날짜 선택기 */}
+            <div className={styles.datePickerContainer}>
+              <div className={styles.dateInputGroup}>
+                <label htmlFor="startDate">시작일</label>
                 <button
-                  className={styles.dropdownButton}
-                  onClick={() => {
-                    setShowMainDropdown(!showMainDropdown);
-                    setShowSubDropdown(false);
-                  }}
+                  type="button"
+                  className={styles.dateButton}
+                  onClick={handleStartDateClick}
                 >
-                  <span>{mainPeriod}</span>
-                  <svg
-                    className={`${styles.dropdownArrow} ${
-                      showMainDropdown ? styles.rotated : ""
-                    }`}
-                    width="12"
-                    height="12"
-                    viewBox="0 0 12 12"
-                    fill="none"
-                  >
-                    <path
-                      d="M3 4.5L6 7.5L9 4.5"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  {startDate ? startDate : "시작일 선택"}
                 </button>
-
-                {showMainDropdown && (
-                  <div className={styles.dropdownMenu}>
-                    {Object.keys(periodOptions).map((period) => (
-                      <div
-                        key={period}
-                        className={styles.dropdownItem}
-                        onClick={() => {
-                          setMainPeriod(period);
-                          setShowMainDropdown(false);
-
-                          // 첫 번째 서브 옵션을 기본값으로 설정
-                          const firstSubOption = periodOptions[period][0];
-                          setSubPeriod(firstSubOption.key);
-
-                          // 기간 선택 상태 업데이트
-                          setHasSelectedPeriod(true);
-
-                          // 사용자 지정이 아닌 경우에만 서브 드롭다운 표시
-                          if (firstSubOption.key !== "CUSTOM") {
-                            setShowSubDropdown(true);
-                            setShowCustomDatePicker(false);
-                          } else {
-                            setShowSubDropdown(false);
-                            setShowCustomDatePicker(true);
-                          }
-                        }}
-                      >
-                        {period}
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
-
-              {/* 서브 드롭다운 - 메인 선택 후에만 표시 */}
-              {mainPeriod !== "선택" && (
-                <div className={styles.dropdownContainer}>
-                  <button
-                    className={`${styles.dropdownButton} ${
-                      mainPeriod === "선택" ? styles.disabled : ""
-                    }`}
-                    onClick={() => {
-                      if (mainPeriod !== "선택") {
-                        setShowSubDropdown(!showSubDropdown);
-                      }
-                    }}
-                    disabled={mainPeriod === "선택"}
-                  >
-                    <span>
-                      {mainPeriod === "선택"
-                        ? "선택"
-                        : periodOptions[mainPeriod]?.find(
-                            (opt) => opt.key === subPeriod
-                          )?.label || "선택"}
-                    </span>
-                    <svg
-                      className={`${styles.dropdownArrow} ${
-                        showSubDropdown ? styles.rotated : ""
-                      }`}
-                      width="12"
-                      height="12"
-                      viewBox="0 0 12 12"
-                      fill="none"
-                    >
-                      <path
-                        d="M3 4.5L6 7.5L9 4.5"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
-
-                  {showSubDropdown && mainPeriod !== "선택" && (
-                    <div className={styles.dropdownMenu}>
-                      {periodOptions[mainPeriod]?.map((option) => (
-                        <div
-                          key={option.key}
-                          className={`${styles.dropdownItem} ${
-                            subPeriod === option.key ? styles.selected : ""
-                          }`}
-                          onClick={() => {
-                            setSubPeriod(option.key);
-                            setShowSubDropdown(false);
-                            // 기간 선택 상태 업데이트
-                            setHasSelectedPeriod(true);
-                            if (option.key === "CUSTOM") {
-                              setShowCustomDatePicker(true);
-                            } else {
-                              setShowCustomDatePicker(false);
-                            }
-                          }}
-                        >
-                          {option.label}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+              <div className={styles.dateInputGroup}>
+                <label htmlFor="endDate">종료일</label>
+                <button
+                  type="button"
+                  className={styles.dateButton}
+                  onClick={handleEndDateClick}
+                >
+                  {endDate ? endDate : "종료일 선택"}
+                </button>
+              </div>
             </div>
+          </div>
+        </div>
+      )}
 
-            {/* 사용자 지정 기간 날짜 선택기 */}
-            {showCustomDatePicker && (
-              <div className={styles.customDatePicker}>
-                <div className={styles.dateInputGroup}>
-                  <label htmlFor="startDate">시작일:</label>
-                  <input
-                    type="date"
-                    id="startDate"
-                    value={customStartDate}
-                    onChange={(e) => setCustomStartDate(e.target.value)}
-                    className={styles.dateInput}
-                  />
-                </div>
-                <div className={styles.dateInputGroup}>
-                  <label htmlFor="endDate">종료일:</label>
-                  <input
-                    type="date"
-                    id="endDate"
-                    value={customEndDate}
-                    onChange={(e) => setCustomEndDate(e.target.value)}
-                    className={styles.dateInput}
-                  />
-                </div>
-                <button
-                  className={styles.applyButton}
-                  onClick={async () => {
-                    if (customStartDate && customEndDate) {
-                      // 날짜 유효성 검증
-                      if (new Date(customStartDate) > new Date(customEndDate)) {
-                        alert("시작일은 종료일보다 이전이어야 합니다.");
-                        return;
-                      }
-                      // 데이터 조회
-                      await fetchCustomPeriodData();
-                    } else {
-                      alert("시작일과 종료일을 모두 선택해주세요.");
-                    }
-                  }}
-                  disabled={!customStartDate || !customEndDate}
-                >
-                  적용
-                </button>
-              </div>
-            )}
+      {/* 커스텀 캘린더 컴포넌트들 */}
+      <DateRangeCalendar
+        isOpen={showStartCalendar}
+        onClose={() => setShowStartCalendar(false)}
+        onDateRangeSelect={handleDateRangeSelect}
+        startDate={startDate}
+        endDate={endDate}
+        buttonRef={startDateButtonRef}
+        maxDays={7}
+      />
+
+      <DateRangeCalendar
+        isOpen={showEndCalendar}
+        onClose={() => setShowEndCalendar(false)}
+        onDateRangeSelect={handleDateRangeSelect}
+        startDate={startDate}
+        endDate={endDate}
+        buttonRef={endDateButtonRef}
+        maxDays={7}
+      />
+
+      {/* 백엔드 에러 메시지 */}
+      {backendError && (
+        <div className={styles.errorMessage}>
+          <div className={styles.errorIcon}>⚠️</div>
+          <div className={styles.errorText}>
+            <strong>서버 오류가 발생했습니다.</strong>
+            <br />
+            백엔드에서 데이터를 불러오는 중 오류가 발생했습니다.
+            <br />
+            잠시 후 다시 시도해주세요.
           </div>
         </div>
       )}
@@ -1097,26 +804,26 @@ export default function ActivityReport() {
       {selectedPetName && selectedPetNo && summaryData && summaryData.data && (
         <div className={styles.summaryStats}>
           <div className={styles.summaryCard}>
-            <h4>총 활동 횟수</h4>
-            <span>{summaryData.data.summaryStats?.totalActivities || 0}회</span>
+            <h4>총 활동 일수</h4>
+            <span>{summaryData.data.summaryStats?.totalDays || 0}일</span>
           </div>
           <div className={styles.summaryCard}>
-            <h4>총 산책 거리</h4>
+            <h4>평균 산책 거리</h4>
             <span>
-              {summaryData.data.summaryStats?.totalWalkingDistance || 0}km
+              {Math.round(
+                summaryData.data.summaryStats?.averageWalkingDistance || 0
+              )}
+              km
             </span>
           </div>
           <div className={styles.summaryCard}>
-            <h4>소모 칼로리 달성률</h4>
+            <h4>평균 소모 칼로리</h4>
             <span>
-              {summaryData.data.summaryStats?.caloriesBurnedAchievementRate ||
-                0}
-              %
+              {Math.round(
+                summaryData.data.summaryStats?.averageCaloriesBurned || 0
+              )}
+              kcal
             </span>
-          </div>
-          <div className={styles.summaryCard}>
-            <h4>평균 체중</h4>
-            <span>{summaryData.data.summaryStats?.averageWeight || 0}kg</span>
           </div>
           <div className={styles.summaryCard}>
             <h4>기간</h4>
@@ -1341,245 +1048,223 @@ export default function ActivityReport() {
                     >
                       {metric.type === "bar" && (
                         <ResponsiveContainer width="100%" height={150}>
-                          {selectedPeriod === "일" ? (
-                            // 일별 차트 - 새로운 구조
-                            <ComposedChart
-                              data={data}
-                              barCategoryGap="20%"
-                              barGap={4}
-                            >
-                              <XAxis dataKey={xKey} tick={{ fontSize: 10 }} />
-                              <YAxis yAxisId="left" />
-                              <YAxis yAxisId="right" orientation="right" />
-                              <Tooltip />
-
-                              {metric.title === "산책 소모 칼로리" && (
-                                <>
-                                  {/* 권장량 (막대) */}
-                                  <Bar
-                                    yAxisId="left"
-                                    dataKey="target"
-                                    fill={metric.colorRecommended}
-                                    name="권장량"
-                                    radius={[4, 4, 0, 0]}
-                                  />
-                                  {/* 실제 소모량 (막대) */}
-                                  <Bar
-                                    yAxisId="left"
-                                    dataKey="actual"
-                                    fill={metric.colorActual}
-                                    name="소모량"
-                                    radius={[4, 4, 0, 0]}
-                                  />
-                                  {/* 달성률 (영역) */}
-                                  <Area
-                                    yAxisId="right"
-                                    type="monotone"
-                                    dataKey="achievement"
-                                    fill={metric.colorActual}
-                                    fillOpacity={0.3}
-                                    name="달성률(%)"
-                                  />
-                                </>
-                              )}
-
-                              {metric.title === "섭취 칼로리" && (
-                                <>
-                                  {/* 권장 섭취량 (막대) */}
-                                  <Bar
-                                    yAxisId="left"
-                                    dataKey="target"
-                                    fill={metric.colorRecommended}
-                                    name="권장량"
-                                    radius={[4, 4, 0, 0]}
-                                  />
-                                  {/* 실제 섭취량 (막대) */}
-                                  <Bar
-                                    yAxisId="left"
-                                    dataKey="actual"
-                                    fill={metric.colorActual}
-                                    name="식사량"
-                                    radius={[4, 4, 0, 0]}
-                                  />
-                                  {/* 균형도 (선) */}
-                                  <Line
-                                    yAxisId="left"
-                                    type="monotone"
-                                    dataKey="balance"
-                                    stroke="#E91E63"
-                                    strokeDasharray="3,3"
-                                    name="균형도(%)"
-                                    strokeWidth={2}
-                                  />
-                                </>
-                              )}
-
-                              <Legend verticalAlign="bottom" height={36} />
-                            </ComposedChart>
-                          ) : (
-                            // 주/월/년 차트 - 기존 구조
-                            <BarChart
-                              data={data}
-                              barCategoryGap="20%"
-                              barGap={4}
-                            >
-                              <XAxis dataKey={xKey} tick={{ fontSize: 10 }} />
-                              <YAxis hide />
-                              <Tooltip
-                                formatter={customTooltipFormatter(metric.title)}
-                              />
-                              {/* 실제값 막대 - 앞쪽 */}
-                              <Bar
-                                dataKey="actualValue"
-                                fill={metric.colorActual}
-                                radius={[4, 4, 0, 0]}
-                                barSize={15}
-                                name={
-                                  metric.title === "산책 소모 칼로리"
-                                    ? "소모량"
-                                    : metric.title === "섭취 칼로리"
-                                    ? "식사량"
-                                    : "실제값"
-                                }
-                              />
-                              {/* 권장량 막대 - 뒤쪽 */}
-                              {metric.hasRecommended && (
-                                <Bar
-                                  dataKey="recommendedValue"
-                                  fill={metric.colorRecommended}
-                                  radius={[4, 4, 0, 0]}
-                                  barSize={15}
-                                  name="권장량"
+                          <ComposedChart
+                            data={data}
+                            barCategoryGap="20%"
+                            barGap={4}
+                          >
+                            <XAxis dataKey={xKey} tick={{ fontSize: 10 }} />
+                            <YAxis yAxisId="left" />
+                            <YAxis yAxisId="right" orientation="right" />
+                            <Tooltip
+                              content={(props) => (
+                                <CustomTooltip
+                                  {...props}
+                                  metricTitle={metric.title}
                                 />
                               )}
-                              <Legend verticalAlign="bottom" height={36} />
-                            </BarChart>
-                          )}
+                              contentStyle={{
+                                zIndex: 10000,
+                                position: "relative",
+                              }}
+                              wrapperStyle={{
+                                zIndex: 10000,
+                              }}
+                            />
+
+                            {metric.title === "산책 소모 칼로리" && (
+                              <>
+                                {/* 권장량 (막대) - 첫 번째 */}
+                                <Bar
+                                  yAxisId="left"
+                                  dataKey="target"
+                                  fill={metric.colorRecommended}
+                                  name="권장량"
+                                  radius={[4, 4, 0, 0]}
+                                />
+                                {/* 실제 소모량 (막대) - 두 번째 */}
+                                <Bar
+                                  yAxisId="left"
+                                  dataKey="actual"
+                                  fill={metric.colorActual}
+                                  name="소모량"
+                                  radius={[4, 4, 0, 0]}
+                                />
+                                {/* 달성률 (선) - 세 번째 */}
+                                <Line
+                                  yAxisId="right"
+                                  type="monotone"
+                                  dataKey="achievement"
+                                  stroke="#3B82F6"
+                                  strokeWidth={2}
+                                  strokeDasharray="3,3"
+                                  name="달성률(%)"
+                                  dot={{ r: 3, fill: "#3B82F6" }}
+                                />
+                              </>
+                            )}
+
+                            {metric.title === "섭취 칼로리" && (
+                              <>
+                                {/* 권장 섭취량 (막대) */}
+                                <Bar
+                                  yAxisId="left"
+                                  dataKey="target"
+                                  fill={metric.colorRecommended}
+                                  name="권장량"
+                                  radius={[4, 4, 0, 0]}
+                                />
+                                {/* 실제 섭취량 (막대) */}
+                                <Bar
+                                  yAxisId="left"
+                                  dataKey="actual"
+                                  fill={metric.colorActual}
+                                  name="식사량"
+                                  radius={[4, 4, 0, 0]}
+                                />
+                                {/* 균형도 (선) */}
+                                <Line
+                                  yAxisId="left"
+                                  type="monotone"
+                                  dataKey="balance"
+                                  stroke="#E91E63"
+                                  strokeDasharray="3,3"
+                                  name="균형도(%)"
+                                  strokeWidth={2}
+                                />
+                              </>
+                            )}
+
+                            {metric.title === "수면 시간" && (
+                              <>
+                                {/* 권장 수면 시간 (막대) */}
+                                <Bar
+                                  yAxisId="left"
+                                  dataKey="recommended"
+                                  fill={metric.colorRecommended}
+                                  name="권장 수면"
+                                  radius={[4, 4, 0, 0]}
+                                />
+                                {/* 실제 수면 시간 (막대) */}
+                                <Bar
+                                  yAxisId="left"
+                                  dataKey="actual"
+                                  fill={metric.colorActual}
+                                  name="실제 수면"
+                                  radius={[4, 4, 0, 0]}
+                                />
+                                {/* 수면 품질 (선) */}
+                                <Line
+                                  yAxisId="right"
+                                  type="monotone"
+                                  dataKey="quality"
+                                  stroke="#9C27B0"
+                                  strokeDasharray="3,3"
+                                  name="수면 품질(%)"
+                                  strokeWidth={2}
+                                />
+                              </>
+                            )}
+
+                            <Legend verticalAlign="bottom" height={36} />
+                          </ComposedChart>
                         </ResponsiveContainer>
                       )}
                       {metric.type === "line" && (
                         <ResponsiveContainer width="100%" height={150}>
-                          {selectedPeriod === "일" &&
-                          metric.title === "배변 횟수" ? (
-                            // 일별 배변 차트 - 소변/대변 횟수 + 건강점수
-                            <ComposedChart
-                              data={data}
-                              barCategoryGap="20%"
-                              barGap={4}
-                            >
-                              <XAxis dataKey={xKey} tick={{ fontSize: 10 }} />
-                              <YAxis yAxisId="left" />
-                              <YAxis yAxisId="right" orientation="right" />
-                              <Tooltip />
+                          <ComposedChart
+                            data={data}
+                            barCategoryGap="20%"
+                            barGap={4}
+                          >
+                            <XAxis dataKey={xKey} tick={{ fontSize: 10 }} />
+                            <YAxis yAxisId="left" />
+                            <YAxis yAxisId="right" orientation="right" />
+                            <Tooltip
+                              content={(props) => (
+                                <CustomTooltip
+                                  {...props}
+                                  metricTitle={metric.title}
+                                />
+                              )}
+                              contentStyle={{
+                                zIndex: 10000,
+                                position: "relative",
+                              }}
+                              wrapperStyle={{
+                                zIndex: 10000,
+                              }}
+                            />
 
-                              {/* 소변 횟수 (파란색 막대) */}
-                              <Bar
-                                yAxisId="left"
-                                dataKey="소변"
-                                fill="#42A5F5"
-                                name="소변 횟수"
-                                radius={[4, 4, 0, 0]}
-                              />
+                            {/* 소변 횟수 (파란색 막대) */}
+                            <Bar
+                              yAxisId="left"
+                              dataKey="소변"
+                              fill="#42A5F5"
+                              name="소변 횟수"
+                              radius={[4, 4, 0, 0]}
+                            />
 
-                              {/* 대변 횟수 (주황색 막대) */}
-                              <Bar
-                                yAxisId="left"
-                                dataKey="대변"
-                                fill="#FF7043"
-                                name="대변 횟수"
-                                radius={[4, 4, 0, 0]}
-                              />
+                            {/* 대변 횟수 (주황색 막대) */}
+                            <Bar
+                              yAxisId="left"
+                              dataKey="대변"
+                              fill="#FF7043"
+                              name="대변 횟수"
+                              radius={[4, 4, 0, 0]}
+                            />
 
-                              {/* 통합 건강점수 (점선) */}
-                              <Line
-                                yAxisId="right"
-                                type="monotone"
-                                dataKey="통합건강점수"
-                                stroke="#4CAF50"
-                                strokeDasharray="3,3"
-                                name="통합 건강점수"
-                                dot={{ r: 3, fill: "#4CAF50" }}
-                              />
+                            {/* 통합 건강점수 (점선) */}
+                            <Line
+                              yAxisId="right"
+                              type="monotone"
+                              dataKey="통합건강점수"
+                              stroke="#4CAF50"
+                              strokeDasharray="3,3"
+                              name="통합 건강점수"
+                              dot={{ r: 3, fill: "#4CAF50" }}
+                            />
 
-                              <Legend verticalAlign="bottom" height={36} />
-                            </ComposedChart>
-                          ) : (
-                            // 주/월/년 배변 차트 - 기존 구조
-                            <LineChart data={data}>
-                              <XAxis dataKey={xKey} tick={{ fontSize: 10 }} />
-                              <YAxis />
-                              <Tooltip
-                                formatter={customTooltipFormatter(metric.title)}
-                              />
-                              <Legend verticalAlign="bottom" height={36} />
-                              <Line
-                                type="monotone"
-                                dataKey="소변"
-                                stroke="#42A5F5"
-                                dot={{ r: 4 }}
-                                name="소변"
-                              />
-                              <Line
-                                type="monotone"
-                                dataKey="대변"
-                                stroke="#FF7043"
-                                dot={{ r: 4 }}
-                                name="대변"
-                              />
-                            </LineChart>
-                          )}
+                            <Legend verticalAlign="bottom" height={36} />
+                          </ComposedChart>
                         </ResponsiveContainer>
                       )}
                       {metric.type === "area" && (
                         <ResponsiveContainer width="100%" height={150}>
-                          {selectedPeriod === "일" &&
-                          metric.title === "수면 시간" ? (
-                            // 일별 수면 차트 - 새로운 구조
-                            <ComposedChart data={data}>
-                              <XAxis dataKey={xKey} tick={{ fontSize: 10 }} />
-                              <YAxis yAxisId="left" />
-                              <YAxis yAxisId="right" orientation="right" />
-                              <Tooltip />
+                          <ComposedChart data={data}>
+                            <XAxis dataKey={xKey} tick={{ fontSize: 10 }} />
+                            <YAxis yAxisId="left" />
+                            <YAxis yAxisId="right" orientation="right" />
+                            <Tooltip
+                              contentStyle={{
+                                zIndex: 10000,
+                                position: "relative",
+                              }}
+                              wrapperStyle={{
+                                zIndex: 10000,
+                              }}
+                            />
 
-                              {/* 실제 수면 시간 (막대) */}
-                              <Bar
-                                yAxisId="left"
-                                dataKey="actual"
-                                fill={metric.colorActual}
-                                name="수면 시간"
-                              />
+                            {/* 실제 수면 시간 (막대) */}
+                            <Bar
+                              yAxisId="left"
+                              dataKey="actual"
+                              fill={metric.colorActual}
+                              name="수면 시간"
+                            />
 
-                              {/* 권장 수면 시간 (선) */}
-                              <Line
-                                yAxisId="left"
-                                type="monotone"
-                                dataKey="recommended"
-                                stroke="#E91E63"
-                                strokeDasharray="5,5"
-                                name="권장 시간"
-                              />
+                            {/* 권장 수면 시간 (선) */}
+                            <Line
+                              yAxisId="left"
+                              type="monotone"
+                              dataKey="recommended"
+                              stroke="#E91E63"
+                              strokeDasharray="5,5"
+                              name="권장 시간"
+                            />
 
-                              <Legend verticalAlign="bottom" height={36} />
-                            </ComposedChart>
-                          ) : (
-                            // 주/월/년 수면 차트 - 기존 구조
-                            <AreaChart data={data}>
-                              <XAxis dataKey={xKey} tick={{ fontSize: 10 }} />
-                              <YAxis hide />
-                              <Tooltip
-                                formatter={customTooltipFormatter(metric.title)}
-                              />
-                              <Area
-                                type="monotone"
-                                dataKey="actualValue"
-                                stroke={metric.colorActual}
-                                fill={metric.colorActual}
-                                name="수면 시간"
-                                fillOpacity={0.3}
-                              />
-                              <Legend verticalAlign="bottom" height={36} />
-                            </AreaChart>
-                          )}
+                            <Legend verticalAlign="bottom" height={36} />
+                          </ComposedChart>
                         </ResponsiveContainer>
                       )}
                     </div>

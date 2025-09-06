@@ -25,14 +25,14 @@ export default function ActivityManagement() {
 
   const [formData, setFormData] = useState({
     ...initialFormData,
-    mealType: "BREAKFAST", // 기본값 추가
+    mealType: "", // 기본값을 빈 문자열로 변경
   });
 
   // 다중 식사 관리
   const [meals, setMeals] = useState([]);
   const [showMealInfo, setShowMealInfo] = useState(false);
 
-  // 식사 타입 옵션
+  // 식사 타입 옵션 (드롭다운용 - 선택 옵션 제외)
   const mealTypeOptions = [
     { value: "BREAKFAST", label: "아침" },
     { value: "LUNCH", label: "점심" },
@@ -112,11 +112,20 @@ export default function ActivityManagement() {
 
     const fetchActivityData = async () => {
       try {
-        const today = new Date().toISOString().split("T")[0];
+        // 한국 시간대 기준으로 오늘 날짜 계산
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, "0");
+        const day = String(today.getDate()).padStart(2, "0");
+        const todayString = `${year}-${month}-${day}`;
+
         if (!selectedPetNo) return;
-        const savedData = await getActivityData(today, selectedPetNo);
+        const savedData = await getActivityData(todayString, selectedPetNo);
 
         if (savedData && savedData.activityNo) {
+          console.log("🔍 저장된 데이터 로드:", savedData);
+          console.log("🔍 저장된 식사 데이터:", savedData.meals);
+
           setFormData({
             walkingDistance: savedData.walkingDistanceKm?.toString() || "",
             activityLevel: savedData.activityLevel?.toString() || "",
@@ -133,6 +142,8 @@ export default function ActivityManagement() {
           const loadedMeals = Array.isArray(savedData.meals)
             ? savedData.meals
             : [];
+          console.log("🔍 로드된 식사 배열:", loadedMeals);
+
           const normalizedMeals = loadedMeals.map((m) => {
             return {
               mealType: m.mealType || "BREAKFAST",
@@ -142,6 +153,8 @@ export default function ActivityManagement() {
               intakeKcal: m.consumedCalories || 0,
             };
           });
+          console.log("🔍 정규화된 식사 배열:", normalizedMeals);
+
           setMeals(normalizedMeals);
           setIsSubmittedToday(true);
         } else {
@@ -149,7 +162,7 @@ export default function ActivityManagement() {
           setFormData({
             walkingDistance: "",
             activityLevel: "",
-            mealType: "BREAKFAST",
+            mealType: "",
             totalFoodWeight: "",
             totalCaloriesInFood: "",
             feedingAmount: "",
@@ -168,7 +181,7 @@ export default function ActivityManagement() {
         setFormData({
           walkingDistance: "",
           activityLevel: "",
-          mealType: "BREAKFAST",
+          mealType: "",
           totalFoodWeight: "",
           totalCaloriesInFood: "",
           feedingAmount: "",
@@ -365,6 +378,17 @@ export default function ActivityManagement() {
     );
     const currentFeedingAmountNum = parseFloat(formData.feedingAmount);
 
+    // 식사 타입 유효성 검사 (현재 입력 중인 식사가 있을 때만)
+    if (
+      formData.totalFoodWeight.trim() !== "" ||
+      formData.totalCaloriesInFood.trim() !== "" ||
+      formData.feedingAmount.trim() !== ""
+    ) {
+      if (formData.mealType.trim() === "") {
+        errors.mealType = "식사 타입을 선택해주세요.";
+      }
+    }
+
     if (formData.weight.trim() === "") {
       errors.weight = "몸무게를 입력해주세요.";
     } else if (isNaN(weightNum) || weightNum < 0) {
@@ -428,7 +452,7 @@ export default function ActivityManagement() {
         (currentTotalCaloriesInFoodNum / currentTotalFoodWeightNum);
       mealsToSave = [
         {
-          mealType: "BREAKFAST", // 기본값
+          mealType: formData.mealType || "BREAKFAST", // 현재 선택된 값 또는 기본값
           totalFoodWeight: currentTotalFoodWeightNum,
           totalCaloriesInFood: currentTotalCaloriesInFoodNum,
           feedingAmount: currentFeedingAmountNum,
@@ -457,10 +481,16 @@ export default function ActivityManagement() {
       return sum + intake;
     }, 0);
 
-    // 백엔드 API 형식에 맞게 데이터 변환
+    // 백엔드 API 형식에 맞게 데이터 변환 (한국 시간대 기준)
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    const todayString = `${year}-${month}-${day}`;
+
     const dataToSave = {
       petNo: selectedPetNo,
-      activityDate: new Date().toISOString().split("T")[0],
+      activityDate: todayString,
       walkingDistanceKm: parseFloat(formData.walkingDistance),
       activityLevel: formData.activityLevel, // enum 문자열 그대로 전송 (LOW, MEDIUM_LOW, MEDIUM_HIGH, HIGH)
       weightKg: parseFloat(formData.weight),
@@ -482,6 +512,30 @@ export default function ActivityManagement() {
       await saveActivityData(dataToSave);
       setIsSubmittedToday(true);
       setShowSaveComplete(true);
+
+      // 저장 완료 후 데이터 다시 불러오기 (한국 시간대 기준)
+      const savedData = await getActivityData(todayString, selectedPetNo);
+
+      if (savedData && savedData.activityNo) {
+        console.log("🔍 저장 후 데이터 다시 로드:", savedData);
+        console.log("🔍 저장 후 식사 데이터:", savedData.meals);
+
+        // 식사 데이터 업데이트
+        const loadedMeals = Array.isArray(savedData.meals)
+          ? savedData.meals
+          : [];
+        const normalizedMeals = loadedMeals.map((m) => {
+          return {
+            mealType: m.mealType || "BREAKFAST",
+            totalFoodWeight: m.totalWeightG || "",
+            totalCaloriesInFood: m.totalCalories || "",
+            feedingAmount: m.consumedWeightG || "",
+            intakeKcal: m.consumedCalories || 0,
+          };
+        });
+        console.log("🔍 저장 후 정규화된 식사 배열:", normalizedMeals);
+        setMeals(normalizedMeals);
+      }
 
       // 저장 완료 후 자동 새로고침 제거 - 사용자가 확인 버튼을 눌러야 함
       // setTimeout(() => {
@@ -555,7 +609,7 @@ export default function ActivityManagement() {
       totalFoodWeight: "",
       totalCaloriesInFood: "",
       feedingAmount: "",
-      mealType: "BREAKFAST", // 기본값으로 리셋
+      mealType: "", // 기본값을 빈 문자열로 리셋
     }));
   };
 
@@ -691,27 +745,27 @@ export default function ActivityManagement() {
                       option: (provided, state) => ({
                         ...provided,
                         backgroundColor: state.isSelected
-                          ? "#e6f4ea"
+                          ? "#fff3e0"
                           : state.isFocused
-                          ? "#f0fdf4"
+                          ? "#fff8f0"
                           : "white",
-                        color: state.isSelected ? "#4caf50" : "#374151",
+                        color: state.isSelected ? "#f57c00" : "#374151",
                         cursor: "pointer",
                         ":active": {
-                          backgroundColor: "#c8e6c9",
-                          color: "#388e3c",
+                          backgroundColor: "#ffe0b2",
+                          color: "#e65100",
                         },
                       }),
                       control: (provided, state) => ({
                         ...provided,
                         minHeight: "50px",
                         height: "50px",
-                        borderColor: state.isFocused ? "#8bc34a" : "#d1d5db",
+                        borderColor: state.isFocused ? "#ff9800" : "#d1d5db",
                         boxShadow: state.isFocused
-                          ? "0 0 0 3px rgba(139,195,74,0.3)"
+                          ? "0 0 0 3px rgba(255,152,0,0.3)"
                           : "none",
                         "&:hover": {
-                          borderColor: "#8bc34a",
+                          borderColor: "#ff9800",
                         },
                       }),
                       valueContainer: (provided) => ({
@@ -835,26 +889,97 @@ export default function ActivityManagement() {
                         >
                           식사 타입
                         </label>
-                        <select
+                        <Select
                           id="mealType"
-                          value={formData.mealType}
-                          onChange={(e) => {
+                          options={mealTypeOptions}
+                          value={mealTypeOptions.find(
+                            (option) => option.value === formData.mealType
+                          )}
+                          onChange={(selectedOption) => {
                             setFormData((prev) => ({
                               ...prev,
-                              mealType: e.target.value,
+                              mealType: selectedOption?.value || "",
                             }));
                           }}
+                          placeholder="선택"
+                          classNamePrefix="react-select"
                           className={
                             validationErrors.mealType ? styles.errorSelect : ""
                           }
-                          disabled={isSubmittedToday}
-                        >
-                          {mealTypeOptions.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
+                          styles={{
+                            option: (provided, state) => ({
+                              ...provided,
+                              backgroundColor: state.isSelected
+                                ? "#fff3e0"
+                                : state.isFocused
+                                ? "#fff8f0"
+                                : "white",
+                              color: state.isSelected ? "#f57c00" : "#374151",
+                              cursor: "pointer",
+                              ":active": {
+                                backgroundColor: "#ffe0b2",
+                                color: "#e65100",
+                              },
+                            }),
+                            control: (provided, state) => ({
+                              ...provided,
+                              minHeight: "50px",
+                              height: "50px",
+                              borderColor: state.isFocused
+                                ? "#ff9800"
+                                : "#d1d5db",
+                              boxShadow: state.isFocused
+                                ? "0 0 0 3px rgba(255,152,0,0.3)"
+                                : "none",
+                              "&:hover": {
+                                borderColor: "#ff9800",
+                              },
+                            }),
+                            valueContainer: (provided) => ({
+                              ...provided,
+                              height: "50px",
+                              padding: "0 12px",
+                              alignItems: "center",
+                            }),
+                            input: (provided) => ({
+                              ...provided,
+                              margin: 0,
+                              padding: 0,
+                            }),
+                            indicatorsContainer: (provided) => ({
+                              ...provided,
+                              height: "50px",
+                              alignItems: "center",
+                            }),
+                            dropdownIndicator: (provided) => ({
+                              ...provided,
+                              paddingTop: 0,
+                              paddingBottom: 0,
+                            }),
+                            clearIndicator: (provided) => ({
+                              ...provided,
+                              paddingTop: 0,
+                              paddingBottom: 0,
+                            }),
+                            placeholder: (provided) => ({
+                              ...provided,
+                              color: "#adaebc",
+                              whiteSpace: "nowrap",
+                              minWidth: "40px",
+                            }),
+                            singleValue: (provided) => ({
+                              ...provided,
+                              color: "#374151",
+                            }),
+                            menu: (provided) => ({
+                              ...provided,
+                              borderRadius: 8,
+                              boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                              zIndex: 10,
+                            }),
+                          }}
+                          isDisabled={isSubmittedToday}
+                        />
                       </div>
                       <div className={styles.formGroup}>
                         <label
@@ -934,6 +1059,14 @@ export default function ActivityManagement() {
                     </div>
                   </>
                 )}
+
+                {/* 식사 리스트 - 저장된 데이터가 있을 때 항상 표시 */}
+                {console.log(
+                  "🔍 식사 리스트 렌더링 - meals:",
+                  meals,
+                  "isSubmittedToday:",
+                  isSubmittedToday
+                )}
                 {meals.length > 0 && (
                   <ul className={styles.mealList}>
                     {meals.map((m, idx) => {
@@ -967,6 +1100,13 @@ export default function ActivityManagement() {
                       );
                     })}
                   </ul>
+                )}
+
+                {/* 저장된 데이터가 없을 때 안내 메시지 */}
+                {isSubmittedToday && meals.length === 0 && (
+                  <div className={styles.noMealsMessage}>
+                    저장된 식사 기록이 없습니다.
+                  </div>
                 )}
                 <div className={styles.calorieInfo}>
                   <div className={styles.calorieItem}>
@@ -1139,21 +1279,28 @@ export default function ActivityManagement() {
                 <h3>메모</h3>
               </div>
               <div className={styles.activityForm}>
-                <div className={styles.formGroup}>
-                  <textarea
-                    className={`${styles.noResize} ${styles.notesTextarea}`}
-                    placeholder="추가 사항을 작성하세요."
-                    rows={1}
-                    id="memo"
-                    value={formData.memo}
-                    onChange={handleChange}
-                    disabled={isSubmittedToday}
-                    maxLength={50}
-                  />
-                  <div className={styles.characterCount}>
-                    {formData.memo.length}/50
+                {isSubmittedToday &&
+                (!formData.memo || formData.memo.trim() === "") ? (
+                  <div className={styles.noMemoMessage}>
+                    오늘은 기재한 메모가 없습니다.
                   </div>
-                </div>
+                ) : (
+                  <div className={styles.formGroup}>
+                    <textarea
+                      className={`${styles.noResize} ${styles.notesTextarea}`}
+                      placeholder="추가 사항을 작성하세요."
+                      rows={1}
+                      id="memo"
+                      value={formData.memo}
+                      onChange={handleChange}
+                      disabled={isSubmittedToday}
+                      maxLength={50}
+                    />
+                    <div className={styles.characterCount}>
+                      {formData.memo.length}/50
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -1183,7 +1330,13 @@ export default function ActivityManagement() {
           }
         }}
         petName={selectedPetName}
-        date={new Date().toISOString().split("T")[0]}
+        date={(() => {
+          const today = new Date();
+          const year = today.getFullYear();
+          const month = String(today.getMonth() + 1).padStart(2, "0");
+          const day = String(today.getDate()).padStart(2, "0");
+          return `${year}-${month}-${day}`;
+        })()}
       />
 
       {/* 저장 확인 모달 */}
@@ -1192,7 +1345,13 @@ export default function ActivityManagement() {
         onClose={handleSaveCancel}
         onConfirm={handleSaveConfirm}
         petName={selectedPetName}
-        date={new Date().toISOString().split("T")[0]}
+        date={(() => {
+          const today = new Date();
+          const year = today.getFullYear();
+          const month = String(today.getMonth() + 1).padStart(2, "0");
+          const day = String(today.getDate()).padStart(2, "0");
+          return `${year}-${month}-${day}`;
+        })()}
       />
     </div>
   );

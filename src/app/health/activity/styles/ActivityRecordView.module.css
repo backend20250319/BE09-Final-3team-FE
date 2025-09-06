@@ -11,6 +11,7 @@
   z-index: 1000;
   animation: fadeIn 0.3s ease-in-out;
   padding-left: 10px;
+  overflow: hidden; /* 오버레이 스크롤 방지 */
 }
 
 .modal {
@@ -93,6 +94,8 @@
   padding: 24px 32px 32px;
   max-height: calc(80vh - 80px);
   overflow-y: auto;
+  overflow-x: hidden; /* 가로 스크롤 방지 */
+  -webkit-overflow-scrolling: touch; /* iOS에서 부드러운 스크롤 */
 }
 
 .section {
@@ -572,4 +575,22 @@
   .saveButton {
     width: 100%;
   }
+}
+
+/* 에러 스타일 */
+.errorInput {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+.errorSelect {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+.errorMessage {
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 500;
 }

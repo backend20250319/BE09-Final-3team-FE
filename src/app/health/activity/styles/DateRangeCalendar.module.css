@@ -1,0 +1,254 @@
+/* DateRangeCalendar 스타일 */
+
+.calendarOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendar {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  padding: 20px;
+  width: 320px;
+  position: absolute;
+  z-index: 1001;
+}
+
+.calendarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.navButton {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  color: #495057;
+  transition: all 0.2s ease;
+}
+
+.navButton:hover {
+  background: #e9ecef;
+  border-color: #dee2e6;
+}
+
+.monthYear {
+  font-size: 18px;
+  font-weight: 600;
+  color: #212529;
+  margin: 0;
+}
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.weekday {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6c757d;
+  padding: 8px 0;
+}
+
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.dayButton {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #495057;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.dayButton:hover:not(.disabled) {
+  background: #f8f9fa;
+  border-color: #dee2e6;
+}
+
+.dayButton.otherMonth {
+  color: #adb5bd;
+}
+
+.dayButton.today {
+  background: #e3f2fd;
+  color: #1976d2;
+  font-weight: 600;
+}
+
+.dayButton.selected {
+  background: #f5a623;
+  color: white;
+  font-weight: 600;
+  border-color: #f5a623;
+}
+
+.dayButton.inRange {
+  background: #fff3cd;
+  color: #856404;
+  border-color: #ffeaa7;
+  font-weight: 500;
+}
+
+.dayButton.inRange:hover {
+  background: #ffeaa7;
+  border-color: #f5a623;
+}
+
+.dayButton.disabled {
+  color: #adb5bd;
+  cursor: not-allowed;
+  background: #f8f9fa;
+  opacity: 0.5;
+}
+
+.dayButton.disabled:hover {
+  background: #f8f9fa;
+  border-color: transparent;
+  opacity: 0.5;
+}
+
+.selectedDates {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.dateInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.dateInfo:last-child {
+  margin-bottom: 0;
+}
+
+.dateLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6c757d;
+}
+
+.dateValue {
+  font-size: 14px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.calendarActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.clearButton {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6c757d;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clearButton:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+  color: #495057;
+}
+
+.confirmButton {
+  background: #f5a623;
+  border: 1px solid #f5a623;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.confirmButton:hover:not(:disabled) {
+  background: #e09417;
+  border-color: #e09417;
+}
+
+.confirmButton:disabled {
+  background: #adb5bd;
+  border-color: #adb5bd;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* 안내 문구 */
+.infoText {
+  text-align: center;
+  font-size: 12px;
+  color: #6b7280;
+  margin: 8px 0;
+  padding: 8px;
+  background: #f9fafb;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 480px) {
+  .calendar {
+    width: 280px;
+    padding: 16px;
+  }
+
+  .dayButton {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+
+  .navButton {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+}
