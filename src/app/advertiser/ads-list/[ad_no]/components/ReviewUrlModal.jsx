@@ -384,7 +384,7 @@ export default function ReviewUrlModal({ isOpen, onClose, applicant, onReviewUpd
                 onClick={handleReject}
                 disabled={isSubmitting || !rejectionReason.trim()}
               >
-                {isSubmitting ? '처리 중...' : '반려 처리'}
+                {isSubmitting ? '처리 중' : '반려 처리'}
               </button>
             </div>
           </div>

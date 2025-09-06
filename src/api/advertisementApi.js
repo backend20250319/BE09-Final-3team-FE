@@ -122,6 +122,12 @@ export const getPet = async (petNo) => {
   return res.data.data;
 }
 
+// 4. 펫스타 조회
+export const getPetstar = async () => {
+  const res = await advertiserApi.get(`${PET_PREFIX}/petstars`);
+  return res.data.data;
+}
+
 /* USER API */
 const USER_PREFIX =
   (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_USER_PREFIX) ||

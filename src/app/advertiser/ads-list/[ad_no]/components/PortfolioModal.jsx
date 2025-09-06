@@ -224,7 +224,7 @@ export default function PortfolioModal({ isOpen, onClose, petData }) {
                     className={styles.ownerImage} 
                   />
                 ) : (
-                  <div className={styles.petAvatarPlaceholder}>
+                  <div className={styles.ownerAvatarPlaceholder}>
                     <span>?</span>
                   </div>
                 )}
