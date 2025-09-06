@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react';
-import styles from './ConfirmationModal.module.css';
+import styles from '../styles/ConfirmationModal.module.css';
 
 export default function ConfirmationModal({ 
   isOpen, 
