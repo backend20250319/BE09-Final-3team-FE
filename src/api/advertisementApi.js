@@ -33,6 +33,18 @@ export const updateAdByAdvertiser = async (adNo, request) => {
   return res.data.data;
 };
 
+// 4. 광고 삭제
+export const deleteAd = async (adNo) => {
+  const res = await advertiserApi.delete(`${AD_PREFIX}/${adNo}`);
+  return res.data.data;
+};
+
+// 4-2. 광고 소프트 삭제
+export const deleteAdByAdvertiser = async (adNo, isDeleted) => {
+  const res = await advertiserApi.put(`${AD_PREFIX}/delete/${adNo}?isDeleted=${isDeleted}`);
+  return res.data.data;
+};
+
 /* 광고 이미지 API */
 const FILE_PREFIX =
     (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_COMMUNITY_PREFIX) ||
