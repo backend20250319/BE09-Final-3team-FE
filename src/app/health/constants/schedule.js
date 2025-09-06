@@ -8,9 +8,6 @@ export const notificationTimingOptions = [
   { value: "1", label: "1일 전" },
   { value: "2", label: "2일 전" },
   { value: "3", label: "3일 전" },
-  { value: "7", label: "1주일 전" },
-  { value: "14", label: "2주일 전" },
-  { value: "30", label: "1개월 전" },
 ];
 
 // 투약 필터 옵션
@@ -62,12 +59,7 @@ export const TIME_CONFIG = {
 // 파일 업로드 관련 상수
 export const FILE_UPLOAD_CONFIG = {
   MAX_SIZE: 10 * 1024 * 1024, // 10MB
-  ALLOWED_TYPES: [
-    "image/jpeg",
-    "image/jpg", 
-    "image/png",
-    "image/gif",
-  ],
+  ALLOWED_TYPES: ["image/jpeg", "image/jpg", "image/png", "image/gif"],
   ALLOWED_EXTENSIONS: [".jpg", ".jpeg", ".png", ".gif"],
 };
 

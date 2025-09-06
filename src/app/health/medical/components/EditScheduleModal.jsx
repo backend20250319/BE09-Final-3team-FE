@@ -42,7 +42,7 @@ import {
   validateDateRange,
   validateTimeInput,
   validateDuration,
-  validateFrequency
+  validateFrequency,
 } from "../../constants";
 
 export default function EditScheduleModal({
