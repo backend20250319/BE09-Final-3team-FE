@@ -33,6 +33,18 @@ export const updateAdByAdvertiser = async (adNo, request) => {
   return res.data.data;
 };
 
+// 4. 광고 삭제
+export const deleteAd = async (adNo) => {
+  const res = await advertiserApi.delete(`${AD_PREFIX}/${adNo}`);
+  return res.data.data;
+};
+
+// 4-2. 광고 소프트 삭제
+export const deleteAdByAdvertiser = async (adNo, isDeleted) => {
+  const res = await advertiserApi.put(`${AD_PREFIX}/delete/${adNo}?isDeleted=${isDeleted}`);
+  return res.data.data;
+};
+
 /* 광고 이미지 API */
 const FILE_PREFIX =
     (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_COMMUNITY_PREFIX) ||
@@ -98,3 +110,91 @@ export const updateApplicant = async (applicantNo, status, isSaved) => {
   const res = await advertiserApi.put(`${CAMPAIGN_PREFIX}/applicant/${applicantNo}`, body);
   return res.data.data;
 };
+
+/* PET API */
+const PET_PREFIX =
+  (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_PET_PREFIX) ||
+  "/advertiser-service/pet";
+
+// 1. 포트폴리오 조회
+export const getPortfolio = async (petNo) => {
+  const res = await advertiserApi.get(`${PET_PREFIX}/portfolio/${petNo}`);
+  return res.data.data;
+}
+
+// 2. 활동이력 조회
+export const getHistory = async (petNo) => {
+  const res = await advertiserApi.get(`${PET_PREFIX}/history/${petNo}`);
+  return res.data.data;
+}
+
+// 3. 반려동물 상세 조회
+export const getPet = async (petNo) => {
+  const res = await advertiserApi.get(`${PET_PREFIX}/${petNo}`);
+  return res.data.data;
+}
+
+// 4. 펫스타 조회
+export const getPetstar = async () => {
+  const res = await advertiserApi.get(`${PET_PREFIX}/petstars`);
+  return res.data.data;
+}
+
+/* USER API */
+const USER_PREFIX =
+  (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_USER_PREFIX) ||
+  "/advertiser-service/user";
+
+// 1. 사용자 조회
+export const getUser = async (uerNo) => {
+  const res = await advertiserApi.get(`${USER_PREFIX}/profile/${uerNo}`);
+  return res.data.data;
+}
+
+// 2. 사용자 신고하기
+export const reportUser = async (reportRequest) => {
+  const res = await advertiserApi.post(`${USER_PREFIX}/reports`, reportRequest, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  return res.data.data;
+};
+
+/* SNS API */
+const SNS_PREFIX =
+  (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_SNS_PREFIX) ||
+  "/advertiser-service/instagram";
+
+// 1. 인스타그램 프로필 조회
+export const getInstagramProfile = async (userNo) => {
+  const res = await advertiserApi.get(`${SNS_PREFIX}/${userNo}`);
+  return res.data.data;
+}
+
+/* 리뷰 API */
+const REVIEW_PREFIX =
+  (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_REVIEW_PREFIX) ||
+  "/advertiser-service/review";
+
+// 1. 리뷰 조회
+export const getReview = async (adNo) => {
+  const res = await advertiserApi.get(`${REVIEW_PREFIX}/ad/${adNo}`);
+  return res.data.data;
+}
+
+// 2. 개인 리뷰 조회
+export const getPersonalReview = async (applicantNo) => {
+  const res = await advertiserApi.get(`${REVIEW_PREFIX}/${applicantNo}`);
+  return res.data.data;
+}
+
+// 2. 리뷰 수정
+export const updateReview = async (applicantNo, reviewRequest) => {
+  const res = await advertiserApi.put(`${REVIEW_PREFIX}/${applicantNo}`, reviewRequest, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  return res.data.data;
+}

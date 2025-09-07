@@ -6,15 +6,23 @@ import ActivityDetailModal from "./ActivityDetailModal";
 import Image from "next/image";
 import ActivityCardCarousel from "./ActivityCardCarousel";
 import { useSearchParams } from "next/navigation";
-import axios from "axios";
+import {
+  getPortfolio,
+  savePortfolio,
+  getHistories,
+  createHistory,
+  updateHistory,
+  deleteHistory,
+  uploadHistoryImages,
+  deleteHistoryImage,
+  getHistoryImages,
+  cleanupDuplicateHistories,
+  getPet,
+} from "../../../api/petApi";
 
 const PortfolioContent = () => {
   const searchParams = useSearchParams();
   const petNo = searchParams.get("petId"); // URL 파라미터는 petId로 유지하되, 내부적으로는 petNo로 사용
-
-  // API 기본 URL
-  const PET_API_BASE = "http://localhost:8000/api/v1/pet-service";
-  const PORTFOLIO_API_BASE = "http://localhost:8000/api/v1/pet-service";
 
   const [formData, setFormData] = useState({
     petName: "",
@@ -45,44 +53,12 @@ const PortfolioContent = () => {
   const [showActivityModal, setShowActivityModal] = useState(false);
 
   // API 호출 함수들
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem("token");
-    const accessToken = localStorage.getItem("accessToken");
-    const userNo = localStorage.getItem("userNo");
-
-    console.log("Auth Headers Debug:", {
-      token: token ? "exists" : "missing",
-      accessToken: accessToken ? "exists" : "missing",
-      userNo: userNo ? "exists" : "missing",
-    });
-
-    // 단순화된 헤더
-    const headers = {
-      "Content-Type": "application/json",
-    };
-
-    // 토큰이 있으면 추가
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    } else if (accessToken) {
-      headers.Authorization = `Bearer ${accessToken}`;
-    }
-
-    // 사용자 번호가 있으면 추가
-    if (userNo) {
-      headers["X-User-No"] = userNo;
-    }
-
-    return headers;
-  };
 
   // 반려동물 정보 조회
   const fetchPetInfo = async (petNo) => {
     try {
-      const response = await axios.get(`${PET_API_BASE}/pets/${petNo}`, {
-        headers: getAuthHeaders(),
-      });
-      return response.data.data;
+      const data = await getPet(petNo);
+      return data.data;
     } catch (error) {
       console.error("반려동물 정보 조회 실패:", error);
       throw error;
@@ -92,13 +68,8 @@ const PortfolioContent = () => {
   // 포트폴리오 조회
   const fetchPortfolio = async (petNo) => {
     try {
-      const response = await axios.get(
-        `${PORTFOLIO_API_BASE}/pets/${petNo}/portfolio`,
-        {
-          headers: getAuthHeaders(),
-        }
-      );
-      return response.data.data;
+      const data = await getPortfolio(petNo);
+      return data.data;
     } catch (error) {
       // 404 또는 400 에러는 포트폴리오가 없는 경우이므로 정상적인 상황
       if (error.response?.status === 404 || error.response?.status === 400) {
@@ -117,22 +88,13 @@ const PortfolioContent = () => {
         "임시저장할 포트폴리오 데이터:",
         JSON.stringify(portfolioData, null, 2)
       );
-      console.log(
-        "사용할 인증 헤더:",
-        JSON.stringify(getAuthHeaders(), null, 2)
-      );
-      console.log("요청 URL:", `${PORTFOLIO_API_BASE}/pets/${petNo}/portfolio`);
+      console.log("포트폴리오 임시저장 시작");
       console.log("petNo:", petNo);
 
       // 먼저 간단한 GET 요청으로 API가 작동하는지 테스트
       try {
-        const testResponse = await axios.get(
-          `${PORTFOLIO_API_BASE}/pets/${petNo}`,
-          {
-            headers: getAuthHeaders(),
-          }
-        );
-        console.log("반려동물 정보 조회 테스트 성공:", testResponse.data);
+        const testData = await getPet(petNo);
+        console.log("반려동물 정보 조회 테스트 성공:", testData);
       } catch (testError) {
         console.error(
           "반려동물 정보 조회 테스트 실패:",
@@ -140,15 +102,9 @@ const PortfolioContent = () => {
         );
       }
 
-      const response = await axios.post(
-        `${PORTFOLIO_API_BASE}/pets/${petNo}/portfolio`,
-        portfolioData,
-        {
-          headers: getAuthHeaders(),
-        }
-      );
-      console.log("포트폴리오 임시저장 성공:", response.data);
-      return response.data;
+      const response = await savePortfolio(petNo, portfolioData);
+      console.log("포트폴리오 임시저장 성공:", response);
+      return response;
     } catch (error) {
       console.error("포트폴리오 임시 저장 실패:", error);
       console.error("에러 응답 데이터:", error.response?.data);
@@ -168,22 +124,12 @@ const PortfolioContent = () => {
         "전송할 포트폴리오 데이터:",
         JSON.stringify(portfolioData, null, 2)
       );
-      console.log(
-        "사용할 인증 헤더:",
-        JSON.stringify(getAuthHeaders(), null, 2)
-      );
-      console.log("요청 URL:", `${PORTFOLIO_API_BASE}/pets/${petNo}/portfolio`);
+      console.log("포트폴리오 등록 시작");
       console.log("petNo:", petNo);
 
-      const response = await axios.post(
-        `${PORTFOLIO_API_BASE}/pets/${petNo}/portfolio`,
-        portfolioData,
-        {
-          headers: getAuthHeaders(),
-        }
-      );
-      console.log("포트폴리오 등록 성공:", response.data);
-      return response.data;
+      const response = await savePortfolio(petNo, portfolioData);
+      console.log("포트폴리오 등록 성공:", response);
+      return response;
     } catch (error) {
       console.error("포트폴리오 등록 실패:", error);
       console.error("에러 응답 데이터:", error.response?.data);
@@ -197,35 +143,26 @@ const PortfolioContent = () => {
   };
 
   // 활동 이력 등록/수정
-  const createHistory = async (
+  const handleCreateHistory = async (
     historyData,
     isEdit = false,
     historyNo = null
   ) => {
     try {
-      const url =
-        isEdit && historyNo
-          ? `${PET_API_BASE}/pets/${petNo}/histories/${historyNo}`
-          : `${PET_API_BASE}/pets/${petNo}/histories`;
-
-      const method = isEdit && historyNo ? "put" : "post";
-
       console.log(
         `활동 이력 ${isEdit ? "수정" : "등록"} 요청 데이터:`,
         JSON.stringify(historyData, null, 2)
       );
-      console.log(`활동 이력 ${isEdit ? "수정" : "등록"} URL:`, url);
-      console.log(
-        `활동 이력 ${isEdit ? "수정" : "등록"} 메서드:`,
-        method.toUpperCase()
-      );
 
-      const response = await axios[method](url, historyData, {
-        headers: getAuthHeaders(),
-      });
+      let response;
+      if (isEdit && historyNo) {
+        response = await updateHistory(petNo, historyNo, historyData);
+      } else {
+        response = await createHistory(petNo, historyData);
+      }
 
-      console.log(`활동 이력 ${isEdit ? "수정" : "등록"} 성공:`, response.data);
-      return response.data;
+      console.log(`활동 이력 ${isEdit ? "수정" : "등록"} 성공:`, response);
+      return response;
     } catch (error) {
       console.error(`활동 이력 ${isEdit ? "수정" : "등록"} 실패:`, error);
       console.error(`활동 이력 ${isEdit ? "수정" : "등록"} 실패 상세:`, {
@@ -272,13 +209,8 @@ const PortfolioContent = () => {
   // 활동 이력 조회
   const fetchHistories = async (petNo) => {
     try {
-      const response = await axios.get(
-        `${PET_API_BASE}/pets/${petNo}/histories`,
-        {
-          headers: getAuthHeaders(),
-        }
-      );
-      return response.data.data;
+      const data = await getHistories(petNo);
+      return data.data;
     } catch (error) {
       console.error("활동 이력 조회 실패:", error);
       throw error;
@@ -352,7 +284,7 @@ const PortfolioContent = () => {
             console.log("기존 카드 초기화 완료");
 
             // 먼저 중복 정리 실행
-            await cleanupDuplicateHistories();
+            await handleCleanupDuplicateHistories();
 
             console.log("중복 정리 완료, 활동 이력 로드 시작");
           } catch (historyError) {
@@ -523,7 +455,7 @@ const PortfolioContent = () => {
         // 백엔드에서 중복 체크를 수행하므로 프론트엔드 중복 체크는 제거
         console.log("백엔드로 전송 시작");
 
-        const response = await createHistory(historyData, false);
+        const response = await handleCreateHistory(historyData, false);
         console.log("createHistory 응답:", response);
 
         // 중복 에러 체크
@@ -566,18 +498,12 @@ const PortfolioContent = () => {
   };
 
   // 중복 활동이력 정리 함수
-  const cleanupDuplicateHistories = async () => {
+  const handleCleanupDuplicateHistories = async () => {
     try {
       console.log("중복 활동이력 정리 시작");
-      const response = await axios.post(
-        `${PET_API_BASE}/pets/${petNo}/histories/cleanup`,
-        {},
-        {
-          headers: getAuthHeaders(),
-        }
-      );
+      const response = await cleanupDuplicateHistories(petNo);
 
-      if (response.data.code === "2000") {
+      if (response.code === "2000") {
         console.log("중복 활동이력 정리 성공");
         // 정리 후 활동 이력 다시 로드
         await loadActivityHistories();
@@ -730,16 +656,11 @@ const PortfolioContent = () => {
   };
 
   // 활동이력 삭제 함수
-  const deleteHistory = async (historyNo) => {
+  const handleDeleteHistory = async (historyNo) => {
     try {
-      const response = await axios.delete(
-        `${PET_API_BASE}/pets/${petNo}/histories/${historyNo}`,
-        {
-          headers: getAuthHeaders(),
-        }
-      );
+      const response = await deleteHistory(petNo, historyNo);
 
-      if (response.data.code === "2000") {
+      if (response.code === "2000") {
         // 삭제 성공 시 로컬 상태 업데이트
         setActivityCards((prev) =>
           prev.filter((card) => card.id !== historyNo)
@@ -760,7 +681,7 @@ const PortfolioContent = () => {
   // 삭제 확인
   const confirmDeleteActivity = () => {
     if (pendingDeleteActivity) {
-      deleteHistory(pendingDeleteActivity.id);
+      handleDeleteHistory(pendingDeleteActivity.id);
       setShowDeleteConfirmModal(false);
       setPendingDeleteActivity(null);
       // 상세보기 모달도 함께 닫기

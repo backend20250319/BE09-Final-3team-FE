@@ -2,21 +2,42 @@
 
 import React from "react";
 import styles from "../styles/PrescriptionResultModal.module.css";
-import { mockPrescriptionData } from "../../data/mockData";
 import { useSelectedPet } from "../../context/SelectedPetContext";
+import { COLOR_MAP } from "../../constants/colors";
 
 export default function PrescriptionResultModal({
   isOpen,
   onClose,
   prescriptionData,
-  onAddMedications,
 }) {
   const { selectedPetName } = useSelectedPet();
 
   if (!isOpen) return null;
 
-  // props로 받은 데이터 없으면 mockPrescriptionData 사용
-  const data = prescriptionData || mockPrescriptionData;
+  // props로 받은 데이터 없으면 빈 객체 사용
+  const data = prescriptionData || {};
+
+  // OCR API 응답 구조 디버깅
+  console.log("PrescriptionResultModal - prescriptionData:", prescriptionData);
+  console.log("PrescriptionResultModal - data:", data);
+
+  // 새로운 응답 형식에 맞게 수정: createdSchedules 정보 사용
+  const createdSchedules = data.createdSchedules || 0;
+  const scheduleNumbers = data.scheduleNo || [];
+
+  // 백엔드에서 약물 정보를 받아온다면 사용, 아니면 빈 배열
+  const extractedMedications =
+    data.data?.medications ||
+    data.medications ||
+    data.extractedMedications ||
+    [];
+
+  console.log("PrescriptionResultModal - createdSchedules:", createdSchedules);
+  console.log(
+    "PrescriptionResultModal - extractedMedications:",
+    extractedMedications
+  );
+  console.log("PrescriptionResultModal - data.data:", data.data);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -32,21 +53,50 @@ export default function PrescriptionResultModal({
     return date.toLocaleTimeString("ko-KR", {
       hour: "2-digit",
       minute: "2-digit",
+      second: undefined, // 초는 표시하지 않음
     });
   };
 
-  const handleConfirm = () => {
-    // OCR 추출된 약물들을 실제 투약 목록에 추가
-    if (onAddMedications && data.extractedMedications) {
-      data.extractedMedications.forEach((medication) => {
-        // 선택된 펫 이름을 추가하여 투약 목록에 등록
-        const medicationWithPet = {
-          ...medication,
-          petName: selectedPetName,
-        };
-        onAddMedications(medicationWithPet);
-      });
+  // 약물명에 따라 이모지를 결정하는 함수
+  const getMedicationIcon = (medicationName) => {
+    if (!medicationName) return "💊";
+
+    const name = medicationName.toLowerCase();
+
+    // 항생제
+    if (name.includes("amoxicillin") || name.includes("항생제")) {
+      return "💊";
     }
+    // 소염진통제
+    if (
+      name.includes("firocoxib") ||
+      name.includes("소염") ||
+      name.includes("진통")
+    ) {
+      return "💊";
+    }
+    // 심장약
+    if (name.includes("heart") || name.includes("심장")) {
+      return "💊";
+    }
+    // 비타민/영양제
+    if (
+      name.includes("vitamin") ||
+      name.includes("비타민") ||
+      name.includes("영양")
+    ) {
+      return "💊";
+    }
+    // 알레르기약
+    if (name.includes("allergy") || name.includes("알레르기")) {
+      return "💊";
+    }
+    // 기본 약물 이모지
+    return "💊";
+  };
+
+  const handleConfirm = async () => {
+    // 이미 일정이 등록되었으므로 추가 작업 불필요
     onClose();
   };
 
@@ -83,72 +133,162 @@ export default function PrescriptionResultModal({
 
         {/* 내용 */}
         <div className={styles.content}>
-          {/* 업로드 정보 */}
+          {/* 처리 정보 */}
           <div className={styles.uploadInfo}>
             <div className={styles.infoRow}>
-              <span className={styles.label}>파일명:</span>
-              <span className={styles.value}>{data.fileName}</span>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.label}>업로드 시간:</span>
+              <span className={styles.label}>일정 등록 시간:</span>
               <span className={styles.value}>
-                {formatDate(data.uploadTime)} {formatTime(data.uploadTime)}
+                {new Date().toLocaleString("ko-KR", {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: undefined, // 초는 표시하지 않음
+                })}
               </span>
             </div>
           </div>
 
-          {/* 원본 텍스트 */}
-          <div className={styles.originalTextSection}>
-            <h4>추출된 원본 텍스트</h4>
-            <div className={styles.originalText}>{data.originalText}</div>
-          </div>
-
           {/* 등록된 약물 목록 */}
           <div className={styles.medicationsSection}>
-            <h4>자동 등록된 약물 ({data.extractedMedications.length}개)</h4>
+            <h4>
+              자동 등록된 약물 (
+              {extractedMedications.length > 0
+                ? extractedMedications.length
+                : createdSchedules}
+              개)
+            </h4>
             <div className={styles.medicationsList}>
-              {data.extractedMedications.map((medication) => (
-                <div key={medication.id} className={styles.medicationCard}>
-                  <div className={styles.medicationInfo}>
-                    <div
-                      className={styles.medicationIcon}
-                      style={{ backgroundColor: medication.color }}
-                    >
-                      {medication.icon}
-                    </div>
-                    <div className={styles.medicationDetails}>
-                      <h5>{medication.name}</h5>
-                      <p className={styles.medicationType}>{medication.type}</p>
-                      <p className={styles.medicationSchedule}>
-                        {medication.frequency} • {medication.duration}일간
-                      </p>
-                      <p className={styles.medicationPeriod}>
-                        {formatDate(medication.startDate)} ~{" "}
-                        {formatDate(medication.endDate)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className={styles.medicationStatus}>
-                    <div className={styles.statusBadge}>
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 12 12"
-                        fill="none"
+              {extractedMedications.length > 0 ? (
+                extractedMedications.map((medication, index) => (
+                  <div
+                    key={medication.id || `medication-${index}`}
+                    className={styles.medicationCard}
+                  >
+                    <div className={styles.medicationInfo}>
+                      <div
+                        className={styles.medicationIcon}
+                        style={{
+                          backgroundColor:
+                            COLOR_MAP[medication.type] || "#e8f5e8",
+                        }}
                       >
-                        <path
-                          d="M10 3L4.5 8.5L2 6"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      자동 등록됨
+                        {medication.icon || "💊"}
+                      </div>
+                      <div className={styles.medicationDetails}>
+                        <h5>{medication.name || medication.drugName}</h5>
+                        <p className={styles.medicationType}>
+                          {medication.type === "PILL"
+                            ? "복용약"
+                            : medication.type === "SUPPLEMENT"
+                            ? "영양제"
+                            : medication.type || "복용약"}
+                        </p>
+                        <p className={styles.medicationSchedule}>
+                          {medication.frequency ||
+                            medication.administration ||
+                            medication.instructions}{" "}
+                          •{" "}
+                          {medication.duration ||
+                            medication.prescriptionDays ||
+                            "7일간"}
+                        </p>
+                        <p className={styles.medicationPeriod}>
+                          {medication.startDate
+                            ? new Date(medication.startDate).toLocaleDateString(
+                                "ko-KR"
+                              )
+                            : new Date().toLocaleDateString("ko-KR")}{" "}
+                          ~{" "}
+                          {medication.endDate
+                            ? new Date(medication.endDate).toLocaleDateString(
+                                "ko-KR"
+                              )
+                            : new Date(
+                                Date.now() + 7 * 24 * 60 * 60 * 1000
+                              ).toLocaleDateString("ko-KR")}
+                        </p>
+                      </div>
+                    </div>
+                    <div className={styles.medicationStatus}>
+                      <div className={styles.statusBadge}>
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 12 12"
+                          fill="none"
+                        >
+                          <path
+                            d="M10 3L4.5 8.5L2 6"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        자동 등록됨
+                      </div>
                     </div>
                   </div>
+                ))
+              ) : createdSchedules > 0 ? (
+                // 약물 정보가 없지만 일정은 등록된 경우 - 예쁜 카드 형태로 표시
+                Array.from({ length: createdSchedules }, (_, index) => (
+                  <div
+                    key={`schedule-${index}`}
+                    className={styles.medicationCard}
+                  >
+                    <div className={styles.medicationInfo}>
+                      <div
+                        className={styles.medicationIcon}
+                        style={{
+                          backgroundColor: "#e8f5e8",
+                        }}
+                      >
+                        💊
+                      </div>
+                      <div className={styles.medicationDetails}>
+                        <h5>처방전에서 추출된 약물 {index + 1}</h5>
+                        <p className={styles.medicationType}>복용약</p>
+                        <p className={styles.medicationSchedule}>
+                          처방전에서 자동 추출됨
+                        </p>
+                        <p className={styles.medicationPeriod}>
+                          {new Date().toLocaleDateString("ko-KR")} ~{" "}
+                          {new Date(
+                            Date.now() + 7 * 24 * 60 * 60 * 1000
+                          ).toLocaleDateString("ko-KR")}
+                        </p>
+                      </div>
+                    </div>
+                    <div className={styles.medicationStatus}>
+                      <div className={styles.statusBadge}>
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 12 12"
+                          fill="none"
+                        >
+                          <path
+                            d="M10 3L4.5 8.5L2 6"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        자동 등록됨
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className={styles.emptyMedications}>
+                  <p>추출된 약물 정보가 없습니다.</p>
+                  <p>처방전을 다시 확인해주세요.</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
 

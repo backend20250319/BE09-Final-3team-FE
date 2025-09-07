@@ -6,9 +6,17 @@ import styles from "../styles/PetProfile.module.css"
 import AdditinalSection from './AdditionalSection';
 import ActivityHistory from './ActivityHistory';
 import CampaignActivityDetailModal from './CampaignActivityDetailModal';
-import { getApplicantsByPetNo, getPets, getPortfolio, getUser, getHistory } from '@/api/campaignApi';
+import { getApplicantsByPetNo, getPets, getPortfolio, getUser, getHistory, getInstagramProfile } from '@/api/campaignApi';
 
 export default function PetProfile() {
+
+  // Instagram URL을 핸들 형식으로 변환하는 함수
+  const formatInstagramHandle = (snsUsername) => {
+    if (!snsUsername) return '';
+    
+    // 이미 @가 포함되어 있으면 그대로 반환, 없으면 @ 추가
+    return snsUsername.startsWith('@') ? snsUsername : `@${snsUsername}`;
+  };
 
   const [selectedPet, setSelectedPet] = useState(null);
   const [activityCards, setActivityCards] = useState([]);
@@ -16,6 +24,7 @@ export default function PetProfile() {
   const [portfolio, setPortfolio] = useState([]);
   const [userData, setUserData] = useState(null);
   const [history, setHistory] = useState([]);
+  const [instagramProfile, setInstagramProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
@@ -30,6 +39,13 @@ export default function PetProfile() {
         }
         const user = await getUser();
         setUserData(user);
+
+        try {
+          const instagramData = await getInstagramProfile();
+          setInstagramProfile(instagramData[0]);
+        } catch (error) {
+          console.error('인스타그램 프로필 조회 실패:', error);
+        }
       } catch (error) {
         setPetData([]);
       } finally {
@@ -157,7 +173,7 @@ export default function PetProfile() {
                   alt="instagram.png"
                   width={16}
                   height={16} />
-                <span className={styles.instagramHandle}>{selectedPetInfo.instagram}</span>
+                <span className={styles.instagramHandle}>{formatInstagramHandle(selectedPetInfo.snsUsername) || 'SNS 정보 없음'}</span>
               </div>
             </div>
             <div className={styles.detailGrid}>
@@ -213,7 +229,9 @@ export default function PetProfile() {
 
         <div className={styles.statsGrid}>
           <div className={styles.statCard}>
-            <div className={styles.statValue} style={{ color: '#F5A623' }}>미연결</div>
+            <div className={styles.statValue} style={{ color: '#F5A623' }}>
+              {instagramProfile?.followers_count ? Number(instagramProfile.followers_count).toLocaleString() : '미연결'}
+            </div>
             <div className={styles.statLabel}>팔로워 수</div>
           </div>
           <div className={styles.statCard}>
@@ -252,6 +270,8 @@ export default function PetProfile() {
               <span className={styles.contactLabel}>전화번호:</span>
               <span className={styles.contactValue}>{userData.phone}</span>
             </div>
+          </div>
+          <div className={styles.ownerContact}>
             <div className={styles.contactItem}>
               <span className={styles.contactLabel}>주소:</span>
               <span className={styles.contactValue}>{userData.roadAddress}, {userData.detailAddress}</span>

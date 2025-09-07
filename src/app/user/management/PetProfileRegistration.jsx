@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import styles from "./PetProfileRegistration.module.css";
 import axios from "axios";
+import ProfileSelector from "../../sns/components/ProfileSelector";
 
 const PET_API_BASE = "http://localhost:8000/api/v1/pet-service";
 
@@ -21,7 +22,8 @@ const PetProfileRegistration = ({
     gender: "",
     weight: "",
     imageUrl: "",
-    snsUrl: "",
+    snsId: "",
+    snsUsername: "",
   });
 
   const [selectedImage, setSelectedImage] = useState(null);
@@ -40,12 +42,16 @@ const PetProfileRegistration = ({
         gender: petData.gender || "",
         weight: petData.weight || "",
         imageUrl: petData.imageUrl || "",
-        snsUrl: petData.snsUrl && petData.snsUrl !== null ? petData.snsUrl : "",
+        snsId: petData.snsId && petData.snsId !== null ? petData.snsId : "",
+        snsUsername:
+          petData.snsUsername && petData.snsUsername !== null
+            ? petData.snsUsername
+            : "",
       };
       setFormData(updatedFormData);
-      console.log("설정된 formData.snsUrl:", petData.snsUrl);
+      console.log("설정된 formData.snsId:", petData.snsId);
       console.log("설정된 전체 formData:", updatedFormData);
-      console.log("snsUrl 처리 결과:", updatedFormData.snsUrl);
+      console.log("snsId 처리 결과:", updatedFormData.snsId);
       // 기존 이미지가 있으면 표시
       if (petData.imageUrl && petData.imageUrl.trim() !== "") {
         setSelectedImage(petData.imageUrl);
@@ -61,7 +67,8 @@ const PetProfileRegistration = ({
         gender: "",
         weight: "",
         imageUrl: "",
-        snsUrl: "",
+        snsId: "",
+        snsUsername: "",
       });
       setSelectedImage(null);
     }
@@ -170,16 +177,19 @@ const PetProfileRegistration = ({
         gender: formData.gender,
         weight: parseFloat(formData.weight),
         imageUrl: formData.imageUrl || null,
-        snsUrl:
-          formData.snsUrl && formData.snsUrl !== null ? formData.snsUrl : "",
+        snsId: formData.snsId && formData.snsId !== "" ? formData.snsId : null,
+        snsUsername:
+          formData.snsUsername && formData.snsUsername !== ""
+            ? formData.snsUsername
+            : null,
       };
 
       console.log("전송할 데이터:", requestData);
       console.log("수정 모드 여부:", isEditMode);
       console.log("기존 펫 데이터:", petData);
-      console.log("현재 formData.snsUrl:", formData.snsUrl);
-      console.log("formData.snsUrl 타입:", typeof formData.snsUrl);
-      console.log("formData.snsUrl === null:", formData.snsUrl === null);
+      console.log("현재 formData.snsId:", formData.snsId);
+      console.log("formData.snsId 타입:", typeof formData.snsId);
+      console.log("formData.snsId === null:", formData.snsId === null);
       console.log(
         "API 엔드포인트:",
         isEditMode
@@ -262,7 +272,8 @@ const PetProfileRegistration = ({
           gender: formData.gender,
           weight: formData.weight,
           imageUrl: formData.imageUrl,
-          snsUrl: formData.snsUrl,
+          snsId: formData.snsId,
+          snsUsername: formData.snsUsername,
           response: petResponse.data,
         }
       );
@@ -435,41 +446,19 @@ const PetProfileRegistration = ({
               />
             </div>
 
-            {/* SNS URL Field */}
+            {/* SNS Profile Field */}
             <div className={styles.formGroup}>
-              <label className={styles.label}>SNS URL</label>
-              <div className={styles.snsContainer}>
-                <img
-                  src="/user/instagram.svg"
-                  alt="SNS"
-                  className={styles.snsIcon}
-                />
-                <div className={styles.snsUrlInputContainer}>
-                  <span className={styles.snsUrlPrefix}>
-                    www.instagram.com/
-                  </span>
-                  <input
-                    type="text"
-                    value={
-                      formData.snsUrl &&
-                      formData.snsUrl !== null &&
-                      formData.snsUrl !== "" &&
-                      formData.snsUrl.includes("www.instagram.com/")
-                        ? formData.snsUrl.replace("www.instagram.com/", "")
-                        : ""
-                    }
-                    onChange={(e) => {
-                      const username = e.target.value;
-                      const fullUrl = username
-                        ? `www.instagram.com/${username}`
-                        : "";
-                      handleInputChange("snsUrl", fullUrl);
-                    }}
-                    className={styles.snsUrlInput}
-                    placeholder="사용자명"
-                  />
-                </div>
-              </div>
+              <label className={styles.label}>SNS 프로필</label>
+              <ProfileSelector
+                onProfileSelect={(profileData) => {
+                  console.log("선택된 프로필 데이터:", profileData);
+                  handleInputChange("snsId", profileData.snsId);
+                  handleInputChange("snsUsername", profileData.username);
+                }}
+                selectedProfileId={formData.snsId}
+                selectedProfileUsername={formData.snsUsername}
+                allowNone={true}
+              />
             </div>
           </div>
         </div>

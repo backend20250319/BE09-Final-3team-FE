@@ -4,11 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import styles from "./page.module.css";
-
-// 환경변수로 게이트웨이/백엔드 베이스 URL 관리
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL + "/advertiser-service" ||
-  "http://localhost:8000/api/v1/advertiser-service";
+import {
+  sendAdvertiserVerificationCode,
+  verifyAdvertiserCode,
+  advertiserSignup,
+} from "../../../api/advertiserAuthApi";
 
 // 모달 컴포넌트
 const SuccessModal = ({ isOpen, message, onClose }) => {
@@ -285,39 +285,13 @@ export default function SignupPage() {
 
       console.log("전송할 데이터:", signupData);
 
-      console.log("API 호출 시작:", `${API_BASE}/advertiser/signup`);
+      const data = await advertiserSignup(signupData);
 
-      const res = await fetch(`${API_BASE}/advertiser/signup`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        mode: "cors",
-        credentials: "omit",
-        body: JSON.stringify(signupData),
-      });
+      console.log("회원가입 응답 데이터:", data);
 
-      console.log("API 응답 상태:", res.status);
-      console.log("API 응답 헤더:", res.headers);
-
-      let data = {};
-      try {
-        const responseText = await res.text();
-        console.log("API 응답 텍스트:", responseText);
-
-        if (responseText.trim()) {
-          data = JSON.parse(responseText);
-          console.log("파싱된 응답 데이터:", data);
-        }
-      } catch (parseError) {
-        console.error("회원가입 JSON 파싱 에러:", parseError);
-      }
-
-      if ((res.status === 200 || res.status === 201) && data.code === "2000") {
+      if (data && data.code === "2000") {
         clearAllErrors(); // 성공 시 모든 에러 초기화
         console.log("회원가입 성공! 모달 열기 시도...");
-        console.log("현재 modal 상태:", modal);
 
         openModal(
           <>
@@ -327,43 +301,51 @@ export default function SignupPage() {
           </>,
           true // 회원가입 성공 플래그
         );
-
-        console.log("openModal 호출 후 modal 상태:", modal);
-      } else if (res.status === 409) {
-        setEmailError(data.message ?? "이미 존재하는 이메일입니다.");
-      } else if (res.status === 400 && data.data) {
-        // 검증 에러 처리 - 기존 에러 초기화 후 새로운 에러 설정
-        clearAllErrors();
-        const validationErrors = data.data;
-
-        // 각 필드별 에러 메시지 설정
-        if (validationErrors.email) {
-          setEmailError(validationErrors.email);
-        }
-        if (validationErrors.password) {
-          setPasswordError(validationErrors.password);
-        }
-        if (validationErrors.confirmPassword) {
-          setConfirmPasswordError(validationErrors.confirmPassword);
-        }
-        if (validationErrors.name) {
-          setNameError(validationErrors.name);
-        }
-        if (validationErrors.phone) {
-          setPhoneError(validationErrors.phone);
-        }
-        if (validationErrors.businessNumber) {
-          setBusinessNumberError(validationErrors.businessNumber);
-        }
       } else {
         // 일반적인 에러
-        setEmailError(
-          data.message ?? `회원가입 실패: ${data.message || res.statusText}`
-        );
+        setEmailError(data?.message ?? "회원가입에 실패했습니다.");
       }
     } catch (error) {
       console.error("Signup failed:", error);
-      if (error.name === "TypeError" && error.message.includes("fetch")) {
+      if (error.response) {
+        // axios 에러 응답 처리
+        const { status, data } = error.response;
+        if (status === 409) {
+          setEmailError(
+            data.message ??
+              "이미 회원가입이 되어있는 이메일입니다. 다른 이메일을 사용해주세요."
+          );
+        } else if (status === 400 && data.data) {
+          // 검증 에러 처리 - 기존 에러 초기화 후 새로운 에러 설정
+          clearAllErrors();
+          const validationErrors = data.data;
+
+          // 각 필드별 에러 메시지 설정
+          if (validationErrors.email) {
+            setEmailError(validationErrors.email);
+          }
+          if (validationErrors.password) {
+            setPasswordError(validationErrors.password);
+          }
+          if (validationErrors.confirmPassword) {
+            setConfirmPasswordError(validationErrors.confirmPassword);
+          }
+          if (validationErrors.name) {
+            setNameError(validationErrors.name);
+          }
+          if (validationErrors.phone) {
+            setPhoneError(validationErrors.phone);
+          }
+          if (validationErrors.businessNumber) {
+            setBusinessNumberError(validationErrors.businessNumber);
+          }
+        } else {
+          setEmailError(data.message ?? "회원가입에 실패했습니다.");
+        }
+      } else if (
+        error.name === "TypeError" &&
+        error.message.includes("fetch")
+      ) {
         alert("네트워크 연결을 확인해주세요.");
       } else {
         alert(error.message || "회원가입에 실패했습니다. 다시 시도해주세요.");
@@ -382,54 +364,37 @@ export default function SignupPage() {
     try {
       setLoading((prev) => ({ ...prev, sendCode: true }));
 
-      const requestBody = { email: formData.email };
+      const data = await sendAdvertiserVerificationCode(formData.email);
 
-      // CORS 문제를 우회하기 위해 다른 방법 시도
-      const res = await fetch(`${API_BASE}/advertiser/signup/email/send`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        mode: "cors",
-        credentials: "omit",
-        body: JSON.stringify(requestBody),
-      });
-
-      let data = {};
-      try {
-        const responseText = await res.text();
-        if (responseText.trim()) {
-          data = JSON.parse(responseText);
-        }
-      } catch (parseError) {
-        console.error("JSON 파싱 에러:", parseError);
-      }
-
-      if (res.ok) {
-        setVerificationStatus((prev) => ({
-          ...prev,
-          codeSent: true,
-          verified: false,
-        }));
-        openModal("인증번호를 발송했습니다.");
-      } else if (res.status === 409) {
-        // 이미 존재하는 이메일인 경우
-        setEmailError(
-          data.message ||
-            "이미 가입된 이메일입니다. 다른 이메일을 사용해주세요."
-        );
-        setVerificationStatus((prev) => ({
-          ...prev,
-          codeSent: false,
-          verified: false,
-        }));
-      } else {
-        setEmailError(data.message || `서버 오류 (${res.status})`);
-      }
+      setVerificationStatus((prev) => ({
+        ...prev,
+        codeSent: true,
+        verified: false,
+      }));
+      openModal("인증번호를 발송했습니다.");
     } catch (error) {
       console.error("인증번호 발송 에러:", error);
-      if (error.name === "TypeError" && error.message.includes("fetch")) {
+      if (error.response) {
+        // axios 에러 응답 처리
+        const { status, data } = error.response;
+        if (status === 409) {
+          // 이미 존재하는 이메일인 경우
+          setEmailError(
+            data.message ||
+              "이미 회원가입이 되어있는 이메일입니다. 다른 이메일을 사용해주세요."
+          );
+          setVerificationStatus((prev) => ({
+            ...prev,
+            codeSent: false,
+            verified: false,
+          }));
+        } else {
+          setEmailError(data.message || `서버 오류 (${status})`);
+        }
+      } else if (
+        error.name === "TypeError" &&
+        error.message.includes("fetch")
+      ) {
         alert("네트워크 연결을 확인해주세요.");
       } else {
         setEmailError(error.message || "인증번호 발송 실패");
@@ -448,50 +413,63 @@ export default function SignupPage() {
     try {
       setLoading((prev) => ({ ...prev, verifyCode: true }));
 
-      const res = await fetch(`${API_BASE}/advertiser/signup/email/verify`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        mode: "cors",
-        credentials: "omit",
-        body: JSON.stringify({
-          email: formData.email,
-          code: formData.verificationCode,
-        }),
-      });
+      // 인증 상태를 먼저 false로 초기화
+      setVerificationStatus((prev) => ({ ...prev, verified: false }));
+      setVerificationCodeError(""); // 에러 메시지 초기화
 
-      let data = {};
-      try {
-        const responseText = await res.text();
-        if (responseText.trim()) {
-          data = JSON.parse(responseText);
-        }
-      } catch (parseError) {
-        console.error("JSON 파싱 에러:", parseError);
-      }
+      const data = await verifyAdvertiserCode(
+        formData.email,
+        formData.verificationCode
+      );
 
-      if (res.ok) {
-        // 백엔드에서 성공 응답이 오면 인증 성공으로 처리
+      console.log("인증 응답 데이터:", data);
+
+      // 백엔드 응답 검증 - 성공 응답 확인
+      // 성공 조건: code가 "2000"이거나, code가 없고 message가 성공 관련이거나, HTTP 200 응답
+      const isSuccess =
+        data &&
+        (data.code === "2000" ||
+          data.code === 2000 ||
+          (data.code === undefined && !data.message?.includes("실패")) ||
+          data.message?.includes("성공") ||
+          data.message?.includes("완료"));
+
+      if (isSuccess) {
+        // 인증 성공
         setVerificationStatus((prev) => ({ ...prev, verified: true }));
         openModal("이메일 인증이 완료되었습니다.");
       } else {
+        // 백엔드에서 실패 응답이 온 경우
+        const errorMessage = data?.message || "인증번호가 올바르지 않습니다.";
+        console.error("인증 실패:", errorMessage);
         setVerificationStatus((prev) => ({ ...prev, verified: false }));
-        setVerificationCodeError(
-          data.message || `인증 확인 실패 (${res.status})`
-        );
+        setVerificationCodeError(errorMessage);
+        openModal(errorMessage);
       }
     } catch (error) {
       console.error("Code verification failed:", error);
-      if (error.name === "TypeError" && error.message.includes("fetch")) {
-        setVerificationCodeError("네트워크 연결을 확인해주세요.");
-      } else {
-        setVerificationCodeError(
-          error.message || "인증번호가 올바르지 않습니다."
-        );
-      }
+
+      // 인증 실패 시 상태를 명확히 false로 설정
       setVerificationStatus((prev) => ({ ...prev, verified: false }));
+
+      if (error.response) {
+        // axios 에러 응답 처리
+        const { status, data } = error.response;
+        const errorMessage = data.message || "인증번호가 올바르지 않습니다.";
+        setVerificationCodeError(errorMessage);
+        openModal(errorMessage);
+      } else if (
+        error.name === "TypeError" &&
+        error.message.includes("fetch")
+      ) {
+        const errorMessage = "네트워크 연결을 확인해주세요.";
+        setVerificationCodeError(errorMessage);
+        openModal(errorMessage);
+      } else {
+        const errorMessage = error.message || "인증번호가 올바르지 않습니다.";
+        setVerificationCodeError(errorMessage);
+        openModal(errorMessage);
+      }
     } finally {
       setLoading((prev) => ({ ...prev, verifyCode: false }));
     }

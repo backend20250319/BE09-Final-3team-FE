@@ -5,16 +5,19 @@ import styles from "../styles/CampaignInfo.module.css"
 
 export default function CampaignInfo({ campaignData, adImage, advImage }) {
 
-  const calculateDaysLeft = () => {
+  const calculateDaysLeft = () => {    
+    const koreaOffset = 9 * 60;
+    const nowUtc = new Date();
+    const nowKorea = new Date(nowUtc.getTime() + koreaOffset * 60 * 1000);
+    
     const endDate = new Date(campaignData.announceEnd);
-    const now = new Date();
 
-    const diffMs = endDate - now; // 남은 밀리초
+    const diffMs = endDate - nowKorea; 
     if (diffMs <= 0) {
       return '마감됨';
     }
 
-    // 남은 시간 계산
+    
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24)); // 일
     const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); // 시간
 

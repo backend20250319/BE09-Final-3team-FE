@@ -9,20 +9,13 @@ import ActivityReport from "./activity/components/ActivityReport";
 import MedicalNavTabs from "./medical/components/MedicalNavTabs";
 import MedicationManagement from "./medical/components/MedicationManagement";
 import CareManagement from "./medical/components/CareManagement";
-import {
-  defaultMedications,
-  defaultCareSchedules,
-  defaultVaccinationSchedules,
-} from "./data/mockData";
+import { SUBTYPE_LABEL_MAP } from "./constants/labels";
+import { careFrequencyMapping } from "./constants/care";
+import { vaccinationFrequencyMapping } from "./constants/vaccination";
 
 export default function HealthPage() {
-  const { selectedPetName, setSelectedPetName } = useSelectedPet();
-
-  const pets = [
-    { name: "몽글이", msg: "안녕하세요", src: "/user/dog.png" },
-    { name: "초코", msg: "반갑습니다", src: "/user/cat.png" },
-    { name: "차차", msg: "환영해요", src: "/user/bird.png" },
-  ];
+  const { selectedPetName, setSelectedPetName, pets, loading } =
+    useSelectedPet();
 
   const [activeMainTab, setActiveMainTab] = useState("활동 관리");
   const [activeSubTab, setActiveSubTab] = useState("활동 기록");
@@ -38,11 +31,9 @@ export default function HealthPage() {
   const [allCalendarEvents, setAllCalendarEvents] = useState([]);
 
   // 통합된 데이터 상태 (모든 컴포넌트에서 공유)
-  const [medications, setMedications] = useState(defaultMedications);
-  const [careSchedules, setCareSchedules] = useState(defaultCareSchedules);
-  const [vaccinationSchedules, setVaccinationSchedules] = useState(
-    defaultVaccinationSchedules
-  );
+  const [medications, setMedications] = useState([]);
+  const [careSchedules, setCareSchedules] = useState([]);
+  const [vaccinationSchedules, setVaccinationSchedules] = useState([]);
 
   // 특정 날짜와 "HH:MM" 문자열로 Date 만들기
   const dateAtTime = useCallback((baseDate, hm) => {
@@ -57,6 +48,14 @@ export default function HealthPage() {
       mm,
       0
     );
+  }, []);
+
+  // 날짜를 YYYY-MM-DD 형식으로 변환하는 헬퍼 함수 (로컬 시간대 사용)
+  const formatDateToLocal = useCallback((date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   }, []);
 
   // 통합된 캘린더 이벤트 구성 (투약 + 돌봄 + 접종 모두 포함)
@@ -77,7 +76,7 @@ export default function HealthPage() {
             const s = dateAtTime(current, hm);
             const e = new Date(s.getTime() + 60 * 60 * 1000);
             events.push({
-              id: `med-${med.id}-${current.toISOString().slice(0, 10)}-${hm}`,
+              id: `med-${med.id}-${formatDateToLocal(current)}-${hm}`,
               title: `${med.icon || "💊"} ${med.name}`,
               start: s,
               end: e,
@@ -97,41 +96,215 @@ export default function HealthPage() {
 
     // 2) 돌봄
     careSchedules.forEach((s) => {
-      if (!s.date) return;
-      const base = new Date(s.date);
-      const sTime = dateAtTime(base, s.scheduleTime || "09:00");
-      const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
-      events.push({
-        id: `care-${s.id}`,
-        title: `${s.icon || "🐕"} ${s.name}`,
-        start: sTime,
-        end: eTime,
-        allDay: false,
-        // 캘린더 필터와 색상 매핑을 위해 돌봄 하위유형(산책/미용/생일)로 설정
-        type: s.subType || "산책",
-        schedule: { ...s, category: "care" },
-      });
+      if (s.startDate && s.endDate) {
+        // 새로운 형식: startDate와 endDate 사용
+        const start = new Date(s.startDate);
+        const end = new Date(s.endDate);
+        const frequency = s.frequency || s.careFrequency;
+        // 백엔드에서 받은 영어 enum을 한글로 변환
+        const koreanFrequency = careFrequencyMapping[frequency] || frequency;
+
+        // 빈도에 따른 일정 생성
+        if (koreanFrequency === "당일") {
+          // 당일: 시작일 하루만
+          const sTime = dateAtTime(start, s.scheduleTime || "09:00");
+          const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+          events.push({
+            id: `care-${s.id}-${formatDateToLocal(start)}`,
+            title: `${s.icon || "🐕"} ${s.name}`,
+            start: sTime,
+            end: eTime,
+            allDay: false,
+            type: SUBTYPE_LABEL_MAP[s.subType] || s.subType || "산책",
+            schedule: { ...s, category: "care" },
+          });
+        } else if (koreanFrequency === "매일") {
+          // 매일: 시작일부터 종료일까지 모든 날
+          const current = new Date(start);
+          while (current <= end) {
+            const sTime = dateAtTime(current, s.scheduleTime || "09:00");
+            const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+            events.push({
+              id: `care-${s.id}-${formatDateToLocal(current)}`,
+              title: `${s.icon || "🐕"} ${s.name}`,
+              start: sTime,
+              end: eTime,
+              allDay: false,
+              type: SUBTYPE_LABEL_MAP[s.subType] || s.subType || "산책",
+              schedule: { ...s, category: "care" },
+            });
+            current.setDate(current.getDate() + 1);
+          }
+        } else if (koreanFrequency === "매주") {
+          // 매주: 7일마다
+          const current = new Date(start);
+          while (current <= end) {
+            const sTime = dateAtTime(current, s.scheduleTime || "09:00");
+            const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+            events.push({
+              id: `care-${s.id}-${formatDateToLocal(current)}`,
+              title: `${s.icon || "🐕"} ${s.name}`,
+              start: sTime,
+              end: eTime,
+              allDay: false,
+              type: SUBTYPE_LABEL_MAP[s.subType] || s.subType || "산책",
+              schedule: { ...s, category: "care" },
+            });
+            current.setDate(current.getDate() + 7);
+          }
+        } else if (koreanFrequency === "매월") {
+          // 매월: 매월 같은 날짜
+          const current = new Date(start);
+          while (current <= end) {
+            const sTime = dateAtTime(current, s.scheduleTime || "09:00");
+            const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+            events.push({
+              id: `care-${s.id}-${formatDateToLocal(current)}`,
+              title: `${s.icon || "🐕"} ${s.name}`,
+              start: sTime,
+              end: eTime,
+              allDay: false,
+              type: SUBTYPE_LABEL_MAP[s.subType] || s.subType || "산책",
+              schedule: { ...s, category: "care" },
+            });
+            current.setMonth(current.getMonth() + 1);
+          }
+        }
+      } else if (s.date) {
+        // 기존 형식: date 사용 (호환성 유지)
+        const base = new Date(s.date);
+        const sTime = dateAtTime(base, s.scheduleTime || "09:00");
+        const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+        events.push({
+          id: `care-${s.id}`,
+          title: `${s.icon || "🐕"} ${s.name}`,
+          start: sTime,
+          end: eTime,
+          allDay: false,
+          type: SUBTYPE_LABEL_MAP[s.subType] || s.subType || "산책",
+          schedule: { ...s, category: "care" },
+        });
+      }
     });
 
     // 3) 접종 일정
     vaccinationSchedules.forEach((s) => {
-      const dateStr = s.date || new Date().toISOString().slice(0, 10);
-      const base = new Date(dateStr);
-      const sTime = dateAtTime(base, s.scheduleTime || "10:00");
-      const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
-      events.push({
-        id: `vac-${s.id}`,
-        title: `${s.icon || "💉"} ${s.name}`,
-        start: sTime,
-        end: eTime,
-        allDay: false,
-        // 캘린더 필터와 색상 매핑을 위해 접종 하위유형(예방접종/건강검진)로 설정
-        type: s.subType === "건강검진" ? "건강검진" : "예방접종",
-        schedule: {
-          ...s,
-          category: "vaccination",
-        },
-      });
+      if (s.startDate && s.endDate) {
+        // 새로운 형식: startDate와 endDate 사용
+        const start = new Date(s.startDate);
+        const end = new Date(s.endDate);
+        const frequency = s.frequency || s.careFrequency;
+        // 백엔드에서 받은 영어 enum을 한글로 변환
+        const koreanFrequency =
+          vaccinationFrequencyMapping[frequency] || frequency;
+
+        // 빈도에 따른 일정 생성
+        if (koreanFrequency === "당일") {
+          // 당일: 시작일 하루만
+          const sTime = dateAtTime(start, s.scheduleTime || "10:00");
+          const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+          events.push({
+            id: `vac-${s.id}-${formatDateToLocal(start)}`,
+            title: `${s.icon || "💉"} ${s.name}`,
+            start: sTime,
+            end: eTime,
+            allDay: false,
+            type:
+              SUBTYPE_LABEL_MAP[s.subType] ||
+              (s.subType === "건강검진" ? "건강검진" : "예방접종"),
+            schedule: {
+              ...s,
+              category: "vaccination",
+            },
+          });
+        } else if (koreanFrequency === "매일") {
+          // 매일: 시작일부터 종료일까지 모든 날
+          const current = new Date(start);
+          while (current <= end) {
+            const sTime = dateAtTime(current, s.scheduleTime || "10:00");
+            const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+            events.push({
+              id: `vac-${s.id}-${formatDateToLocal(current)}`,
+              title: `${s.icon || "💉"} ${s.name}`,
+              start: sTime,
+              end: eTime,
+              allDay: false,
+              type:
+                SUBTYPE_LABEL_MAP[s.subType] ||
+                (s.subType === "건강검진" ? "건강검진" : "예방접종"),
+              schedule: {
+                ...s,
+                category: "vaccination",
+              },
+            });
+            current.setDate(current.getDate() + 1);
+          }
+        } else if (koreanFrequency === "매주") {
+          // 매주: 7일마다
+          const current = new Date(start);
+          while (current <= end) {
+            const sTime = dateAtTime(current, s.scheduleTime || "10:00");
+            const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+            events.push({
+              id: `vac-${s.id}-${formatDateToLocal(current)}`,
+              title: `${s.icon || "💉"} ${s.name}`,
+              start: sTime,
+              end: eTime,
+              allDay: false,
+              type:
+                SUBTYPE_LABEL_MAP[s.subType] ||
+                (s.subType === "건강검진" ? "건강검진" : "예방접종"),
+              schedule: {
+                ...s,
+                category: "vaccination",
+              },
+            });
+            current.setDate(current.getDate() + 7);
+          }
+        } else if (koreanFrequency === "매월") {
+          // 매월: 매월 같은 날짜
+          const current = new Date(start);
+          while (current <= end) {
+            const sTime = dateAtTime(current, s.scheduleTime || "10:00");
+            const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+            events.push({
+              id: `vac-${s.id}-${formatDateToLocal(current)}`,
+              title: `${s.icon || "💉"} ${s.name}`,
+              start: sTime,
+              end: eTime,
+              allDay: false,
+              type:
+                SUBTYPE_LABEL_MAP[s.subType] ||
+                (s.subType === "건강검진" ? "건강검진" : "예방접종"),
+              schedule: {
+                ...s,
+                category: "vaccination",
+              },
+            });
+            current.setMonth(current.getMonth() + 1);
+          }
+        }
+      } else {
+        // 기존 형식: date 사용 (호환성 유지)
+        const dateStr = s.date || new Date().toISOString().slice(0, 10);
+        const base = new Date(dateStr);
+        const sTime = dateAtTime(base, s.scheduleTime || "10:00");
+        const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+        events.push({
+          id: `vac-${s.id}`,
+          title: `${s.icon || "💉"} ${s.name}`,
+          start: sTime,
+          end: eTime,
+          allDay: false,
+          type:
+            SUBTYPE_LABEL_MAP[s.subType] ||
+            (s.subType === "건강검진" ? "건강검진" : "예방접종"),
+          schedule: {
+            ...s,
+            category: "vaccination",
+          },
+        });
+      }
     });
 
     return events;
@@ -185,9 +358,10 @@ export default function HealthPage() {
         onSelectPet={setSelectedPetName}
         activeTab={activeMainTab}
         onTabChange={setActiveMainTab}
+        loading={loading}
       />
 
-      {/* 메인 탭: 활동 관리 or 진료/처방 관리 */}
+      {/* 메인 탭: 활동 관리 or 투약/돌봄 관리 */}
       {activeMainTab === "활동 관리" && (
         <>
           {/* 서브 탭 */}
@@ -204,9 +378,9 @@ export default function HealthPage() {
         </>
       )}
 
-      {activeMainTab === "진료ㆍ처방 관리" && (
+      {activeMainTab === "투약ㆍ돌봄 관리" && (
         <>
-          {/* 진료/처방 관리 서브 탭 */}
+          {/* 투약/돌봄 관리 서브 탭 */}
           <MedicalNavTabs
             activeTab={medicalSubTab}
             setActiveTab={setMedicalSubTab}
@@ -216,7 +390,7 @@ export default function HealthPage() {
             onEventClick={handleMedicalCalendarEventClick}
           />
 
-          {/* 진료/처방 관리 하위 탭 렌더링 */}
+          {/* 투약/돌봄 관리 하위 탭 렌더링 */}
           {medicalSubTab === "투약" && (
             <MedicationManagement
               medications={medications}

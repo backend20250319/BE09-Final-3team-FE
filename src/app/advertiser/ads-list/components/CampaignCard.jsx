@@ -7,7 +7,9 @@ import styles from "../styles/CampaignCard.module.css";
 import { useCampaign } from "../context/CampaignContext";
 import RejectionModal from "./RejectionModal";
 import SelectionModal from "./SelectionModal";
-import { getImageByAdNo } from '@/api/advertisementApi';
+import ReviewStatusModal from "../components/ReviewStatusModal";
+import ConfirmationModal from "./ConfirmationModal";
+import { getImageByAdNo, deleteAdByAdvertiser } from '@/api/advertisementApi';
 import { getFileByAdvertiserNo } from '@/api/advertiserApi';
 
 export default function CampaignCard({ campaign }) {
@@ -15,6 +17,8 @@ export default function CampaignCard({ campaign }) {
   const { activeTab } = useCampaign();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
+  const [isReviewStatusModalOpen, setIsReviewStatusModalOpen] = useState(false);
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
   const [advImage, setAdvImage] = useState(null);
   const [adImage, setAdImage] = useState(null);
 
@@ -47,7 +51,7 @@ export default function CampaignCard({ campaign }) {
   const STATUSTEXT = {
     approved: "삭제",
     closed: "선정",
-    trial: "리뷰 URL 관리",
+    trial: "URL 제출 현황",
     ended: "삭제",
     pending: "취소"
   };
@@ -96,6 +100,35 @@ export default function CampaignCard({ campaign }) {
   const handleCloseSelectionModal = () => {
     setIsSelectionModalOpen(false);
   };
+
+  const handleReviewStatusClick = () => {
+    setIsReviewStatusModalOpen(true);
+  };
+
+  const handleCloseReviewStatusModal = () => {
+    setIsReviewStatusModalOpen(false);
+  };
+
+  const handleDeleteClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsConfirmationModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      await deleteAdByAdvertiser(campaign.adNo, true);
+      setIsConfirmationModalOpen(false);
+      window.location.reload();
+    } catch (error) {
+      console.error('삭제 중 오류가 발생했습니다:', error);
+      alert('삭제 중 오류가 발생했습니다. 다시 시도해주세요.');
+    }
+  };
+
+  const handleCloseConfirmationModal = () => {
+    setIsConfirmationModalOpen(false);
+  };
   
   const cardContent = (
     <div
@@ -138,7 +171,11 @@ export default function CampaignCard({ campaign }) {
               >
                 반려 사유
               </button>
-              <button style={getStatusStyle("rejected")} className={styles.actionBtn}>
+              <button 
+                style={getStatusStyle("rejected")} 
+                className={styles.actionBtn}
+                onClick={handleDeleteClick}
+              >
                 삭제
               </button>
             </div>
@@ -151,6 +188,10 @@ export default function CampaignCard({ campaign }) {
                 e.stopPropagation();
                 if (campaign.adStatus === 'CLOSED') {
                   handleSelectionClick();
+                } else if (campaign.adStatus === 'TRIAL') {
+                  handleReviewStatusClick();
+                } else if (campaign.adStatus === 'APPROVED' || campaign.adStatus === 'ENDED' || campaign.adStatus === 'PENDING') {
+                  handleDeleteClick(e);
                 }
               }}
             >
@@ -193,6 +234,20 @@ export default function CampaignCard({ campaign }) {
         isOpen={isSelectionModalOpen}
         onClose={handleCloseSelectionModal}
         campaign={campaign}
+      />
+      <ReviewStatusModal
+        isOpen={isReviewStatusModalOpen}
+        onClose={handleCloseReviewStatusModal}
+        adNo={campaign.adNo}
+      />
+      <ConfirmationModal
+        isOpen={isConfirmationModalOpen}
+        onClose={handleCloseConfirmationModal}
+        onConfirm={handleConfirmDelete}
+        title="정말 취소/삭제하시겠습니까?"
+        message="이 작업은 되돌릴 수 없습니다."
+        confirmText="삭제"
+        cancelText="취소"
       />
     </>
   );

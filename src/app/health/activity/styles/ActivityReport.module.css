@@ -1,4 +1,36 @@
 /* Activity Report Section */
+
+.noDataContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  background: #f8f9fa;
+  border-radius: 12px;
+  margin: 20px 0;
+}
+
+.noDataIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.noDataContainer h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 12px 0;
+}
+
+.noDataContainer p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 8px 0;
+  line-height: 1.5;
+}
+
 .activityReportSection {
   background: #ffffff;
   border: 1px solid #e5e7eb;
@@ -13,43 +45,189 @@
   margin-bottom: 24px;
 }
 
+/* Summary Stats */
+.summaryStats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.summaryCard {
+  text-align: center;
+  padding: 12px 8px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #f1f3f4;
+  transition: all 0.2s ease;
+}
+
+.summaryCard:hover {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  transform: translateY(-1px);
+}
+
+.summaryCard h4 {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  margin: 0 0 6px 0;
+  line-height: 1.2;
+}
+
+.summaryCard span {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.2;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .summaryStats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .summaryCard {
+    padding: 10px 6px;
+  }
+
+  .summaryCard h4 {
+    font-size: 11px;
+    margin: 0 0 4px 0;
+  }
+
+  .summaryCard span {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .summaryStats {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
 .dateRangeHeader {
   display: flex;
   align-items: center;
   gap: 16px;
 }
 
-.dateRangeLabel {
-  font-size: 18px;
-  font-weight: 400;
-  line-height: 1.19em;
-  color: #594a3e;
-  white-space: nowrap;
-}
-
-.periodButtons {
+/* 날짜 선택기 스타일 */
+.datePickerContainer {
   display: flex;
   gap: 16px;
+  align-items: center;
 }
 
-.periodButton {
-  background: #e5e7eb;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 6px;
+.dateInputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dateInputGroup label {
   font-size: 14px;
-  font-weight: 400;
-  line-height: 1.19em;
-  color: #4b5563;
+  font-weight: 500;
+  color: #374151;
+}
+
+.dateInput {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #374151;
+  background: #ffffff;
+  min-width: 140px;
+}
+
+.dateInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.dateButton {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #374151;
+  background: #ffffff;
+  min-width: 140px;
+  text-align: left;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-width: 52px;
-  text-align: center;
 }
 
-.periodButton.active {
+.dateButton:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.dateButton:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* InfoTooltip 스타일 */
+.infoContainer {
+  position: relative;
+  display: inline-block;
+  margin-left: 8px;
+}
+
+.infoButton {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
   background: #f5a623;
-  color: #ffffff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.infoButton:hover {
+  background: #e09417;
+}
+
+.infoDropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  color: #4b5563;
+  line-height: 1.4;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  z-index: 99999;
+  margin-top: 4px;
+  max-width: 280px;
+  white-space: pre-line;
+  word-break: keep-all;
+  text-align: left;
+  min-width: 200px;
+  transform: translateX(0);
 }
 
 /* Metrics Grid */
@@ -65,7 +243,7 @@
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 25px;
-  height: 230px;
+  height: 280px;
 }
 
 .metricHeader {
@@ -73,6 +251,8 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 16px;
+  justify-content: space-between;
+  position: relative;
 }
 
 .metricIcon {
@@ -91,12 +271,59 @@
   color: #594a3e;
 }
 
+/* 차트 툴팁 z-index 높이기 */
+.metricChart .recharts-tooltip-wrapper {
+  z-index: 999999 !important;
+  position: relative !important;
+}
+
+.metricChart .recharts-tooltip {
+  z-index: 999999 !important;
+  position: relative !important;
+}
+
+.metricChart .recharts-tooltip-content {
+  z-index: 999999 !important;
+  position: relative !important;
+}
+
+/* 모든 recharts 요소의 z-index 높이기 */
+.metricChart .recharts-wrapper {
+  z-index: 1;
+  position: relative;
+}
+
+.metricChart .recharts-legend-wrapper {
+  z-index: 999999 !important;
+}
+
+/* 차트 컨테이너 자체의 z-index 설정 */
 .metricChart {
+  position: relative;
+  z-index: 1;
   flex-grow: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   padding-top: 12px;
+}
+
+.noDataMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 150px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.loadingMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 150px;
+  color: #6b7280;
+  font-size: 14px;
 }
 
 .shiftChartLeft {
@@ -267,14 +494,67 @@
   .petCard {
     width: 100%;
   }
+}
 
-  .periodButtons {
-    flex-wrap: wrap;
+/* 반려동물 선택 안내 섹션 */
+.noPetArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  background: #f8f9fa;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  margin: 16px 0;
+}
+
+.noPetIcon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(148, 148, 148, 0.2);
+  animation: float 3s ease-in-out infinite;
+}
+
+.noPetText h3 {
+  margin: 0;
+  color: #594a3e;
+  font-weight: 400;
+}
+
+.noPetText h3:first-of-type {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #374151;
+}
+
+.noPetText p {
+  margin: 0;
+  color: #594a3e;
+  font-weight: 400;
+}
+
+.noPetText p:last-of-type {
+  font-size: 14px;
+  color: #6b7280;
+  opacity: 0.8;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
   }
-
-  .periodButton {
-    min-width: 40px;
-    padding: 6px 4px;
-    font-size: 12px;
+  50% {
+    transform: translateY(-8px);
   }
 }

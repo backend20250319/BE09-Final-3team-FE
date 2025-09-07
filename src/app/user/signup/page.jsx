@@ -4,16 +4,11 @@ import { useState, useRef } from "react";
 import styles from "./page.module.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import axios from "axios";
-
-// 환경변수로 게이트웨이/백엔드 베이스 URL 관리
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL + "/user-service" ||
-  "http://localhost:8000/api/v1/user-service";
-// 게이트웨이 쓰면 예: "http://localhost:8000/api/v1/user-service"
-
-// 디버깅용 로그
-console.log("API_BASE URL:", API_BASE);
+import {
+  sendVerificationCode,
+  verifyCode,
+  signup,
+} from "../../../api/userAuthApi";
 
 // 모달 컴포넌트
 const SuccessModal = ({ isOpen, message, onClose }) => {
@@ -241,63 +236,41 @@ export default function SignupPage() {
   };
 
   // ✉️ 인증번호 발송: POST /auth/email/send
-  const sendVerificationCode = async () => {
+  const handleSendVerificationCode = async () => {
     if (!formData.email) {
       alert("이메일을 입력하세요");
       return;
     }
 
     console.log("인증번호 발송 시작:", formData.email);
-    console.log("요청 URL:", `${API_BASE}/auth/email/send`);
 
     try {
       setLoading((p) => ({ ...p, sendCode: true }));
 
-      const requestBody = { email: formData.email };
-      console.log("요청 데이터:", requestBody);
+      const data = await sendVerificationCode(formData.email);
 
-      const res = await axios.post(`${API_BASE}/auth/email/send`, requestBody);
+      console.log("응답 데이터:", data);
 
-      console.log("응답 상태:", res.status, res.statusText);
-      console.log("응답 데이터:", res.data);
-
-      const data = res.data;
-
-      if (res.status === 200) {
-        setVerificationStatus((prev) => ({
-          ...prev,
-          codeSent: true,
-          verified: false,
-        }));
-        setEmailError(""); // 에러 메시지 초기화
-        openModal(data.message || "인증번호가 발송되었습니다.");
-      } else if (res.status === 409) {
-        // 이미 존재하는 이메일인 경우
-        setEmailError(
-          data.message ||
-            "이미 가입된 이메일입니다. 다른 이메일을 사용해주세요."
-        );
-        setVerificationStatus((prev) => ({
-          ...prev,
-          codeSent: false,
-          verified: false,
-        }));
-      } else {
-        // 서버에서 명시적으로 에러 응답을 보낸 경우
-        throw new Error(data.message || `서버 오류 (${res.status})`);
-      }
+      // API 함수가 성공적으로 실행되면 인증번호 발송 성공
+      setVerificationStatus((prev) => ({
+        ...prev,
+        codeSent: true,
+        verified: false,
+      }));
+      setEmailError(""); // 에러 메시지 초기화
+      openModal(data?.message || "인증번호가 발송되었습니다.");
     } catch (e) {
       console.error("인증번호 발송 에러:", e);
-      console.error("에러 타입:", e.name);
-      console.error("에러 메시지:", e.message);
+      console.error("에러 타입:", e?.name);
+      console.error("에러 메시지:", e?.message);
 
-      if (e.response) {
+      if (e?.response) {
         // axios 에러 응답 처리
         const { status, data } = e.response;
         if (status === 409) {
           setEmailError(
-            data.message ||
-              "이미 가입된 이메일입니다. 다른 이메일을 사용해주세요."
+            data?.message ||
+              "이미 회원가입이 되어있는 이메일입니다. 다른 이메일을 사용해주세요."
           );
           setVerificationStatus((prev) => ({
             ...prev,
@@ -305,12 +278,12 @@ export default function SignupPage() {
             verified: false,
           }));
         } else {
-          alert(data.message || "인증번호 발송 실패");
+          alert(data?.message || "인증번호 발송 실패");
         }
-      } else if (e.name === "TypeError" && e.message.includes("fetch")) {
+      } else if (e?.name === "TypeError" && e?.message?.includes("fetch")) {
         alert("네트워크 연결을 확인해주세요.");
       } else {
-        alert(e.message || "인증번호 발송 실패");
+        alert(e?.message || "인증번호 발송 실패");
       }
     } finally {
       setLoading((p) => ({ ...p, sendCode: false }));
@@ -318,46 +291,69 @@ export default function SignupPage() {
   };
 
   // ✅ 인증번호 확인: POST /auth/email/verify
-  const verifyCode = async () => {
+  const handleVerifyCode = async () => {
     if (!formData.email || !formData.verificationCode) {
       alert("이메일과 인증번호를 입력하세요");
       return;
     }
+
     try {
       setLoading((p) => ({ ...p, verifyCode: true }));
-      const res = await axios.post(`${API_BASE}/auth/email/verify`, {
-        email: formData.email,
-        code: formData.verificationCode, // EmailVerificationConfirmRequest { email, code }
-      });
 
-      const data = res.data;
+      // 인증 상태를 먼저 false로 초기화
+      setVerificationStatus((prev) => ({ ...prev, verified: false }));
 
-      if (res.status === 200) {
-        // 백엔드 응답 형식에 따라 처리
-        const isVerified =
-          data === true || data.verified === true || data.success === true;
-        if (isVerified) {
-          setVerificationStatus((prev) => ({ ...prev, verified: true }));
-          openModal("이메일 인증이 완료되었습니다.");
-        } else {
-          setVerificationStatus((prev) => ({ ...prev, verified: false }));
-          alert("인증번호가 올바르지 않습니다.");
-        }
+      const response = await verifyCode(
+        formData.email,
+        formData.verificationCode
+      );
+
+      console.log("인증 응답:", response);
+      console.log("응답 코드:", response?.code);
+      console.log("응답 메시지:", response?.message);
+
+      // 백엔드 응답 검증 - 성공 응답 확인
+      // 성공 조건: code가 "2000"이거나, code가 없고 message가 성공 관련이거나, HTTP 200 응답
+      const isSuccess =
+        response &&
+        (response.code === "2000" ||
+          response.code === 2000 ||
+          (response.code === undefined &&
+            !response.message?.includes("실패")) ||
+          response.message?.includes("성공") ||
+          response.message?.includes("완료"));
+
+      if (isSuccess) {
+        // 인증 성공
+        setVerificationStatus((prev) => ({ ...prev, verified: true }));
+        openModal("이메일 인증이 완료되었습니다.");
       } else {
-        throw new Error(data.message || `인증 확인 실패 (${res.status})`);
+        // 백엔드에서 실패 응답이 온 경우
+        const errorMessage =
+          response?.message || "인증번호가 올바르지 않습니다.";
+        console.error("인증 실패:", errorMessage);
+        setVerificationStatus((prev) => ({ ...prev, verified: false }));
+        openModal(errorMessage);
       }
     } catch (e) {
       console.error("인증 확인 에러:", e);
-      if (e.response) {
+      console.error("에러 응답:", e?.response?.data);
+      console.error("에러 상태:", e?.response?.status);
+
+      // 인증 실패 시 상태를 명확히 false로 설정
+      setVerificationStatus((prev) => ({ ...prev, verified: false }));
+
+      if (e?.response) {
         // axios 에러 응답 처리
         const { status, data } = e.response;
-        alert(data.message || "인증 확인 실패");
-      } else if (e.name === "TypeError" && e.message.includes("fetch")) {
-        alert("네트워크 연결을 확인해주세요.");
+        const errorMessage = data?.message || "인증번호가 올바르지 않습니다.";
+        openModal(errorMessage);
+        console.error("백엔드 에러 메시지:", errorMessage);
+      } else if (e?.name === "TypeError" && e?.message?.includes("fetch")) {
+        openModal("네트워크 연결을 확인해주세요.");
       } else {
-        alert(e.message || "인증 확인 실패");
+        openModal(e?.message || "인증 확인 실패");
       }
-      setVerificationStatus((prev) => ({ ...prev, verified: false }));
     } finally {
       setLoading((p) => ({ ...p, verifyCode: false }));
     }
@@ -457,107 +453,59 @@ export default function SignupPage() {
 
     try {
       setLoading((p) => ({ ...p, signup: true }));
-      const res = await axios.post(`${API_BASE}/auth/signup`, payload);
+      const data = await signup(payload);
 
-      console.log("회원가입 응답 상태:", res.status, res.statusText);
-      console.log("회원가입 응답 데이터:", res.data);
-
-      const data = res.data;
-
-      if (res.status === 201) {
-        clearAllErrors(); // 성공 시 모든 에러 초기화
-        openModal(
-          <>
-            회원가입이 성공적으로 완료되었습니다.
-            <br />
-            로그인 후 이용해주세요.
-          </>,
-          true // 회원가입 성공 플래그
-        );
-        // 모달 닫기 시 자동으로 로그인 페이지로 이동
-      } else if (res.status === 409) {
-        setEmailError(data.message ?? "이미 존재하는 이메일입니다.");
-      } else if (res.status === 400 && data.data) {
-        // 검증 에러 처리 - 기존 에러 초기화 후 새로운 에러 설정
-        clearAllErrors();
-        const validationErrors = data.data;
-
-        // 각 필드별 에러 메시지 설정
-        if (validationErrors.email) {
-          setEmailError(validationErrors.email);
-        }
-        if (validationErrors.password) {
-          setPasswordError(validationErrors.password);
-        }
-        if (validationErrors.confirmPassword) {
-          setConfirmPasswordError(validationErrors.confirmPassword);
-        }
-        if (validationErrors.name) {
-          setNameError(validationErrors.name);
-        }
-        if (validationErrors.nickname) {
-          setNicknameError(validationErrors.nickname);
-        }
-        if (validationErrors.phone) {
-          setPhoneError(validationErrors.phone);
-        }
-        if (validationErrors.address) {
-          setAddressError(validationErrors.address);
-        }
-        if (
-          validationErrors.birthYear ||
-          validationErrors.birthMonth ||
-          validationErrors.birthDay
-        ) {
-          setBirthError(
-            validationErrors.birthYear ||
-              validationErrors.birthMonth ||
-              validationErrors.birthDay
-          );
-        }
-      } else {
-        // 일반적인 에러
-        setEmailError(
-          data.message ?? `회원가입 실패: ${data.message || res.statusText}`
-        );
-      }
+      console.log("회원가입 응답 데이터:", data);
+      clearAllErrors(); // 성공 시 모든 에러 초기화
+      openModal(
+        <>
+          회원가입이 성공적으로 완료되었습니다.
+          <br />
+          로그인 후 이용해주세요.
+        </>,
+        true // 회원가입 성공 플래그
+      );
+      // 모달 닫기 시 자동으로 로그인 페이지로 이동
     } catch (e) {
       console.error("회원가입 에러:", e);
-      if (e.response) {
+      if (e?.response) {
         // axios 에러 응답 처리
         const { status, data } = e.response;
         if (status === 409) {
-          setEmailError(data.message ?? "이미 존재하는 이메일입니다.");
-        } else if (status === 400 && data.data) {
+          setEmailError(
+            data?.message ??
+              "이미 회원가입이 되어있는 이메일입니다. 다른 이메일을 사용해주세요."
+          );
+        } else if (status === 400 && data?.data) {
           // 검증 에러 처리
           clearAllErrors();
           const validationErrors = data.data;
 
-          if (validationErrors.email) {
+          if (validationErrors?.email) {
             setEmailError(validationErrors.email);
           }
-          if (validationErrors.password) {
+          if (validationErrors?.password) {
             setPasswordError(validationErrors.password);
           }
-          if (validationErrors.confirmPassword) {
+          if (validationErrors?.confirmPassword) {
             setConfirmPasswordError(validationErrors.confirmPassword);
           }
-          if (validationErrors.name) {
+          if (validationErrors?.name) {
             setNameError(validationErrors.name);
           }
-          if (validationErrors.nickname) {
+          if (validationErrors?.nickname) {
             setNicknameError(validationErrors.nickname);
           }
-          if (validationErrors.phone) {
+          if (validationErrors?.phone) {
             setPhoneError(validationErrors.phone);
           }
-          if (validationErrors.address) {
+          if (validationErrors?.address) {
             setAddressError(validationErrors.address);
           }
           if (
-            validationErrors.birthYear ||
-            validationErrors.birthMonth ||
-            validationErrors.birthDay
+            validationErrors?.birthYear ||
+            validationErrors?.birthMonth ||
+            validationErrors?.birthDay
           ) {
             setBirthError(
               validationErrors.birthYear ||
@@ -566,10 +514,10 @@ export default function SignupPage() {
             );
           }
         } else {
-          setEmailError(data.message ?? "회원가입 실패");
+          setEmailError(data?.message ?? "회원가입 실패");
         }
       } else {
-        alert("서버 오류");
+        alert(e?.message ?? "서버 오류");
       }
     } finally {
       setLoading((p) => ({ ...p, signup: false }));
@@ -605,7 +553,7 @@ export default function SignupPage() {
                   />
                   <button
                     type="button"
-                    onClick={sendVerificationCode}
+                    onClick={handleSendVerificationCode}
                     disabled={loading.sendCode || !formData.email}
                     className={styles.verifyButton}
                   >
@@ -636,7 +584,7 @@ export default function SignupPage() {
                   />
                   <button
                     type="button"
-                    onClick={verifyCode}
+                    onClick={handleVerifyCode}
                     disabled={loading.verifyCode || !formData.verificationCode}
                     className={styles.verifyButton}
                   >

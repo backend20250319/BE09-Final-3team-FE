@@ -103,6 +103,12 @@ export const updateApplicant = async (applicantNo, content) => {
   }
 }
 
+// 6. 체험단 신청 취소(삭제)
+export const deleteApplicant = async (applicantNo) => {
+  const res = await api.delete(`${CAMPAIGN_PREFIX}/campaign/${applicantNo}`);
+  return res.data.data;
+}
+
 /* 리뷰 API */
 // 1. 리뷰 조회
 export const getReview = async (applicantNo) => {
@@ -111,13 +117,20 @@ export const getReview = async (applicantNo) => {
 }
 
 // 2. 리뷰 수정
-export const updateReview = async (applicantNo, reviewUrl, reason) => {
+export const updateReview = async (applicantNo, reviewUrl, reason, isApproved) => {
   try {
-    const reviewRequest = { reviewUrl, reason };
+    const reviewRequest = { reviewUrl, reason, isApproved };
     const res = await api.put(`${CAMPAIGN_PREFIX}/internal/review/${applicantNo}`, reviewRequest);
     return res.data.data;
   } catch (error) {
     console.error('리뷰 수정 실패:', error);
     throw error;
   }
+}
+
+/* SNS API */
+// 1. 인스타그램 프로필 조회
+export const getInstagramProfile = async () => {
+  const res = await api.get(`${CAMPAIGN_PREFIX}/instagram`);
+  return res.data.data;
 }

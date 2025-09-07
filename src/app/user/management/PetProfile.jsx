@@ -6,9 +6,7 @@ import Image from "next/image";
 import PetProfileRegistration from "./PetProfileRegistration";
 import PetstarModal from "./PetstarModal";
 import Link from "next/link";
-import axios from "axios";
-
-const PET_API_BASE = "http://localhost:8000/api/v1/pet-service";
+import { getPets, deletePet, applyPetStar } from "../../../api/petApi";
 
 const PetProfile = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -30,24 +28,21 @@ const PetProfile = () => {
       const token = localStorage.getItem("token");
       const userNo = localStorage.getItem("userNo");
 
-      const response = await axios.get(`${PET_API_BASE}/pets`, {
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-          ...(userNo && { "X-User-No": userNo }),
-        },
-      });
+      const data = await getPets();
 
-      console.log("API 응답 전체:", response.data);
-      console.log("반려동물 데이터 배열:", response.data.data);
-      if (response.data.data && response.data.data.length > 0) {
-        response.data.data.forEach((pet, index) => {
+      console.log("API 응답 전체:", data);
+      console.log("반려동물 데이터 배열:", data.data);
+      if (data.data && data.data.length > 0) {
+        data.data.forEach((pet, index) => {
           console.log(`반려동물 ${index + 1} 전체 데이터:`, pet);
-          console.log(`반려동물 ${index + 1} snsUrl 필드:`, pet.snsUrl);
-          console.log(`반려동물 ${index + 1} snsUrl 타입:`, typeof pet.snsUrl);
+          console.log(`반려동물 ${index + 1} snsId 필드:`, pet.snsId);
+          console.log(
+            `반려동물 ${index + 1} snsUsername 필드:`,
+            pet.snsUsername
+          );
         });
       }
-      setPets(response.data.data || []);
+      setPets(data.data || []);
     } catch (error) {
       console.error("반려동물 목록 조회 실패:", error);
       const errorMessage =
@@ -69,16 +64,7 @@ const PetProfile = () => {
   // 반려동물 삭제
   const handleDeletePet = async (petNo) => {
     try {
-      const token = localStorage.getItem("token");
-      const userNo = localStorage.getItem("userNo");
-
-      await axios.delete(`${PET_API_BASE}/pets/${petNo}`, {
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-          ...(userNo && { "X-User-No": userNo }),
-        },
-      });
+      await deletePet(petNo);
 
       // 삭제 성공 시 목록 새로고침
       fetchPets();
@@ -97,20 +83,7 @@ const PetProfile = () => {
   // PetStar 신청
   const handleApplyPetStar = async (petNo) => {
     try {
-      const token = localStorage.getItem("token");
-      const userNo = localStorage.getItem("userNo");
-
-      await axios.post(
-        `${PET_API_BASE}/pets/${petNo}/petstar/apply`,
-        {},
-        {
-          headers: {
-            "Content-Type": "application/json",
-            ...(token && { Authorization: `Bearer ${token}` }),
-            ...(userNo && { "X-User-No": userNo }),
-          },
-        }
-      );
+      await applyPetStar(petNo);
 
       // 신청 성공 시 목록 새로고침
       fetchPets();
@@ -238,7 +211,11 @@ const PetProfile = () => {
               <div className={styles.petGrid}>
                 {pets.map((pet) => {
                   console.log(`반려동물 ${pet.name} 데이터:`, pet);
-                  console.log(`반려동물 ${pet.name} snsUrl:`, pet.snsUrl);
+                  console.log(`반려동물 ${pet.name} snsId:`, pet.snsId);
+                  console.log(
+                    `반려동물 ${pet.name} snsUsername:`,
+                    pet.snsUsername
+                  );
                   return (
                     <div key={pet.petNo} className={styles.petCard}>
                       <div className={styles.petImageContainer}>
@@ -296,9 +273,9 @@ const PetProfile = () => {
                             ? "암컷"
                             : pet.gender}
                         </div>
-                        {pet.snsUrl &&
-                        pet.snsUrl.trim() !== "" &&
-                        pet.snsUrl !== null ? (
+                        {pet.snsUsername &&
+                        pet.snsUsername.trim() !== "" &&
+                        pet.snsUsername !== null ? (
                           <div className={styles.snsUrlContainer}>
                             <img
                               src="/user/instagram.svg"
@@ -306,7 +283,7 @@ const PetProfile = () => {
                               className={styles.snsIcon}
                             />
                             <span className={styles.snsUrlText}>
-                              {pet.snsUrl}
+                              @{pet.snsUsername}
                             </span>
                           </div>
                         ) : (
@@ -319,7 +296,7 @@ const PetProfile = () => {
                               className={styles.snsIcon}
                             />
                             <span className={styles.snsUrlText}>
-                              SNS URL 없음
+                              SNS 프로필 없음
                             </span>
                           </div>
                         )}

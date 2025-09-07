@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  output: "standalone",
 
   images: {
     remotePatterns: [
@@ -11,19 +11,22 @@ const nextConfig = {
         pathname: "/**",
       },
       {
-        protocol: 'https',
-        hostname: '**.xx.fbcdn.net',
-        port: '',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "**.xx.fbcdn.net",
+        port: "",
+        pathname: "/**",
       },
       {
-        protocol: 'https',
-        hostname: '**.cdninstagram.com',
-        port: '',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "**.cdninstagram.com",
+        port: "",
+        pathname: "/**",
       },
     ],
     unoptimized: true,
+  },
+  compiler: {
+    removeConsole: true,
   },
 };
 

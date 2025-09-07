@@ -5,7 +5,7 @@ import Image from "next/image";
 import styles from "../styles/PortfolioModal.module.css";
 import ActivityHistory from '@/app/campaign/application/[ad_no]/components/ActivityHistory';
 import CampaignActivityDetailModal from '@/app/campaign/application/[ad_no]/components/CampaignActivityDetailModal';
-import { getPortfolio, getUser, getHistory } from '@/api/advertiserApi';
+import { getPortfolio, getUser, getHistory, getInstagramProfile } from '@/api/advertisementApi';
 
 export default function PortfolioModal({ isOpen, onClose, petData }) {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -14,6 +14,7 @@ export default function PortfolioModal({ isOpen, onClose, petData }) {
   const [userData, setUserData] = useState(null);
   const [history, setHistory] = useState(null);
   const [activityCards, setActivityCards] = useState([]);
+  const [instagramProfile, setInstagramProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // petData가 변경될 때마다 포트폴리오 정보 조회
@@ -26,6 +27,15 @@ export default function PortfolioModal({ isOpen, onClose, petData }) {
           setPortfolio(portfolioData);
           const user = await getUser(petData.pet.userNo);
           setUserData(user);
+          
+          // 인스타그램 프로필 조회
+          try {
+            const instagramData = await getInstagramProfile(petData.pet.userNo);
+            setInstagramProfile(instagramData[0]);
+          } catch (error) {
+            console.error('인스타그램 프로필 조회 실패:', error);
+            setInstagramProfile(null);
+          }
           
           const historyData = await getHistory(petData.pet.petNo);
           setHistory(historyData);
@@ -58,6 +68,14 @@ export default function PortfolioModal({ isOpen, onClose, petData }) {
       fetchPortfolio();
     }
   }, [isOpen, petData]);
+
+  // Instagram URL을 핸들 형식으로 변환하는 함수
+  const formatInstagramHandle = (snsUsername) => {
+    if (!snsUsername) return '';
+    
+    // 이미 @가 포함되어 있으면 그대로 반환, 없으면 @ 추가
+    return snsUsername.startsWith('@') ? snsUsername : `@${snsUsername}`;
+  };
 
   const handleCardClick = (card) => {
     setSelectedActivity(card);
@@ -106,7 +124,7 @@ export default function PortfolioModal({ isOpen, onClose, petData }) {
                       alt="instagram.png"
                       width={16} 
                       height={16} />
-                    <span className={styles.instagramHandle}>{petData?.pet?.snsUrl || 'SNS 정보 없음'}</span>
+                    <span className={styles.instagramHandle}>{formatInstagramHandle(petData?.pet?.snsUsername) || 'SNS 정보 없음'}</span>
                   </div>
                 </div>
                 <div className={styles.detailGrid}>
@@ -163,7 +181,7 @@ export default function PortfolioModal({ isOpen, onClose, petData }) {
             <div className={styles.statsGrid}>
               <div className={styles.statCard}>
                 <div className={styles.statValue} style={{ color: '#F5A623' }}>
-                  {portfolio?.followers || '정보 없음'}
+                  {instagramProfile?.followers_count ? Number(instagramProfile.followers_count).toLocaleString() : '미연결'}
                 </div>
                 <div className={styles.statLabel}>팔로워 수</div>
               </div>
@@ -200,7 +218,7 @@ export default function PortfolioModal({ isOpen, onClose, petData }) {
                     className={styles.ownerImage} 
                   />
                 ) : (
-                  <div className={styles.petAvatarPlaceholder}>
+                  <div className={styles.ownerAvatarPlaceholder}>
                     <span>?</span>
                   </div>
                 )}
