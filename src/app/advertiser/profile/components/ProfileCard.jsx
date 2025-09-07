@@ -41,8 +41,11 @@ const ProfileCard = () => {
       setIsLoadingImage(true);
       const fileData = await getFileByAdvertiserNo();
 
-      if (fileData && fileData[0]?.filePath && fileData[0].filePath.trim() !== "") {
-        setPreviewImage(fileData[0].filePath);
+      // status가 IMAGE인 항목을 찾아서 previewImage 설정
+      const imageFile = fileData?.find(file => file.type === 'PROFILE');
+      
+      if (imageFile?.filePath && imageFile.filePath.trim() !== "") {
+        setPreviewImage(imageFile.filePath);
       } else {
         setPreviewImage(DEFAULT_IMAGE_URL);
       }
@@ -102,7 +105,7 @@ const ProfileCard = () => {
 
     if (uploadedFile) {
       try {
-        await updateFile(null, uploadedFile, null);
+        await updateFile(uploadedFile);
       } catch (imageError) {
         console.error("Failed to upload image:", imageError);
       }

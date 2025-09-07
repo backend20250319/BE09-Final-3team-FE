@@ -189,4 +189,23 @@ export const withdrawAdvertiser = async (password, reason) => {
   }
 };
 
+// 광고주 파일 업로드
+export const uploadFileByAdvertiserNo = async (file, advertiserNo) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  // image는 선택적이므로 생략
+  try {
+    const response = await api.post(`/file/advertiser/${advertiserNo}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      // 인증 토큰 등 헤더가 있으면 추가
+    });
+    return response.data.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export default api;
