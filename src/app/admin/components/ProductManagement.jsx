@@ -10,7 +10,7 @@ import {
   approveCampaign,
   rejectCampaign,
   deleteCampaign,
-} from "@/api/advertiserApi";
+} from "@/api/userApi";
 
 export default function ProductManagement() {
   const [activeTab, setActiveTab] = useState("조회");

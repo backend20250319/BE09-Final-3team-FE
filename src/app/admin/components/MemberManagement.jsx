@@ -2,17 +2,19 @@
 import styles from "@/app/admin/styles/ProductManagement.module.css";
 
 import React, { useState, useEffect } from "react";
-import { getReportList, approveReport, rejectReport } from "@/api/userApi";
+import {
+  getReportList,
+  approveReport,
+  rejectReport,
+  getAdvertiserApplications,
+  approveAdvertiser,
+  rejectAdvertiser,
+} from "@/api/userApi";
 import {
   getPetStarApplications,
   approvePetStar,
   rejectPetStar,
 } from "@/api/petApi";
-import {
-  getAdvertiserApplications,
-  approveAdvertiser,
-  rejectAdvertiser,
-} from "@/api/advertiserApi";
 import PopupModal from "@/app/admin/components/PopupModal";
 import AlertModal from "./AlertModal";
 import DeleteConfirmModal from "./DeleteConfirmModal";
@@ -103,10 +105,18 @@ export default function MemberManagement() {
       console.log("광고주 신청 목록 조회 시작...");
       const data = await getAdvertiserApplications({ page: 0, size: 20 });
       console.log("광고주 신청 목록 조회 성공:", data);
+      console.log("광고주 목록 데이터 구조:", {
+        data,
+        content: data?.content,
+        length: data?.content?.length,
+        isArray: Array.isArray(data?.content),
+      });
       setAdvertiserList(data?.content || []);
     } catch (error) {
       console.error("광고주 신청 목록 조회 실패:", error);
       console.error("에러 상세:", error.response?.data);
+      console.error("에러 상태:", error.response?.status);
+      console.error("에러 메시지:", error.message);
       setAdvertiserList([]);
     } finally {
       setLoading(false);
@@ -279,16 +289,16 @@ export default function MemberManagement() {
                   </svg>
                 </div>
               </div>
-              {activeTab === "펫스타 지원" ? (
-                <select className={styles.sortSelect}>
-                  <option>최신순</option>
-                  <option>오래된순</option>
-                </select>
+              {activeTab === "신고당한 회원" ? (
+                  <select className={styles.sortSelect}>
+                    <option>광고주</option>
+                    <option>일반회원</option>
+                  </select>
               ) : (
                 <select className={styles.sortSelect}>
-                  <option>광고주</option>
-                  <option>일반회원</option>
-                </select>
+              <option>최신순</option>
+              <option>오래된순</option>
+            </select>
               )}
             </div>
           </div>
@@ -497,111 +507,126 @@ export default function MemberManagement() {
                     </div>
                   ))
                 ))}
-              {activeTab === "광고주 회원 승인" &&
-                getCurrentItems(advertiserList).map((advertiser, index) => (
-                  <div
-                    key={advertiser.advertiserNo || `advertiser-${index}`}
-                    className={styles.productCard}
-                  >
-                    <div className={styles.productContent}>
-                      <div className={styles.productInfo}>
-                        <div
-                          className={styles.resonleft}
-                          style={{ fontSize: "larger" }}
-                        >
-                          광고주 이메일 : {advertiser.email}
-                        </div>
-                        <div className={styles.reasonleft}>
-                          전화번호 : {advertiser.phone}
-                        </div>
-                        <div
-                          className={styles.reasonleft}
-                          style={{ fontSize: "larger" }}
-                        >
-                          기업 이름 : {advertiser.name}
-                        </div>
-                        <div className={styles.reasonleft}>
-                          사업자 등록 번호 : {advertiser.businessNumber}
-                        </div>
-                        <div className={styles.reasonleft}>
-                          웹사이트 :{" "}
-                          {advertiser.website ? (
-                            <a
-                              href={
-                                advertiser.website.startsWith("http")
-                                  ? advertiser.website
-                                  : `https://${advertiser.website}`
-                              }
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{
-                                color: "#007bff",
-                                textDecoration: "underline",
-                              }}
+              {activeTab === "광고주 회원 승인" && (
+                <>
+                  {console.log("광고주 탭 렌더링:", {
+                    loading,
+                    advertiserListLength: advertiserList.length,
+                    advertiserList,
+                    currentItems: getCurrentItems(advertiserList),
+                  })}
+                  {loading ? (
+                    <div>광고주 신청 목록을 불러오는 중...</div>
+                  ) : advertiserList.length === 0 ? (
+                    <div>광고주 신청이 없습니다.</div>
+                  ) : (
+                    getCurrentItems(advertiserList).map((advertiser, index) => (
+                      <div
+                        key={advertiser.advertiserNo || `advertiser-${index}`}
+                        className={styles.productCard}
+                      >
+                        <div className={styles.productContent}>
+                          <div className={styles.productInfo}>
+                            <div
+                              className={styles.resonleft}
+                              style={{ fontSize: "larger" }}
                             >
-                              {advertiser.website}
-                            </a>
-                          ) : (
-                            "없음"
-                          )}
-                        </div>
-                        {advertiser.reason && (
-                          <div className={styles.reasonleft}>
-                            거절 사유 : {advertiser.reason}
+                              광고주 이메일 : {advertiser.email}
+                            </div>
+                            <div className={styles.reasonleft}>
+                              전화번호 : {advertiser.phone}
+                            </div>
+                            <div
+                              className={styles.reasonleft}
+                              style={{ fontSize: "larger" }}
+                            >
+                              기업 이름 : {advertiser.name}
+                            </div>
+                            <div className={styles.reasonleft}>
+                              사업자 등록 번호 : {advertiser.businessNumber}
+                            </div>
+                            <div className={styles.reasonleft}>
+                              웹사이트 :{" "}
+                              {advertiser.website ? (
+                                <a
+                                  href={
+                                    advertiser.website.startsWith("http")
+                                      ? advertiser.website
+                                      : `https://${advertiser.website}`
+                                  }
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{
+                                    color: "#007bff",
+                                    textDecoration: "underline",
+                                  }}
+                                >
+                                  {advertiser.website}
+                                </a>
+                              ) : (
+                                "없음"
+                              )}
+                            </div>
+                            {advertiser.reason && (
+                              <div className={styles.reasonleft}>
+                                거절 사유 : {advertiser.reason}
+                              </div>
+                            )}
                           </div>
-                        )}
+                        </div>
+                        <div
+                          className={styles.productActions}
+                          style={{ width: "265px" }}
+                        >
+                          <button
+                            className={styles.approveBtn}
+                            onClick={() => {
+                              showDeleteConfirm(
+                                handleAdvertiserApprove,
+                                advertiser.advertiserNo,
+                                "광고주 승인",
+                                "이 광고주를 승인하시겠습니까?"
+                              );
+                            }}
+                          >
+                            승인하기
+                          </button>
+                          <button
+                            className={styles.rejectBtn}
+                            onClick={() => {
+                              setSelectedAdvertiser(advertiser);
+                              setIsModalOpen(true);
+                            }}
+                          >
+                            반려하기
+                          </button>
+                          <PopupModal
+                            isOpen={isModalOpen}
+                            onClose={() => {
+                              setIsModalOpen(false);
+                              setSelectedAdvertiser(null);
+                            }}
+                            onDelete={(reason) => {
+                              if (selectedAdvertiser) {
+                                handleAdvertiserReject(
+                                  selectedAdvertiser.advertiserNo,
+                                  reason
+                                );
+                              }
+                              setIsModalOpen(false);
+                              setSelectedAdvertiser(null);
+                            }}
+                            actionType="advertiserreject"
+                            targetKeyword={
+                              selectedAdvertiser ? selectedAdvertiser.name : ""
+                            }
+                          />
+                        </div>
                       </div>
-                    </div>
-                    <div
-                      className={styles.productActions}
-                      style={{ width: "265px" }}
-                    >
-                      <button
-                        className={styles.approveBtn}
-                        onClick={() => {
-                          showDeleteConfirm(
-                            handleAdvertiserApprove,
-                            advertiser.advertiserNo,
-                            "광고주 승인",
-                            "이 광고주를 승인하시겠습니까?"
-                          );
-                        }}
-                      >
-                        승인하기
-                      </button>
-                      <button
-                        className={styles.rejectBtn}
-                        onClick={() => {
-                          setSelectedAdvertiser(advertiser);
-                          setIsModalOpen(true);
-                        }}
-                      >
-                        반려하기
-                      </button>
-                      <PopupModal
-                        isOpen={isModalOpen}
-                        onClose={() => {
-                          setIsModalOpen(false);
-                          setSelectedAdvertiser(null);
-                        }}
-                        onDelete={(reason) => {
-                          if (selectedAdvertiser) {
-                            handleAdvertiserReject(
-                              selectedAdvertiser.advertiserNo,
-                              reason
-                            );
-                          }
-                          setIsModalOpen(false);
-                          setSelectedAdvertiser(null);
-                        }}
-                        actionType="advertiserreject"
-                        targetKeyword={
-                          selectedAdvertiser ? selectedAdvertiser.email : ""
-                        }
-                      />
-                    </div>
-                  </div>
-                ))}
+                    ))
+                  )}
+                </>
+              )}
             </div>
           </section>
 
