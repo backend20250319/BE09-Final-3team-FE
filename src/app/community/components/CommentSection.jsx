@@ -58,6 +58,21 @@ export default function CommentSection({ postId, autoRefresh = false }) {
     }
   };
 
+  const handleUpdateComment = async (commentId, newContent) => {
+    try {
+      // Optimistic update
+      setComments((prev) => updateCommentContent(prev, commentId, newContent));
+      // 서버에서 최신 데이터 다시 가져오기
+      const fresh = await getComments(postId);
+      setComments(normalizeList(fresh));
+    } catch (err) {
+      console.error("댓글 수정 실패", err);
+      // 실패 시 원래 데이터로 복구
+      const fresh = await getComments(postId);
+      setComments(normalizeList(fresh));
+    }
+  };
+
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -125,6 +140,7 @@ export default function CommentSection({ postId, autoRefresh = false }) {
               comment={comment}
               onReply={handleAddComment}
               onDelete={handleDeleteComment}
+              onUpdate={handleUpdateComment}
               currentUserNo={currentUserNo}
             />
           ))}
@@ -200,5 +216,22 @@ const markDeleted = (list, targetId) => {
       };
     }
     return { ...item, children: markDeleted(item.children || [], targetId) };
+  });
+};
+
+//댓글트리에서 특정 노드의 내용 업데이트
+const updateCommentContent = (list, targetId, newContent) => {
+  const eq = (a, b) => String(a) === String(b);
+  return (list || []).map((item) => {
+    if (eq(item.id, targetId)) {
+      return {
+        ...item,
+        content: newContent,
+      };
+    }
+    return {
+      ...item,
+      children: updateCommentContent(item.children || [], targetId, newContent),
+    };
   });
 };
