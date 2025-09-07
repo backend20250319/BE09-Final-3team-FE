@@ -72,6 +72,7 @@ export default function EditScheduleModal({
   const [showEndCalendar, setShowEndCalendar] = useState(false);
   const calendarButtonRef = React.useRef(null);
   const endCalendarButtonRef = React.useRef(null);
+  const [isPastSchedule, setIsPastSchedule] = useState(false); // 기존 일정이 과거에 시작되었는지 확인
 
   // 날짜 포맷팅은 constants에서 import
 
@@ -548,8 +549,20 @@ export default function EditScheduleModal({
 
       // 처방전 여부 설정
       setIsPrescription(scheduleData.isPrescription || false);
+
+      // 투약 일정의 경우 기존 시작날짜가 과거인지 확인
+      if (type === "medication") {
+        const originalStartDate = new Date(
+          scheduleData.startDate || scheduleData.date
+        );
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        originalStartDate.setHours(0, 0, 0, 0);
+
+        setIsPastSchedule(originalStartDate < today);
+      }
     }
-  }, [scheduleData]);
+  }, [scheduleData, type]);
 
   const handleInputChange = (field, value) => {
     // 처방전인 경우 알림 시기 변경 제한
@@ -1135,19 +1148,26 @@ export default function EditScheduleModal({
                     (type === "care" || type === "vaccination") &&
                     ["매주", "매월"].includes(formData.frequency)
                       ? styles.disabled
+                      : type === "medication" && isPastSchedule
+                      ? styles.disabled
                       : ""
                   }`}
                   readOnly
                   disabled={
                     (type === "care" || type === "vaccination") &&
                     ["매주", "매월"].includes(formData.frequency)
+                      ? true
+                      : type === "medication" && isPastSchedule
+                      ? true
+                      : false
                   }
                   onClick={() => {
                     if (
                       !(
                         (type === "care" || type === "vaccination") &&
                         ["매주", "매월"].includes(formData.frequency)
-                      )
+                      ) &&
+                      !(type === "medication" && isPastSchedule)
                     ) {
                       setShowStartCalendar(true);
                     }
@@ -1160,18 +1180,25 @@ export default function EditScheduleModal({
                     (type === "care" || type === "vaccination") &&
                     ["매주", "매월"].includes(formData.frequency)
                       ? styles.disabled
+                      : type === "medication" && isPastSchedule
+                      ? styles.disabled
                       : ""
                   }`}
                   disabled={
                     (type === "care" || type === "vaccination") &&
                     ["매주", "매월"].includes(formData.frequency)
+                      ? true
+                      : type === "medication" && isPastSchedule
+                      ? true
+                      : false
                   }
                   onClick={() => {
                     if (
                       !(
                         (type === "care" || type === "vaccination") &&
                         ["매주", "매월"].includes(formData.frequency)
-                      )
+                      ) &&
+                      !(type === "medication" && isPastSchedule)
                     ) {
                       setShowStartCalendar(!showStartCalendar);
                     }
@@ -1195,6 +1222,11 @@ export default function EditScheduleModal({
                   {formData.frequency} 일정은 시작날짜와 종료날짜가 고정됩니다.
                 </span>
               )}
+            {type === "medication" && isPastSchedule && (
+              <span className={styles.hint}>
+                과거에 시작된 투약 일정은 시작날짜를 변경할 수 없습니다.
+              </span>
+            )}
           </div>
 
           {/* 종료 날짜 (돌봄/접종 일정에서만 표시) */}

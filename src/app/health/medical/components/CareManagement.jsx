@@ -784,6 +784,22 @@ export default function CareManagement({
       }
 
       // 백엔드 CareRequestDTO에 맞춘 데이터 구조
+      let endDate = updatedSchedule.endDate;
+
+      // 매일 일정의 경우 시작일과 종료일이 같으면 다음날로 설정 (백엔드 검증 우회)
+      if (
+        updatedSchedule.frequency === "매일" &&
+        updatedSchedule.startDate === updatedSchedule.endDate
+      ) {
+        const startDate = new Date(updatedSchedule.startDate);
+        startDate.setDate(startDate.getDate() + 1);
+        endDate = startDate.toISOString().split("T")[0];
+        console.log("🔧 매일 일정 종료일 자동 조정:", {
+          original: updatedSchedule.endDate,
+          adjusted: endDate,
+        });
+      }
+
       const updateData = {
         title: updatedSchedule.name,
         subType: updatedSchedule.subType, // 서브타입으로 구분
@@ -791,7 +807,7 @@ export default function CareManagement({
           ? vaccinationFrequencyMapping[updatedSchedule.frequency]
           : careFrequencyMapping[updatedSchedule.frequency], // 한글 → 영어 enum 변환
         startDate: updatedSchedule.startDate,
-        endDate: updatedSchedule.endDate,
+        endDate: endDate,
         times: updatedSchedule.scheduleTime
           ? updatedSchedule.scheduleTime
               .split(", ")
@@ -801,8 +817,16 @@ export default function CareManagement({
           parseInt(updatedSchedule.reminderDaysBefore, 10) || 0,
       };
 
+      console.log("🔧 돌봄/접종 일정 수정 요청 데이터:", {
+        id: updatedSchedule.id,
+        updateData,
+        originalSchedule: updatedSchedule,
+      });
+
       // API 호출
-      await updateCareSchedule(updatedSchedule.id, updateData);
+      const result = await updateCareSchedule(updatedSchedule.id, updateData);
+
+      console.log("✅ 돌봄/접종 일정 수정 API 응답:", result);
 
       // 즉시 로컬 상태 업데이트 (빠른 UI 반응)
       if (isVaccinationSubType(updatedSchedule.subType)) {
@@ -839,15 +863,23 @@ export default function CareManagement({
         }
       }, 1000);
     } catch (error) {
-      console.error("일정 수정 실패:", error);
-      let errorMessage = "일정 수정에 실패했습니다.";
+      console.error("❌ 돌봄/접종 일정 수정 실패:", error);
+      console.error("❌ 에러 상세 정보:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+      });
 
+      let errorMessage = "일정 수정에 실패했습니다.";
       if (error.message === "반려동물을 선택해주세요.") {
         errorMessage = error.message;
       } else if (error.response?.status === 400) {
         errorMessage = "입력 정보를 확인해주세요.";
       } else if (error.response?.status === 500) {
         errorMessage = "서버 오류가 발생했습니다.";
+      } else if (error.message) {
+        errorMessage = error.message;
       }
 
       setToastMessage(errorMessage);
