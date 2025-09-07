@@ -4,6 +4,7 @@ import styles from "../styles/CommentItem.module.css";
 import ReportModal from "@/app/advertiser/ads-list/[ad_no]/components/ReportModal";
 import Image from "next/image";
 import CommentForm from "./CommentForm";
+import { updateComment } from "@/api/commentApi";
 
 const MAX_DEPTH = 1; // 댓글(0) -> 대댓글(1)까지만
 
@@ -11,11 +12,15 @@ export default function CommentItem({
   comment,
   onReply,
   onDelete, // ✅ 추가
+  onUpdate, // ✅ 댓글 수정 콜백 추가
   currentUserNo, // ✅ 추가 (토큰에서 꺼낸 userNo 등)
   depth = 0,
 }) {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [openReply, setOpenReply] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(comment?.content || "");
+  const [isUpdating, setIsUpdating] = useState(false);
 
   if (!comment) return null;
 
@@ -74,6 +79,37 @@ export default function CommentItem({
       await onDelete?.(comment.id); // ✅ 상위에서 optimistic + 폴백 재조회
     }
   };
+
+  const handleClickEdit = () => {
+    setEditContent(comment.content || "");
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditContent(comment.content || "");
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editContent.trim()) {
+      alert("댓글 내용을 입력해주세요.");
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      await updateComment(comment.id, { content: editContent.trim() });
+      setIsEditing(false);
+      // 상위 컴포넌트에 수정 완료 알림
+      onUpdate?.(comment.id, editContent.trim());
+    } catch (error) {
+      console.error("댓글 수정 실패:", error);
+      alert("댓글 수정에 실패했습니다.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   console.log(
     "[CommentItem] meNo =",
     meNo,
@@ -135,20 +171,58 @@ export default function CommentItem({
               </button>
             )}
             {canDelete && (
-              <button
-                className={styles.deleteButton ?? styles.replyButton}
-                onClick={handleClickDelete}
-                aria-label="댓글 삭제"
-                title="댓글 삭제"
-              >
-                삭제
-              </button>
+              <>
+                <button
+                  className={styles.deleteButton ?? styles.replyButton}
+                  onClick={handleClickDelete}
+                  aria-label="댓글 삭제"
+                  title="댓글 삭제"
+                >
+                  삭제
+                </button>
+                <button
+                  className={styles.changeButton ?? styles.replyButton}
+                  onClick={handleClickEdit}
+                  aria-label="댓글 수정"
+                  title="댓글 수정"
+                >
+                  수정
+                </button>
+              </>
             )}
           </div>
         </div>
 
         {/* 본문 */}
-        <p className={styles.text}>{contentText}</p>
+        {isEditing ? (
+          <div className={styles.editContainer}>
+            <textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              className={styles.editTextarea}
+              rows="3"
+              disabled={isUpdating}
+            />
+            <div className={styles.editActions}>
+              <button
+                className={styles.cancelButton}
+                onClick={handleCancelEdit}
+                disabled={isUpdating}
+              >
+                취소
+              </button>
+              <button
+                className={styles.saveButton}
+                onClick={handleSaveEdit}
+                disabled={isUpdating || !editContent.trim()}
+              >
+                {isUpdating ? "수정 중..." : "저장"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p className={styles.text}>{contentText}</p>
+        )}
 
         {/* 하단 푸터: 시간(왼쪽) / 답글달기(오른쪽) */}
         <div
@@ -211,6 +285,7 @@ export default function CommentItem({
                 comment={child}
                 onReply={onReply}
                 onDelete={onDelete}
+                onUpdate={onUpdate}
                 currentUserNo={currentUserNo}
                 depth={depth + 1}
               />
