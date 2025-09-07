@@ -18,14 +18,16 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
     name: "",
     frequency: "",
     type: "",
-    duration: "", // 복용 기간 (일수)
     startDate: "", // 시작 날짜
+    endDate: "", // 종료 날짜
     scheduleTime: "", // 일정 시간 (실제 복용 시간)
     notificationTiming: "", // 알림 시기 (당일, 1일전, 2일전, 3일전)
   });
 
   const [showStartCalendar, setShowStartCalendar] = useState(false);
+  const [showEndCalendar, setShowEndCalendar] = useState(false);
   const calendarButtonRef = React.useRef(null);
+  const endCalendarButtonRef = React.useRef(null);
   const [errors, setErrors] = useState({});
 
   // 날짜 포맷팅 함수
@@ -66,6 +68,34 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
     }));
   };
 
+  // 종료 날짜 선택 핸들러
+  const handleEndDateSelect = (dateString) => {
+    // 시작날짜가 있는 경우 종료날짜가 시작날짜보다 이전인지 검증
+    if (formData.startDate) {
+      const startDate = new Date(formData.startDate);
+      const endDate = new Date(dateString);
+
+      if (endDate < startDate) {
+        setErrors((prev) => ({
+          ...prev,
+          endDate: "종료날짜는 시작날짜보다 이전일 수 없습니다.",
+        }));
+        return;
+      }
+    }
+
+    // 에러 메시지 제거
+    setErrors((prev) => ({
+      ...prev,
+      endDate: "",
+    }));
+
+    setFormData((prev) => ({
+      ...prev,
+      endDate: dateString,
+    }));
+  };
+
   // 외부 클릭 시 달력 닫기
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -76,16 +106,23 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
       ) {
         setShowStartCalendar(false);
       }
+      if (
+        showEndCalendar &&
+        !event.target.closest(`.${styles.dateInputWrapper}`) &&
+        !event.target.closest(`.${styles.calendar}`)
+      ) {
+        setShowEndCalendar(false);
+      }
     };
 
-    if (showStartCalendar) {
+    if (showStartCalendar || showEndCalendar) {
       document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showStartCalendar]);
+  }, [showStartCalendar, showEndCalendar]);
 
   // 복용 빈도를 한글로 변환
   const getFrequencyKorean = (frequency) => {
@@ -275,31 +312,37 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
           [field]: value,
         };
 
-        // 복용 기간이나 시작날짜가 변경되면 종료날짜 검증
-        if (
-          (field === "duration" || field === "startDate") &&
-          newData.startDate &&
-          newData.duration
-        ) {
-          const startDateObj = new Date(newData.startDate);
-          const endDateObj = new Date(startDateObj);
-          endDateObj.setDate(
-            startDateObj.getDate() + Number(newData.duration) - 1
-          );
+        // 시작날짜나 종료날짜가 변경되면 날짜 검증
+        if (field === "startDate" && newData.startDate && newData.endDate) {
+          const startDate = new Date(newData.startDate);
+          const endDate = new Date(newData.endDate);
 
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          endDateObj.setHours(0, 0, 0, 0);
-
-          if (endDateObj < today) {
+          if (endDate < startDate) {
             setErrors((prev) => ({
               ...prev,
-              duration: "복용 기간을 설정하면 종료일이 오늘 이전이 됩니다.",
+              endDate: "종료날짜는 시작날짜보다 이전일 수 없습니다.",
             }));
           } else {
             setErrors((prev) => ({
               ...prev,
-              duration: "",
+              endDate: "",
+            }));
+          }
+        }
+
+        if (field === "endDate" && newData.startDate && newData.endDate) {
+          const startDate = new Date(newData.startDate);
+          const endDate = new Date(newData.endDate);
+
+          if (endDate < startDate) {
+            setErrors((prev) => ({
+              ...prev,
+              endDate: "종료날짜는 시작날짜보다 이전일 수 없습니다.",
+            }));
+          } else {
+            setErrors((prev) => ({
+              ...prev,
+              endDate: "",
             }));
           }
         }
@@ -332,10 +375,8 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
       newErrors.type = "유형을 선택해주세요";
     }
 
-    if (!formData.duration) {
-      newErrors.duration = "복용 기간을 입력해주세요";
-    } else if (isNaN(formData.duration) || Number(formData.duration) <= 0) {
-      newErrors.duration = "유효한 복용 기간(숫자)을 입력해주세요";
+    if (!formData.endDate) {
+      newErrors.endDate = "종료 날짜를 선택해주세요";
     }
 
     if (!formData.startDate) {
@@ -352,21 +393,13 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
       }
     }
 
-    // 투약의 경우 종료날짜도 검증 (시작일과 복용기간으로 계산된 종료일)
-    if (formData.startDate && formData.duration) {
-      const startDateObj = new Date(formData.startDate);
-      const endDateObj = new Date(startDateObj);
-      endDateObj.setDate(
-        startDateObj.getDate() + Number(formData.duration) - 1
-      );
+    // 종료날짜 검증
+    if (formData.endDate) {
+      const startDate = new Date(formData.startDate);
+      const endDate = new Date(formData.endDate);
 
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      endDateObj.setHours(0, 0, 0, 0);
-
-      if (endDateObj < today) {
-        newErrors.duration =
-          "복용 기간을 설정하면 종료일이 오늘 이전이 됩니다.";
+      if (endDate < startDate) {
+        newErrors.endDate = "종료날짜는 시작날짜보다 이전일 수 없습니다.";
       }
     }
 
@@ -384,22 +417,13 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
 
   const handleSubmit = () => {
     if (validateForm()) {
-      // 종료일 계산 (startDate + duration - 1일 후)
-      const startDateObj = new Date(formData.startDate);
-      const endDateObj = new Date(startDateObj);
-      endDateObj.setDate(
-        startDateObj.getDate() + Number(formData.duration) - 1
-      );
-      const endDate = endDateObj.toISOString().split("T")[0];
-
       const newMedication = {
         id: Date.now(),
         name: formData.name,
         type: formData.type,
-        frequency: formData.frequency, // 이미 영어 enum 값
-        duration: Number(formData.duration),
+        frequency: formData.frequency,
         startDate: formData.startDate,
-        endDate: endDate,
+        endDate: formData.endDate,
         scheduleTime: formData.scheduleTime, // 실제 복용 시간
         notificationTiming: formData.notificationTiming,
         petName: selectedPetName, // 선택된 펫 이름 추가
@@ -407,6 +431,17 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
         color: formData.type === "복용약" ? "#E3F2FD" : "#FFF3E0",
         isNotified: true,
       };
+
+      console.log(
+        "🔍 AddMedicationModal - 투약 일정 생성 데이터:",
+        newMedication
+      );
+      console.log(
+        "🔍 선택된 빈도:",
+        formData.frequency,
+        "타입:",
+        typeof formData.frequency
+      );
 
       onAdd(newMedication);
       handleClose();
@@ -418,13 +453,14 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
       name: "",
       frequency: "",
       type: "",
-      duration: "",
       startDate: "",
+      endDate: "",
       scheduleTime: "",
       notificationTiming: "",
     });
     setErrors({});
     setShowStartCalendar(false); // 달력도 닫기
+    setShowEndCalendar(false); // 종료 달력도 닫기
     onClose();
   };
 
@@ -551,27 +587,6 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
             )}
           </div>
 
-          {/* 복용 기간 */}
-          <div className={styles.formGroup}>
-            <div className={styles.labelContainer}>
-              <label className={styles.label}>복용 기간(일)</label>
-              <span className={styles.required}>*</span>
-            </div>
-            <div className={styles.inputContainer}>
-              <input
-                type="number"
-                className={styles.input}
-                placeholder="예: 7"
-                min="1"
-                value={formData.duration}
-                onChange={(e) => handleInputChange("duration", e.target.value)}
-              />
-            </div>
-            {errors.duration && (
-              <span className={styles.error}>{errors.duration}</span>
-            )}
-          </div>
-
           {/* 시작 날짜 */}
           <div className={styles.formGroup}>
             <div className={styles.labelContainer}>
@@ -605,6 +620,42 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
             </div>
             {errors.startDate && (
               <span className={styles.error}>{errors.startDate}</span>
+            )}
+          </div>
+
+          {/* 종료 날짜 */}
+          <div className={styles.formGroup}>
+            <div className={styles.labelContainer}>
+              <label className={styles.label}>종료 날짜</label>
+              <span className={styles.required}>*</span>
+            </div>
+            <div className={styles.inputContainer}>
+              <div className={styles.dateInputWrapper}>
+                <input
+                  type="text"
+                  value={formatDateForDisplay(formData.endDate)}
+                  placeholder="종료 날짜를 선택하세요"
+                  className={styles.dateInput}
+                  readOnly
+                  onClick={() => setShowEndCalendar(true)}
+                />
+                <button
+                  ref={endCalendarButtonRef}
+                  type="button"
+                  className={styles.calendarButton}
+                  onClick={() => setShowEndCalendar(!showEndCalendar)}
+                >
+                  <img
+                    src="/health/calendar.png"
+                    alt="달력"
+                    width="16"
+                    height="16"
+                  />
+                </button>
+              </div>
+            </div>
+            {errors.endDate && (
+              <span className={styles.error}>{errors.endDate}</span>
             )}
           </div>
 
@@ -759,6 +810,15 @@ export default function AddMedicationModal({ isOpen, onClose, onAdd }) {
         onDateSelect={handleStartDateSelect}
         selectedDate={formData.startDate}
         buttonRef={calendarButtonRef}
+      />
+
+      {/* 종료 날짜 달력 */}
+      <CustomCalendar
+        isOpen={showEndCalendar}
+        onClose={() => setShowEndCalendar(false)}
+        onDateSelect={handleEndDateSelect}
+        selectedDate={formData.endDate}
+        buttonRef={endCalendarButtonRef}
       />
     </div>
   );

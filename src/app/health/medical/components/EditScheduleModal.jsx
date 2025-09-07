@@ -605,9 +605,10 @@ export default function EditScheduleModal({
         }
       }
 
-      // 투약의 경우 복용 기간이나 시작날짜가 변경되면 종료날짜 검증
+      // 투약의 경우 복용 기간이나 시작날짜가 변경되면 종료날짜 검증 (처방전만)
       if (
         type === "medication" &&
+        isPrescription &&
         (field === "duration" || field === "startDate") &&
         newData.startDate &&
         newData.duration
@@ -683,8 +684,8 @@ export default function EditScheduleModal({
 
     // 종료날짜 검증
     if (type === "medication") {
-      // 투약은 항상 종료날짜 필요
-      if (!formData.endDate) {
+      // 기본 투약일정은 종료날짜 필수, 처방전은 자동 계산
+      if (!isPrescription && !formData.endDate) {
         newErrors.endDate = "종료 날짜를 선택해주세요";
       }
     } else if (type === "care" || type === "vaccination") {
@@ -717,33 +718,28 @@ export default function EditScheduleModal({
       newErrors.notificationTiming = "알림 시기를 선택해주세요";
     }
 
-    // 투약의 경우 복용 기간도 필수
-    if (type === "medication" && !formData.duration) {
-      newErrors.duration = "복용 기간을 입력해주세요";
-    } else if (
-      type === "medication" &&
-      (isNaN(formData.duration) || Number(formData.duration) <= 0)
-    ) {
-      newErrors.duration = "유효한 복용 기간(숫자)을 입력해주세요";
-    } else if (
-      type === "medication" &&
-      formData.startDate &&
-      formData.duration
-    ) {
-      // 투약의 경우 종료날짜도 검증 (시작일과 복용기간으로 계산된 종료일)
-      const startDateObj = new Date(formData.startDate);
-      const endDateObj = new Date(startDateObj);
-      endDateObj.setDate(
-        startDateObj.getDate() + Number(formData.duration) - 1
-      );
+    // 투약의 경우 복용 기간 검증 (처방전만)
+    if (type === "medication" && isPrescription) {
+      if (!formData.duration) {
+        newErrors.duration = "복용 기간을 입력해주세요";
+      } else if (isNaN(formData.duration) || Number(formData.duration) <= 0) {
+        newErrors.duration = "유효한 복용 기간(숫자)을 입력해주세요";
+      } else if (formData.startDate && formData.duration) {
+        // 처방전의 경우 종료날짜도 검증 (시작일과 복용기간으로 계산된 종료일)
+        const startDateObj = new Date(formData.startDate);
+        const endDateObj = new Date(startDateObj);
+        endDateObj.setDate(
+          startDateObj.getDate() + Number(formData.duration) - 1
+        );
 
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      endDateObj.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        endDateObj.setHours(0, 0, 0, 0);
 
-      if (endDateObj < today) {
-        newErrors.duration =
-          "복용 기간을 설정하면 종료일이 오늘 이전이 됩니다.";
+        if (endDateObj < today) {
+          newErrors.duration =
+            "복용 기간을 설정하면 종료일이 오늘 이전이 됩니다.";
+        }
       }
     }
 
@@ -769,28 +765,49 @@ export default function EditScheduleModal({
       let updatedSchedule;
 
       if (type === "medication") {
-        // 투약 수정
-        const startDateObj = new Date(formData.date || scheduleData.startDate);
-        const endDateObj = new Date(startDateObj);
-        endDateObj.setDate(
-          startDateObj.getDate() + Number(formData.duration) - 1
-        );
-        const endDate = endDateObj.toISOString().split("T")[0];
+        // 투약 수정 - 기본 투약일정과 처방전 구분
+        if (isPrescription) {
+          // 처방전 투약일정: 복용기간 + 시작날짜로 종료날짜 계산
+          const startDateObj = new Date(
+            formData.date || scheduleData.startDate
+          );
+          const endDateObj = new Date(startDateObj);
+          endDateObj.setDate(
+            startDateObj.getDate() + Number(formData.duration) - 1
+          );
+          const endDate = endDateObj.toISOString().split("T")[0];
 
-        updatedSchedule = {
-          ...scheduleData,
-          name: formData.name,
-          type: formData.subType,
-          frequency: formData.frequency,
-          duration: Number(formData.duration),
-          startDate: formData.date || scheduleData.startDate,
-          endDate: endDate,
-          scheduleTime: formData.scheduleTime,
-          notificationTiming: formData.notificationTiming,
-          reminderDaysBefore: Number(formData.notificationTiming), // 백엔드로 전송할 숫자 값
-          icon: getIconForSubType(formData.subType),
-          color: getColorForType(formData.subType),
-        };
+          updatedSchedule = {
+            ...scheduleData,
+            name: formData.name,
+            type: formData.subType,
+            frequency: formData.frequency,
+            duration: Number(formData.duration),
+            startDate: formData.date || scheduleData.startDate,
+            endDate: endDate,
+            scheduleTime: formData.scheduleTime,
+            notificationTiming: formData.notificationTiming,
+            reminderDaysBefore: Number(formData.notificationTiming),
+            icon: getIconForSubType(formData.subType),
+            color: getColorForType(formData.subType),
+          };
+        } else {
+          // 기본 투약일정: 시작날짜 + 종료날짜 직접 사용
+          updatedSchedule = {
+            ...scheduleData,
+            name: formData.name,
+            type: formData.subType,
+            frequency: formData.frequency,
+            startDate:
+              formData.startDate || formData.date || scheduleData.startDate,
+            endDate: formData.endDate,
+            scheduleTime: formData.scheduleTime,
+            notificationTiming: formData.notificationTiming,
+            reminderDaysBefore: Number(formData.notificationTiming),
+            icon: getIconForSubType(formData.subType),
+            color: getColorForType(formData.subType),
+          };
+        }
       } else {
         // 돌봄/접종 일정 수정
         const mainType = type === "care" ? "돌봄" : "접종";
@@ -1042,8 +1059,8 @@ export default function EditScheduleModal({
             )}
           </div>
 
-          {/* 투약의 경우 복용 기간 */}
-          {type === "medication" && (
+          {/* 투약의 경우 복용 기간 - 처방전만 표시 */}
+          {type === "medication" && isPrescription && (
             <div className={styles.formGroup}>
               <div className={styles.labelContainer}>
                 <label className={styles.label}>복용 기간(일)</label>
@@ -1229,18 +1246,29 @@ export default function EditScheduleModal({
             )}
           </div>
 
-          {/* 종료 날짜 (돌봄/접종 일정에서만 표시) */}
-          {type !== "medication" && (
+          {/* 종료 날짜 - 돌봄/접종 일정 또는 기본 투약일정에서 표시 */}
+          {(type !== "medication" ||
+            (type === "medication" && !isPrescription)) && (
             <div className={styles.formGroup}>
               <div className={styles.labelContainer}>
-                <label className={styles.label}>종료 날짜 (선택)</label>
+                <label className={styles.label}>
+                  종료 날짜
+                  {type === "medication" && !isPrescription && (
+                    <span className={styles.required}>*</span>
+                  )}
+                  {type !== "medication" && " (선택)"}
+                </label>
               </div>
               <div className={styles.inputContainer}>
                 <div className={styles.dateInputWrapper}>
                   <input
                     type="text"
                     value={formatDateForDisplay(formData.endDate)}
-                    placeholder="종료 날짜를 선택하세요 (선택사항)"
+                    placeholder={
+                      type === "medication" && !isPrescription
+                        ? "종료 날짜를 선택하세요"
+                        : "종료 날짜를 선택하세요 (선택사항)"
+                    }
                     className={`${styles.dateInput} ${
                       (type === "care" || type === "vaccination") &&
                       ["매일", "매주", "매월", "당일"].includes(
