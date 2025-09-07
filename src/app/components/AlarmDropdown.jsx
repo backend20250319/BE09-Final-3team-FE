@@ -9,6 +9,7 @@ import {
   FiUsers,
   FiActivity,
 } from "react-icons/fi";
+import Link from "next/link";
 
 const ICON_MAP = {
   "notification.comment.created": { icon: FiMessageCircle, color: "blue" },
@@ -74,6 +75,9 @@ export default function NavbarDropdown({
     <div className={styles.dropdown}>
       <div className={styles.header}>
         <span className={styles.title}>알림</span>
+        <Link href="/alarm">
+        <span className={styles.titleRight} style={{alignContent:"center"}}>알림 창으로 이동하기</span>
+        </Link>
       </div>
       <div
         className={styles.list}
