@@ -75,8 +75,13 @@ export default function EditScheduleModal({
 
   // 날짜 포맷팅은 constants에서 import
 
-  // 종료날짜 검증 함수
-  const validateEndDate = (startDate, endDate, frequency) => {
+  // 종료날짜 검증 함수 (수정 모달용 - 빈도별 제한 적용)
+  const validateEndDate = (
+    startDate,
+    endDate,
+    frequency,
+    isEditMode = true
+  ) => {
     if (!endDate) return { valid: true }; // 종료날짜가 없으면 검증 통과
 
     const start = new Date(startDate);
@@ -88,6 +93,17 @@ export default function EditScheduleModal({
         valid: false,
         message: "종료일은 시작일보다 이전일 수 없습니다.",
       };
+    }
+
+    // 수정 모드에서 매주/매월 빈도는 종료날짜가 시작날짜와 동일해야 함
+    if (isEditMode && (frequency === "매주" || frequency === "매월")) {
+      if (end.getTime() !== start.getTime()) {
+        return {
+          valid: false,
+          message: `${frequency} 일정의 종료일은 시작일과 동일해야 합니다.`,
+        };
+      }
+      return { valid: true };
     }
 
     const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
@@ -153,14 +169,18 @@ export default function EditScheduleModal({
     }
   };
 
-  // 빈도별 힌트 메시지
+  // 빈도별 힌트 메시지 (수정 모달용)
   const getEndDateHint = (frequency) => {
     // 돌봄/접종 일정에서 특정 빈도는 종료날짜 수정 불가
     if (
       (type === "care" || type === "vaccination") &&
       ["매일", "매주", "매월", "당일"].includes(frequency)
     ) {
-      return `${frequency} 일정은 시작날짜에 따라 종료일자가 고정됩니다.`;
+      if (frequency === "매주" || frequency === "매월") {
+        return `${frequency} 일정은 시작날짜에 따라 종료일자가 고정됩니다.`;
+      } else if (frequency === "매일" || frequency === "당일") {
+        return `${frequency} 일정은 시작날짜 변경 시 종료날짜도 함께 변경됩니다.`;
+      }
     }
 
     switch (frequency) {
@@ -218,11 +238,23 @@ export default function EditScheduleModal({
       }));
     }
 
-    setFormData((prev) => ({
-      ...prev,
-      startDate: dateString,
-      date: dateString, // 호환성 유지
-    }));
+    setFormData((prev) => {
+      const newData = {
+        ...prev,
+        startDate: dateString,
+        date: dateString, // 호환성 유지
+      };
+
+      // 돌봄/접종 일정에서 매일/당일 빈도인 경우 종료날짜도 동일하게 변경
+      if (
+        (type === "care" || type === "vaccination") &&
+        (prev.frequency === "매일" || prev.frequency === "당일")
+      ) {
+        newData.endDate = dateString;
+      }
+
+      return newData;
+    });
   };
 
   // 종료날짜 선택 핸들러
@@ -240,11 +272,12 @@ export default function EditScheduleModal({
       return;
     }
 
-    // 종료날짜 검증
+    // 종료날짜 검증 (수정 모드로 호출)
     const validation = validateEndDate(
       formData.startDate,
       dateString,
-      formData.frequency
+      formData.frequency,
+      true // isEditMode = true
     );
 
     if (!validation.valid) {
@@ -549,8 +582,11 @@ export default function EditScheduleModal({
       // 시작날짜가 변경되면 종료날짜 처리
       if (field === "startDate") {
         if (type === "care" || type === "vaccination") {
-          if (["매일", "매주", "매월", "당일"].includes(prev.frequency)) {
-            // 특정 빈도는 종료일을 시작일과 동일하게 고정
+          if (["매일", "당일"].includes(prev.frequency)) {
+            // 매일/당일 빈도는 종료일을 시작일과 동일하게 변경
+            newData.endDate = value;
+          } else if (["매주", "매월"].includes(prev.frequency)) {
+            // 매주/매월 빈도는 종료일을 시작일과 동일하게 고정
             newData.endDate = value;
           }
         }
@@ -648,7 +684,8 @@ export default function EditScheduleModal({
           const validation = validateEndDate(
             formData.startDate,
             formData.endDate,
-            formData.frequency
+            formData.frequency,
+            true // isEditMode = true
           );
           if (!validation.valid) {
             newErrors.endDate = validation.message;
@@ -1094,15 +1131,51 @@ export default function EditScheduleModal({
                     formData.startDate || formData.date
                   )}
                   placeholder="시작 날짜를 선택하세요"
-                  className={styles.dateInput}
+                  className={`${styles.dateInput} ${
+                    (type === "care" || type === "vaccination") &&
+                    ["매주", "매월"].includes(formData.frequency)
+                      ? styles.disabled
+                      : ""
+                  }`}
                   readOnly
-                  onClick={() => setShowStartCalendar(true)}
+                  disabled={
+                    (type === "care" || type === "vaccination") &&
+                    ["매주", "매월"].includes(formData.frequency)
+                  }
+                  onClick={() => {
+                    if (
+                      !(
+                        (type === "care" || type === "vaccination") &&
+                        ["매주", "매월"].includes(formData.frequency)
+                      )
+                    ) {
+                      setShowStartCalendar(true);
+                    }
+                  }}
                 />
                 <button
                   ref={calendarButtonRef}
                   type="button"
-                  className={styles.calendarButton}
-                  onClick={() => setShowStartCalendar(!showStartCalendar)}
+                  className={`${styles.calendarButton} ${
+                    (type === "care" || type === "vaccination") &&
+                    ["매주", "매월"].includes(formData.frequency)
+                      ? styles.disabled
+                      : ""
+                  }`}
+                  disabled={
+                    (type === "care" || type === "vaccination") &&
+                    ["매주", "매월"].includes(formData.frequency)
+                  }
+                  onClick={() => {
+                    if (
+                      !(
+                        (type === "care" || type === "vaccination") &&
+                        ["매주", "매월"].includes(formData.frequency)
+                      )
+                    ) {
+                      setShowStartCalendar(!showStartCalendar);
+                    }
+                  }}
                 >
                   <img
                     src="/health/calendar.png"
@@ -1116,6 +1189,12 @@ export default function EditScheduleModal({
             {errors.startDate && (
               <span className={styles.error}>{errors.startDate}</span>
             )}
+            {(type === "care" || type === "vaccination") &&
+              ["매주", "매월"].includes(formData.frequency) && (
+                <span className={styles.hint}>
+                  {formData.frequency} 일정은 시작날짜와 종료날짜가 고정됩니다.
+                </span>
+              )}
           </div>
 
           {/* 종료 날짜 (돌봄/접종 일정에서만 표시) */}
@@ -1204,7 +1283,7 @@ export default function EditScheduleModal({
                 <span className={styles.hint}>
                   {(type === "care" || type === "vaccination") &&
                   ["매일", "매주", "매월", "당일"].includes(formData.frequency)
-                    ? `${formData.frequency} 일정은 시작날짜에 따라 종료일자가 고정됩니다.`
+                    ? getEndDateHint(formData.frequency)
                     : getEndDateHint(formData.frequency)}
                 </span>
               )}
