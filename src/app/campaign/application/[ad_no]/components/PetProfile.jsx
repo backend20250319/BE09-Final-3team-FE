@@ -10,6 +10,14 @@ import { getApplicantsByPetNo, getPets, getPortfolio, getUser, getHistory, getIn
 
 export default function PetProfile() {
 
+  // Instagram URL을 핸들 형식으로 변환하는 함수
+  const formatInstagramHandle = (snsUsername) => {
+    if (!snsUsername) return '';
+    
+    // 이미 @가 포함되어 있으면 그대로 반환, 없으면 @ 추가
+    return snsUsername.startsWith('@') ? snsUsername : `@${snsUsername}`;
+  };
+
   const [selectedPet, setSelectedPet] = useState(null);
   const [activityCards, setActivityCards] = useState([]);
   const [petData, setPetData] = useState([]);
@@ -165,7 +173,7 @@ export default function PetProfile() {
                   alt="instagram.png"
                   width={16}
                   height={16} />
-                <span className={styles.instagramHandle}>{selectedPetInfo.instagram}</span>
+                <span className={styles.instagramHandle}>{formatInstagramHandle(selectedPetInfo.snsUsername) || 'SNS 정보 없음'}</span>
               </div>
             </div>
             <div className={styles.detailGrid}>

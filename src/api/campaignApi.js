@@ -117,9 +117,9 @@ export const getReview = async (applicantNo) => {
 }
 
 // 2. 리뷰 수정
-export const updateReview = async (applicantNo, reviewUrl, reason) => {
+export const updateReview = async (applicantNo, reviewUrl, reason, isApproved) => {
   try {
-    const reviewRequest = { reviewUrl, reason };
+    const reviewRequest = { reviewUrl, reason, isApproved };
     const res = await api.put(`${CAMPAIGN_PREFIX}/internal/review/${applicantNo}`, reviewRequest);
     return res.data.data;
   } catch (error) {

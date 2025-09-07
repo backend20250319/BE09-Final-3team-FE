@@ -1,9 +1,8 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import styles from "./SelectionModal.module.css";
-import { getApplicants, updateApplicant } from '@/api/advertisementApi';
-import { getUser } from '@/api/advertiserApi';
+import styles from "../styles/SelectionModal.module.css";
+import { getApplicants, updateApplicant, getInstagramProfile, getUser } from '@/api/advertisementApi';
 
 export default function SelectionModal({ isOpen, onClose, campaign }) {
   const [applicants, setApplicants] = useState([]);
@@ -12,7 +11,9 @@ export default function SelectionModal({ isOpen, onClose, campaign }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [userDataMap, setUserDataMap] = useState({});
+  const [instagramProfiles, setInstagramProfiles] = useState({});
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [isCompleted, setIsCompleted] = useState(false);
 
   useEffect(() => {
     if (isOpen && campaign?.adNo) {
@@ -69,12 +70,46 @@ export default function SelectionModal({ isOpen, onClose, campaign }) {
         userDataMap[applicantNo] = userData;
       });
       setUserDataMap(userDataMap);
+
+      // 각 지원자의 인스타그램 프로필 조회
+      const instagramProfilePromises = availableApplicants.map(async (applicant) => {
+        if (applicant?.pet?.userNo) {
+          try {
+            const instagramData = await getInstagramProfile(applicant.pet.userNo);
+            return { applicantNo: applicant.applicantNo, instagramData: instagramData[0] };
+          } catch (error) {
+            console.error('인스타그램 프로필 조회 실패:', error);
+            return { applicantNo: applicant.applicantNo, instagramData: null };
+          }
+        }
+        return { applicantNo: applicant.applicantNo, instagramData: null };
+      });
+
+      const instagramResults = await Promise.all(instagramProfilePromises);
+      const instagramProfilesMap = {};
+      instagramResults.forEach(({ applicantNo, instagramData }) => {
+        instagramProfilesMap[applicantNo] = instagramData;
+      });
+      setInstagramProfiles(instagramProfilesMap);
+
+      // 모든 SELECTED 상태인 지원자의 isSaved가 true인지 확인
+      const selectedApplicants = availableApplicants.filter(applicant => applicant.status === 'SELECTED');
+      const allSaved = selectedApplicants.length > 0 && selectedApplicants.every(applicant => applicant.isSaved === true);
+      setIsCompleted(allSaved);
     } catch (error) {
       console.error('지원자 목록 조회 실패:', error);
       setError('지원자 목록을 불러오는데 실패했습니다.');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Instagram URL을 핸들 형식으로 변환하는 함수
+  const formatInstagramHandle = (snsUsername) => {
+    if (!snsUsername) return '';
+    
+    // 이미 @가 포함되어 있으면 그대로 반환, 없으면 @ 추가
+    return snsUsername.startsWith('@') ? snsUsername : `@${snsUsername}`;
   };
 
   const handleApplicantSelect = (applicantNo) => {
@@ -204,7 +239,7 @@ export default function SelectionModal({ isOpen, onClose, campaign }) {
             <div className={styles.headerText}>
               <h2 className={styles.modalTitle}>지원자 선정</h2>
               <p className={styles.modalSubtitle}>
-                캠페인에 참여할 지원자를 선정해주세요 (최대 {campaign?.members || 0}명) - 임시 저장
+                캠페인에 참여할 지원자를 체험단 선정일 이전까지 선택해주세요 (최대 {campaign?.members || 0}명)
               </p>
             </div>
           </div>
@@ -224,7 +259,7 @@ export default function SelectionModal({ isOpen, onClose, campaign }) {
         {/* Body */}
         <div className={styles.modalBody}>
           {/* Search Bar */}
-          {!isLoading && applicants.length > 0 && (
+          {!isLoading && applicants.length > 0 && !isCompleted && (
             <div className={styles.searchContainer}>
               <div className={styles.searchInputWrapper}>
                 <svg className={styles.searchIcon} width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -276,6 +311,25 @@ export default function SelectionModal({ isOpen, onClose, campaign }) {
               <div className={styles.loadingSpinner}></div>
               <p>지원자 목록을 불러오는 중</p>
             </div>
+          ) : isCompleted ? (
+            <div className={styles.completedContainer}>
+              <div className={styles.completedIcon}>
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                  <circle cx="24" cy="24" r="24" fill="#2563EB"/>
+                  <path
+                    d="M16 24L22 30L32 18"
+                    stroke="white"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <h3 className={styles.completedTitle}>체험단 선정이 완료되었습니다</h3>
+              <p className={styles.completedMessage}>
+                체험단 신청이 완료되어 더 이상 수정할 수 없습니다
+              </p>
+            </div>
           ) : applicants.length === 0 ? (
             <div className={styles.emptyContainer}>
               <p>선정 가능한 지원자가 없습니다.</p>
@@ -299,13 +353,11 @@ export default function SelectionModal({ isOpen, onClose, campaign }) {
                     </div>
                     <div className={styles.ownerInfo}>
                       <p>소유자: {userDataMap[applicant.applicantNo]?.name || '이름 없음'}</p>
-                      <p>팔로워: {applicant.user?.followerCount ? `${applicant.user.followerCount} 명` : '미등록'}</p>
+                      <p>팔로워: {instagramProfiles[applicant.applicantNo]?.followers_count ? `${Number(instagramProfiles[applicant.applicantNo].followers_count).toLocaleString()} 명` : '미연결'}</p>
                       {applicant.status === 'SELECTED' && (
-                        <div className={styles.statusBadge}>
-                          <span className={`${styles.statusText} ${styles.selected}`}>
-                            선정됨
-                          </span>
-                        </div>
+                        <span className={`${styles.statusText} ${styles.selected}`}>
+                          선정됨
+                        </span>
                       )}
                     </div>
                   </div>
@@ -333,22 +385,34 @@ export default function SelectionModal({ isOpen, onClose, campaign }) {
 
         {/* Action Buttons */}
         <div className={styles.modalActions}>
-          <button
-            type="button"
-            className={styles.cancelButton}
-            onClick={handleClose}
-            disabled={isLoading}
-          >
-            취소
-          </button>
-          <button
-            type="submit"
-            className={styles.submitButton}
-            onClick={handleSubmit}
-            disabled={isLoading || selectedApplicants.length === 0}
-          >
-            {isLoading ? '선정중' : `선정 (${selectedApplicants.length}/${campaign?.members || 0})`}
-          </button>
+          {isCompleted ? (
+            <button
+              type="button"
+              className={styles.closeButton}
+              onClick={handleClose}
+            >
+              닫기
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                className={styles.cancelButton}
+                onClick={handleClose}
+                disabled={isLoading}
+              >
+                취소
+              </button>
+              <button
+                type="submit"
+                className={styles.submitButton}
+                onClick={handleSubmit}
+                disabled={isLoading || selectedApplicants.length === 0}
+              >
+                {isLoading ? '선정중' : `선정 (${selectedApplicants.length}/${campaign?.members || 0})`}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

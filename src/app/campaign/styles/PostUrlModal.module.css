@@ -325,6 +325,76 @@
   cursor: not-allowed;
 }
 
+/* Status Container */
+.statusContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  padding: 32px 0;
+}
+
+.reviewingStatus,
+.approvedStatus {
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+}
+
+.statusIcon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.statusTitle {
+  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0 0 12px 0;
+}
+
+.statusMessage {
+  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  color: #6B7280;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+}
+
+.submittedUrl,
+.approvedUrl {
+  background-color: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: left;
+}
+
+.urlLabel {
+  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6B7280;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.urlLink {
+  font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  color: #3B82F6;
+  text-decoration: none;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.urlLink:hover {
+  text-decoration: underline;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .modalContainer {
@@ -353,5 +423,18 @@
   
   .headerText {
     width: 100%;
+  }
+
+  .statusContainer {
+    min-height: 150px;
+    padding: 24px 0;
+  }
+
+  .statusTitle {
+    font-size: 16px;
+  }
+
+  .statusMessage {
+    font-size: 13px;
   }
 }

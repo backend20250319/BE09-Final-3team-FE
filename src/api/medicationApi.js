@@ -227,21 +227,39 @@ export const listCareSchedules = async (params) => {
 // 돌봄/접종 일정 수정
 export const updateCareSchedule = async (calNo, updateData) => {
   try {
-    console.log("돌봄/접종 일정 수정 API 호출:", {
+    console.log("🔧 돌봄/접종 일정 수정 API 호출:", {
       calNo,
       updateData,
       url: `${CARE_PREFIX}/update`,
+      fullUrl: `${api.defaults.baseURL}${CARE_PREFIX}/update?calNo=${calNo}`,
     });
 
     const response = await api.patch(`${CARE_PREFIX}/update`, updateData, {
       params: { calNo },
     });
 
-    console.log("돌봄/접종 일정 수정 API 응답:", response.data);
+    console.log("✅ 돌봄/접종 일정 수정 API 응답:", {
+      status: response.status,
+      statusText: response.statusText,
+      data: response.data,
+      headers: response.headers,
+    });
+
     return response.data?.data ?? response.data;
   } catch (error) {
-    console.error("돌봄/접종 일정 수정 실패:", error);
-    console.error("에러 상세:", error.response?.data);
+    console.error("❌ 돌봄/접종 일정 수정 실패:", error);
+    console.error("❌ 에러 상세 정보:", {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      config: {
+        url: error.config?.url,
+        method: error.config?.method,
+        data: error.config?.data,
+        params: error.config?.params,
+      },
+    });
     throw error;
   }
 };

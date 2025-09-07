@@ -20,6 +20,14 @@ export const getRecentNotifications = async () => {
   return res.data?.data ?? res.data;
 };
 
+// 드롭다운용 최근 5개 알람 조회
+export const hideNotification = async (notificationid) => {
+  const res = await api.patch(`${NOTIFICATION_PREFIX}/noti/${notificationid}/hide`, {
+  });
+  return res.data?.data ?? res.data;
+};
+
+
 // 읽지 않은 알림 개수 조회
 export const getUnreadNotificationCount = async () => {
   const res = await api.get(`${NOTIFICATION_PREFIX}/noti/count`);
