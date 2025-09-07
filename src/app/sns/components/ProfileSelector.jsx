@@ -1,36 +1,59 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { useSns } from "../context/SnsContext";
 import { getInstagramProfiles } from "../lib/feedData";
 import styles from "../styles/feed/ProfileCard.module.css";
 
-export default function ProfileSelector() {
-  const { selectedInstagramProfile, setSelectedInstagramProfile } = useSns();
+export default function ProfileSelector({ onProfileSelect, selectedProfileId, selectedProfileUsername }) {
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [open, setOpen] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState(null);
   const containerRef = useRef(null);
+  
+  // selectedProfileId가 있으면 해당 프로필을 찾아서 설정
+  const currentProfile = selectedProfileId 
+    ? profiles.find(p => String(p.id) === String(selectedProfileId)) || selectedProfile
+    : selectedProfile;
+  
+  // 표시할 username 결정
+  const displayUsername = selectedProfileUsername || currentProfile?.username;
 
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
         setLoading(true);
+        console.log("프로필 데이터를 가져오는 중...");
         const data = await getInstagramProfiles();
+        console.log("받은 데이터:", data);
         const list = data?.data || [];
+        console.log("프로필 목록:", list);
         setProfiles(list);
-        if (!selectedInstagramProfile && list.length > 0) {
-          setSelectedInstagramProfile(list[0]);
+        if (!selectedProfile && list.length > 0) {
+          console.log("첫 번째 프로필 선택:", list[0]);
+          setSelectedProfile(list[0]);
         }
       } catch (err) {
+        console.error("프로필 로딩 오류:", err);
         setError(err?.message || "프로필을 불러오지 못했습니다.");
       } finally {
         setLoading(false);
       }
     };
     fetchProfiles();
-  }, [selectedInstagramProfile, setSelectedInstagramProfile]);
+  }, []);
+
+  // selectedProfileId가 변경될 때 해당 프로필을 선택
+  useEffect(() => {
+    if (selectedProfileId && profiles.length > 0) {
+      const profile = profiles.find(p => String(p.id) === String(selectedProfileId));
+      if (profile && profile.id !== selectedProfile?.id) {
+        console.log("selectedProfileId로 프로필 선택:", profile);
+        setSelectedProfile(profile);
+      }
+    }
+  }, [selectedProfileId, profiles]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -49,7 +72,24 @@ export default function ProfileSelector() {
   const handleChange = (e) => {
     const chosenId = e.target.value;
     const chosen = profiles.find((p) => String(p.id) === String(chosenId));
-    if (chosen) setSelectedInstagramProfile(chosen);
+    if (chosen) {
+      setSelectedProfile(chosen);
+      // snsId와 username을 함께 전달
+      if (onProfileSelect) {
+        onProfileSelect({ snsId: chosen.id, username: chosen.username });
+      }
+    }
+  };
+
+  const handleProfileClick = (profile) => {
+    console.log("프로필 클릭:", profile);
+    setSelectedProfile(profile);
+    setOpen(false);
+    // snsId와 username을 함께 전달
+    if (onProfileSelect) {
+      console.log("onProfileSelect 호출:", { snsId: profile.id, username: profile.username });
+      onProfileSelect({ snsId: profile.id, username: profile.username });
+    }
   };
 
   return (
@@ -84,10 +124,10 @@ export default function ProfileSelector() {
               width={16}
               height={16}
             />
-            {selectedInstagramProfile?.username ? (
+            {displayUsername ? (
               <>
                 <span style={{ fontWeight: 600 }}>
-                  @{selectedInstagramProfile.username}
+                  @{displayUsername}
                 </span>
                 <span style={{ opacity: 0.9 }}> 프로필 선택 ▼</span>
               </>
@@ -112,18 +152,16 @@ export default function ProfileSelector() {
                 </div>
               ) : (
                 <>
+                  {console.log("프로필 목록 렌더링:", profiles)}
                   {profiles.map((profile) => (
                     <div
                       key={profile.id}
                       className={`${styles.profileOption} ${
-                        selectedInstagramProfile?.id === profile.id
+                        currentProfile?.id === profile.id
                           ? styles.selected
                           : ""
                       }`}
-                      onClick={() => {
-                        setSelectedInstagramProfile(profile);
-                        setOpen(false);
-                      }}
+                      onClick={() => handleProfileClick(profile)}
                     >
                       <Image
                         src={profile.profile_picture_url || "/user-1.jpg"}
