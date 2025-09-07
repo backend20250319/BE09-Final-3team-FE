@@ -8,17 +8,33 @@ import {
   FiSave,
   FiX,
   FiCamera,
+  FiTrash2,
 } from "react-icons/fi";
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import styles from "../styles/ProfilePage.module.css";
-import { getAdvertiser, updateAdvertiser, getFileByAdvertiserNo, updateFile } from "@/api/advertiserApi";
+import {
+  getAdvertiser,
+  updateAdvertiser,
+  getFileByAdvertiserNo,
+  updateFile,
+} from "@/api/advertiserApi";
+import { withdrawAdvertiser } from "@/api/advertiserAuthApi";
 import { useImage } from "../../context/ImageContext";
 
 const ProfileCard = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
   const [companyData, setCompanyData] = useState(null);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [withdrawPassword, setWithdrawPassword] = useState("");
+  const [withdrawReason, setWithdrawReason] = useState("");
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const { refreshImage } = useImage();
+  const router = useRouter();
 
   const DEFAULT_IMAGE_URL = `http://dev.macacolabs.site:8008/3/advertiser/images/default_brand.png`;
 
@@ -42,8 +58,8 @@ const ProfileCard = () => {
       const fileData = await getFileByAdvertiserNo();
 
       // status가 IMAGE인 항목을 찾아서 previewImage 설정
-      const imageFile = fileData?.find(file => file.type === 'PROFILE');
-      
+      const imageFile = fileData?.find((file) => file.type === "PROFILE");
+
       if (imageFile?.filePath && imageFile.filePath.trim() !== "") {
         setPreviewImage(imageFile.filePath);
       } else {
@@ -74,7 +90,7 @@ const ProfileCard = () => {
 
   useEffect(() => {
     loadProfileImage();
-  }, [])
+  }, []);
 
   const handleEdit = () => {
     setEditData(companyData);
@@ -87,44 +103,44 @@ const ProfileCard = () => {
     // 웹사이트와 이메일 필드 검증
     const websiteInput = document.querySelector('input[type="url"]');
     const emailInput = document.querySelector('input[type="email"]');
-    
+
     if (websiteInput && !websiteInput.checkValidity()) {
       websiteInput.reportValidity();
       return;
     }
-    
+
     if (emailInput && !emailInput.checkValidity()) {
       emailInput.reportValidity();
       return;
     }
 
-  try {
-    const phone = phoneFields.join("-");
-    const updatedData = { ...editData, phone };
-    const savedData = await updateAdvertiser(updatedData);
+    try {
+      const phone = phoneFields.join("-");
+      const updatedData = { ...editData, phone };
+      const savedData = await updateAdvertiser(updatedData);
 
-    if (uploadedFile) {
-      try {
-        await updateFile(uploadedFile);
-      } catch (imageError) {
-        console.error("Failed to upload image:", imageError);
+      if (uploadedFile) {
+        try {
+          await updateFile(uploadedFile);
+        } catch (imageError) {
+          console.error("Failed to upload image:", imageError);
+        }
       }
+
+      // 서버 응답 데이터로 상태 업데이트
+      setCompanyData(savedData);
+      setEditData(savedData);
+      setIsEditing(false);
+      setIsSaved(true);
+      setUploadedFile(null);
+
+      await loadProfileImage();
+
+      refreshImage();
+    } catch (error) {
+      console.error("Failed to update advertiser profile:", error);
     }
-
-    // 서버 응답 데이터로 상태 업데이트
-    setCompanyData(savedData);
-    setEditData(savedData);
-    setIsEditing(false);
-    setIsSaved(true);
-    setUploadedFile(null);
-
-    await loadProfileImage();
-
-    refreshImage();
-  } catch (error) {
-    console.error("Failed to update advertiser profile:", error);
-  }
-}
+  };
 
   const handleCancel = () => {
     setIsSaved(false);
@@ -165,6 +181,63 @@ const ProfileCard = () => {
     if (isEditing && fileInputRef.current) {
       fileInputRef.current.click();
     }
+  };
+
+  // 회원탈퇴 모달 열기
+  const handleWithdrawClick = () => {
+    setShowWithdrawModal(true);
+    setWithdrawPassword("");
+    setWithdrawReason("");
+  };
+
+  // 회원탈퇴 모달 닫기
+  const handleWithdrawCancel = () => {
+    setShowWithdrawModal(false);
+    setWithdrawPassword("");
+    setWithdrawReason("");
+  };
+
+  // 회원탈퇴 실행
+  const handleWithdrawConfirm = async () => {
+    if (!withdrawPassword.trim()) {
+      setErrorMessage("비밀번호를 입력해주세요.");
+      setShowErrorModal(true);
+      return;
+    }
+
+    if (!withdrawReason.trim()) {
+      setErrorMessage("탈퇴 사유를 입력해주세요.");
+      setShowErrorModal(true);
+      return;
+    }
+
+    setIsWithdrawing(true);
+    try {
+      await withdrawAdvertiser(withdrawPassword, withdrawReason);
+      setShowWithdrawModal(false);
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error("회원탈퇴 실패:", error);
+      if (error.response?.data?.message) {
+        setErrorMessage(error.response.data.message);
+      } else {
+        setErrorMessage("회원탈퇴 중 오류가 발생했습니다. 다시 시도해주세요.");
+      }
+      setShowErrorModal(true);
+    } finally {
+      setIsWithdrawing(false);
+    }
+  };
+
+  // 성공 모달에서 확인 버튼 클릭 시 로그인 페이지로 이동
+  const handleSuccessConfirm = () => {
+    // 로컬 스토리지 정리
+    localStorage.removeItem("advertiserToken");
+    localStorage.removeItem("advertiserNo");
+    localStorage.removeItem("advertiserName");
+
+    // 로그인 페이지로 이동
+    router.push("/advertiser/login");
   };
 
   // 로딩 상태 처리
@@ -248,7 +321,11 @@ const ProfileCard = () => {
                 />
               ) : (
                 <p className={styles.description}>
-                  {companyData?.description || <span style={{ color: "#888" }}>기입된 기업 소개가 없습니다</span>}
+                  {companyData?.description || (
+                    <span style={{ color: "#888" }}>
+                      기입된 기업 소개가 없습니다
+                    </span>
+                  )}
                 </p>
               )}
             </div>
@@ -317,7 +394,11 @@ const ProfileCard = () => {
                     />
                   ) : (
                     <p className={styles.contactText}>
-                      {companyData?.website || <span style={{ color: "#888" }}>기입된 웹사이트가 없습니다</span>}
+                      {companyData?.website || (
+                        <span style={{ color: "#888" }}>
+                          기입된 웹사이트가 없습니다
+                        </span>
+                      )}
                     </p>
                   )}
                 </div>
@@ -341,7 +422,11 @@ const ProfileCard = () => {
                     />
                   ) : (
                     <p className={styles.contactText}>
-                      {companyData?.email || <span style={{ color: "#888" }}>기입된 이메일이 없습니다</span>}
+                      {companyData?.email || (
+                        <span style={{ color: "#888" }}>
+                          기입된 이메일이 없습니다
+                        </span>
+                      )}
                     </p>
                   )}
                 </div>
@@ -368,6 +453,136 @@ const ProfileCard = () => {
           )}
         </div>
       </div>
+
+      {/* 회원탈퇴 버튼 - cardContent 우측 아래 */}
+      {!isEditing && (
+        <div className={styles.withdrawButtonContainer}>
+          <button
+            className={styles.withdrawButton}
+            onClick={handleWithdrawClick}
+          >
+            <FiTrash2 className={styles.withdrawIcon} />
+            회원탈퇴
+          </button>
+        </div>
+      )}
+
+      {/* 회원탈퇴 모달 */}
+      {showWithdrawModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContainer}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>회원탈퇴</h3>
+              <button
+                className={styles.modalCloseButton}
+                onClick={handleWithdrawCancel}
+              >
+                <FiX />
+              </button>
+            </div>
+
+            <div className={styles.modalContent}>
+              <div className={styles.warningMessage}>
+                <p>⚠️ 회원탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다.</p>
+                <p>정말로 탈퇴하시겠습니까?</p>
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label className={styles.inputLabel}>비밀번호 확인</label>
+                <input
+                  type="password"
+                  value={withdrawPassword}
+                  onChange={(e) => setWithdrawPassword(e.target.value)}
+                  className={styles.modalInput}
+                  placeholder="비밀번호를 입력해주세요"
+                />
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label className={styles.inputLabel}>탈퇴 사유</label>
+                <textarea
+                  value={withdrawReason}
+                  onChange={(e) => setWithdrawReason(e.target.value)}
+                  className={styles.modalTextarea}
+                  placeholder="탈퇴 사유를 입력해주세요"
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            <div className={styles.modalButtons}>
+              <button
+                className={styles.modalCancelButton}
+                onClick={handleWithdrawCancel}
+                disabled={isWithdrawing}
+              >
+                취소
+              </button>
+              <button
+                className={styles.modalConfirmButton}
+                onClick={handleWithdrawConfirm}
+                disabled={isWithdrawing}
+              >
+                {isWithdrawing ? "처리중..." : "탈퇴하기"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 성공 모달 */}
+      {showSuccessModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContainer}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>회원탈퇴 완료</h3>
+            </div>
+
+            <div className={styles.modalContent}>
+              <div className={styles.successMessage}>
+                <div className={styles.successIcon}>✓</div>
+                <p>회원탈퇴가 성공적으로 완료되었습니다.</p>
+                <p>이용해주셔서 감사합니다.</p>
+              </div>
+            </div>
+
+            <div className={styles.modalButtons}>
+              <button
+                className={styles.modalConfirmButton}
+                onClick={handleSuccessConfirm}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 에러 모달 */}
+      {showErrorModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContainer}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>오류</h3>
+            </div>
+
+            <div className={styles.modalContent}>
+              <div className={styles.errorMessage}>
+                <p>❌ {errorMessage}</p>
+              </div>
+            </div>
+
+            <div className={styles.modalButtons}>
+              <button
+                className={styles.modalCancelButton}
+                onClick={() => setShowErrorModal(false)}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
