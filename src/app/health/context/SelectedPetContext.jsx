@@ -19,7 +19,7 @@ export function SelectedPetProvider({ children }) {
         if (petsData && Array.isArray(petsData)) {
           setPets(petsData);
 
-          // petNo 오름차순으로 정렬하여 가장 낮은 petNo 선택 (저장된 펫 무시)
+          // petNo 오름차순으로 정렬하여 가장 낮은 petNo 선택
           if (petsData.length > 0) {
             const sortedPets = [...petsData].sort((a, b) => a.petNo - b.petNo);
             const firstPet = sortedPets[0];

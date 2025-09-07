@@ -35,8 +35,11 @@ const PetProfile = () => {
       if (data.data && data.data.length > 0) {
         data.data.forEach((pet, index) => {
           console.log(`반려동물 ${index + 1} 전체 데이터:`, pet);
-          console.log(`반려동물 ${index + 1} snsUrl 필드:`, pet.snsUrl);
-          console.log(`반려동물 ${index + 1} snsUrl 타입:`, typeof pet.snsUrl);
+          console.log(`반려동물 ${index + 1} snsId 필드:`, pet.snsId);
+          console.log(
+            `반려동물 ${index + 1} snsUsername 필드:`,
+            pet.snsUsername
+          );
         });
       }
       setPets(data.data || []);
@@ -208,7 +211,11 @@ const PetProfile = () => {
               <div className={styles.petGrid}>
                 {pets.map((pet) => {
                   console.log(`반려동물 ${pet.name} 데이터:`, pet);
-                  console.log(`반려동물 ${pet.name} snsUrl:`, pet.snsUrl);
+                  console.log(`반려동물 ${pet.name} snsId:`, pet.snsId);
+                  console.log(
+                    `반려동물 ${pet.name} snsUsername:`,
+                    pet.snsUsername
+                  );
                   return (
                     <div key={pet.petNo} className={styles.petCard}>
                       <div className={styles.petImageContainer}>
@@ -266,9 +273,9 @@ const PetProfile = () => {
                             ? "암컷"
                             : pet.gender}
                         </div>
-                        {pet.snsUrl &&
-                        pet.snsUrl.trim() !== "" &&
-                        pet.snsUrl !== null ? (
+                        {pet.snsUsername &&
+                        pet.snsUsername.trim() !== "" &&
+                        pet.snsUsername !== null ? (
                           <div className={styles.snsUrlContainer}>
                             <img
                               src="/user/instagram.svg"
@@ -276,7 +283,7 @@ const PetProfile = () => {
                               className={styles.snsIcon}
                             />
                             <span className={styles.snsUrlText}>
-                              {pet.snsUrl}
+                              @{pet.snsUsername}
                             </span>
                           </div>
                         ) : (
@@ -289,7 +296,7 @@ const PetProfile = () => {
                               className={styles.snsIcon}
                             />
                             <span className={styles.snsUrlText}>
-                              SNS URL 없음
+                              SNS 프로필 없음
                             </span>
                           </div>
                         )}

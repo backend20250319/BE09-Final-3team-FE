@@ -347,7 +347,7 @@ export default function ReviewUrlModal({ isOpen, onClose, applicant, onReviewUpd
         <div className={styles.modalBody}>
           <div className={styles.petInfo}>
             <h3 className={styles.petName}>{applicant?.pet?.name}</h3>
-            <p className={styles.petHandle}>@{applicant?.pet?.snsUrl?.split('/').pop()}</p>
+            <p className={styles.petHandle}>{applicant?.pet?.snsUsername || 'SNS 정보 없음'}</p>
           </div>
           
           {renderContent()}
