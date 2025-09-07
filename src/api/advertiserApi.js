@@ -137,8 +137,6 @@ const FILE_PREFIX =
   (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_FILE_PREFIX) ||
   "/advertiser-service/file";
 
-// 1. 광고주 파일 업로드
-
 // 2. 광고주 파일 조회
 export const getFileByAdvertiserNo = async () => {
   const res = await advertiserApi.get(`${FILE_PREFIX}/advertiser`);
@@ -146,26 +144,9 @@ export const getFileByAdvertiserNo = async () => {
 };
 
 // 3. 광고주 파일 수정
-export const updateFile = async (
-  newFile = null,
-  newImage = null,
-  fileMetaRequest = null
-) => {
+export const updateFile = async (image) => {
   const formData = new FormData();
-
-  if (newFile) {
-    formData.append("file", newFile);
-  }
-  if (newImage) {
-    formData.append("image", newImage);
-  }
-  if (fileMetaRequest) {
-    // JSON 객체는 문자열로 변환해서 보내야 함
-    formData.append(
-      "fileMeta",
-      new Blob([JSON.stringify(fileMetaRequest)], { type: "application/json" })
-    );
-  }
+  formData.append("image", image);
 
   const res = await advertiserApi.put(`${FILE_PREFIX}/advertiser`, formData, {
     headers: {

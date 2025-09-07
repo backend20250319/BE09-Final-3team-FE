@@ -54,12 +54,11 @@ const Sidebar = () => {
     try {
       const fileData = await getFileByAdvertiserNo();
 
-      if (
-        fileData &&
-        fileData[0]?.filePath &&
-        fileData[0]?.filePath.trim() !== ""
+      const imageFile = fileData?.find(file => file.type === 'PROFILE');
+      
+      if (imageFile?.filePath && imageFile.filePath.trim() !== ""
       ) {
-        setPreviewImage(fileData[0].filePath);
+        setPreviewImage(imageFile.filePath);
         setIsLoadingImage(false);
       } else {
         setPreviewImage(DEFAULT_IMAGE_URL);
