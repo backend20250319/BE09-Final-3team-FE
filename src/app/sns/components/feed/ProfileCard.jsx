@@ -6,8 +6,18 @@ import styles from "../../styles/feed/ProfileCard.module.css";
 export default function ProfileCard() {
   const { selectedInstagramProfile } = useSns();
 
-  if (!selectedInstagramProfile) {
-    return <div className={styles.profileCard}>No profile selected</div>;
+  if (!selectedInstagramProfile || !selectedInstagramProfile.id) {
+    return (
+      <div className={styles.profileCard}>
+        <div className={styles.profileContent}>
+          <div
+            style={{ textAlign: "center", padding: "40px", color: "#6b7280" }}
+          >
+            인스타그램 프로필을 선택해주세요.
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

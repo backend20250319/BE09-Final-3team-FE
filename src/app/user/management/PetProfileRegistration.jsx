@@ -43,7 +43,10 @@ const PetProfileRegistration = ({
         weight: petData.weight || "",
         imageUrl: petData.imageUrl || "",
         snsId: petData.snsId && petData.snsId !== null ? petData.snsId : "",
-        snsUsername: petData.snsUsername && petData.snsUsername !== null ? petData.snsUsername : "",
+        snsUsername:
+          petData.snsUsername && petData.snsUsername !== null
+            ? petData.snsUsername
+            : "",
       };
       setFormData(updatedFormData);
       console.log("설정된 formData.snsId:", petData.snsId);
@@ -174,10 +177,11 @@ const PetProfileRegistration = ({
         gender: formData.gender,
         weight: parseFloat(formData.weight),
         imageUrl: formData.imageUrl || null,
-        snsId:
-          formData.snsId && formData.snsId !== null ? formData.snsId : "",
+        snsId: formData.snsId && formData.snsId !== "" ? formData.snsId : null,
         snsUsername:
-          formData.snsUsername && formData.snsUsername !== null ? formData.snsUsername : "",
+          formData.snsUsername && formData.snsUsername !== ""
+            ? formData.snsUsername
+            : null,
       };
 
       console.log("전송할 데이터:", requestData);
@@ -453,6 +457,7 @@ const PetProfileRegistration = ({
                 }}
                 selectedProfileId={formData.snsId}
                 selectedProfileUsername={formData.snsUsername}
+                allowNone={true}
               />
             </div>
           </div>
