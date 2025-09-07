@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styles from "../styles/AlarmDropdown.module.css";
 import { useRouter } from "next/navigation";
-import { getRecentNotifications } from "@/api/notificationApi";
+import {getRecentNotifications, hideNotification} from "@/api/notificationApi";
 import {
   FiMessageCircle,
   FiHeart,
@@ -10,11 +10,10 @@ import {
   FiActivity,
 } from "react-icons/fi";
 
-// 알람 페이지와 동일한 아이콘 매핑 (React Icons 사용)
 const ICON_MAP = {
   "notification.comment.created": { icon: FiMessageCircle, color: "blue" },
   "notification.post.liked": { icon: FiHeart, color: "red" },
-  "notification.campaign.new": { icon: FiGift, color: "purple" },
+  "campaign.applicant.selected": { icon: FiGift, color: "purple" },
   "health.schedule": { icon: "notification-icon.svg", color: "green" },
   "health.schedule.reserve": { icon: FiActivity, color: "blue" },
 };
@@ -33,14 +32,16 @@ export default function NavbarDropdown({
     router.push("/alarm");
   };
 
-  const handleCloseNotification = (id) => {
-    setNotifications((prev) => {
-      // 삭제만 하고 정렬은 하지 않음 (백엔드에서 이미 정렬되어 옴)
-      return prev.filter((notification) => notification.id !== id);
-    });
-    // 부모 컴포넌트에 알림 삭제 알림
-    if (onNotificationDeleted) {
-      onNotificationDeleted();
+  const handleCloseNotification = async (id) => {
+    try {
+      console.log("알림 숨기기 시도 - ID:", id);
+      await hideNotification(id);
+      console.log("알림 숨기기 성공 - ID:", id);
+      setNotifications((prev) =>
+          prev.filter((notification) => notification.id !== id)
+      );
+    } catch (error) {
+      console.error("알림 숨기기 실패:", error);
     }
   };
 
@@ -89,7 +90,6 @@ export default function NavbarDropdown({
             const IconComponent = cfg.icon;
             const colorClass = cfg.color;
 
-            const id = notification.id;
             const title = notification.title ?? "새로운 알림";
             const content = notification.content ?? "";
             const time =
@@ -104,7 +104,7 @@ export default function NavbarDropdown({
                 className={`${styles.item} ${
                   !notification.isRead ? styles.unread : ""
                 }`}
-                key={id}
+                key={notification.id}
               >
                 <div
                   className={
@@ -141,7 +141,7 @@ export default function NavbarDropdown({
                   className={styles.closeBtn}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleCloseNotification(id);
+                    handleCloseNotification(notification.id);
                   }}
                   aria-label="알림 닫기"
                 >

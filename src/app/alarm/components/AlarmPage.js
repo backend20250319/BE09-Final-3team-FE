@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import "../styles/AlarmPage.css";
 import {
   getNotifications,
+  hideNotification,
   markNotificationAsRead,
 } from "@/api/notificationApi";
 import WebPushButton from "@/app/components/WebPushButton";
@@ -29,10 +30,17 @@ const PetFulNotification = () => {
   const [loading, setLoading] = useState(false);
   const [hasNext, setHasNext] = useState(true);
 
-  const handleCloseNotification = (id) => {
-    setNotifications((prev) =>
-      prev.filter((notification) => notification.id !== id)
-    );
+  const handleCloseNotification = async (id) => {
+    try {
+      console.log("알림 숨기기 시도 - ID:", id);
+      await hideNotification(id);
+      console.log("알림 숨기기 성공 - ID:", id);
+      setNotifications((prev) =>
+        prev.filter((notification) => notification.id !== id)
+      );
+    } catch (error) {
+      console.error("알림 숨기기 실패:", error);
+    }
   };
 
   const handleNotificationClick = async (notification) => {
@@ -180,7 +188,7 @@ const PetFulNotification = () => {
                     className="close-btn"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleCloseNotification(id);
+                      handleCloseNotification(notification.id);
                     }}
                     aria-label="알림 닫기"
                   >
