@@ -193,17 +193,11 @@ export default function ApplicantList({ applicants, currentPage, onPageChange, c
   }, [campaign?.adStatus, applicants]);
 
   // Instagram URL을 핸들 형식으로 변환하는 함수
-  const formatInstagramHandle = (snsUrl) => {
-    if (!snsUrl) return '';
+  const formatInstagramHandle = (snsUsername) => {
+    if (!snsUsername) return '';
     
-    // www.instagram.com/broccoli 형식을 @broccoli로 변환
-    const match = snsUrl.match(/instagram\.com\/([^\/\?]+)/);
-    if (match) {
-      return `@${match[1]}`;
-    }
-    
-    // 그 외의 경우 원본 반환
-    return snsUrl;
+    // 이미 @가 포함되어 있으면 그대로 반환, 없으면 @ 추가
+    return snsUsername.startsWith('@') ? snsUsername : `@${snsUsername}`;
   };
 
   // 게시물 URL 관리 모달 열기
@@ -352,7 +346,7 @@ export default function ApplicantList({ applicants, currentPage, onPageChange, c
             <div className={styles.applicantInfo}>
               <div className={styles.applicantDiv}>
                 <h3 className={styles.applicantName}>{applicant?.pet?.name}</h3>
-                <p className={styles.applicantUsername}>{formatInstagramHandle(applicant?.pet?.snsUrl)}</p>
+                <p className={styles.applicantUsername}>{formatInstagramHandle(applicant?.pet?.snsUsername)}</p>
               </div>
               <p className={styles.applicantDescription}>
                 {petPortfolios[applicant?.pet?.petNo]?.content}

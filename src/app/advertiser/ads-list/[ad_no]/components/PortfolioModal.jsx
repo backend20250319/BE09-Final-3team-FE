@@ -70,17 +70,11 @@ export default function PortfolioModal({ isOpen, onClose, petData }) {
   }, [isOpen, petData]);
 
   // Instagram URL을 핸들 형식으로 변환하는 함수
-  const formatInstagramHandle = (snsUrl) => {
-    if (!snsUrl) return '';
+  const formatInstagramHandle = (snsUsername) => {
+    if (!snsUsername) return '';
     
-    // www.instagram.com/broccoli 형식을 @broccoli로 변환
-    const match = snsUrl.match(/instagram\.com\/([^\/\?]+)/);
-    if (match) {
-      return `@${match[1]}`;
-    }
-    
-    // 그 외의 경우 원본 반환
-    return snsUrl;
+    // 이미 @가 포함되어 있으면 그대로 반환, 없으면 @ 추가
+    return snsUsername.startsWith('@') ? snsUsername : `@${snsUsername}`;
   };
 
   const handleCardClick = (card) => {
@@ -130,7 +124,7 @@ export default function PortfolioModal({ isOpen, onClose, petData }) {
                       alt="instagram.png"
                       width={16} 
                       height={16} />
-                    <span className={styles.instagramHandle}>{formatInstagramHandle(petData?.pet?.snsUrl) || 'SNS 정보 없음'}</span>
+                    <span className={styles.instagramHandle}>{formatInstagramHandle(petData?.pet?.snsUsername) || 'SNS 정보 없음'}</span>
                   </div>
                 </div>
                 <div className={styles.detailGrid}>

@@ -3,12 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import styles from "./Mypage.module.css";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import {
-  getProfile,
-  updateProfile,
-  uploadProfileImage,
-  withdraw,
-} from "../../../api/userApi";
+import api from "../../../api/api";
 
 const MyPage = () => {
   // ✅ 컨트롤드 입력을 위한 초기 빈 값
@@ -80,7 +75,7 @@ const MyPage = () => {
     }
 
     try {
-      const response = await axios.post(`${USER_API_BASE}/auth/refresh`, {
+      const response = await api.post("/user-service/auth/refresh", {
         refreshToken,
       });
 
@@ -132,17 +127,17 @@ const MyPage = () => {
       };
 
       if (options.method === "GET") {
-        return axios.get(url, config);
+        return api.get(url, config);
       } else if (options.method === "POST") {
-        return axios.post(url, options.data, config);
+        return api.post(url, options.data, config);
       } else if (options.method === "PATCH") {
-        return axios.patch(url, options.data, config);
+        return api.patch(url, options.data, config);
       } else if (options.method === "PUT") {
-        return axios.put(url, options.data, config);
+        return api.put(url, options.data, config);
       } else if (options.method === "DELETE") {
-        return axios.delete(url, { ...config, data: options.data });
+        return api.delete(url, { ...config, data: options.data });
       } else {
-        return axios.get(url, config);
+        return api.get(url, config);
       }
     };
 
@@ -171,7 +166,8 @@ const MyPage = () => {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const userData = await getProfile();
+      const response = await api.get("/user-service/auth/profile");
+      const userData = response.data?.data ?? response.data;
 
       // 주소 데이터 설정
       const addressValue = userData.roadAddress || userData.address || "";
@@ -220,15 +216,7 @@ const MyPage = () => {
         return;
       }
 
-      const response = await axios.get(
-        "http://localhost:8000/api/v1/sns-service/instagram/profiles",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await api.get("/sns-service/instagram/profiles");
 
       if (response.data.code === "2000") {
         setConnectedProfiles(response.data.data || []);
@@ -263,7 +251,10 @@ const MyPage = () => {
         // birthDate는 수정 불가능하므로 제외
       };
 
-      await updateProfile(profileData);
+      const response = await api.patch(
+        "/user-service/auth/profile",
+        profileData
+      );
 
       // 성공 시 편집 모드 종료
       setIsEditable(false);
@@ -322,18 +313,9 @@ const MyPage = () => {
         return;
       }
 
-      const response = await axios.post(
-        "http://localhost:8000/api/v1/sns-service/instagram/auth/connect",
-        {
-          access_token: accessToken,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await api.post("/sns-service/instagram/auth/connect", {
+        access_token: accessToken,
+      });
 
       console.log("Instagram 연결 API 응답:", response.data);
       setSuccess("Instagram 계정이 성공적으로 연결되었습니다!");
@@ -397,10 +379,25 @@ const MyPage = () => {
   const uploadImageToFTP = async (file) => {
     try {
       // 프로필 이미지 업로드 API 호출
-      const response = await uploadProfileImage(file);
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("userNo", localStorage.getItem("userNo") || "");
+
+      const response = await api.post(
+        "/user-service/auth/profile/image",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
       // 업로드된 이미지 URL로 미리보기 설정
-      const imageUrl = response?.data?.imageUrl || response?.imageUrl;
+      const imageUrl =
+        response?.data?.data?.imageUrl ||
+        response?.data?.imageUrl ||
+        response?.imageUrl;
       if (imageUrl) {
         setProfileImage(imageUrl);
         setFormData((prev) => ({ ...prev, profileImageUrl: imageUrl }));
@@ -463,7 +460,12 @@ const MyPage = () => {
       setLoading(true);
       setError("");
 
-      await withdraw(withdrawPassword, withdrawReason || "사용자 요청");
+      await api.delete("/user-service/auth/withdraw", {
+        data: {
+          password: withdrawPassword,
+          reason: withdrawReason || "사용자 요청",
+        },
+      });
 
       // 회원탈퇴 성공 시 로컬스토리지 클리어
       localStorage.clear();

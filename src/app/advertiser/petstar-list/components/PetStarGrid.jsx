@@ -123,17 +123,11 @@ export default function PetstarGrid({ searchQuery, sortBy }) {
   }
 
   // Instagram URL을 핸들 형식으로 변환하는 함수
-  const formatInstagramHandle = (snsUrl) => {
-    if (!snsUrl) return '';
+  const formatInstagramHandle = (snsUsername) => {
+    if (!snsUsername) return '';
     
-    // www.instagram.com/broccoli 형식을 @broccoli로 변환
-    const match = snsUrl.match(/instagram\.com\/([^\/\?]+)/);
-    if (match) {
-      return `@${match[1]}`;
-    }
-    
-    // 그 외의 경우 원본 반환
-    return snsUrl;
+    // 이미 @가 포함되어 있으면 그대로 반환, 없으면 @ 추가
+    return snsUsername.startsWith('@') ? snsUsername : `@${snsUsername}`;
   };
 
   return (
@@ -153,7 +147,7 @@ export default function PetstarGrid({ searchQuery, sortBy }) {
             <div className={styles.petstarInfo}>
               <div className={styles.petstarDiv}>
                 <h3 className={styles.petstarName}>{petstar.name}</h3>
-                <p className={styles.petstarUsername}>{formatInstagramHandle(petstar.snsUrl)}</p>
+                <p className={styles.petstarUsername}>{formatInstagramHandle(petstar.snsUsername)}</p>
               </div>
               <p className={styles.petstarDescription}>{petstar.portfolioData?.content}</p>
               <div className={styles.followerInfo}>
@@ -175,8 +169,8 @@ export default function PetstarGrid({ searchQuery, sortBy }) {
                 <button 
                   className={styles.snsButton}
                   onClick={() => {
-                    if (petstar.snsUrl) {
-                      const url = petstar.snsUrl.match(/^https?:\/\//) ? petstar.snsUrl : `https://${petstar.snsUrl}`;
+                    if (petstar.snsUsername) {
+                      const url = `https://www.instagram.com/${petstar.snsUsername.replace('@', '')}`;
                       window.open(url, '_blank');
                     }
                   }}

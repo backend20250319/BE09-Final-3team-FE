@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import styles from "./page.module.css";
@@ -8,7 +8,9 @@ import {
   sendAdvertiserVerificationCode,
   verifyAdvertiserCode,
   advertiserSignup,
-} from "../../../api/advertiserAuthApi";
+  advertiserLogin,
+  uploadFileByAdvertiserNo,
+} from "@/api/advertiserAuthApi";
 
 // 모달 컴포넌트
 const SuccessModal = ({ isOpen, message, onClose }) => {
@@ -49,6 +51,11 @@ export default function SignupPage() {
     phone: "",
     businessNumber: "",
   });
+
+  // 파일 업로드 상태 관리
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [fileError, setFileError] = useState("");
+  const fileInputRef = useRef(null);
 
   const [errors, setErrors] = useState({ passwordMatch: false });
   const [verificationStatus, setVerificationStatus] = useState({
@@ -213,6 +220,7 @@ export default function SignupPage() {
     setNameError("");
     setPhoneError("");
     setBusinessNumberError("");
+    setFileError("");
   };
 
   // 모달 열기 함수
@@ -240,38 +248,82 @@ export default function SignupPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 비밀번호 유효성 검사
-    const passwordRegex = /^(?=.*[!@#$%^&*(),.?":{}|<>])/;
-    if (!passwordRegex.test(formData.password)) {
-      setPasswordError("비밀번호에 특수문자를 하나 이상 포함해주세요.");
-      return;
+    // 모든 필수 항목 검증
+    let hasError = false;
+
+    // 이메일 검증
+    if (!formData.email.trim()) {
+      setEmailError("이메일을 입력해주세요.");
+      hasError = true;
     }
 
-    // 비밀번호 일치 확인
-    if (formData.password !== formData.confirmPassword) {
+    // 이메일 인증 검증
+    if (!verificationStatus.verified) {
+      setVerificationCodeError("이메일 인증을 완료해주세요.");
+      hasError = true;
+    }
+
+    // 비밀번호 검증
+    if (!formData.password.trim()) {
+      setPasswordError("비밀번호를 입력해주세요.");
+      hasError = true;
+    } else {
+      const passwordRegex = /^(?=.*[!@#$%^&*(),.?":{}|<>])/;
+      if (!passwordRegex.test(formData.password)) {
+        setPasswordError("비밀번호에 특수문자를 하나 이상 포함해주세요.");
+        hasError = true;
+      }
+    }
+
+    // 비밀번호 확인 검증
+    if (!formData.confirmPassword.trim()) {
+      setConfirmPasswordError("비밀번호 확인을 입력해주세요.");
+      hasError = true;
+    } else if (formData.password !== formData.confirmPassword) {
       setErrors((prev) => ({ ...prev, passwordMatch: true }));
-      return;
+      setConfirmPasswordError("비밀번호가 일치하지 않습니다.");
+      hasError = true;
+    }
+
+    // 기업명 검증
+    if (!formData.name.trim()) {
+      setNameError("기업명을 입력해주세요.");
+      hasError = true;
+    }
+
+    // 전화번호 검증
+    if (!formData.phone.trim()) {
+      setPhoneError("전화번호를 입력해주세요.");
+      hasError = true;
     }
 
     // 사업자등록번호 검증
-    const businessNumberValidation = validateBusinessNumber(
-      formData.businessNumber
-    );
-    if (businessNumberValidation) {
-      setBusinessNumberError(businessNumberValidation);
-      return;
+    if (!formData.businessNumber.trim()) {
+      setBusinessNumberError("사업자등록번호를 입력해주세요.");
+      hasError = true;
+    } else {
+      const businessNumberValidation = validateBusinessNumber(formData.businessNumber);
+      if (businessNumberValidation) {
+        setBusinessNumberError(businessNumberValidation);
+        hasError = true;
+      }
     }
 
-    // 이메일 미인증 차단 (선택사항)
-    if (!verificationStatus.verified) {
-      if (!confirm("이메일 인증을 완료하지 않았습니다. 계속 진행할까요?")) {
-        return;
-      }
+    // 서류 제출 검증
+    if (!selectedFile) {
+      setFileError("서류 제출은 필수입니다.");
+      hasError = true;
+    }
+
+    // 에러가 있으면 제출 중단
+    if (hasError) {
+      return;
     }
 
     try {
       console.log("회원가입 시도 시작...");
       console.log("formData:", formData);
+      console.log("selectedFile:", selectedFile);
 
       setLoading((prev) => ({ ...prev, signup: true }));
 
@@ -290,6 +342,52 @@ export default function SignupPage() {
       console.log("회원가입 응답 데이터:", data);
 
       if (data && data.code === "2000") {
+        // 회원가입 성공 후 파일 업로드
+        try {
+          console.log("회원가입 성공! 파일 업로드 시작...");
+          const advertiserNo = data.data?.advertiserNo || data.data?.advertiser?.advertiserNo;
+          
+          if (advertiserNo) {
+            // 회원가입 후 잠시 대기 후 자동 로그인하여 토큰 획득
+            console.log("3초 후 자동 로그인 시도...");
+            
+            // 3초 대기 후 로그인 시도
+            setTimeout(async () => {
+              try {
+                const loginData = await advertiserLogin(formData.email, formData.password);
+                
+                // 토큰을 localStorage에 저장
+                if (loginData.data?.accessToken) {
+                  localStorage.setItem("advertiserToken", loginData.data.accessToken);
+                  localStorage.setItem("advertiserNo", advertiserNo);
+                  localStorage.setItem("userType", "advertiser");
+                  
+                  // 이제 토큰과 함께 파일 업로드
+                  console.log("파일 업로드 시작...");
+                  const uploadedFileData = await uploadFileByAdvertiserNo(selectedFile, advertiserNo);
+                  console.log("파일 업로드 완료:", uploadedFileData);
+                } else {
+                  console.warn("로그인 응답에 토큰이 없습니다:", loginData);
+                }
+              } catch (loginError) {             
+                // 로그인 실패해도 파일 업로드 시도 (토큰 없이)
+                console.log("토큰 없이 파일 업로드 시도...");
+                try {
+                  const uploadedFileData = await uploadFileByAdvertiserNo(selectedFile, advertiserNo);
+                  console.log("파일 업로드 완료:", uploadedFileData);
+                } catch (uploadError) {
+                  console.error("토큰 없이 파일 업로드도 실패:", uploadError);
+                }
+              }
+            }, 3000); // 3초 대기
+          } else {
+            console.warn("advertiserNo를 찾을 수 없습니다:", data);
+          }
+        } catch (fileError) {
+          console.error("파일 업로드 실패:", fileError);
+          // 파일 업로드 실패해도 회원가입은 성공으로 처리
+        }
+
         clearAllErrors(); // 성공 시 모든 에러 초기화
         console.log("회원가입 성공! 모달 열기 시도...");
 
@@ -339,6 +437,9 @@ export default function SignupPage() {
           if (validationErrors.businessNumber) {
             setBusinessNumberError(validationErrors.businessNumber);
           }
+          if (validationErrors.fileNo) {
+            setFileError(validationErrors.fileNo);
+          }
         } else {
           setEmailError(data.message ?? "회원가입에 실패했습니다.");
         }
@@ -348,7 +449,12 @@ export default function SignupPage() {
       ) {
         alert("네트워크 연결을 확인해주세요.");
       } else {
-        alert(error.message || "회원가입에 실패했습니다. 다시 시도해주세요.");
+        // 파일 업로드 에러인지 확인
+        if (error.message && error.message.includes("file")) {
+          setFileError("파일 업로드에 실패했습니다. 다시 시도해주세요.");
+        } else {
+          alert(error.message || "회원가입에 실패했습니다. 다시 시도해주세요.");
+        }
       }
     } finally {
       setLoading((prev) => ({ ...prev, signup: false }));
@@ -476,8 +582,39 @@ export default function SignupPage() {
   };
 
   const handleFileSelect = (file) => {
-    // 파일 업로드 로직을 여기에 추가할 수 있습니다
+    // 파일 유효성 검사
+    if (!file) {
+      setFileError("파일을 선택해주세요.");
+      return;
+    }
+
+    // 파일 크기 검사 (10MB 제한)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      setFileError("파일 크기는 10MB 이하여야 합니다.");
+      return;
+    }
+
+    // 파일 타입 검사
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      setFileError("JPG, PNG, PDF 파일만 업로드 가능합니다.");
+      return;
+    }
+
+    setSelectedFile(file);
+    setFileError("");
     console.log("Selected file:", file);
+  };
+
+  // 파일 제거 함수
+  const handleFileRemove = () => {
+    setSelectedFile(null);
+    setFileError("");
+    // input 요소의 value 초기화
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   return (
@@ -676,7 +813,9 @@ export default function SignupPage() {
               </div>
               {/* 서류 제출 */}
               <div className={styles.formGroup}>
-                <label className={styles.label}>서류제출</label>
+                <label className={styles.label}>
+                  서류제출 <span style={{ color: 'red' }}>*</span>
+                </label>
                 <div
                   className={styles.dropzone}
                   onDragOver={(e) => e.preventDefault()}
@@ -693,10 +832,15 @@ export default function SignupPage() {
                   />
                   <p className={styles.dropText}>
                     파일을 드래그 하거나 업로드 해주세요.
+                    <br />
+                    <small style={{ color: '#666' }}>
+                      (JPG, PNG, PDF 파일만 가능, 최대 10MB, 1개 파일만 업로드 가능)
+                    </small>
                   </p>
                   <label className={styles.browseButton}>
                     Browse Files
                     <input
+                      ref={fileInputRef}
                       type="file"
                       accept="image/*,.pdf"
                       onChange={(e) => {
@@ -704,9 +848,36 @@ export default function SignupPage() {
                           handleFileSelect(e.target.files[0]);
                       }}
                       className={styles.fileInput}
+                      disabled={
+                        loading.sendCode || loading.verifyCode || loading.signup
+                      }
                     />
                   </label>
                 </div>
+                {selectedFile && (
+                  <div className={styles.successMessage}>
+                    선택된 파일: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)}MB)
+                    <button
+                      type="button"
+                      onClick={handleFileRemove}
+                      style={{
+                        marginLeft: '10px',
+                        background: '#ff4444',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        padding: '2px 8px',
+                        fontSize: '12px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      제거
+                    </button>
+                  </div>
+                )}
+                {fileError && (
+                  <div className={styles.errorMessage}>{fileError}</div>
+                )}
               </div>
             </form>
             <div className={styles.loginLink}>
@@ -718,7 +889,18 @@ export default function SignupPage() {
             <button
               type="submit"
               onClick={handleSubmit}
-              disabled={loading.signup || errors.passwordMatch}
+              disabled={
+                loading.signup || 
+                errors.passwordMatch || 
+                !selectedFile ||
+                !formData.email.trim() ||
+                !verificationStatus.verified ||
+                !formData.password.trim() ||
+                !formData.confirmPassword.trim() ||
+                !formData.name.trim() ||
+                !formData.phone.trim() ||
+                !formData.businessNumber.trim()
+              }
               className={styles.submitButton}
             >
               {loading.signup ? "처리중..." : "확인"}

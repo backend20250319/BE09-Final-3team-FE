@@ -2,13 +2,14 @@
 
 import { useState, useRef, useEffect } from "react";
 import styles from "./PetProfileRegistration.module.css";
-import { createPet, updatePet, uploadPetImage } from "../../../api/petApi";
+import api from "../../../api/api";
+import ProfileSelector from "../../sns/components/ProfileSelector";
 
 const PetProfileRegistration = ({
   isOpen,
   onClose,
-  petData = null,
-  isEditMode = false,
+  petData,
+  isEditMode,
   onSuccess,
   onSuccessMessage,
 }) => {
@@ -19,7 +20,8 @@ const PetProfileRegistration = ({
     gender: "",
     weight: "",
     imageUrl: "",
-    snsUrl: "",
+    snsId: "",
+    snsUsername: "",
   });
 
   const [selectedImage, setSelectedImage] = useState(null);
@@ -29,7 +31,7 @@ const PetProfileRegistration = ({
 
   // 수정 모드일 때 기존 데이터를 폼에 불러오기
   useEffect(() => {
-    if (isEditMode && petData && petData.petNo) {
+    if (isEditMode && petData) {
       console.log("수정 모드 - 기존 펫 데이터:", petData);
       const updatedFormData = {
         name: petData.name || "",
@@ -38,12 +40,16 @@ const PetProfileRegistration = ({
         gender: petData.gender || "",
         weight: petData.weight || "",
         imageUrl: petData.imageUrl || "",
-        snsUrl: petData.snsUrl && petData.snsUrl !== null ? petData.snsUrl : "",
+        snsId: petData.snsId && petData.snsId !== null ? petData.snsId : "",
+        snsUsername:
+          petData.snsUsername && petData.snsUsername !== null
+            ? petData.snsUsername
+            : "",
       };
       setFormData(updatedFormData);
-      console.log("설정된 formData.snsUrl:", petData.snsUrl);
+      console.log("설정된 formData.snsId:", petData.snsId);
       console.log("설정된 전체 formData:", updatedFormData);
-      console.log("snsUrl 처리 결과:", updatedFormData.snsUrl);
+      console.log("snsId 처리 결과:", updatedFormData.snsId);
       // 기존 이미지가 있으면 표시
       if (petData.imageUrl && petData.imageUrl.trim() !== "") {
         setSelectedImage(petData.imageUrl);
@@ -59,7 +65,8 @@ const PetProfileRegistration = ({
         gender: "",
         weight: "",
         imageUrl: "",
-        snsUrl: "",
+        snsId: "",
+        snsUsername: "",
       });
       setSelectedImage(null);
     }
@@ -144,14 +151,6 @@ const PetProfileRegistration = ({
 
   const handleSubmit = async () => {
     try {
-      // 수정 모드일 때 petData 검증
-      if (isEditMode && (!petData || !petData.petNo)) {
-        if (onSuccessMessage) {
-          onSuccessMessage("펫 데이터가 올바르지 않습니다.");
-        }
-        return;
-      }
-
       // 필수 필드 검증
       if (
         !formData.name ||
@@ -166,9 +165,6 @@ const PetProfileRegistration = ({
         return;
       }
 
-      const token = localStorage.getItem("token");
-      const userNo = localStorage.getItem("userNo");
-
       const requestData = {
         name: formData.name,
         type: formData.type,
@@ -176,43 +172,62 @@ const PetProfileRegistration = ({
         gender: formData.gender,
         weight: parseFloat(formData.weight),
         imageUrl: formData.imageUrl || null,
-        snsUrl:
-          formData.snsUrl && formData.snsUrl !== null ? formData.snsUrl : "",
+        snsId: formData.snsId && formData.snsId !== "" ? formData.snsId : null,
+        snsUsername:
+          formData.snsUsername && formData.snsUsername !== ""
+            ? formData.snsUsername
+            : null,
       };
 
       console.log("전송할 데이터:", requestData);
       console.log("수정 모드 여부:", isEditMode);
       console.log("기존 펫 데이터:", petData);
-      console.log("현재 formData.snsUrl:", formData.snsUrl);
-      console.log("formData.snsUrl 타입:", typeof formData.snsUrl);
-      console.log("formData.snsUrl === null:", formData.snsUrl === null);
+      console.log("현재 formData.snsId:", formData.snsId);
+      console.log("formData.snsId 타입:", typeof formData.snsId);
+      console.log("formData.snsId === null:", formData.snsId === null);
       console.log(
         "API 엔드포인트:",
-        isEditMode && petData ? `PUT /pets/${petData.petNo}` : `POST /pets`
+        isEditMode
+          ? `${PET_API_BASE}/pets/${petData.petNo}`
+          : `${PET_API_BASE}/pets`
       );
 
       let petResponse;
       if (isEditMode && petData) {
         // 수정
-        console.log("PUT 요청 시작 - 펫 번호:", petData?.petNo);
-        petResponse = await updatePet(petData?.petNo, requestData);
-        console.log("PUT 요청 응답:", petResponse);
+        console.log("PUT 요청 시작 - 펫 번호:", petData.petNo);
+        petResponse = await api.put(
+          `/pet-service/pets/${petData.petNo}`,
+          requestData
+        );
+        console.log("PUT 요청 응답:", petResponse.data);
       } else {
         // 등록
-        petResponse = await createPet(requestData);
+        petResponse = await api.post(`/pet-service/pets`, requestData);
       }
 
       // 반려동물 등록/수정 성공 후 이미지 업로드
-      if (formData.imageFile && petResponse?.data?.code === "2000") {
-        const petNo = petResponse?.data?.data?.petNo;
+      if (formData.imageFile && petResponse.data.code === "2000") {
+        const petNo = petResponse.data.data.petNo;
+
+        const imageFormData = new FormData();
+        imageFormData.append("file", formData.imageFile);
 
         try {
-          const imageResponse = await uploadPetImage(petNo, formData.imageFile);
+          const imageResponse = await api.post(
+            `/pet-service/pets/${petNo}/image`,
+            imageFormData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
 
-          if (imageResponse?.data?.code === "2000") {
+          if (imageResponse.data.code === "2000") {
             console.log("이미지 업로드 성공:", imageResponse.data.data);
             // 이미지 업로드 성공 시 새로운 이미지 URL로 업데이트
-            const newImageUrl = imageResponse?.data?.data?.fileUrl;
+            const newImageUrl = imageResponse.data.data.fileUrl;
             setFormData((prev) => ({
               ...prev,
               imageUrl: newImageUrl,
@@ -230,15 +245,16 @@ const PetProfileRegistration = ({
       console.log(
         isEditMode ? "펫 프로필 수정 성공!" : "펫 프로필 등록 성공!",
         {
-          petNo: petResponse?.data?.data?.petNo,
+          petNo: petResponse.data.data.petNo,
           name: formData.name,
           type: formData.type,
           age: formData.age,
           gender: formData.gender,
           weight: formData.weight,
           imageUrl: formData.imageUrl,
-          snsUrl: formData.snsUrl,
-          response: petResponse?.data,
+          snsId: formData.snsId,
+          snsUsername: formData.snsUsername,
+          response: petResponse.data,
         }
       );
 
@@ -410,41 +426,19 @@ const PetProfileRegistration = ({
               />
             </div>
 
-            {/* SNS URL Field */}
+            {/* SNS Profile Field */}
             <div className={styles.formGroup}>
-              <label className={styles.label}>SNS URL</label>
-              <div className={styles.snsContainer}>
-                <img
-                  src="/user/instagram.svg"
-                  alt="SNS"
-                  className={styles.snsIcon}
-                />
-                <div className={styles.snsUrlInputContainer}>
-                  <span className={styles.snsUrlPrefix}>
-                    www.instagram.com/
-                  </span>
-                  <input
-                    type="text"
-                    value={
-                      formData.snsUrl &&
-                      formData.snsUrl !== null &&
-                      formData.snsUrl !== "" &&
-                      formData.snsUrl.includes("www.instagram.com/")
-                        ? formData.snsUrl.replace("www.instagram.com/", "")
-                        : ""
-                    }
-                    onChange={(e) => {
-                      const username = e.target.value;
-                      const fullUrl = username
-                        ? `www.instagram.com/${username}`
-                        : "";
-                      handleInputChange("snsUrl", fullUrl);
-                    }}
-                    className={styles.snsUrlInput}
-                    placeholder="사용자명"
-                  />
-                </div>
-              </div>
+              <label className={styles.label}>SNS 프로필</label>
+              <ProfileSelector
+                onProfileSelect={(profileData) => {
+                  console.log("선택된 프로필 데이터:", profileData);
+                  handleInputChange("snsId", profileData.snsId);
+                  handleInputChange("snsUsername", profileData.username);
+                }}
+                selectedProfileId={formData.snsId}
+                selectedProfileUsername={formData.snsUsername}
+                allowNone={true}
+              />
             </div>
           </div>
         </div>
