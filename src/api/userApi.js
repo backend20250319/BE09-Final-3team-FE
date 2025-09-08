@@ -1,4 +1,5 @@
 import api from "./api";
+import { createAuthHeaders } from "../utils/jwtUtils";
 
 const USER_PREFIX =
   (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_USER_PREFIX) ||
@@ -8,13 +9,17 @@ const USER_PREFIX =
 
 // 프로필 조회
 export const getProfile = async () => {
-  const res = await api.get(`${USER_PREFIX}/auth/profile`);
+  const headers = createAuthHeaders();
+  const res = await api.get(`${USER_PREFIX}/auth/profile`, { headers });
   return res.data?.data ?? res.data;
 };
 
 // 프로필 수정
 export const updateProfile = async (profileData) => {
-  const res = await api.patch(`${USER_PREFIX}/auth/profile`, profileData);
+  const headers = createAuthHeaders();
+  const res = await api.patch(`${USER_PREFIX}/auth/profile`, profileData, {
+    headers,
+  });
   return res.data?.data ?? res.data;
 };
 
@@ -24,28 +29,34 @@ export const uploadProfileImage = async (file) => {
   formData.append("file", file);
   formData.append("userNo", localStorage.getItem("userNo") || "");
 
+  const headers = createAuthHeaders({
+    "Content-Type": "multipart/form-data",
+  });
   const res = await api.post(`${USER_PREFIX}/auth/profile/image`, formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
+    headers,
   });
   return res.data?.data ?? res.data;
 };
 
 // 회원탈퇴
 export const withdraw = async (password, reason) => {
+  const headers = createAuthHeaders();
   const res = await api.delete(`${USER_PREFIX}/auth/withdraw`, {
     data: {
       password,
       reason,
     },
+    headers,
   });
   return res.data?.data ?? res.data;
 };
 
 // 신고 API
 export const reportUser = async (payload) => {
-  const res = await api.post(`${USER_PREFIX}/auth/reports`, payload);
+  const headers = createAuthHeaders();
+  const res = await api.post(`${USER_PREFIX}/auth/reports`, payload, {
+    headers,
+  });
   return res.data?.data ?? res.data;
 };
 
