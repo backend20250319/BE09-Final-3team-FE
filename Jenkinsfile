@@ -71,9 +71,19 @@ pipeline {
         }
         success {
             echo 'Pipeline succeeded!'
+            bat '''
+                curl -H "Content-Type: application/json" ^
+                  -d "{\"content\":\"✅ Jenkins Frontend Job 성공: %JOB_NAME% #%BUILD_NUMBER%\"}" ^
+                  https://discord.com/api/webhooks/1414418036793938040/0MKgCC_IZICWO4mBWRINcHamWZfijFXGuxuhhGqsclBnouE8SvWPazg_aPmwYfU096sP
+                '''
         }
         failure {
             echo 'Pipeline failed!'
+            bat '''
+                curl -H "Content-Type: application/json" ^
+                  -d "{\"content\":\"❌ Jenkins Frontend Job 실패: %JOB_NAME% #%BUILD_NUMBER%\"}" ^
+                  https://discord.com/api/webhooks/1414418036793938040/0MKgCC_IZICWO4mBWRINcHamWZfijFXGuxuhhGqsclBnouE8SvWPazg_aPmwYfU096sP
+                '''
         }
     }
 }
