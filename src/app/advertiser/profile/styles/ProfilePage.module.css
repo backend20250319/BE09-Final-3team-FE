@@ -31,7 +31,8 @@
   border-radius: 12px;
   box-shadow: 0px 10px 15px 0px rgba(0, 0, 0, 0.1),
     0px 4px 6px 0px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
 }
 
 .cardContent {
@@ -387,5 +388,315 @@
 
   .contactRow {
     grid-template-columns: 1fr;
+  }
+}
+
+/* 회원탈퇴 관련 스타일 */
+.withdrawButtonContainer {
+  position: absolute;
+  bottom: -60px;
+  right: 0;
+  z-index: 100;
+}
+
+.withdrawButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.withdrawButton:hover {
+  background: #b91c1c;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
+}
+
+.withdrawIcon {
+  width: 16px;
+  height: 16px;
+}
+
+/* 모달 스타일 - user쪽 스타일 참고 */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContainer {
+  width: 90vw;
+  max-width: 500px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modalHeader {
+  width: 100%;
+  background: #f0f5ec;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.modalTitle {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 20px;
+  color: #594a3e;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.modalCloseButton {
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+  color: #6b7280;
+  font-size: 20px;
+}
+
+.modalCloseButton:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.modalContent {
+  padding: 24px;
+  flex: 1;
+}
+
+.warningMessage {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.warningMessage p {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  color: #dc2626;
+  margin: 0 0 8px 0;
+  line-height: 1.5;
+}
+
+.warningMessage p:last-child {
+  margin-bottom: 0;
+}
+
+.successMessage {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.successIcon {
+  width: 64px;
+  height: 64px;
+  background: #16a34a;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: white;
+  font-weight: bold;
+}
+
+.successMessage p {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  color: #1f2937;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.errorMessage {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.errorMessage p {
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  color: #dc2626;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.inputGroup {
+  margin-bottom: 20px;
+}
+
+.inputLabel {
+  display: block;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.modalInput {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.modalInput:focus {
+  outline: none;
+  border-color: #f5a623;
+  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.1);
+}
+
+.modalTextarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.modalTextarea:focus {
+  outline: none;
+  border-color: #f5a623;
+  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.1);
+}
+
+.modalButtons {
+  display: flex;
+  gap: 12px;
+  padding: 24px;
+  border-top: 1px solid #e5e7eb;
+  justify-content: center;
+}
+
+.modalCancelButton {
+  width: 96px;
+  height: 48px;
+  background: #e5e7eb;
+  color: #374151;
+  border: none;
+  border-radius: 8px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1.193;
+}
+
+.modalCancelButton:hover:not(:disabled) {
+  background: #d1d5db;
+}
+
+.modalCancelButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modalConfirmButton {
+  width: 107px;
+  height: 48px;
+  background: #f5a623;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1.193;
+}
+
+.modalConfirmButton:hover:not(:disabled) {
+  background: #e0941a;
+}
+
+.modalConfirmButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .withdrawButtonContainer {
+    bottom: -50px;
+    right: 16px;
+  }
+
+  .withdrawButton {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  .modalContainer {
+    width: 95%;
+    margin: 20px;
+  }
+
+  .modalButtons {
+    flex-direction: column;
+  }
+
+  .modalCancelButton,
+  .modalConfirmButton {
+    width: 100%;
   }
 }

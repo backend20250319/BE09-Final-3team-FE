@@ -4,14 +4,16 @@ import PostContent from "./PostContent";
 import CommentSection from "./CommentSection";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import AlertModal from "./AlertModal";
+import PostEditModal from "./PostEditModal";
 import styles from "../styles/PostDetail.module.css";
-import { deletePost, getPostDetail } from "@/api/postApi";
+import { deletePost, getPostDetail, updatePost } from "@/api/postApi";
 
 export default function PostDetail({ postId }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState("info");
@@ -133,6 +135,25 @@ export default function PostDetail({ postId }) {
     setShowDeleteModal(true);
   };
 
+  const showEditConfirm = () => {
+    setShowEditModal(true);
+  };
+
+  const handleUpdatePost = async (updateData) => {
+    try {
+      await updatePost(vm.postId, updateData);
+      setAlertMessage("게시글이 수정되었습니다.");
+      setAlertType("success");
+      setShowAlertModal(true);
+
+      // 게시글 데이터 새로고침
+      const updatedData = await getPostDetail(postId);
+      setData(updatedData);
+    } catch (error) {
+      throw error; // PostEditModal에서 처리하도록 에러를 다시 던짐
+    }
+  };
+
   return (
     <div className={styles.container}>
       <main className={styles.main}>
@@ -157,6 +178,7 @@ export default function PostDetail({ postId }) {
               content: [vm.content ?? ""],
             }}
             onDelete={showDeleteConfirm}
+            onChange={showEditConfirm}
           />
         </article>
 
@@ -174,6 +196,18 @@ export default function PostDetail({ postId }) {
         message="정말로 게시글을 삭제하시겠습니까?"
         confirmText="삭제"
         cancelText="취소"
+      />
+
+      {/* 게시글 수정 모달 */}
+      <PostEditModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSave={handleUpdatePost}
+        initialData={{
+          title: vm.title,
+          content: vm.content,
+          type: vm.type,
+        }}
       />
 
       {/* 알림 모달 */}
