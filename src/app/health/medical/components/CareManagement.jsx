@@ -58,6 +58,7 @@ export default function CareManagement({
   setShowDetailModal,
   selectedSchedule,
   setSelectedSchedule,
+  onRefreshCareSchedules,
 }) {
   const { selectedPetName, selectedPetNo } = useSelectedPet();
   const [showAddModal, setShowAddModal] = useState(false);
@@ -778,6 +779,12 @@ export default function CareManagement({
           onCalendarEventsChange(updatedEvents);
         }
       }, 1000);
+
+      // 서버에서 최신 데이터 다시 가져오기
+      if (onRefreshCareSchedules) {
+        console.log("🔄 추가 완료 후 서버에서 최신 데이터 새로고침");
+        onRefreshCareSchedules();
+      }
     } catch (error) {
       console.error("일정 생성 실패:", error);
       let errorMessage = "일정 생성에 실패했습니다.";
@@ -898,6 +905,14 @@ export default function CareManagement({
           onCalendarEventsChange(updatedEvents);
         }
       }, 1000);
+
+      // 서버에서 최신 데이터 다시 가져오기
+      if (onRefreshCareSchedules) {
+        console.log("🔄 수정 완료 후 서버에서 최신 데이터 새로고침");
+        onRefreshCareSchedules();
+      }
+
+      return { success: true };
     } catch (error) {
       console.error("❌ 돌봄/접종 일정 수정 실패:", error);
       console.error("❌ 에러 상세 정보:", {
@@ -921,6 +936,8 @@ export default function CareManagement({
       setToastMessage(errorMessage);
       setToastType("error");
       setShowToast(true);
+
+      return { success: false, error: errorMessage };
     }
   };
 
@@ -1049,6 +1066,12 @@ export default function CareManagement({
       setCalendarEvents(events);
       if (onCalendarEventsChange) {
         onCalendarEventsChange(events);
+      }
+
+      // 서버에서 최신 데이터 다시 가져오기
+      if (onRefreshCareSchedules) {
+        console.log("🔄 삭제 완료 후 서버에서 최신 데이터 새로고침");
+        onRefreshCareSchedules();
       }
 
       setShowConfirm(false);

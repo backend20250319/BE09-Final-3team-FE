@@ -4,13 +4,7 @@ import React, { useState, useEffect } from "react";
 import CustomCalendar from "./CustomCalendar";
 import styles from "../styles/AddScheduleModal.module.css";
 import {
-  medicationTypeOptions,
-  medicationFrequencyOptions,
   notificationTimingOptions,
-  careSubTypeOptions,
-  careFrequencyOptions,
-  vaccinationSubTypeOptions,
-  vaccinationFrequencyOptions,
   ICON_MAP,
   frequencyMapping,
   COLOR_MAP,
@@ -44,6 +38,7 @@ import {
   validateDuration,
   validateFrequency,
 } from "../../constants";
+import { getMedicationMeta, getCareMeta } from "../../../../api/medicationApi";
 
 export default function EditScheduleModal({
   isOpen,
@@ -211,7 +206,7 @@ export default function EditScheduleModal({
         }
         return "종료일을 입력하지 않으면 1개월 후로 설정됩니다. (최소 30일 이후)";
       default:
-        return "종료날짜가 선택사항으로 되어있는데 선택을 안하면 자동 계산되어 종료일자가 설정됩니다.";
+        return "종료날짜를 선택해주세요.";
     }
   };
 
@@ -496,9 +491,7 @@ export default function EditScheduleModal({
           const koreanToEnglish = {
             "하루에 한 번": "DAILY_ONCE",
             "하루에 두 번": "DAILY_TWICE",
-            "하루에 세 번": "DAILY_THREE_TIMES",
-            "주에 한 번": "WEEKLY_ONCE",
-            "월에 한 번": "MONTHLY_ONCE",
+            "하루에 세 번": "DAILY_THREE",
           };
           return koreanToEnglish[frequency] || frequency;
         }
@@ -507,9 +500,23 @@ export default function EditScheduleModal({
 
       const defaultTimes = getDefaultTimes(frequencyForTimes);
 
+      // 서브타입을 한국어로 변환
+      const getKoreanSubType = (subType) => {
+        if (type === "medication") {
+          const englishToKorean = {
+            PILL: "복용약",
+            SUPPLEMENT: "영양제",
+          };
+          return englishToKorean[subType] || subType;
+        }
+        return subType;
+      };
+
       setFormData({
         name: scheduleData.name || "",
-        subType: scheduleData.subType || scheduleData.type || "",
+        subType: getKoreanSubType(
+          scheduleData.subType || scheduleData.type || ""
+        ),
         frequency: frequency,
         date: scheduleData.date || scheduleData.startDate || "", // 호환성
         startDate: scheduleData.startDate || scheduleData.date || "",
@@ -580,9 +587,7 @@ export default function EditScheduleModal({
             const koreanToEnglish = {
               "하루에 한 번": "DAILY_ONCE",
               "하루에 두 번": "DAILY_TWICE",
-              "하루에 세 번": "DAILY_THREE_TIMES",
-              "주에 한 번": "WEEKLY_ONCE",
-              "월에 한 번": "MONTHLY_ONCE",
+              "하루에 세 번": "DAILY_THREE",
             };
             return koreanToEnglish[value] || value;
           }
@@ -784,80 +789,105 @@ export default function EditScheduleModal({
     return COLOR_MAP[mainType] || "#F5F5F5";
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validateForm()) {
-      let updatedSchedule;
+      try {
+        let updatedSchedule;
 
-      if (type === "medication") {
-        // 투약 수정 - 기본 투약일정과 처방전 구분
-        if (isPrescription) {
-          // 처방전 투약일정: 복용기간 + 시작날짜로 종료날짜 계산
-          const startDateObj = new Date(
-            formData.date || scheduleData.startDate
-          );
-          const endDateObj = new Date(startDateObj);
-          endDateObj.setDate(
-            startDateObj.getDate() + Number(formData.duration) - 1
-          );
-          const endDate = endDateObj.toISOString().split("T")[0];
+        if (type === "medication") {
+          // 투약 수정 - 기본 투약일정과 처방전 구분
+          if (isPrescription) {
+            // 처방전 투약일정: 복용기간 + 시작날짜로 종료날짜 계산
+            const startDateObj = new Date(
+              formData.date || scheduleData.startDate
+            );
+            const endDateObj = new Date(startDateObj);
+            endDateObj.setDate(
+              startDateObj.getDate() + Number(formData.duration) - 1
+            );
+            const endDate = endDateObj.toISOString().split("T")[0];
 
-          updatedSchedule = {
-            ...scheduleData,
-            name: formData.name,
-            type: formData.subType,
-            frequency: formData.frequency,
-            duration: Number(formData.duration),
-            startDate: formData.date || scheduleData.startDate,
-            endDate: endDate,
-            scheduleTime: formData.scheduleTime,
-            notificationTiming: formData.notificationTiming,
-            reminderDaysBefore: Number(formData.notificationTiming),
-            icon: getIconForSubType(formData.subType),
-            color: getColorForType(formData.subType),
-          };
+            // 한국어 서브타입을 영어 enum으로 변환
+            const koreanToEnglish = {
+              복용약: "PILL",
+              영양제: "SUPPLEMENT",
+            };
+
+            updatedSchedule = {
+              ...scheduleData,
+              name: formData.name,
+              type: koreanToEnglish[formData.subType] || formData.subType,
+              frequency: formData.frequency,
+              duration: Number(formData.duration),
+              startDate: formData.date || scheduleData.startDate,
+              endDate: endDate,
+              scheduleTime: formData.scheduleTime,
+              notificationTiming: formData.notificationTiming,
+              reminderDaysBefore: Number(formData.notificationTiming),
+              icon: getIconForSubType(formData.subType),
+              color: getColorForType(formData.subType),
+            };
+          } else {
+            // 기본 투약일정: 시작날짜 + 종료날짜 직접 사용
+            // 한국어 서브타입을 영어 enum으로 변환
+            const koreanToEnglish = {
+              복용약: "PILL",
+              영양제: "SUPPLEMENT",
+            };
+
+            updatedSchedule = {
+              ...scheduleData,
+              name: formData.name,
+              type: koreanToEnglish[formData.subType] || formData.subType,
+              frequency: formData.frequency,
+              startDate:
+                formData.startDate || formData.date || scheduleData.startDate,
+              endDate: formData.endDate,
+              scheduleTime: formData.scheduleTime,
+              notificationTiming: formData.notificationTiming,
+              reminderDaysBefore: Number(formData.notificationTiming),
+              icon: getIconForSubType(formData.subType),
+              color: getColorForType(formData.subType),
+            };
+          }
         } else {
-          // 기본 투약일정: 시작날짜 + 종료날짜 직접 사용
+          // 돌봄/접종 일정 수정
+          const mainType = type === "care" ? "돌봄" : "접종";
+
           updatedSchedule = {
             ...scheduleData,
             name: formData.name,
-            type: formData.subType,
+            type: mainType,
+            subType: formData.subType,
             frequency: formData.frequency,
-            startDate:
-              formData.startDate || formData.date || scheduleData.startDate,
+            startDate: formData.startDate || formData.date,
             endDate: formData.endDate,
-            scheduleTime: formData.scheduleTime,
+            date: formData.startDate || formData.date, // 호환성 유지
+            scheduleTime: formData.scheduleTime || formData.time,
+            time: formData.scheduleTime || formData.time, // 호환성 유지
+
             notificationTiming: formData.notificationTiming,
-            reminderDaysBefore: Number(formData.notificationTiming),
+            reminderDaysBefore: Number(formData.notificationTiming), // 백엔드로 전송할 숫자 값
             icon: getIconForSubType(formData.subType),
-            color: getColorForType(formData.subType),
+            color: getColorForType(mainType),
           };
         }
-      } else {
-        // 돌봄/접종 일정 수정
-        const mainType = type === "care" ? "돌봄" : "접종";
 
-        updatedSchedule = {
-          ...scheduleData,
-          name: formData.name,
-          type: mainType,
-          subType: formData.subType,
-          frequency: formData.frequency,
-          startDate: formData.startDate || formData.date,
-          endDate: formData.endDate,
-          date: formData.startDate || formData.date, // 호환성 유지
-          scheduleTime: formData.scheduleTime || formData.time,
-          time: formData.scheduleTime || formData.time, // 호환성 유지
+        console.log("EditScheduleModal - updatedSchedule:", updatedSchedule);
 
-          notificationTiming: formData.notificationTiming,
-          reminderDaysBefore: Number(formData.notificationTiming), // 백엔드로 전송할 숫자 값
-          icon: getIconForSubType(formData.subType),
-          color: getColorForType(mainType),
-        };
+        // API 호출을 통해 실제 수정 수행
+        const result = await onEdit(updatedSchedule);
+
+        if (result && result.success) {
+          handleClose();
+        } else {
+          console.error("수정 실패:", result?.error);
+          // 에러 처리 로직 추가 가능
+        }
+      } catch (error) {
+        console.error("수정 중 오류 발생:", error);
+        // 에러 처리 로직 추가 가능
       }
-
-      console.log("EditScheduleModal - updatedSchedule:", updatedSchedule);
-      onEdit(updatedSchedule);
-      handleClose();
     }
   };
 
@@ -921,30 +951,169 @@ export default function EditScheduleModal({
     }
   };
 
-  const getSubTypeOptions = () => {
+  // 메타 API에서 가져온 옵션들
+  const [subTypeOptions, setSubTypeOptions] = useState([]);
+  const [frequencyOptions, setFrequencyOptions] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // 메타 데이터 로드
+  useEffect(() => {
+    const loadMetaData = async () => {
+      if (!isOpen || !type) return;
+
+      setLoading(true);
+      try {
+        let metaData;
+        if (type === "medication") {
+          metaData = await getMedicationMeta();
+        } else {
+          metaData = await getCareMeta();
+        }
+
+        console.log(`🔍 ${type} 메타 데이터 로드:`, metaData);
+
+        if (metaData) {
+          // 서브타입 옵션 설정
+          if (metaData.subTypes && Array.isArray(metaData.subTypes)) {
+            let filteredSubTypes = metaData.subTypes;
+
+            if (type === "medication") {
+              filteredSubTypes = metaData.subTypes.filter((subType) =>
+                ["PILL", "SUPPLEMENT"].includes(subType)
+              );
+
+              const subTypeOpts = filteredSubTypes.map((subType) => {
+                const koreanValue = subType === "PILL" ? "복용약" : "영양제";
+                return {
+                  value: koreanValue,
+                  label: koreanValue,
+                };
+              });
+              setSubTypeOptions(subTypeOpts);
+            }
+            // 돌봄의 경우 돌봄 관련 서브타입만 필터링
+            else if (type === "care") {
+              filteredSubTypes = metaData.subTypes.filter((subType) =>
+                ["WALK", "BIRTHDAY", "GROOMING", "ETC"].includes(subType)
+              );
+
+              const subTypeOpts = filteredSubTypes.map((subType) => ({
+                value: subType,
+                label: SUBTYPE_LABEL_MAP[subType] || subType,
+              }));
+              setSubTypeOptions(subTypeOpts);
+            }
+            // 접종의 경우 접종 관련 서브타입만 필터링
+            else if (type === "vaccination") {
+              filteredSubTypes = metaData.subTypes.filter((subType) =>
+                ["VACCINE", "CHECKUP"].includes(subType)
+              );
+
+              const subTypeOpts = filteredSubTypes.map((subType) => ({
+                value: subType,
+                label: SUBTYPE_LABEL_MAP[subType] || subType,
+              }));
+              setSubTypeOptions(subTypeOpts);
+            }
+          } else {
+            // 백엔드에서 서브타입 옵션이 없으면 기본값 사용
+            const defaultSubTypes = getDefaultSubTypes(type);
+            setSubTypeOptions(defaultSubTypes);
+          }
+
+          // 빈도 옵션 설정 (한글 label 사용)
+          if (metaData.frequencies && Array.isArray(metaData.frequencies)) {
+            let filteredFrequencies = metaData.frequencies;
+
+            // 투약의 경우 하루 단위 빈도만 필터링
+            if (type === "medication") {
+              const allowedFrequencies = [
+                "하루에 한 번",
+                "하루에 두 번",
+                "하루에 세 번",
+              ];
+              filteredFrequencies = metaData.frequencies.filter((freq) =>
+                allowedFrequencies.includes(freq)
+              );
+            }
+
+            const frequencyOpts = filteredFrequencies.map((freq) => ({
+              value: freq,
+              label: freq,
+            }));
+            setFrequencyOptions(frequencyOpts);
+          } else {
+            // 백엔드에서 빈도 옵션이 없으면 기본값 사용
+            const defaultFrequencies = getDefaultFrequencies(type);
+            setFrequencyOptions(defaultFrequencies);
+          }
+        }
+      } catch (error) {
+        console.error(`${type} 메타 데이터 로드 실패:`, error);
+        // 에러 시 기본값 사용
+        setSubTypeOptions(getDefaultSubTypes(type));
+        setFrequencyOptions(getDefaultFrequencies(type));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMetaData();
+  }, [isOpen, type]);
+
+  // 기본 서브타입 옵션 반환
+  const getDefaultSubTypes = (type) => {
     switch (type) {
       case "medication":
-        return medicationTypeOptions;
+        return [
+          { value: "복용약", label: "복용약" },
+          { value: "영양제", label: "영양제" },
+        ];
       case "care":
-        return careSubTypeOptions;
+        return [
+          { value: "WALK", label: "산책" },
+          { value: "BIRTHDAY", label: "생일" },
+          { value: "GROOMING", label: "미용" },
+          { value: "ETC", label: "기타" },
+        ];
       case "vaccination":
-        return vaccinationSubTypeOptions;
+        return [
+          { value: "VACCINE", label: "예방접종" },
+          { value: "CHECKUP", label: "건강검진" },
+        ];
       default:
         return [];
     }
   };
 
-  const getFrequencyOptions = () => {
+  // 기본 빈도 옵션 반환
+  const getDefaultFrequencies = (type) => {
     switch (type) {
       case "medication":
-        return medicationFrequencyOptions;
+        return [
+          { value: "하루에 한 번", label: "하루에 한 번" },
+          { value: "하루에 두 번", label: "하루에 두 번" },
+          { value: "하루에 세 번", label: "하루에 세 번" },
+        ];
       case "care":
-        return careFrequencyOptions;
       case "vaccination":
-        return vaccinationFrequencyOptions;
+        return [
+          { value: "매일", label: "매일" },
+          { value: "매주", label: "매주" },
+          { value: "매월", label: "매월" },
+          { value: "당일", label: "당일" },
+        ];
       default:
         return [];
     }
+  };
+
+  const getSubTypeOptions = () => {
+    return subTypeOptions;
+  };
+
+  const getFrequencyOptions = () => {
+    return frequencyOptions;
   };
 
   if (!isOpen) return null;
@@ -982,489 +1151,524 @@ export default function EditScheduleModal({
 
         {/* 폼 */}
         <div className={styles.form}>
-          {/* 일정 이름 */}
-          <div className={styles.formGroup}>
-            <div className={styles.labelContainer}>
-              <label className={styles.label}>
-                {type === "medication" ? "약 이름" : "일정 이름"}
-              </label>
-              <span className={styles.required}>*</span>
+          {loading ? (
+            <div className={styles.loadingContainer}>
+              <div className={styles.loadingSpinner}></div>
+              <p>데이터를 불러오는 중...</p>
             </div>
-            <div className={styles.inputContainer}>
-              <input
-                type="text"
-                className={styles.input}
-                placeholder={
-                  type === "medication"
-                    ? "약물 이름을 입력하세요"
-                    : "일정 이름을 입력하세요"
-                }
-                value={formData.name}
-                onChange={(e) => handleInputChange("name", e.target.value)}
-              />
-            </div>
-            {errors.name && <span className={styles.error}>{errors.name}</span>}
-          </div>
-
-          {/* 유형 */}
-          <div className={styles.formGroup}>
-            <div className={styles.labelContainer}>
-              <label className={styles.label}>유형</label>
-              <span className={styles.required}>*</span>
-            </div>
-            <div className={styles.selectContainer}>
-              <select
-                className={styles.select}
-                value={formData.subType}
-                onChange={(e) => handleInputChange("subType", e.target.value)}
-              >
-                <option value="">유형을 선택하세요</option>
-                {getSubTypeOptions().map((option) => (
-                  <option key={option} value={option}>
-                    {SUBTYPE_LABEL_MAP[option] || option}
-                  </option>
-                ))}
-              </select>
-              <div className={styles.selectArrow}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path
-                    d="M3 5L7 9L11 5"
-                    stroke="#9CA3AF"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+          ) : (
+            <>
+              {/* 일정 이름 */}
+              <div className={styles.formGroup}>
+                <div className={styles.labelContainer}>
+                  <label className={styles.label}>
+                    {type === "medication" ? "약 이름" : "일정 이름"}
+                  </label>
+                  <span className={styles.required}>*</span>
+                </div>
+                <div className={styles.inputContainer}>
+                  <input
+                    type="text"
+                    className={styles.input}
+                    placeholder={
+                      type === "medication"
+                        ? "약물 이름을 입력하세요"
+                        : "일정 이름을 입력하세요"
+                    }
+                    value={formData.name}
+                    onChange={(e) => handleInputChange("name", e.target.value)}
                   />
-                </svg>
-              </div>
-            </div>
-            {errors.subType && (
-              <span className={styles.error}>{errors.subType}</span>
-            )}
-          </div>
-
-          {/* 빈도 */}
-          <div className={styles.formGroup}>
-            <div className={styles.labelContainer}>
-              <label className={styles.label}>
-                {type === "medication" ? "복용" : ""} 빈도
-              </label>
-              <span className={styles.required}>*</span>
-            </div>
-            <div className={styles.selectContainer}>
-              <select
-                className={styles.select}
-                value={formData.frequency}
-                onChange={(e) => handleInputChange("frequency", e.target.value)}
-              >
-                <option value="">빈도를 선택하세요</option>
-                {getFrequencyOptions().map((option) => (
-                  <option
-                    key={option.value || option}
-                    value={option.value || option}
-                  >
-                    {option.label || option}
-                  </option>
-                ))}
-              </select>
-              <div className={styles.selectArrow}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path
-                    d="M3 5L7 9L11 5"
-                    stroke="#9CA3AF"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-            </div>
-            {errors.frequency && (
-              <span className={styles.error}>{errors.frequency}</span>
-            )}
-          </div>
-
-          {/* 투약의 경우 복용 기간 - 처방전만 표시 */}
-          {type === "medication" && isPrescription && (
-            <div className={styles.formGroup}>
-              <div className={styles.labelContainer}>
-                <label className={styles.label}>복용 기간(일)</label>
-                <span className={styles.required}>*</span>
-              </div>
-              <div className={styles.inputContainer}>
-                <input
-                  type="number"
-                  className={styles.input}
-                  placeholder="예: 7"
-                  min="1"
-                  value={formData.duration}
-                  onChange={(e) =>
-                    handleInputChange("duration", e.target.value)
-                  }
-                />
-              </div>
-              {errors.duration && (
-                <span className={styles.error}>{errors.duration}</span>
-              )}
-            </div>
-          )}
-
-          {/* 일정 시간 */}
-          {type === "medication" && (
-            <div className={styles.formGroup}>
-              <div className={styles.labelContainer}>
-                <label className={styles.label}>일정 시간</label>
-                <span className={styles.required}>*</span>
-              </div>
-              <div className={styles.timeInputsContainer}>
-                {formData.frequency ? (
-                  <div className={styles.timeInputsRow}>
-                    {Array.from(
-                      { length: getTimeInputCount(formData.frequency) },
-                      (_, index) => (
-                        <div key={index} className={styles.timeInputGroup}>
-                          <label className={styles.timeLabel}>
-                            {formData.frequency === "DAILY_TWICE"
-                              ? index === 0
-                                ? "아침"
-                                : "저녁"
-                              : formData.frequency === "DAILY_THREE_TIMES"
-                              ? index === 0
-                                ? "아침"
-                                : index === 1
-                                ? "점심"
-                                : "저녁"
-                              : "시간"}
-                          </label>
-                          <TimePicker
-                            value={
-                              (formData.scheduleTime &&
-                                formData.scheduleTime
-                                  .split(",")
-                                  [index]?.trim()) ||
-                              ""
-                            }
-                            onChange={(time) => {
-                              const times = (formData.scheduleTime || "")
-                                .split(",")
-                                .map((t) => t.trim());
-                              times[index] = time;
-                              handleInputChange(
-                                "scheduleTime",
-                                times.join(", ")
-                              );
-                            }}
-                            placeholder="시간을 선택하세요"
-                          />
-                        </div>
-                      )
-                    )}
-                  </div>
-                ) : (
-                  <div className={styles.noFrequencyMessage}>
-                    복용 빈도를 먼저 선택해주세요
-                  </div>
+                </div>
+                {errors.name && (
+                  <span className={styles.error}>{errors.name}</span>
                 )}
               </div>
-              {errors.scheduleTime && (
-                <span className={styles.error}>{errors.scheduleTime}</span>
-              )}
-            </div>
-          )}
 
-          {/* 시작 날짜 */}
-          <div className={styles.formGroup}>
-            <div className={styles.labelContainer}>
-              <label className={styles.label}>시작 날짜</label>
-              <span className={styles.required}>*</span>
-            </div>
-            <div className={styles.inputContainer}>
-              <div className={styles.dateInputWrapper}>
-                <input
-                  type="text"
-                  value={formatDateForDisplay(
-                    formData.startDate || formData.date
-                  )}
-                  placeholder="시작 날짜를 선택하세요"
-                  className={`${styles.dateInput} ${
-                    (type === "care" || type === "vaccination") &&
-                    ["매주", "매월"].includes(formData.frequency)
-                      ? styles.disabled
-                      : ""
-                  }`}
-                  readOnly
-                  disabled={
-                    (type === "care" || type === "vaccination") &&
-                    ["매주", "매월"].includes(formData.frequency)
-                      ? true
-                      : false
-                  }
-                  onClick={() => {
-                    if (
-                      !(
-                        (type === "care" || type === "vaccination") &&
-                        ["매주", "매월"].includes(formData.frequency)
-                      )
-                    ) {
-                      setShowStartCalendar(true);
+              {/* 유형 */}
+              <div className={styles.formGroup}>
+                <div className={styles.labelContainer}>
+                  <label className={styles.label}>유형</label>
+                  <span className={styles.required}>*</span>
+                </div>
+                <div className={styles.selectContainer}>
+                  <select
+                    className={styles.select}
+                    value={formData.subType}
+                    onChange={(e) =>
+                      handleInputChange("subType", e.target.value)
                     }
-                  }}
-                />
-                <button
-                  ref={calendarButtonRef}
-                  type="button"
-                  className={`${styles.calendarButton} ${
-                    (type === "care" || type === "vaccination") &&
-                    ["매주", "매월"].includes(formData.frequency)
-                      ? styles.disabled
-                      : ""
-                  }`}
-                  disabled={
-                    (type === "care" || type === "vaccination") &&
-                    ["매주", "매월"].includes(formData.frequency)
-                      ? true
-                      : false
-                  }
-                  onClick={() => {
-                    if (
-                      !(
-                        (type === "care" || type === "vaccination") &&
-                        ["매주", "매월"].includes(formData.frequency)
-                      )
-                    ) {
-                      setShowStartCalendar(!showStartCalendar);
-                    }
-                  }}
-                >
-                  <img
-                    src="/health/calendar.png"
-                    alt="달력"
-                    width="16"
-                    height="16"
-                  />
-                </button>
-              </div>
-            </div>
-            {errors.startDate && (
-              <span className={styles.error}>{errors.startDate}</span>
-            )}
-            {(type === "care" || type === "vaccination") &&
-              ["매주", "매월"].includes(formData.frequency) && (
-                <span className={styles.hint}>
-                  {formData.frequency} 일정은 시작날짜와 종료날짜가 고정됩니다.
-                </span>
-              )}
-            {type === "medication" && isPastSchedule && (
-              <span className={styles.hint}>
-                기존 투약 일정의 시작날짜는 수정 가능합니다. (과거 날짜 포함)
-              </span>
-            )}
-          </div>
-
-          {/* 종료 날짜 - 돌봄/접종 일정 또는 기본 투약일정에서 표시, 처방전 OCR은 자동 계산 */}
-          {(type !== "medication" ||
-            (type === "medication" && !isPrescription)) && (
-            <div className={styles.formGroup}>
-              <div className={styles.labelContainer}>
-                <label className={styles.label}>
-                  종료 날짜
-                  {type === "medication" && !isPrescription && (
-                    <span className={styles.required}>*</span>
-                  )}
-                  {type !== "medication" && " (선택)"}
-                </label>
-              </div>
-              <div className={styles.inputContainer}>
-                <div className={styles.dateInputWrapper}>
-                  <input
-                    type="text"
-                    value={formatDateForDisplay(formData.endDate)}
-                    placeholder={
-                      type === "medication" && !isPrescription
-                        ? "종료 날짜를 선택하세요"
-                        : "종료 날짜를 선택하세요 (선택사항)"
-                    }
-                    className={`${styles.dateInput} ${
-                      (type === "care" || type === "vaccination") &&
-                      ["매일", "매주", "매월", "당일"].includes(
-                        formData.frequency
-                      )
-                        ? styles.disabled
-                        : ""
-                    }`}
-                    readOnly
-                    disabled={
-                      (type === "care" || type === "vaccination") &&
-                      ["매일", "매주", "매월", "당일"].includes(
-                        formData.frequency
-                      )
-                    }
-                    onClick={() => {
-                      if (
-                        !(
-                          (type === "care" || type === "vaccination") &&
-                          ["매일", "매주", "매월", "당일"].includes(
-                            formData.frequency
-                          )
-                        )
-                      ) {
-                        setShowEndCalendar(true);
-                      }
-                    }}
-                  />
-                  <button
-                    ref={endCalendarButtonRef}
-                    type="button"
-                    className={`${styles.calendarButton} ${
-                      (type === "care" || type === "vaccination") &&
-                      ["매일", "매주", "매월", "당일"].includes(
-                        formData.frequency
-                      )
-                        ? styles.disabled
-                        : ""
-                    }`}
-                    disabled={
-                      (type === "care" || type === "vaccination") &&
-                      ["매일", "매주", "매월", "당일"].includes(
-                        formData.frequency
-                      )
-                    }
-                    onClick={() => {
-                      if (
-                        !(
-                          (type === "care" || type === "vaccination") &&
-                          ["매일", "매주", "매월", "당일"].includes(
-                            formData.frequency
-                          )
-                        )
-                      ) {
-                        setShowEndCalendar(!showEndCalendar);
-                      }
-                    }}
                   >
-                    <img
-                      src="/health/calendar.png"
-                      alt="달력"
-                      width="16"
-                      height="16"
+                    <option value="">유형을 선택하세요</option>
+                    {getSubTypeOptions().map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <div className={styles.selectArrow}>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <path
+                        d="M3 5L7 9L11 5"
+                        stroke="#9CA3AF"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                {errors.subType && (
+                  <span className={styles.error}>{errors.subType}</span>
+                )}
+              </div>
+
+              {/* 빈도 */}
+              <div className={styles.formGroup}>
+                <div className={styles.labelContainer}>
+                  <label className={styles.label}>
+                    {type === "medication" ? "복용" : ""} 빈도
+                  </label>
+                  <span className={styles.required}>*</span>
+                </div>
+                <div className={styles.selectContainer}>
+                  <select
+                    className={styles.select}
+                    value={formData.frequency}
+                    onChange={(e) =>
+                      handleInputChange("frequency", e.target.value)
+                    }
+                  >
+                    <option value="">빈도를 선택하세요</option>
+                    {getFrequencyOptions().map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <div className={styles.selectArrow}>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <path
+                        d="M3 5L7 9L11 5"
+                        stroke="#9CA3AF"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                {errors.frequency && (
+                  <span className={styles.error}>{errors.frequency}</span>
+                )}
+              </div>
+
+              {/* 투약의 경우 복용 기간 - 처방전만 표시 */}
+              {type === "medication" && isPrescription && (
+                <div className={styles.formGroup}>
+                  <div className={styles.labelContainer}>
+                    <label className={styles.label}>복용 기간(일)</label>
+                    <span className={styles.required}>*</span>
+                  </div>
+                  <div className={styles.inputContainer}>
+                    <input
+                      type="number"
+                      className={styles.input}
+                      placeholder="예: 7"
+                      min="1"
+                      value={formData.duration}
+                      onChange={(e) =>
+                        handleInputChange("duration", e.target.value)
+                      }
                     />
-                  </button>
+                  </div>
+                  {errors.duration && (
+                    <span className={styles.error}>{errors.duration}</span>
+                  )}
                 </div>
-              </div>
-              {errors.endDate && (
-                <span className={styles.error}>{errors.endDate}</span>
               )}
-              {!errors.endDate && formData.frequency && (
-                <span className={styles.hint}>
-                  {(type === "care" || type === "vaccination") &&
-                  ["매일", "매주", "매월", "당일"].includes(formData.frequency)
-                    ? getEndDateHint(formData.frequency)
-                    : getEndDateHint(formData.frequency)}
-                </span>
-              )}
-            </div>
-          )}
 
-          {/* 처방전 OCR 투약일정의 경우 자동 계산된 종료날짜 표시 */}
-          {type === "medication" && isPrescription && (
-            <div className={styles.formGroup}>
-              <div className={styles.labelContainer}>
-                <label className={styles.label}>종료 날짜 (자동 계산)</label>
-              </div>
-              <div className={styles.inputContainer}>
-                <div className={styles.dateInputWrapper}>
-                  <input
-                    type="text"
-                    value={formatDateForDisplay(formData.endDate)}
-                    className={`${styles.dateInput} ${styles.disabled}`}
-                    readOnly
-                    disabled
-                    placeholder="복용기간과 시작날짜에 따라 자동 계산됩니다"
-                  />
+              {/* 일정 시간 */}
+              {type === "medication" && (
+                <div className={styles.formGroup}>
+                  <div className={styles.labelContainer}>
+                    <label className={styles.label}>일정 시간</label>
+                    <span className={styles.required}>*</span>
+                  </div>
+                  <div className={styles.timeInputsContainer}>
+                    {formData.frequency ? (
+                      <div className={styles.timeInputsRow}>
+                        {Array.from(
+                          {
+                            length: (() => {
+                              // 한글 빈도를 영어로 변환하여 getTimeInputCount 함수에 전달
+                              const koreanToEnglish = {
+                                "하루에 한 번": "DAILY_ONCE",
+                                "하루에 두 번": "DAILY_TWICE",
+                                "하루에 세 번": "DAILY_THREE",
+                              };
+                              const englishFrequency =
+                                koreanToEnglish[formData.frequency] ||
+                                formData.frequency;
+                              return getTimeInputCount(englishFrequency);
+                            })(),
+                          },
+                          (_, index) => (
+                            <div key={index} className={styles.timeInputGroup}>
+                              <label className={styles.timeLabel}>
+                                {formData.frequency === "하루에 두 번"
+                                  ? index === 0
+                                    ? "아침"
+                                    : "저녁"
+                                  : formData.frequency === "하루에 세 번"
+                                  ? index === 0
+                                    ? "아침"
+                                    : index === 1
+                                    ? "점심"
+                                    : "저녁"
+                                  : "시간"}
+                              </label>
+                              <TimePicker
+                                value={
+                                  (formData.scheduleTime &&
+                                    formData.scheduleTime
+                                      .split(",")
+                                      [index]?.trim()) ||
+                                  ""
+                                }
+                                onChange={(time) => {
+                                  const times = (formData.scheduleTime || "")
+                                    .split(",")
+                                    .map((t) => t.trim());
+                                  times[index] = time;
+                                  handleInputChange(
+                                    "scheduleTime",
+                                    times.join(", ")
+                                  );
+                                }}
+                                placeholder="시간을 선택하세요"
+                              />
+                            </div>
+                          )
+                        )}
+                      </div>
+                    ) : (
+                      <div className={styles.noFrequencyMessage}>
+                        복용 빈도를 먼저 선택해주세요
+                      </div>
+                    )}
+                  </div>
+                  {errors.scheduleTime && (
+                    <span className={styles.error}>{errors.scheduleTime}</span>
+                  )}
                 </div>
-                <span className={styles.hint}>
-                  복용기간 또는 시작날짜를 변경하면 종료날짜가 자동으로
-                  계산됩니다.
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* 돌봄과 접종의 경우 일정 시간 */}
-          {(type === "care" || type === "vaccination") && (
-            <div className={styles.formGroup}>
-              <div className={styles.labelContainer}>
-                <label className={styles.label}>일정 시간</label>
-                <span className={styles.required}>*</span>
-              </div>
-              <div className={styles.inputContainer}>
-                <TimePicker
-                  value={formData.scheduleTime || formData.time || ""}
-                  onChange={(timeString) => {
-                    handleInputChange("scheduleTime", timeString);
-                    handleInputChange("time", timeString); // 호환성 유지
-                  }}
-                  placeholder="시간을 선택하세요"
-                />
-              </div>
-              {errors.scheduleTime && (
-                <span className={styles.error}>{errors.scheduleTime}</span>
               )}
-            </div>
-          )}
 
-          {/* 알림 시기 (모든 타입) */}
-          <div className={styles.formGroup}>
-            <div className={styles.labelContainer}>
-              <label className={styles.label}>알림 시기</label>
-              <span className={styles.required}>*</span>
-            </div>
-            <div className={styles.selectContainer}>
-              <select
-                className={`${styles.select} ${
-                  isPrescription ? styles.disabled : ""
-                }`}
-                value={formData.notificationTiming}
-                onChange={(e) =>
-                  handleInputChange("notificationTiming", e.target.value)
-                }
-                disabled={isPrescription}
-              >
-                <option value="">알림 시기를 선택하세요</option>
-                {notificationTimingOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <div className={styles.selectArrow}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path
-                    d="M3 5L7 9L11 5"
-                    stroke="#9CA3AF"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+              {/* 시작 날짜 */}
+              <div className={styles.formGroup}>
+                <div className={styles.labelContainer}>
+                  <label className={styles.label}>시작 날짜</label>
+                  <span className={styles.required}>*</span>
+                </div>
+                <div className={styles.inputContainer}>
+                  <div className={styles.dateInputWrapper}>
+                    <input
+                      type="text"
+                      value={formatDateForDisplay(
+                        formData.startDate || formData.date
+                      )}
+                      placeholder="시작 날짜를 선택하세요"
+                      className={`${styles.dateInput} ${
+                        (type === "care" || type === "vaccination") &&
+                        ["매주", "매월"].includes(formData.frequency)
+                          ? styles.disabled
+                          : ""
+                      }`}
+                      readOnly
+                      disabled={
+                        (type === "care" || type === "vaccination") &&
+                        ["매주", "매월"].includes(formData.frequency)
+                          ? true
+                          : false
+                      }
+                      onClick={() => {
+                        if (
+                          !(
+                            (type === "care" || type === "vaccination") &&
+                            ["매주", "매월"].includes(formData.frequency)
+                          )
+                        ) {
+                          setShowStartCalendar(true);
+                        }
+                      }}
+                    />
+                    <button
+                      ref={calendarButtonRef}
+                      type="button"
+                      className={`${styles.calendarButton} ${
+                        (type === "care" || type === "vaccination") &&
+                        ["매주", "매월"].includes(formData.frequency)
+                          ? styles.disabled
+                          : ""
+                      }`}
+                      disabled={
+                        (type === "care" || type === "vaccination") &&
+                        ["매주", "매월"].includes(formData.frequency)
+                          ? true
+                          : false
+                      }
+                      onClick={() => {
+                        if (
+                          !(
+                            (type === "care" || type === "vaccination") &&
+                            ["매주", "매월"].includes(formData.frequency)
+                          )
+                        ) {
+                          setShowStartCalendar(!showStartCalendar);
+                        }
+                      }}
+                    >
+                      <img
+                        src="/health/calendar.png"
+                        alt="달력"
+                        width="16"
+                        height="16"
+                      />
+                    </button>
+                  </div>
+                </div>
+                {errors.startDate && (
+                  <span className={styles.error}>{errors.startDate}</span>
+                )}
+                {(type === "care" || type === "vaccination") &&
+                  ["매주", "매월"].includes(formData.frequency) && (
+                    <span className={styles.hint}>
+                      {formData.frequency} 일정은 시작날짜와 종료날짜가
+                      고정됩니다.
+                    </span>
+                  )}
+                {type === "medication" && isPastSchedule && (
+                  <span className={styles.hint}>
+                    기존 투약 일정의 시작날짜는 수정 가능합니다. (과거 날짜
+                    포함)
+                  </span>
+                )}
               </div>
-            </div>
-            {isPrescription && (
-              <span className={styles.prescriptionMessage}>
-                처방전으로 등록된 약은 알림 시기를 변경할 수 없습니다.
-              </span>
-            )}
-            {!isPrescription &&
-              formData.lastReminderDaysBefore !== undefined &&
-              formData.notificationTiming === null && (
-                <span className={styles.prescriptionMessage}>
-                  현재 알림이 비활성화되어 있습니다. (마지막 설정:{" "}
-                  {formData.lastReminderDaysBefore}일전)
-                </span>
+
+              {/* 종료 날짜 - 돌봄/접종 일정 또는 기본 투약일정에서 표시, 처방전 OCR은 자동 계산 */}
+              {(type !== "medication" ||
+                (type === "medication" && !isPrescription)) && (
+                <div className={styles.formGroup}>
+                  <div className={styles.labelContainer}>
+                    <label className={styles.label}>
+                      종료 날짜
+                      {type === "medication" && !isPrescription && (
+                        <span className={styles.required}>*</span>
+                      )}
+                      {type !== "medication" && " (선택사항)"}
+                    </label>
+                  </div>
+                  <div className={styles.inputContainer}>
+                    <div className={styles.dateInputWrapper}>
+                      <input
+                        type="text"
+                        value={formatDateForDisplay(formData.endDate)}
+                        placeholder={
+                          type === "medication" && !isPrescription
+                            ? "종료 날짜를 선택하세요"
+                            : "종료 날짜를 선택하세요 (선택사항)"
+                        }
+                        className={`${styles.dateInput} ${
+                          (type === "care" || type === "vaccination") &&
+                          ["매일", "매주", "매월", "당일"].includes(
+                            formData.frequency
+                          )
+                            ? styles.disabled
+                            : ""
+                        }`}
+                        readOnly
+                        disabled={
+                          (type === "care" || type === "vaccination") &&
+                          ["매일", "매주", "매월", "당일"].includes(
+                            formData.frequency
+                          )
+                        }
+                        onClick={() => {
+                          if (
+                            !(
+                              (type === "care" || type === "vaccination") &&
+                              ["매일", "매주", "매월", "당일"].includes(
+                                formData.frequency
+                              )
+                            )
+                          ) {
+                            setShowEndCalendar(true);
+                          }
+                        }}
+                      />
+                      <button
+                        ref={endCalendarButtonRef}
+                        type="button"
+                        className={`${styles.calendarButton} ${
+                          (type === "care" || type === "vaccination") &&
+                          ["매일", "매주", "매월", "당일"].includes(
+                            formData.frequency
+                          )
+                            ? styles.disabled
+                            : ""
+                        }`}
+                        disabled={
+                          (type === "care" || type === "vaccination") &&
+                          ["매일", "매주", "매월", "당일"].includes(
+                            formData.frequency
+                          )
+                        }
+                        onClick={() => {
+                          if (
+                            !(
+                              (type === "care" || type === "vaccination") &&
+                              ["매일", "매주", "매월", "당일"].includes(
+                                formData.frequency
+                              )
+                            )
+                          ) {
+                            setShowEndCalendar(!showEndCalendar);
+                          }
+                        }}
+                      >
+                        <img
+                          src="/health/calendar.png"
+                          alt="달력"
+                          width="16"
+                          height="16"
+                        />
+                      </button>
+                    </div>
+                  </div>
+                  {errors.endDate && (
+                    <span className={styles.error}>{errors.endDate}</span>
+                  )}
+                  {!errors.endDate && formData.frequency && (
+                    <span className={styles.hint}>
+                      {type === "medication" && !isPrescription
+                        ? "투약 종료 날짜를 선택해주세요."
+                        : (type === "care" || type === "vaccination") &&
+                          ["매일", "매주", "매월", "당일"].includes(
+                            formData.frequency
+                          )
+                        ? getEndDateHint(formData.frequency)
+                        : getEndDateHint(formData.frequency)}
+                    </span>
+                  )}
+                </div>
               )}
-            {errors.notificationTiming && (
-              <span className={styles.error}>{errors.notificationTiming}</span>
-            )}
-          </div>
+
+              {/* 처방전 OCR 투약일정의 경우 자동 계산된 종료날짜 표시 */}
+              {type === "medication" && isPrescription && (
+                <div className={styles.formGroup}>
+                  <div className={styles.labelContainer}>
+                    <label className={styles.label}>
+                      종료 날짜 (자동 계산)
+                    </label>
+                  </div>
+                  <div className={styles.inputContainer}>
+                    <div className={styles.dateInputWrapper}>
+                      <input
+                        type="text"
+                        value={formatDateForDisplay(formData.endDate)}
+                        className={`${styles.dateInput} ${styles.disabled}`}
+                        readOnly
+                        disabled
+                        placeholder="복용기간과 시작날짜에 따라 자동 계산됩니다"
+                      />
+                    </div>
+                    <span className={styles.hint}>
+                      복용기간 또는 시작날짜를 변경하면 종료날짜가 자동으로
+                      계산됩니다.
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* 돌봄과 접종의 경우 일정 시간 */}
+              {(type === "care" || type === "vaccination") && (
+                <div className={styles.formGroup}>
+                  <div className={styles.labelContainer}>
+                    <label className={styles.label}>일정 시간</label>
+                    <span className={styles.required}>*</span>
+                  </div>
+                  <div className={styles.inputContainer}>
+                    <TimePicker
+                      value={formData.scheduleTime || formData.time || ""}
+                      onChange={(timeString) => {
+                        handleInputChange("scheduleTime", timeString);
+                        handleInputChange("time", timeString); // 호환성 유지
+                      }}
+                      placeholder="시간을 선택하세요"
+                    />
+                  </div>
+                  {errors.scheduleTime && (
+                    <span className={styles.error}>{errors.scheduleTime}</span>
+                  )}
+                </div>
+              )}
+
+              {/* 알림 시기 (모든 타입) */}
+              <div className={styles.formGroup}>
+                <div className={styles.labelContainer}>
+                  <label className={styles.label}>알림 시기</label>
+                  <span className={styles.required}>*</span>
+                </div>
+                <div className={styles.selectContainer}>
+                  <select
+                    className={`${styles.select} ${
+                      isPrescription ? styles.disabled : ""
+                    }`}
+                    value={formData.notificationTiming}
+                    onChange={(e) =>
+                      handleInputChange("notificationTiming", e.target.value)
+                    }
+                    disabled={isPrescription}
+                  >
+                    <option value="">알림 시기를 선택하세요</option>
+                    {notificationTimingOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <div className={styles.selectArrow}>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <path
+                        d="M3 5L7 9L11 5"
+                        stroke="#9CA3AF"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                {isPrescription && (
+                  <span className={styles.prescriptionMessage}>
+                    처방전으로 등록된 약은 알림 시기를 변경할 수 없습니다.
+                  </span>
+                )}
+                {!isPrescription &&
+                  formData.lastReminderDaysBefore !== undefined &&
+                  formData.notificationTiming === null && (
+                    <span className={styles.prescriptionMessage}>
+                      현재 알림이 비활성화되어 있습니다. (마지막 설정:{" "}
+                      {formData.lastReminderDaysBefore}일전)
+                    </span>
+                  )}
+                {errors.notificationTiming && (
+                  <span className={styles.error}>
+                    {errors.notificationTiming}
+                  </span>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         {/* 버튼 */}

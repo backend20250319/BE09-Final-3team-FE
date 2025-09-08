@@ -54,6 +54,7 @@ export default function MedicationManagement({
   setShowDetailModal,
   selectedSchedule,
   setSelectedSchedule,
+  onRefreshCareSchedules,
 }) {
   const { selectedPetName, selectedPetNo } = useSelectedPet();
   const medicalData = useMedicalData();
@@ -99,14 +100,7 @@ export default function MedicationManagement({
 
   // 투약 일정 필터 옵션은 constants에서 import
 
-  // 빈도 매핑 (한글 → Enum)
-  const frequencyToEnum = {
-    "하루에 한 번": "DAILY_ONCE",
-    "하루에 두 번": "DAILY_TWICE",
-    "하루에 세 번": "DAILY_THREE_TIMES",
-    "주에 한 번": "WEEKLY_ONCE",
-    "월에 한 번": "MONTHLY_ONCE",
-  };
+  // 빈도 매핑은 useMedication 훅에서 처리
 
   // 타입 매핑 (한글 → Enum)
   const typeToEnum = {
@@ -258,6 +252,13 @@ export default function MedicationManagement({
     handleFetchMedications();
     fetchCareSchedules();
   }, [selectedPetNo, handleFetchMedications]);
+
+  // fetchCareSchedules 함수를 상위 컴포넌트로 전달
+  useEffect(() => {
+    if (onRefreshCareSchedules) {
+      onRefreshCareSchedules(fetchCareSchedules);
+    }
+  }, [fetchCareSchedules, onRefreshCareSchedules]);
 
   // 필터 변경 시 투약 데이터 다시 가져오기
   useEffect(() => {
@@ -728,7 +729,7 @@ export default function MedicationManagement({
       );
       if (!medication || !medication.calNo) {
         console.error("투약 정보를 찾을 수 없습니다.");
-        return;
+        return { success: false, error: "투약 정보를 찾을 수 없습니다." };
       }
 
       // 처방전 약의 알림 시기 변경 제한
@@ -741,30 +742,13 @@ export default function MedicationManagement({
         );
         setToastType("error");
         setShowToast(true);
-        return;
+        return {
+          success: false,
+          error: "처방전으로 등록된 약은 알림 시기를 변경할 수 없습니다.",
+        };
       }
 
-      // 백엔드 형식으로 데이터 변환
-      const updateData = {
-        name: updatedMedication.name, // medicationName → name
-        startDate: updatedMedication.startDate,
-        durationDays: updatedMedication.duration,
-        medicationFrequency:
-          frequencyToEnum[updatedMedication.frequency] || "DAILY_ONCE", // 한글 → Enum 변환
-        times: updatedMedication.scheduleTime
-          ? updatedMedication.scheduleTime.split(",").map((t) => {
-              const time = t.trim();
-              // "09:00" → "09:00:00" (초 포함)
-              return time.includes(":") && time.split(":").length === 2
-                ? `${time}:00`
-                : time;
-            })
-          : ["09:00:00"],
-        subType: updatedMedication.type === "영양제" ? "SUPPLEMENT" : "PILL", // 영양제/복용약 구분
-        isPrescription: updatedMedication.isPrescription || false, // 처방전 여부
-        reminderDaysBefore: updatedMedication.reminderDaysBefore,
-      };
-
+      // updateMedicationData API 호출
       const result = await updateMedicationData(
         updatedMedication.id,
         updatedMedication
@@ -782,14 +766,12 @@ export default function MedicationManagement({
           onCalendarEventsChange(events);
         }
 
-        // 백그라운드에서 데이터 동기화 (1초 후)
-        setTimeout(() => {
-          handleFetchMedications();
-        }, 1000);
+        return { success: true };
       } else {
         setToastMessage("투약 수정에 실패했습니다.");
         setToastType("error");
         setShowToast(true);
+        return { success: false, error: result.error };
       }
     } catch (error) {
       console.error("투약 수정 실패:", error);
@@ -805,6 +787,7 @@ export default function MedicationManagement({
 
       setToastType("error");
       setShowToast(true);
+      return { success: false, error: error.message };
     }
   };
 

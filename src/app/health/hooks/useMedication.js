@@ -49,7 +49,6 @@ export function useMedication() {
           }
         }
 
-        console.log("투약 일정 필터링 파라미터:", params);
         const response = await listMedications(params);
 
         if (!Array.isArray(response)) {
@@ -171,6 +170,12 @@ export function useMedication() {
           typeof medicationData.frequency
         );
 
+        const frequencyToEnum = {
+          "하루에 한 번": "DAILY_ONCE",
+          "하루에 두 번": "DAILY_TWICE",
+          "하루에 세 번": "DAILY_THREE",
+        };
+
         // 백엔드 형식으로 데이터 변환
         const typeToEnum = {
           복용약: "PILL",
@@ -179,57 +184,56 @@ export function useMedication() {
 
         const data = {
           petNo: selectedPetNo,
-          name: medicationData.name,
+          name: medicationData.name, // 백엔드 API 필드명에 맞춤
           startDate: medicationData.startDate,
           endDate: medicationData.endDate, // durationDays 대신 endDate 사용
-          medicationFrequency: medicationData.frequency || "DAILY_ONCE", // AddMedicationModal에서 이미 영어 enum으로 보냄
-          times: medicationData.scheduleTime
-            ? medicationData.scheduleTime.split(",").map((t) => {
-                const time = t.trim();
-                return time.includes(":") && time.split(":").length === 2
-                  ? `${time}:00`
-                  : time;
-              })
-            : ["09:00:00"],
-          subType: medicationData.type === "영양제" ? "SUPPLEMENT" : "PILL",
+          medicationFrequency:
+            medicationData.medicationFrequency ||
+            frequencyToEnum[medicationData.frequency] ||
+            "DAILY_ONCE", // 백엔드 API 필드명에 맞춤
+          times:
+            medicationData.times ||
+            (medicationData.scheduleTime
+              ? medicationData.scheduleTime.split(",").map((t) => {
+                  const time = t.trim();
+                  return time.includes(":") && time.split(":").length === 2
+                    ? time // "09:00" 형태로 유지 (백엔드에서 초 단위 처리)
+                    : time;
+                })
+              : ["09:00"]),
+          subType:
+            medicationData.type === "영양제" ||
+            medicationData.type === "SUPPLEMENT"
+              ? "SUPPLEMENT"
+              : "PILL", // 한글/영어 모두 처리
           isPrescription: medicationData.isPrescription || false,
           reminderDaysBefore:
-            parseInt(medicationData.notificationTiming, 10) || 0,
+            medicationData.reminderDaysBefore ||
+            parseInt(medicationData.notificationTiming, 10) ||
+            0,
         };
 
         console.log("🔍 훅 - 전송할 데이터:", data);
+
+        // 백엔드 API 호출
         const calNo = await createMedication(data);
         console.log("🔍 훅 - 투약 등록 성공, calNo:", calNo);
 
-        // 성공 시 로컬 상태 업데이트
-        const updatedMedication = {
-          ...medicationData,
-          id: calNo,
-          calNo: calNo,
-          frequency:
-            frequencyMapping[medicationData.frequency] ||
-            medicationData.frequency, // 영어 enum을 한글로 변환
+        // API 호출 성공 후 데이터 새로고침
+        await fetchMedications();
+
+        return {
+          success: true,
+          data: { calNo: calNo },
         };
-
-        console.log("🔍 훅 - 로컬 상태 업데이트용 데이터:", updatedMedication);
-
-        setMedications((prev) => {
-          const updated = [...prev, updatedMedication];
-          return updated.sort((a, b) => {
-            const idA = parseInt(a.id) || 0;
-            const idB = parseInt(b.id) || 0;
-            return idB - idA;
-          });
-        });
-
-        return { success: true, data: updatedMedication };
       } catch (error) {
         console.error("투약 추가 실패:", error);
+
         setError(MEDICATION_MESSAGES.ADD_ERROR);
         return { success: false, error: error.message };
       }
     },
-    [selectedPetNo]
+    [selectedPetNo, fetchMedications]
   );
 
   // 투약 수정
@@ -244,9 +248,7 @@ export function useMedication() {
         const frequencyToEnum = {
           "하루에 한 번": "DAILY_ONCE",
           "하루에 두 번": "DAILY_TWICE",
-          "하루에 세 번": "DAILY_THREE_TIMES",
-          "주에 한 번": "WEEKLY_ONCE",
-          "월에 한 번": "MONTHLY_ONCE",
+          "하루에 세 번": "DAILY_THREE",
         };
 
         const typeToEnum = {
@@ -261,41 +263,48 @@ export function useMedication() {
         if (isPrescription) {
           // 처방전 OCR 투약일정: durationDays 사용 (자동 계산)
           updateData = {
-            name: medicationData.name,
+            medicationName: medicationData.name, // 백엔드 API 필드명에 맞춤
             durationDays: medicationData.duration, // 처방전은 durationDays 사용
             startDate: medicationData.startDate,
-            medicationFrequency:
-              frequencyToEnum[medicationData.frequency] || "DAILY_ONCE",
+            frequency: medicationData.frequency, // 백엔드 API 필드명에 맞춤 (한글 그대로)
             times: medicationData.scheduleTime
               ? medicationData.scheduleTime.split(",").map((t) => {
                   const time = t.trim();
                   return time.includes(":") && time.split(":").length === 2
-                    ? `${time}:00`
+                    ? time // "09:00" 형태로 유지 (백엔드에서 초 단위 처리)
                     : time;
                 })
-              : ["09:00:00"],
-            subType: medicationData.type === "영양제" ? "SUPPLEMENT" : "PILL",
+              : ["09:00"],
+            subType:
+              medicationData.type === "영양제" ||
+              medicationData.type === "SUPPLEMENT"
+                ? "SUPPLEMENT"
+                : "PILL",
             isPrescription: true,
             reminderDaysBefore: 0, // 처방전은 0일전 고정
+            dosage: medicationData.dosage || "500mg", // 처방전 투약일정의 경우 용량 필드 추가
           };
           console.log("🔍 처방전 OCR 수정 - 자동 계산 데이터:", updateData);
         } else {
           // 기본 투약일정: endDate 사용
           updateData = {
-            name: medicationData.name,
+            medicationName: medicationData.name, // 백엔드 API 필드명에 맞춤
             startDate: medicationData.startDate,
             endDate: medicationData.endDate, // 기본 투약일정은 endDate 사용
-            medicationFrequency:
-              frequencyToEnum[medicationData.frequency] || "DAILY_ONCE",
+            frequency: medicationData.frequency, // 백엔드 API 필드명에 맞춤 (한글 그대로)
             times: medicationData.scheduleTime
               ? medicationData.scheduleTime.split(",").map((t) => {
                   const time = t.trim();
                   return time.includes(":") && time.split(":").length === 2
-                    ? `${time}:00`
+                    ? time // "09:00" 형태로 유지 (백엔드에서 초 단위 처리)
                     : time;
                 })
-              : ["09:00:00"],
-            subType: medicationData.type === "영양제" ? "SUPPLEMENT" : "PILL",
+              : ["09:00"],
+            subType:
+              medicationData.type === "영양제" ||
+              medicationData.type === "SUPPLEMENT"
+                ? "SUPPLEMENT"
+                : "PILL",
             isPrescription: false,
             reminderDaysBefore: medicationData.reminderDaysBefore,
           };
@@ -304,12 +313,8 @@ export function useMedication() {
 
         await updateMedication(medication.calNo, updateData);
 
-        // 로컬 상태 업데이트
-        setMedications((prev) =>
-          prev.map((med) =>
-            med.id === id ? { ...med, ...medicationData } : med
-          )
-        );
+        // API 호출 성공 후 데이터 새로고침
+        await fetchMedications();
 
         return { success: true };
       } catch (error) {
@@ -318,7 +323,7 @@ export function useMedication() {
         return { success: false, error: error.message };
       }
     },
-    [medications]
+    [medications, fetchMedications]
   );
 
   // 투약 삭제
@@ -332,8 +337,8 @@ export function useMedication() {
 
         await deleteMedication(medication.calNo);
 
-        // 로컬 상태에서 제거
-        setMedications((prev) => prev.filter((med) => med.id !== id));
+        // API 호출 성공 후 데이터 새로고침
+        await fetchMedications();
 
         return { success: true };
       } catch (error) {
@@ -342,7 +347,7 @@ export function useMedication() {
         return { success: false, error: error.message };
       }
     },
-    [medications]
+    [medications, fetchMedications]
   );
 
   // 알림 토글
@@ -372,12 +377,8 @@ export function useMedication() {
         const newAlarmStatus = await toggleAlarm(calNo);
         console.log("🔍 알림 토글 - API 응답:", newAlarmStatus);
 
-        // 로컬 상태 업데이트
-        setMedications((prev) =>
-          prev.map((med) =>
-            med.id === id ? { ...med, isNotified: newAlarmStatus } : med
-          )
-        );
+        // API 호출 성공 후 데이터 새로고침
+        await fetchMedications();
 
         return { success: true, isNotified: newAlarmStatus };
       } catch (error) {
@@ -386,7 +387,7 @@ export function useMedication() {
         return { success: false, error: error.message };
       }
     },
-    [medications]
+    [medications, fetchMedications]
   );
 
   // OCR 처방전 처리
