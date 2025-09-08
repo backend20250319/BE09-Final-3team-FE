@@ -3,6 +3,7 @@ import styles from "@/app/admin/styles/ProductManagement.module.css";
 import PopupModal from "@/app/admin/components/PopupModal";
 import AlertModal from "./AlertModal";
 import DeleteConfirmModal from "./DeleteConfirmModal";
+import ApproveConfirmModal from "./ApproveConfirmModal";
 import React, { useState, useEffect } from "react";
 import {
   getAllCampaigns,
@@ -24,6 +25,9 @@ export default function ProductManagement() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteAction, setDeleteAction] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [approveAction, setApproveAction] = useState(null);
+  const [approveTarget, setApproveTarget] = useState(null);
 
   // 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1);
@@ -104,6 +108,21 @@ export default function ProductManagement() {
     setShowDeleteModal(false);
     setDeleteAction(null);
     setDeleteTarget(null);
+  };
+
+  const showApproveConfirm = (action, target, title, message) => {
+    setApproveAction(() => action);
+    setApproveTarget(target);
+    setShowApproveModal(true);
+  };
+
+  const handleApproveConfirm = () => {
+    if (approveAction && approveTarget) {
+      approveAction(approveTarget);
+    }
+    setShowApproveModal(false);
+    setApproveAction(null);
+    setApproveTarget(null);
   };
 
   const handleDelete = async (adId) => {
@@ -310,7 +329,7 @@ export default function ProductManagement() {
                           <button
                             className={styles.approveBtn}
                             onClick={() => {
-                              showDeleteConfirm(
+                              showApproveConfirm(
                                 handleApprove,
                                 campaign.adNo,
                                 "캠페인 승인",
@@ -458,6 +477,24 @@ export default function ProductManagement() {
         title="확인"
         message="정말로 진행하시겠습니까?"
         confirmText="확인"
+        cancelText="취소"
+      />
+
+      {/* 승인 확인 모달 */}
+      <ApproveConfirmModal
+        isOpen={showApproveModal}
+        onClose={() => setShowApproveModal(false)}
+        onConfirm={() => {
+          if (approveAction && approveTarget) {
+            approveAction(approveTarget);
+          }
+          setShowApproveModal(false);
+          setApproveAction(null);
+          setApproveTarget(null);
+        }}
+        title="승인 확인"
+        message="정말로 승인하시겠습니까?"
+        confirmText="승인"
         cancelText="취소"
       />
     </>
