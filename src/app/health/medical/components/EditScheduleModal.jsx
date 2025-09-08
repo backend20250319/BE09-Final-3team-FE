@@ -217,17 +217,19 @@ export default function EditScheduleModal({
 
   // 달력에서 날짜 선택 핸들러
   const handleStartDateSelect = (dateString) => {
-    // 투약 일정의 경우 오늘 이전 날짜 검증
+    // 투약 일정의 경우 오늘 이전 날짜 검증 (기존 일정 수정 시에는 과거 날짜 허용)
     if (type === "medication") {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const selectedDate = new Date(dateString);
       selectedDate.setHours(0, 0, 0, 0);
 
-      if (selectedDate < today) {
+      // 기존 일정 수정 시에는 과거 날짜도 허용 (종료되지 않은 일정의 경우)
+      if (selectedDate < today && !isPastSchedule) {
         setErrors((prev) => ({
           ...prev,
-          startDate: "시작날짜는 당일보다 이전일 수 없습니다.",
+          startDate:
+            "새로운 투약 일정의 시작날짜는 당일보다 이전일 수 없습니다.",
         }));
         return;
       }
@@ -552,6 +554,7 @@ export default function EditScheduleModal({
         today.setHours(0, 0, 0, 0);
         originalStartDate.setHours(0, 0, 0, 0);
 
+        // 기존 일정이 과거에 시작되었는지 확인 (수정 가능하도록 허용)
         setIsPastSchedule(originalStartDate < today);
       }
     }
@@ -687,15 +690,17 @@ export default function EditScheduleModal({
     } else {
       const startDateToCheck = formData.startDate || formData.date;
       if (startDateToCheck) {
-        // 투약 일정의 경우 오늘 이전 날짜 검증
+        // 투약 일정의 경우 오늘 이전 날짜 검증 (기존 일정 수정 시에는 과거 날짜 허용)
         if (type === "medication") {
           const today = new Date();
           today.setHours(0, 0, 0, 0);
           const selectedDate = new Date(startDateToCheck);
           selectedDate.setHours(0, 0, 0, 0);
 
-          if (selectedDate < today) {
-            newErrors.startDate = "시작날짜는 당일보다 이전일 수 없습니다.";
+          // 기존 일정 수정 시에는 과거 날짜도 허용 (종료되지 않은 일정의 경우)
+          if (selectedDate < today && !isPastSchedule) {
+            newErrors.startDate =
+              "새로운 투약 일정의 시작날짜는 당일보다 이전일 수 없습니다.";
           }
         }
       }
@@ -1184,16 +1189,12 @@ export default function EditScheduleModal({
                     (type === "care" || type === "vaccination") &&
                     ["매주", "매월"].includes(formData.frequency)
                       ? styles.disabled
-                      : type === "medication" && isPastSchedule
-                      ? styles.disabled
                       : ""
                   }`}
                   readOnly
                   disabled={
                     (type === "care" || type === "vaccination") &&
                     ["매주", "매월"].includes(formData.frequency)
-                      ? true
-                      : type === "medication" && isPastSchedule
                       ? true
                       : false
                   }
@@ -1202,8 +1203,7 @@ export default function EditScheduleModal({
                       !(
                         (type === "care" || type === "vaccination") &&
                         ["매주", "매월"].includes(formData.frequency)
-                      ) &&
-                      !(type === "medication" && isPastSchedule)
+                      )
                     ) {
                       setShowStartCalendar(true);
                     }
@@ -1216,15 +1216,11 @@ export default function EditScheduleModal({
                     (type === "care" || type === "vaccination") &&
                     ["매주", "매월"].includes(formData.frequency)
                       ? styles.disabled
-                      : type === "medication" && isPastSchedule
-                      ? styles.disabled
                       : ""
                   }`}
                   disabled={
                     (type === "care" || type === "vaccination") &&
                     ["매주", "매월"].includes(formData.frequency)
-                      ? true
-                      : type === "medication" && isPastSchedule
                       ? true
                       : false
                   }
@@ -1233,8 +1229,7 @@ export default function EditScheduleModal({
                       !(
                         (type === "care" || type === "vaccination") &&
                         ["매주", "매월"].includes(formData.frequency)
-                      ) &&
-                      !(type === "medication" && isPastSchedule)
+                      )
                     ) {
                       setShowStartCalendar(!showStartCalendar);
                     }
@@ -1260,7 +1255,7 @@ export default function EditScheduleModal({
               )}
             {type === "medication" && isPastSchedule && (
               <span className={styles.hint}>
-                과거에 시작된 투약 일정은 시작날짜를 변경할 수 없습니다.
+                기존 투약 일정의 시작날짜는 수정 가능합니다. (과거 날짜 포함)
               </span>
             )}
           </div>
