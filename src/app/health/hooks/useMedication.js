@@ -77,14 +77,10 @@ export function useMedication() {
           if (isPrescription) {
             // OCR 처방전: durationDays 사용
             duration = med.durationDays;
-            endDate = med.endDate
-              ? new Date(med.endDate).toISOString().split("T")[0]
-              : "";
+            endDate = med.endDate || "";
           } else {
             // 기본 투약일정: endDate 사용, duration은 계산
-            endDate = med.endDate
-              ? new Date(med.endDate).toISOString().split("T")[0]
-              : "";
+            endDate = med.endDate || "";
             if (med.startDate && med.endDate) {
               const start = new Date(med.startDate);
               const end = new Date(med.endDate);
@@ -101,9 +97,7 @@ export function useMedication() {
             type: med.subType,
             frequency: frequency,
             duration: duration,
-            startDate: med.startDate
-              ? new Date(med.startDate).toISOString().split("T")[0]
-              : "",
+            startDate: med.startDate || "",
             endDate: endDate,
             scheduleTime: med.times
               ? med.times

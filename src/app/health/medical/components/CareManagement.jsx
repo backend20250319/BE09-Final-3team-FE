@@ -1101,7 +1101,20 @@ export default function CareManagement({
       }
     });
 
-    return expandedSchedules;
+    // 확장된 일정들을 정렬: 먼저 등록 순서(ID), 그 다음 날짜 순서
+    return expandedSchedules.sort((a, b) => {
+      // 1. 등록 순서 (ID) - 최신 등록된 일정이 위에
+      const idA = parseInt(a.id) || 0;
+      const idB = parseInt(b.id) || 0;
+      if (idA !== idB) {
+        return idB - idA; // 내림차순 (최신이 위로)
+      }
+
+      // 2. 같은 일정 내에서는 날짜 순서 - 최신 날짜가 위에
+      const dateA = new Date(a.displayDate);
+      const dateB = new Date(b.displayDate);
+      return dateB - dateA; // 내림차순 (최신 날짜가 위로)
+    });
   };
 
   // 날짜 형식 변환은 constants에서 import
