@@ -1,5 +1,6 @@
 /* eslint-env node */
 import axios from "axios";
+import { createAuthHeaders } from "../utils/jwtUtils";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
@@ -52,9 +53,11 @@ api.interceptors.request.use(
 // 반려동물 목록 조회
 export const getPets = async () => {
   try {
-    const response = await api.get("/pets");
+    const headers = createAuthHeaders();
+    const response = await api.get("/pets", { headers });
     return response.data;
   } catch (error) {
+    console.error("getPets API 에러:", error);
     throw error;
   }
 };
