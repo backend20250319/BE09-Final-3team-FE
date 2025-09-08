@@ -75,7 +75,7 @@ export const updateMedication = async (calNo, updateData) => {
       `${MEDICATION_PREFIX}/update`,
       updateData,
       {
-        params: { calNo },
+        params: { calNo, isEditMode: true },
       }
     );
 
@@ -140,6 +140,17 @@ export const getMedicationMeta = async () => {
     return response.data?.data ?? response.data;
   } catch (error) {
     console.error("투약 메타 정보 조회 실패:", error);
+    throw error;
+  }
+};
+
+// 돌봄/접종 관련 메타 정보 조회 (드롭다운용)
+export const getCareMeta = async () => {
+  try {
+    const response = await api.get(`${CARE_PREFIX}/meta`);
+    return response.data?.data ?? response.data;
+  } catch (error) {
+    console.error("돌봄/접종 메타 정보 조회 실패:", error);
     throw error;
   }
 };

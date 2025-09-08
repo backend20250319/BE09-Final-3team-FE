@@ -58,6 +58,7 @@ export default function CareManagement({
   setShowDetailModal,
   selectedSchedule,
   setSelectedSchedule,
+  onRefreshCareSchedules,
 }) {
   const { selectedPetName, selectedPetNo } = useSelectedPet();
   const [showAddModal, setShowAddModal] = useState(false);
@@ -269,40 +270,33 @@ export default function CareManagement({
               )}`
             );
           } else if (frequency === "매일") {
-            // 매일: 시작일부터 종료일까지 모든 날
-            const current = new Date(start);
-            let dayCount = 0;
-            while (current <= end) {
-              const firstTime = getFirstTime();
-              const sTime = parseDateTime(
-                formatDateToLocal(current),
-                firstTime
-              );
-              const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
-              careEvents.push({
-                id: `care-${s.id}-${formatDateToLocal(current)}`,
-                title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
-                start: sTime,
-                end: eTime,
-                allDay: false,
-                type: getScheduleLabel(s.subType) || "산책",
-                schedule: {
-                  ...s,
-                  category: "care",
-                  type: "돌봄",
-                  icon: getScheduleIcon(s.subType),
-                  color: COLOR_MAP[s.subType] || "#E8F5E8",
-                },
-              });
-              dayCount++;
-              console.log(
-                `🔍 매일 일정 생성 [${dayCount}]: ${
-                  s.title || s.name
-                } - ${formatDateToLocal(current)}`
-              );
-              current.setDate(current.getDate() + 1);
-            }
-            console.log(`🔍 매일 일정 총 생성 개수: ${dayCount}개`);
+            // 백엔드에서 이미 각 날짜별로 개별 일정을 생성했으므로
+            // 각 일정을 그대로 표시 (while 루프 제거)
+            const firstTime = getFirstTime();
+            const sTime = parseDateTime(formatDateToLocal(start), firstTime);
+            const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+
+            careEvents.push({
+              id: `care-${s.id}-${formatDateToLocal(start)}`,
+              title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
+              start: sTime,
+              end: eTime,
+              allDay: false,
+              type: getScheduleLabel(s.subType) || "산책",
+              schedule: {
+                ...s,
+                category: "care",
+                type: "돌봄",
+                icon: getScheduleIcon(s.subType),
+                color: COLOR_MAP[s.subType] || "#E8F5E8",
+              },
+            });
+
+            console.log(
+              `🔍 매일 일정 표시: ${s.title || s.name} - ${formatDateToLocal(
+                start
+              )} (시작: ${s.startDate}, 종료: ${s.endDate})`
+            );
           } else if (frequency === "매주") {
             // 매주: 7일마다
             const current = new Date(start);
@@ -447,40 +441,35 @@ export default function CareManagement({
               } - ${formatDateToLocal(start)}`
             );
           } else if (frequency === "매일") {
-            // 매일: 시작일부터 종료일까지 모든 날
-            const current = new Date(start);
-            let dayCount = 0;
-            while (current <= end) {
-              const firstTime = getFirstTime();
-              const sTime = parseDateTime(
-                formatDateToLocal(current),
-                firstTime
-              );
-              const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
-              vacEvents.push({
-                id: `vac-${s.id}-${formatDateToLocal(current)}`,
-                title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
-                start: sTime,
-                end: eTime,
-                allDay: false,
-                type: getScheduleLabel(s.subType) || "예방접종",
-                schedule: {
-                  ...s,
-                  category: "vaccination",
-                  type: "접종",
-                  icon: getScheduleIcon(s.subType),
-                  color: COLOR_MAP[s.subType] || "#F3E5F5",
-                },
-              });
-              dayCount++;
-              console.log(
-                `🔍 접종 매일 일정 생성 [${dayCount}]: ${
-                  s.title || s.name
-                } - ${formatDateToLocal(current)}`
-              );
-              current.setDate(current.getDate() + 1);
-            }
-            console.log(`🔍 접종 매일 일정 총 생성 개수: ${dayCount}개`);
+            // 백엔드에서 이미 각 날짜별로 개별 일정을 생성했으므로
+            // 각 일정을 그대로 표시 (while 루프 제거)
+            const firstTime = getFirstTime();
+            const sTime = parseDateTime(formatDateToLocal(start), firstTime);
+            const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+
+            vacEvents.push({
+              id: `vac-${s.id}-${formatDateToLocal(start)}`,
+              title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
+              start: sTime,
+              end: eTime,
+              allDay: false,
+              type: getScheduleLabel(s.subType) || "예방접종",
+              schedule: {
+                ...s,
+                category: "vaccination",
+                type: "접종",
+                icon: getScheduleIcon(s.subType),
+                color: COLOR_MAP[s.subType] || "#F3E5F5",
+              },
+            });
+
+            console.log(
+              `🔍 접종 매일 일정 표시: ${
+                s.title || s.name
+              } - ${formatDateToLocal(start)} (시작: ${s.startDate}, 종료: ${
+                s.endDate
+              })`
+            );
           } else if (frequency === "매주") {
             // 매주: 7일마다
             const current = new Date(start);
@@ -662,37 +651,85 @@ export default function CareManagement({
       calNo = await createCare(careData);
       console.log("🔍 API 응답 (calNo):", calNo);
 
-      // 성공 시 로컬 상태 업데이트 (서브타입에 따라 분류)
-      const updatedSchedule = {
-        ...newSchedule,
-        id: calNo,
-        reminderDaysBefore: parseInt(newSchedule.notificationTiming, 10) || 0,
-        lastReminderDaysBefore:
-          parseInt(newSchedule.notificationTiming, 10) || 0,
-        isNotified: true,
-      };
+      // 매일 빈도인 경우 백엔드에서 여러 개의 개별 일정이 생성되므로
+      // 각 날짜별로 개별 일정을 로컬 상태에 추가
+      if (newSchedule.frequency === "매일") {
+        console.log("🔍 매일 일정 생성 후 개별 일정들을 로컬 상태에 추가");
+        const startDate = new Date(newSchedule.startDate);
+        const endDate = new Date(newSchedule.endDate);
+        const current = new Date(startDate);
+        const createdSchedules = [];
 
-      // 즉시 로컬 상태 업데이트 (빠른 UI 반응)
-      if (isVaccinationSubType(newSchedule.subType)) {
-        onVaccinationSchedulesUpdate((prev) => {
-          console.log("🔍 접종 일정 추가 전:", prev.length);
-          const updated = [...prev, updatedSchedule];
-          console.log("🔍 접종 일정 추가 후:", updated.length);
-          console.log("🔍 추가된 접종 일정:", updatedSchedule);
-          return updated;
-        });
-        // 접종 일정 추가 후 페이지를 1로 리셋
-        setVaccinationPage(1);
-      } else if (isCareSubType(newSchedule.subType)) {
-        onCareSchedulesUpdate((prev) => {
-          console.log("🔍 돌봄 일정 추가 전:", prev.length);
-          const updated = [...prev, updatedSchedule];
-          console.log("🔍 돌봄 일정 추가 후:", updated.length);
-          console.log("🔍 추가된 돌봄 일정:", updatedSchedule);
-          return updated;
-        });
-        // 돌봄 일정 추가 후 페이지를 1로 리셋
-        setCarePage(1);
+        while (current <= endDate) {
+          const currentDateStr = current.toISOString().split("T")[0];
+          const individualSchedule = {
+            ...newSchedule,
+            id: `${calNo}-${currentDateStr}`, // 각 일정에 고유 ID 부여
+            startDate: currentDateStr,
+            endDate: currentDateStr,
+            reminderDaysBefore:
+              parseInt(newSchedule.notificationTiming, 10) || 0,
+            lastReminderDaysBefore:
+              parseInt(newSchedule.notificationTiming, 10) || 0,
+            isNotified: true,
+          };
+          createdSchedules.push(individualSchedule);
+          current.setDate(current.getDate() + 1);
+        }
+
+        console.log("🔍 생성된 개별 일정들:", createdSchedules);
+
+        // 로컬 상태에 모든 개별 일정 추가
+        if (isVaccinationSubType(newSchedule.subType)) {
+          onVaccinationSchedulesUpdate((prev) => {
+            console.log("🔍 접종 매일 일정 추가 전:", prev.length);
+            const updated = [...prev, ...createdSchedules];
+            console.log("🔍 접종 매일 일정 추가 후:", updated.length);
+            return updated;
+          });
+          setVaccinationPage(1);
+        } else if (isCareSubType(newSchedule.subType)) {
+          onCareSchedulesUpdate((prev) => {
+            console.log("🔍 돌봄 매일 일정 추가 전:", prev.length);
+            const updated = [...prev, ...createdSchedules];
+            console.log("🔍 돌봄 매일 일정 추가 후:", updated.length);
+            return updated;
+          });
+          setCarePage(1);
+        }
+      } else {
+        // 당일, 매주, 매월은 하나의 일정이므로 기존 로직 사용
+        const updatedSchedule = {
+          ...newSchedule,
+          id: calNo,
+          reminderDaysBefore: parseInt(newSchedule.notificationTiming, 10) || 0,
+          lastReminderDaysBefore:
+            parseInt(newSchedule.notificationTiming, 10) || 0,
+          isNotified: true,
+        };
+
+        // 즉시 로컬 상태 업데이트 (빠른 UI 반응)
+        if (isVaccinationSubType(newSchedule.subType)) {
+          onVaccinationSchedulesUpdate((prev) => {
+            console.log("🔍 접종 일정 추가 전:", prev.length);
+            const updated = [...prev, updatedSchedule];
+            console.log("🔍 접종 일정 추가 후:", updated.length);
+            console.log("🔍 추가된 접종 일정:", updatedSchedule);
+            return updated;
+          });
+          // 접종 일정 추가 후 페이지를 1로 리셋
+          setVaccinationPage(1);
+        } else if (isCareSubType(newSchedule.subType)) {
+          onCareSchedulesUpdate((prev) => {
+            console.log("🔍 돌봄 일정 추가 전:", prev.length);
+            const updated = [...prev, updatedSchedule];
+            console.log("🔍 돌봄 일정 추가 후:", updated.length);
+            console.log("🔍 추가된 돌봄 일정:", updatedSchedule);
+            return updated;
+          });
+          // 돌봄 일정 추가 후 페이지를 1로 리셋
+          setCarePage(1);
+        }
       }
 
       // 생성된 일정 개수 계산
@@ -742,6 +779,12 @@ export default function CareManagement({
           onCalendarEventsChange(updatedEvents);
         }
       }, 1000);
+
+      // 서버에서 최신 데이터 다시 가져오기
+      if (onRefreshCareSchedules) {
+        console.log("🔄 추가 완료 후 서버에서 최신 데이터 새로고침");
+        onRefreshCareSchedules();
+      }
     } catch (error) {
       console.error("일정 생성 실패:", error);
       let errorMessage = "일정 생성에 실패했습니다.";
@@ -862,6 +905,14 @@ export default function CareManagement({
           onCalendarEventsChange(updatedEvents);
         }
       }, 1000);
+
+      // 서버에서 최신 데이터 다시 가져오기
+      if (onRefreshCareSchedules) {
+        console.log("🔄 수정 완료 후 서버에서 최신 데이터 새로고침");
+        onRefreshCareSchedules();
+      }
+
+      return { success: true };
     } catch (error) {
       console.error("❌ 돌봄/접종 일정 수정 실패:", error);
       console.error("❌ 에러 상세 정보:", {
@@ -885,6 +936,8 @@ export default function CareManagement({
       setToastMessage(errorMessage);
       setToastType("error");
       setShowToast(true);
+
+      return { success: false, error: errorMessage };
     }
   };
 
@@ -1015,6 +1068,12 @@ export default function CareManagement({
         onCalendarEventsChange(events);
       }
 
+      // 서버에서 최신 데이터 다시 가져오기
+      if (onRefreshCareSchedules) {
+        console.log("🔄 삭제 완료 후 서버에서 최신 데이터 새로고침");
+        onRefreshCareSchedules();
+      }
+
       setShowConfirm(false);
       setToDeleteId(null);
       setDeleteType("");
@@ -1101,7 +1160,20 @@ export default function CareManagement({
       }
     });
 
-    return expandedSchedules;
+    // 확장된 일정들을 정렬: 먼저 등록 순서(ID), 그 다음 날짜 순서
+    return expandedSchedules.sort((a, b) => {
+      // 1. 등록 순서 (ID) - 최신 등록된 일정이 위에
+      const idA = parseInt(a.id) || 0;
+      const idB = parseInt(b.id) || 0;
+      if (idA !== idB) {
+        return idB - idA; // 내림차순 (최신이 위로)
+      }
+
+      // 2. 같은 일정 내에서는 날짜 순서 - 최신 날짜가 위에
+      const dateA = new Date(a.displayDate);
+      const dateB = new Date(b.displayDate);
+      return dateB - dateA; // 내림차순 (최신 날짜가 위로)
+    });
   };
 
   // 날짜 형식 변환은 constants에서 import
