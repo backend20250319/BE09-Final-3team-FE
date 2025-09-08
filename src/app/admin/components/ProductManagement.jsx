@@ -29,6 +29,12 @@ export default function ProductManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(4);
 
+  // 필터링 상태
+  const [sortBy, setSortBy] = useState("최신순");
+
+  // 페이지네이션을 위한 총 요소 수
+  const [totalElements, setTotalElements] = useState(0);
+
   // 캠페인 목록 조회
   const loadCampaigns = async () => {
     setLoading(true);
@@ -41,6 +47,7 @@ export default function ProductManagement() {
         data = await getPendingCampaigns({
           page: currentPage - 1,
           size: itemsPerPage,
+          sort: sortBy === "최신순" ? "createdAt,desc" : "createdAt,asc",
         });
       } else {
         // TRIAL 상태의 캠페인 조회
@@ -48,11 +55,13 @@ export default function ProductManagement() {
         data = await getAllCampaigns({
           page: currentPage - 1,
           size: itemsPerPage,
+          sort: sortBy === "최신순" ? "createdAt,desc" : "createdAt,asc",
         });
       }
       console.log("캠페인 목록 조회 성공:", data);
       console.log("캠페인 개수:", data?.content?.length || 0);
       setCampaigns(data?.content || []);
+      setTotalElements(data?.totalElements || 0);
     } catch (error) {
       console.error("캠페인 목록 조회 실패:", error);
       setCampaigns([]);
@@ -65,6 +74,16 @@ export default function ProductManagement() {
   useEffect(() => {
     loadCampaigns();
   }, [currentPage, activeTab]);
+
+  // 필터링 변경 시 페이지 리셋 및 데이터 재조회
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortBy]);
+
+  // 필터링 변경 시 데이터 재조회
+  useEffect(() => {
+    loadCampaigns();
+  }, [sortBy, currentPage]);
 
   const showAlert = (message, type = "info") => {
     setAlertMessage(message);
@@ -120,13 +139,13 @@ export default function ProductManagement() {
     }
   };
 
-  // 페이지네이션 함수들
+  // 페이지네이션 함수들 (백엔드에서 이미 필터링된 데이터를 받으므로 단순화)
   const getCurrentItems = () => {
-    return campaigns;
+    return campaigns; // 백엔드에서 이미 페이지네이션된 데이터를 받음
   };
 
   const getTotalPages = () => {
-    return Math.ceil(campaigns.length / itemsPerPage);
+    return Math.ceil(totalElements / itemsPerPage);
   };
 
   const handlePageChange = (page) => {
@@ -170,33 +189,13 @@ export default function ProductManagement() {
               )}
             </div>
             <div className={styles.rightControls}>
-              <div className={styles.searchContainer}>
-                <input
-                  type="text"
-                  placeholder="검색어를 입력하세요."
-                  className={styles.searchInput}
-                />
-                <div className={styles.searchIcon}>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path
-                      d="M11 11L15 15"
-                      stroke="#9CA3AF"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                    <circle
-                      cx="7"
-                      cy="7"
-                      r="6"
-                      stroke="#9CA3AF"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                </div>
-              </div>
-              <select className={styles.sortSelect}>
-                <option>최신순</option>
-                <option>오래된순</option>
+              <select
+                className={styles.sortSelect}
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <option value="최신순">최신순</option>
+                <option value="오래된순">오래된순</option>
               </select>
             </div>
           </div>
@@ -385,7 +384,7 @@ export default function ProductManagement() {
           </section>
 
           {/* 페이지네이션 */}
-          {campaigns.length > itemsPerPage && (
+          {totalElements > itemsPerPage && (
             <div className={styles.pagination}>
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
