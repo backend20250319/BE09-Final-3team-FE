@@ -484,33 +484,26 @@ export default function EditScheduleModal({
         // notificationTiming은 표시용 문자열이므로 사용하지 않음
         note: "notificationTiming은 표시용 문자열이므로 사용하지 않음",
       });
-      // frequency 값 처리
-      const frequency = (() => {
+      // frequency 값 처리 - 백엔드에서 이미 한글 값으로 반환되므로 그대로 사용
+      const frequency = scheduleData.frequency || "";
+
+      // 한글 빈도를 영어로 변환하여 getDefaultTimes 함수에 전달
+      const frequencyForTimes = (() => {
         if (type === "medication") {
-          // 투약의 경우: 한글이면 영어로, 이미 영어면 그대로 사용
-          if (
-            [
-              "DAILY_ONCE",
-              "DAILY_TWICE",
-              "DAILY_THREE_TIMES",
-              "WEEKLY_ONCE",
-              "MONTHLY_ONCE",
-            ].includes(scheduleData.frequency)
-          ) {
-            return scheduleData.frequency;
-          }
-          // 한글 값인 경우 영어로 변환
-          return (
-            frequencyMapping[scheduleData.frequency] ||
-            scheduleData.frequency ||
-            ""
-          );
-        } else {
-          // 돌봄과 접종의 경우: frequency 필드 사용 (백엔드에서 한글 값으로 반환)
-          return scheduleData.frequency || "";
+          // 투약의 경우: 한글을 영어로 변환
+          const koreanToEnglish = {
+            "하루에 한 번": "DAILY_ONCE",
+            "하루에 두 번": "DAILY_TWICE",
+            "하루에 세 번": "DAILY_THREE_TIMES",
+            "주에 한 번": "WEEKLY_ONCE",
+            "월에 한 번": "MONTHLY_ONCE",
+          };
+          return koreanToEnglish[frequency] || frequency;
         }
+        return frequency;
       })();
-      const defaultTimes = getDefaultTimes(frequency);
+
+      const defaultTimes = getDefaultTimes(frequencyForTimes);
 
       setFormData({
         name: scheduleData.name || "",
@@ -578,7 +571,22 @@ export default function EditScheduleModal({
 
       // 복용 빈도가 변경되면 기본 시간도 함께 설정
       if (field === "frequency") {
-        const defaultTimes = getDefaultTimes(value);
+        // 투약의 경우 한글 빈도를 영어로 변환하여 getDefaultTimes 함수에 전달
+        const frequencyForTimes = (() => {
+          if (type === "medication") {
+            const koreanToEnglish = {
+              "하루에 한 번": "DAILY_ONCE",
+              "하루에 두 번": "DAILY_TWICE",
+              "하루에 세 번": "DAILY_THREE_TIMES",
+              "주에 한 번": "WEEKLY_ONCE",
+              "월에 한 번": "MONTHLY_ONCE",
+            };
+            return koreanToEnglish[value] || value;
+          }
+          return value;
+        })();
+
+        const defaultTimes = getDefaultTimes(frequencyForTimes);
         newData.scheduleTime = defaultTimes.join(", ");
 
         // 돌봄과 접종의 경우 빈도에 따른 종료날짜 처리
@@ -633,6 +641,17 @@ export default function EditScheduleModal({
             ...prev,
             duration: "",
           }));
+        }
+
+        // 처방전 OCR 투약일정의 경우 종료날짜 자동 계산
+        if (isPrescription && newData.startDate && newData.duration) {
+          const calculatedEndDate = endDateObj.toISOString().split("T")[0];
+          newData.endDate = calculatedEndDate;
+          console.log("🔍 처방전 OCR 종료날짜 자동 계산:", {
+            startDate: newData.startDate,
+            duration: newData.duration,
+            calculatedEndDate: calculatedEndDate,
+          });
         }
       }
 
@@ -1246,7 +1265,7 @@ export default function EditScheduleModal({
             )}
           </div>
 
-          {/* 종료 날짜 - 돌봄/접종 일정 또는 기본 투약일정에서 표시 */}
+          {/* 종료 날짜 - 돌봄/접종 일정 또는 기본 투약일정에서 표시, 처방전 OCR은 자동 계산 */}
           {(type !== "medication" ||
             (type === "medication" && !isPrescription)) && (
             <div className={styles.formGroup}>
@@ -1347,6 +1366,31 @@ export default function EditScheduleModal({
                     : getEndDateHint(formData.frequency)}
                 </span>
               )}
+            </div>
+          )}
+
+          {/* 처방전 OCR 투약일정의 경우 자동 계산된 종료날짜 표시 */}
+          {type === "medication" && isPrescription && (
+            <div className={styles.formGroup}>
+              <div className={styles.labelContainer}>
+                <label className={styles.label}>종료 날짜 (자동 계산)</label>
+              </div>
+              <div className={styles.inputContainer}>
+                <div className={styles.dateInputWrapper}>
+                  <input
+                    type="text"
+                    value={formatDateForDisplay(formData.endDate)}
+                    className={`${styles.dateInput} ${styles.disabled}`}
+                    readOnly
+                    disabled
+                    placeholder="복용기간과 시작날짜에 따라 자동 계산됩니다"
+                  />
+                </div>
+                <span className={styles.hint}>
+                  복용기간 또는 시작날짜를 변경하면 종료날짜가 자동으로
+                  계산됩니다.
+                </span>
+              </div>
             </div>
           )}
 

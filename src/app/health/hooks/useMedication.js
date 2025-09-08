@@ -94,7 +94,7 @@ export function useMedication() {
             }
           }
 
-          return {
+          const transformedMed = {
             id: med.scheduleNo,
             calNo: med.scheduleNo,
             name: med.medicationName || med.title,
@@ -127,6 +127,19 @@ export function useMedication() {
             color: med.subType === "복용약" ? "#E3F2FD" : "#FFF3E0",
             isNotified: med.alarmEnabled || false,
           };
+
+          // 처방전 OCR 투약일정 디버깅
+          if (isPrescription) {
+            console.log("🔍 처방전 OCR 투약일정 변환:", {
+              scheduleNo: med.scheduleNo,
+              calNo: transformedMed.calNo,
+              isPrescription: transformedMed.isPrescription,
+              isNotified: transformedMed.isNotified,
+              alarmEnabled: med.alarmEnabled,
+            });
+          }
+
+          return transformedMed;
         });
 
         // 최신순으로 정렬
@@ -247,24 +260,53 @@ export function useMedication() {
           영양제: "SUPPLEMENT",
         };
 
-        const updateData = {
-          name: medicationData.name,
-          startDate: medicationData.startDate,
-          endDate: medicationData.endDate, // durationDays 대신 endDate 사용
-          medicationFrequency:
-            frequencyToEnum[medicationData.frequency] || "DAILY_ONCE",
-          times: medicationData.scheduleTime
-            ? medicationData.scheduleTime.split(",").map((t) => {
-                const time = t.trim();
-                return time.includes(":") && time.split(":").length === 2
-                  ? `${time}:00`
-                  : time;
-              })
-            : ["09:00:00"],
-          subType: medicationData.type === "영양제" ? "SUPPLEMENT" : "PILL",
-          isPrescription: medicationData.isPrescription || false,
-          reminderDaysBefore: medicationData.reminderDaysBefore,
-        };
+        // 처방전 OCR 투약일정과 기본 투약일정 구분하여 데이터 구성
+        const isPrescription = medication.isPrescription || false;
+        let updateData;
+
+        if (isPrescription) {
+          // 처방전 OCR 투약일정: durationDays 사용 (자동 계산)
+          updateData = {
+            name: medicationData.name,
+            durationDays: medicationData.duration, // 처방전은 durationDays 사용
+            startDate: medicationData.startDate,
+            medicationFrequency:
+              frequencyToEnum[medicationData.frequency] || "DAILY_ONCE",
+            times: medicationData.scheduleTime
+              ? medicationData.scheduleTime.split(",").map((t) => {
+                  const time = t.trim();
+                  return time.includes(":") && time.split(":").length === 2
+                    ? `${time}:00`
+                    : time;
+                })
+              : ["09:00:00"],
+            subType: medicationData.type === "영양제" ? "SUPPLEMENT" : "PILL",
+            isPrescription: true,
+            reminderDaysBefore: 0, // 처방전은 0일전 고정
+          };
+          console.log("🔍 처방전 OCR 수정 - 자동 계산 데이터:", updateData);
+        } else {
+          // 기본 투약일정: endDate 사용
+          updateData = {
+            name: medicationData.name,
+            startDate: medicationData.startDate,
+            endDate: medicationData.endDate, // 기본 투약일정은 endDate 사용
+            medicationFrequency:
+              frequencyToEnum[medicationData.frequency] || "DAILY_ONCE",
+            times: medicationData.scheduleTime
+              ? medicationData.scheduleTime.split(",").map((t) => {
+                  const time = t.trim();
+                  return time.includes(":") && time.split(":").length === 2
+                    ? `${time}:00`
+                    : time;
+                })
+              : ["09:00:00"],
+            subType: medicationData.type === "영양제" ? "SUPPLEMENT" : "PILL",
+            isPrescription: false,
+            reminderDaysBefore: medicationData.reminderDaysBefore,
+          };
+          console.log("🔍 기본 투약일정 수정 데이터:", updateData);
+        }
 
         await updateMedication(medication.calNo, updateData);
 
@@ -314,6 +356,13 @@ export function useMedication() {
     async (id) => {
       try {
         const medication = medications.find((med) => med.id === id);
+        console.log("🔍 알림 토글 - 찾은 투약일정:", medication);
+        console.log(
+          "🔍 알림 토글 - isPrescription:",
+          medication?.isPrescription
+        );
+        console.log("🔍 알림 토글 - calNo:", medication?.calNo);
+
         if (!medication || !medication.calNo) {
           throw new Error("투약 정보를 찾을 수 없습니다.");
         }
@@ -323,7 +372,11 @@ export function useMedication() {
           calNo = calNo.scheduleNo || calNo.id || calNo.value || calNo.data;
         }
 
+        console.log("🔍 알림 토글 - 최종 calNo:", calNo);
+        console.log("🔍 알림 토글 - calNo 타입:", typeof calNo);
+
         const newAlarmStatus = await toggleAlarm(calNo);
+        console.log("🔍 알림 토글 - API 응답:", newAlarmStatus);
 
         // 로컬 상태 업데이트
         setMedications((prev) =>
