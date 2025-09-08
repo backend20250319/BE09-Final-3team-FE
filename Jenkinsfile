@@ -75,7 +75,7 @@ pipeline {
             echo 'Pipeline succeeded!'
             bat '''
                 curl -H "Content-Type: application/json" ^
-                    -d "{\\"content\\":\\"✅ Jenkins Frontend Job 성공: %JOB_NAME% #%BUILD_NUMBER%\\"}" ^
+                    -d "{\\"content\\":\\"Jenkins Frontend Job Success: %JOB_NAME% #%BUILD_NUMBER%\\"}" ^
                     %DISCORD_WEBHOOK_URL%
             '''
         }
@@ -83,7 +83,7 @@ pipeline {
             echo 'Pipeline failed!'
             bat '''
                 curl -H "Content-Type: application/json" ^
-                    -d "{\\"content\\":\\"❌ Jenkins Frontend Job 실패: %JOB_NAME% #%BUILD_NUMBER%\\"}" ^
+                    -d "{\\"content\\":\\"Jenkins Frontend Job Failed: %JOB_NAME% #%BUILD_NUMBER%\\"}" ^
                     %DISCORD_WEBHOOK_URL%
             '''
         }
