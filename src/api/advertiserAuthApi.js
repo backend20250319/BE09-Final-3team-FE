@@ -177,7 +177,7 @@ export const uploadAdvertiserProfileImage = async (file) => {
 // 광고주 회원탈퇴
 export const withdrawAdvertiser = async (password, reason) => {
   try {
-    const response = await api.delete("/advertiser/withdraw", {
+    const response = await api.delete("/advertiser/signup/withdraw", {
       data: {
         password,
         reason,
@@ -196,12 +196,16 @@ export const uploadFileByAdvertiserNo = async (file, advertiserNo) => {
 
   // image는 선택적이므로 생략
   try {
-    const response = await api.post(`/file/advertiser/${advertiserNo}`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-      // 인증 토큰 등 헤더가 있으면 추가
-    });
+    const response = await api.post(
+      `/file/advertiser/${advertiserNo}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        // 인증 토큰 등 헤더가 있으면 추가
+      }
+    );
     return response.data.data;
   } catch (error) {
     throw error;

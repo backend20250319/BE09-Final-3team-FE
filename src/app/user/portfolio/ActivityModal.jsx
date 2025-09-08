@@ -349,7 +349,11 @@ const ActivityModal = ({
     };
 
     const handleDateClick = (date) => {
-      const formattedDate = date.toISOString().split("T")[0];
+      // 로컬 시간대를 고려한 날짜 포맷팅 (UTC 변환 방지)
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const formattedDate = `${year}-${month}-${day}`;
 
       // 종료 시기 캘린더에서 시작 시기보다 이전 날짜 선택 방지
       if (
@@ -399,8 +403,12 @@ const ActivityModal = ({
               {days.map((date, index) => {
                 const isCurrentMonth =
                   date.getMonth() === currentMonth.getMonth();
-                const isSelected =
-                  selectedDate === date.toISOString().split("T")[0];
+                // 로컬 시간대를 고려한 날짜 비교 (UTC 변환 방지)
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, "0");
+                const day = String(date.getDate()).padStart(2, "0");
+                const dateString = `${year}-${month}-${day}`;
+                const isSelected = selectedDate === dateString;
                 const isToday =
                   date.toDateString() === new Date().toDateString();
 
@@ -408,13 +416,13 @@ const ActivityModal = ({
                 const isDisabled =
                   isEndDate &&
                   formData.startDate &&
-                  date.toISOString().split("T")[0] < formData.startDate;
+                  dateString < formData.startDate;
 
                 // 시작 시기 캘린더에서 종료 시기보다 이후 날짜는 비활성화
                 const isDisabledStart =
                   !isEndDate &&
                   formData.endDate &&
-                  date.toISOString().split("T")[0] > formData.endDate;
+                  dateString > formData.endDate;
 
                 return (
                   <button
