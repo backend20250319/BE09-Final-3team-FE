@@ -10,6 +10,8 @@ pipeline {
 
         // 환경변수 지정
         NEXT_PUBLIC_API_URL = 'https://petful.site/api/v1'
+
+        DISCORD_WEBHOOK_URL = credentials('discord-webhook-url')
     }
 
     stages {
@@ -71,9 +73,19 @@ pipeline {
         }
         success {
             echo 'Pipeline succeeded!'
+            bat '''
+                curl -H "Content-Type: application/json" ^
+                    -d "{\\"content\\":\\"✅ Jenkins Frontend Job 성공: %JOB_NAME% #%BUILD_NUMBER%\\"}" ^
+                    %DISCORD_WEBHOOK_URL%
+            '''
         }
         failure {
             echo 'Pipeline failed!'
+            bat '''
+                curl -H "Content-Type: application/json" ^
+                    -d "{\\"content\\":\\"❌ Jenkins Frontend Job 실패: %JOB_NAME% #%BUILD_NUMBER%\\"}" ^
+                    %DISCORD_WEBHOOK_URL%
+            '''
         }
     }
 }
