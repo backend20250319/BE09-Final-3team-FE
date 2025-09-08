@@ -33,7 +33,7 @@ export default function PopupModal({
       case "advertiserreject":
         return {
           title: "반려하기",
-          label: "광고주 이메일",
+          label: "광고주 이름",
           description: "광고주 회원신청을 반려하시겠습니까?",
           confirmText: "반려하기",
           textfield: "반려 사유",
