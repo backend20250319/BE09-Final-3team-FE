@@ -377,6 +377,34 @@
   max-width: 858px;
 }
 
+.instagramLink {
+  margin: 8px 0;
+}
+
+.instagramLink a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  text-decoration: none !important;
+  color: #6b7280 !important;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.instagramLink a:hover {
+  background: #fff5f5;
+  border-color: #e4405f;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(228, 64, 95, 0.1);
+  color: #e4405f !important;
+  text-decoration: none !important;
+}
+
 .companyInfo {
   display: flex;
   align-items: center;
