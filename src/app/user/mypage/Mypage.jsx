@@ -4,6 +4,7 @@ import styles from "./Mypage.module.css";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import api from "../../../api/api";
+import { createAuthHeaders } from "../../../utils/jwtUtils";
 
 const MyPage = () => {
   // ✅ 컨트롤드 입력을 위한 초기 빈 값
@@ -166,7 +167,8 @@ const MyPage = () => {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/user-service/auth/profile");
+      const headers = createAuthHeaders();
+      const response = await api.get("/user-service/auth/profile", { headers });
       const userData = response.data?.data ?? response.data;
 
       // 주소 데이터 설정
@@ -216,7 +218,10 @@ const MyPage = () => {
         return;
       }
 
-      const response = await api.get("/sns-service/instagram/profiles");
+      const headers = createAuthHeaders();
+      const response = await api.get("/sns-service/instagram/profiles", {
+        headers,
+      });
 
       if (response.data.code === "2000") {
         setConnectedProfiles(response.data.data || []);
@@ -251,9 +256,11 @@ const MyPage = () => {
         // birthDate는 수정 불가능하므로 제외
       };
 
+      const headers = createAuthHeaders();
       const response = await api.patch(
         "/user-service/auth/profile",
-        profileData
+        profileData,
+        { headers }
       );
 
       // 성공 시 편집 모드 종료
@@ -313,9 +320,14 @@ const MyPage = () => {
         return;
       }
 
-      const response = await api.post("/sns-service/instagram/auth/connect", {
-        access_token: accessToken,
-      });
+      const headers = createAuthHeaders();
+      const response = await api.post(
+        "/sns-service/instagram/auth/connect",
+        {
+          access_token: accessToken,
+        },
+        { headers }
+      );
 
       console.log("Instagram 연결 API 응답:", response.data);
       setSuccess("Instagram 계정이 성공적으로 연결되었습니다!");
@@ -383,14 +395,13 @@ const MyPage = () => {
       formData.append("file", file);
       formData.append("userNo", localStorage.getItem("userNo") || "");
 
+      const headers = createAuthHeaders({
+        "Content-Type": "multipart/form-data",
+      });
       const response = await api.post(
         "/user-service/auth/profile/image",
         formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
+        { headers }
       );
 
       // 업로드된 이미지 URL로 미리보기 설정
@@ -460,11 +471,13 @@ const MyPage = () => {
       setLoading(true);
       setError("");
 
+      const headers = createAuthHeaders();
       await api.delete("/user-service/auth/withdraw", {
         data: {
           password: withdrawPassword,
           reason: withdrawReason || "사용자 요청",
         },
+        headers,
       });
 
       // 회원탈퇴 성공 시 로컬스토리지 클리어
