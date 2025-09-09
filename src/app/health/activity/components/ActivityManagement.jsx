@@ -16,6 +16,7 @@ import {
 } from "../../../../api/activityApi";
 import SaveCompleteModal from "./SaveCompleteModal";
 import SaveConfirmModal from "./SaveConfirmModal";
+import Toast from "../../medical/components/Toast";
 
 export default function ActivityManagement() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -65,6 +66,11 @@ export default function ActivityManagement() {
 
   // 현재 선택된 펫이 오늘 저장했는지 여부 (백엔드 데이터 존재 여부로 판단)
   const [isSubmittedToday, setIsSubmittedToday] = useState(false);
+
+  // 토스트 메시지 상태
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState("error");
 
   // 활동량 옵션을 백엔드에서 가져오기
   useEffect(() => {
@@ -423,7 +429,11 @@ export default function ActivityManagement() {
     setValidationErrors({});
 
     if (isSubmittedToday) {
-      alert(`${selectedPetName}은(는) 이미 오늘 기록이 저장되었습니다.`);
+      setToastMessage(
+        `${selectedPetName}은(는) 이미 오늘 기록이 저장되었습니다.`
+      );
+      setToastType("error");
+      setShowToast(true);
       return;
     }
 
@@ -462,7 +472,9 @@ export default function ActivityManagement() {
     }
 
     if (mealsToSave.length === 0) {
-      alert("식사 정보를 최소 1개 이상 추가해주세요.");
+      setToastMessage("식사 정보를 최소 1개 이상 추가해주세요.");
+      setToastType("error");
+      setShowToast(true);
       return;
     }
 
@@ -550,13 +562,10 @@ export default function ActivityManagement() {
         console.log("🔍 저장 후 정규화된 식사 배열:", normalizedMeals);
         setMeals(normalizedMeals);
       }
-
-      // 저장 완료 후 자동 새로고침 제거 - 사용자가 확인 버튼을 눌러야 함
-      // setTimeout(() => {
-      //   window.location.reload();
-      // }, 1500);
     } catch (error) {
-      alert("저장 중 오류가 발생했습니다.");
+      setToastMessage("저장 중 오류가 발생했습니다.");
+      setToastType("error");
+      setShowToast(true);
       console.error(error);
     }
   };
@@ -617,13 +626,13 @@ export default function ActivityManagement() {
         intakeKcal: intake,
       },
     ]);
-    // 다음 입력을 위해 초기화
+    // 다음 입력을 위해 초기화 (식사 타입은 유지)
     setFormData((prev) => ({
       ...prev,
       totalFoodWeight: "",
       totalCaloriesInFood: "",
       feedingAmount: "",
-      mealType: "", // 기본값을 빈 문자열로 리셋
+
     }));
   };
 
@@ -1367,6 +1376,16 @@ export default function ActivityManagement() {
           return `${year}-${month}-${day}`;
         })()}
       />
+
+      {/* 토스트 메시지 */}
+      {showToast && (
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          duration={1000}
+          onClose={() => setShowToast(false)}
+        />
+      )}
     </div>
   );
 }
