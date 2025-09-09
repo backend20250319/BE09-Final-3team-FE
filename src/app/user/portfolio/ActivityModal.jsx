@@ -171,7 +171,7 @@ const ActivityModal = ({
                   ? image
                   : image.startsWith("/")
                   ? image
-                  : `http://dev.macacolabs.site:8008/3/pet/${image}`
+                  : `https://dev.macacolabs.site/3/pet/${image}`
                 : image.preview || image.url || image,
           }));
         console.log(
@@ -197,7 +197,7 @@ const ActivityModal = ({
           ? editingData.image
           : editingData.image.startsWith("/")
           ? editingData.image
-          : `http://dev.macacolabs.site:8008/3/pet/${editingData.image}`;
+          : `https://dev.macacolabs.site/3/pet/${editingData.image}`;
 
         setUploadedImages([
           {
