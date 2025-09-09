@@ -35,20 +35,38 @@ export default function TopPerformingPosts() {
     return <div className={styles.topPostsCard}>Loading...</div>;
   }
 
+  // 게시글 내용이 너무 길면 ...으로 자름 (예: 40자 이상)
+  const truncateText = (text, maxLen = 40) => {
+    if (!text) return "";
+    return text.length > maxLen ? text.slice(0, maxLen) + "..." : text;
+  };
+
   return (
     <div className={styles.topPostsCard}>
       <h3 className={styles.title}>최다 좋아요 수 게시물</h3>
       <div className={styles.postsContainer}>
         {posts.map((post, index) => (
           <div key={post.id} className={styles.postCard}>
-            <div className={`${styles.rankBadge} ${styles[`${index === 0 ? 'first' : index === 1 ? 'second' : 'third'}`]}`}>
+            <div
+              className={`${styles.rankBadge} ${
+                styles[
+                  `${index === 0 ? "first" : index === 1 ? "second" : "third"}`
+                ]
+              }`}
+            >
               {index + 1}
             </div>
             <div className={styles.imageContainer}>
-              <Image src={post.image} alt={post.title} width={64} height={64} className={styles.postImage} />
+              <Image
+                src={post.image}
+                alt={post.title}
+                width={64}
+                height={64}
+                className={styles.postImage}
+              />
             </div>
             <div className={styles.postContent}>
-              <h4 className={styles.postTitle}>{post.title}</h4>
+              <h4 className={styles.postTitle}>{truncateText(post.title)}</h4>
               <div className={styles.postStats}>
                 <div className={styles.statItem}>
                   <span className={styles.statNumber}>{post.likes}</span>
