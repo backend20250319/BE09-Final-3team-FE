@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import styles from "./ActivityModal.module.css";
 import Image from "next/image";
 import axios from "axios";
+import api from "../../../api/api";
 
 const ActivityModal = ({
   isOpen,
@@ -11,8 +12,10 @@ const ActivityModal = ({
   isEditMode,
   editingData,
 }) => {
-  // API 기본 URL
-  const PET_API_BASE = "http://localhost:8000/api/v1/pet-service";
+  // API 기본 URL - api.js의 BASE_URL 사용
+  const BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+  const PET_API_BASE = `${BASE_URL}/pet-service`;
 
   // URL 파라미터에서 petNo 가져오기
   const getPetNo = () => {

@@ -10,6 +10,7 @@ import FeatureCards from "./FeatureCards.jsx";
 import CampaignSection from "./CampaignSection.jsx";
 import InfluencerSection from "./InfluencerSection.jsx";
 import CTASection from "./CTASection.jsx";
+import api from "../../api/api";
 
 export default function MainPage() {
   // 토큰 갱신 함수
@@ -20,19 +21,12 @@ export default function MainPage() {
     }
 
     try {
-      const response = await fetch(
-        "http://localhost:8000/api/v1/user-service/auth/refresh",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ refreshToken }),
-        }
-      );
+      const response = await api.post("/user-service/auth/refresh", {
+        refreshToken,
+      });
 
-      if (response.ok) {
-        const data = await response.json();
+      if (response.status === 200) {
+        const data = response.data;
         if (data.code === "2000" && data.data) {
           const authData = data.data;
           localStorage.setItem("token", authData.accessToken);
@@ -68,18 +62,9 @@ export default function MainPage() {
       if (token && refreshTokenValue) {
         try {
           // 토큰 유효성 검사
-          const response = await fetch(
-            "http://localhost:8000/api/v1/user-service/auth/validate-token",
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-              },
-            }
-          );
+          const response = await api.post("/user-service/auth/validate-token");
 
-          const data = await response.json();
+          const data = response.data;
           if (!data.data) {
             // 토큰이 유효하지 않으면 갱신 시도
             await refreshToken();
