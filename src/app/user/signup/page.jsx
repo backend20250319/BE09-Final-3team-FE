@@ -429,7 +429,7 @@ export default function SignupPage() {
       name: formData.name,
       nickname: formData.nickname,
       phone: formData.phone,
-      userType: "User", // Role enum 값 (User, Admin, Advertiser)
+      userType: "USER", // Role enum 값 (User, Admin, Advertiser)
       birthDate, // LocalDate (yyyy-MM-dd)
       description: "",
       roadAddress: formData.address,
