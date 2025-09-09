@@ -22,11 +22,12 @@ export const getRecentNotifications = async () => {
 
 // 드롭다운용 최근 5개 알람 조회
 export const hideNotification = async (notificationid) => {
-  const res = await api.patch(`${NOTIFICATION_PREFIX}/noti/${notificationid}/hide`, {
-  });
+  const res = await api.patch(
+    `${NOTIFICATION_PREFIX}/noti/${notificationid}/hide`,
+    {}
+  );
   return res.data?.data ?? res.data;
 };
-
 
 // 읽지 않은 알림 개수 조회
 export const getUnreadNotificationCount = async () => {
@@ -70,8 +71,14 @@ export const getWebPushSubscriptions = async () => {
   return res.data?.data ?? res.data;
 };
 
-// 웹푸시 구독 해제
-export const unsubscribeFromWebPush = async (subscriptionId) => {
+// 웹푸시 구독 해제 (모든 구독 해제)
+export const unsubscribeFromWebPush = async () => {
+  const res = await api.delete(`${WEBPUSH_PREFIX}/subscriptions/all`);
+  return res.data?.data ?? res.data;
+};
+
+// 웹푸시 구독 해제 (특정 구독 ID로)
+export const unsubscribeFromWebPushById = async (subscriptionId) => {
   const res = await api.delete(
     `${WEBPUSH_PREFIX}/subscriptions/${subscriptionId}`
   );
@@ -84,3 +91,16 @@ export const getWebPushSubscriptionCount = async () => {
   return res.data?.data ?? res.data;
 };
 
+// 웹푸시 구독 상태 조회
+export const getWebPushSubscriptionStatus = async () => {
+  const res = await api.get(`${WEBPUSH_PREFIX}/subscriptions/status`);
+  return res.data?.data ?? res.data;
+};
+
+// 웹푸시 구독 강제 비활성화 (긴급 상황용)
+export const forceDeactivateAllWebPushSubscriptions = async () => {
+  const res = await api.delete(
+    `${WEBPUSH_PREFIX}/subscriptions/force-deactivate`
+  );
+  return res.data?.data ?? res.data;
+};

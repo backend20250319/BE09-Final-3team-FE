@@ -4,6 +4,7 @@ import {
   subscribeToWebPush,
   getWebPushSubscriptions,
   unsubscribeFromWebPush,
+  getWebPushSubscriptionStatus,
 } from "@/api/notificationApi";
 
 /**
@@ -61,11 +62,21 @@ export const useWebPush = () => {
       const currentSubscription =
         await registration.pushManager.getSubscription();
 
+      // 서버 구독 상태도 확인
+      let serverSubscriptionStatus = null;
+      try {
+        serverSubscriptionStatus = await getWebPushSubscriptionStatus();
+        console.log("서버 구독 상태:", serverSubscriptionStatus);
+      } catch (serverErr) {
+        console.warn("서버 구독 상태 확인 실패:", serverErr);
+      }
+
       if (currentSubscription) {
         setSubscription(currentSubscription);
         setIsSubscribed(true);
         console.log("현재 구독됨:", currentSubscription);
       } else {
+        setSubscription(null);
         setIsSubscribed(false);
         console.log("구독되지 않음");
       }
@@ -141,8 +152,14 @@ export const useWebPush = () => {
       // 브라우저에서 구독 해제
       await subscription.unsubscribe();
 
-      // 서버에서도 구독 해제 (구독 ID가 있다면)
-      // TODO: 구독 ID를 저장하고 관리하는 로직 필요
+      // 서버에서도 구독 해제 - 모든 구독을 해제
+      try {
+        await unsubscribeFromWebPush();
+        console.log("서버에서 구독 해제 성공");
+      } catch (serverErr) {
+        console.warn("서버 구독 해제 실패 (브라우저는 해제됨):", serverErr);
+        // 서버 해제 실패해도 브라우저는 해제되었으므로 계속 진행
+      }
 
       setSubscription(null);
       setIsSubscribed(false);
