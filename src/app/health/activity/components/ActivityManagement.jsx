@@ -626,13 +626,13 @@ export default function ActivityManagement() {
         intakeKcal: intake,
       },
     ]);
-    // 다음 입력을 위해 초기화
+    // 다음 입력을 위해 초기화 (식사 타입은 유지)
     setFormData((prev) => ({
       ...prev,
       totalFoodWeight: "",
       totalCaloriesInFood: "",
       feedingAmount: "",
-      mealType: "", // 기본값을 빈 문자열로 리셋
+
     }));
   };
 
