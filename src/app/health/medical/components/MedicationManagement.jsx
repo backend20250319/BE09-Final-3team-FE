@@ -97,6 +97,7 @@ export default function MedicationManagement({
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false);
   const [ocrResult, setOcrResult] = useState(null);
+  const [isLoadingAction, setIsLoadingAction] = useState(false);
 
   // 투약 일정 필터 옵션은 constants에서 import
 
@@ -680,6 +681,7 @@ export default function MedicationManagement({
 
   const handleAddNewMedication = async (newMedication) => {
     try {
+      setIsLoadingAction(true);
       console.log("🔍 MedicationManagement - 투약 추가 요청:", newMedication);
 
       const result = await addMedication(newMedication);
@@ -689,17 +691,13 @@ export default function MedicationManagement({
         setToastType("active");
         setShowToast(true);
 
-        // 백그라운드에서 데이터 동기화 (1초 후)
-        setTimeout(() => {
-          setMedicationFilter("전체"); // 필터를 "전체"로 리셋
-          handleFetchMedications();
-        }, 1000);
+        // 즉시 서버에서 최신 데이터 가져오기
+        setMedicationFilter("전체"); // 필터를 "전체"로 리셋
+        await handleFetchMedications();
 
-        // 캘린더 이벤트 즉시 업데이트
-        const events = buildCalendarEvents();
-        setCalendarEvents(events);
-        if (onCalendarEventsChange) {
-          onCalendarEventsChange(events);
+        // 돌봄/접종 일정도 새로고침
+        if (onRefreshCareSchedules) {
+          await onRefreshCareSchedules();
         }
       } else {
         setToastMessage("투약 추가에 실패했습니다.");
@@ -711,6 +709,8 @@ export default function MedicationManagement({
       setToastMessage("투약 추가에 실패했습니다.");
       setToastType("error");
       setShowToast(true);
+    } finally {
+      setIsLoadingAction(false);
     }
   };
 
@@ -724,6 +724,8 @@ export default function MedicationManagement({
 
   const handleEditMedicationSubmit = async (updatedMedication) => {
     try {
+      setIsLoadingAction(true);
+
       const medication = medications.find(
         (med) => med.id === updatedMedication.id
       );
@@ -759,11 +761,12 @@ export default function MedicationManagement({
         setToastType("active");
         setShowToast(true);
 
-        // 캘린더 이벤트 즉시 업데이트
-        const events = buildCalendarEvents();
-        setCalendarEvents(events);
-        if (onCalendarEventsChange) {
-          onCalendarEventsChange(events);
+        // 즉시 서버에서 최신 데이터 가져오기
+        await handleFetchMedications();
+
+        // 돌봄/접종 일정도 새로고침
+        if (onRefreshCareSchedules) {
+          await onRefreshCareSchedules();
         }
 
         return { success: true };
@@ -788,6 +791,8 @@ export default function MedicationManagement({
       setToastType("error");
       setShowToast(true);
       return { success: false, error: error.message };
+    } finally {
+      setIsLoadingAction(false);
     }
   };
 
@@ -800,8 +805,10 @@ export default function MedicationManagement({
   const confirmDeleteMedication = async () => {
     if (toDeleteId == null) return;
 
-    if (deleteType === "medication") {
-      try {
+    try {
+      setIsLoadingAction(true);
+
+      if (deleteType === "medication") {
         const result = await removeMedication(toDeleteId);
 
         if (result.success) {
@@ -820,63 +827,39 @@ export default function MedicationManagement({
             setToastType("delete");
             setShowToast(true);
           }
+
+          // 즉시 서버에서 최신 데이터 가져오기
+          await handleFetchMedications();
+
+          // 돌봄/접종 일정도 새로고침
+          if (onRefreshCareSchedules) {
+            await onRefreshCareSchedules();
+          }
         } else {
           setToastMessage("투약 삭제에 실패했습니다.");
           setToastType("error");
           setShowToast(true);
           return;
         }
-      } catch (error) {
-        console.error("투약 삭제 실패:", error);
-        setToastMessage("투약 삭제에 실패했습니다.");
-        setToastType("error");
-        setShowToast(true);
-        return;
+      } else if (deleteType === "care" || deleteType === "vaccination") {
+        // 돌봄/접종 일정 삭제는 CareManagement에서 처리
+        // 여기서는 서버에서 최신 데이터만 가져오기
+        if (onRefreshCareSchedules) {
+          await onRefreshCareSchedules();
+        }
       }
-    } else if (deleteType === "care") {
-      // 돌봄 일정 삭제
-      const updated = careSchedules.filter(
-        (schedule) => schedule.id !== toDeleteId
-      );
-      onCareSchedulesUpdate(updated);
 
-      // 토스트 메시지 표시
-      const deletedSchedule = careSchedules.find(
-        (schedule) => schedule.id === toDeleteId
-      );
-      if (deletedSchedule) {
-        setToastMessage(`${deletedSchedule.name} 일정이 삭제되었습니다.`);
-        setToastType("delete");
-        setShowToast(true);
-      }
-    } else if (deleteType === "vaccination") {
-      // 접종 일정 삭제
-      const updated = vaccinationSchedules.filter(
-        (schedule) => schedule.id !== toDeleteId
-      );
-      onVaccinationSchedulesUpdate(updated);
-
-      // 토스트 메시지 표시
-      const deletedSchedule = vaccinationSchedules.find(
-        (schedule) => schedule.id === toDeleteId
-      );
-      if (deletedSchedule) {
-        setToastMessage(`${deletedSchedule.name} 일정이 삭제되었습니다.`);
-        setToastType("delete");
-        setShowToast(true);
-      }
+      setShowConfirm(false);
+      setToDeleteId(null);
+      setDeleteType("");
+    } catch (error) {
+      console.error("삭제 실패:", error);
+      setToastMessage("삭제에 실패했습니다.");
+      setToastType("error");
+      setShowToast(true);
+    } finally {
+      setIsLoadingAction(false);
     }
-
-    // 캘린더 이벤트 즉시 업데이트
-    const events = buildCalendarEvents();
-    setCalendarEvents(events);
-    if (onCalendarEventsChange) {
-      onCalendarEventsChange(events);
-    }
-
-    setShowConfirm(false);
-    setToDeleteId(null);
-    setDeleteType("");
   };
 
   const cancelDeleteMedication = () => {
@@ -1117,8 +1100,12 @@ export default function MedicationManagement({
                 className={styles.filterSelect}
               />
             </div>
-            <button className={styles.addButton} onClick={handleAddMedication}>
-              <span>추가</span>
+            <button
+              className={styles.addButton}
+              onClick={handleAddMedication}
+              disabled={isLoadingAction}
+            >
+              <span>{isLoadingAction ? "처리중..." : "추가"}</span>
               <img
                 src="health/pill.png"
                 alt="복용약 추가 아이콘"
