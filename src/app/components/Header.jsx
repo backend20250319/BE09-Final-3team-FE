@@ -9,6 +9,7 @@ import { IoIosNotifications, IoMdBusiness } from "react-icons/io";
 import NavbarDropdown from "@/app/components/AlarmDropdown";
 import LoginRequiredModal from "@/app/components/LoginRequiredModal";
 import { getUnreadNotificationCount } from "@/api/notificationApi";
+import api from "../../api/api";
 
 export default function Header() {
   const router = useRouter();
@@ -26,22 +27,15 @@ export default function Header() {
       throw new Error("리프레시 토큰이 없습니다.");
     }
 
-    const response = await fetch(
-      "http://localhost:8000/api/v1/user-service/auth/refresh",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ refreshToken }),
-      }
-    );
+    const response = await api.post("/user-service/auth/refresh", {
+      refreshToken,
+    });
 
-    if (!response.ok) {
+    if (!response.status === 200) {
       throw new Error("토큰 갱신에 실패했습니다.");
     }
 
-    const data = await response.json();
+    const data = response.data;
     if (data.code === "2000" && data.data) {
       const authData = data.data;
       localStorage.setItem("token", authData.accessToken);
@@ -71,18 +65,9 @@ export default function Header() {
     if (token && refreshTokenValue) {
       try {
         // 토큰 유효성 검사
-        const response = await fetch(
-          "http://localhost:8000/api/v1/user-service/auth/validate-token",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const response = await api.post("/user-service/auth/validate-token");
 
-        const data = await response.json();
+        const data = response.data;
         if (!data.data) {
           // 토큰이 유효하지 않으면 갱신 시도
           await refreshToken();

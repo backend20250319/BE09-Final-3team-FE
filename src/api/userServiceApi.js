@@ -146,9 +146,6 @@ export const sendEmailVerification = async (email) => {
   const endpoints = [
     `${BASE_URL}/user-service/auth/email/send`,
     `${BASE_URL}/user-service/email/verify`,
-    `http://localhost:8001/auth/email/send`, // user-service 직접 포트
-    `http://localhost:8002/auth/email/send`, // 다른 가능한 포트
-    `http://localhost:8003/auth/email/send`, // 다른 가능한 포트
     `${BASE_URL}/auth/email/send`,
     `${BASE_URL}${AUTH_PREFIX}/email/send`,
     `${BASE_URL}/email/send`,
