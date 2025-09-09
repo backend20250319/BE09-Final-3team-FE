@@ -9,6 +9,13 @@ import { IoIosNotifications, IoMdBusiness } from "react-icons/io";
 import NavbarDropdown from "@/app/components/AlarmDropdown";
 import LoginRequiredModal from "@/app/components/LoginRequiredModal";
 import { getUnreadNotificationCount } from "@/api/notificationApi";
+import {
+  hasValidToken,
+  needsTokenRefresh,
+  isTokenExpired,
+  getTokenStatus,
+  clearAllTokens,
+} from "@/utils/tokenUtils";
 import api from "../../api/api";
 
 export default function Header() {
@@ -57,29 +64,43 @@ export default function Header() {
     }
   };
 
-  // 토큰 상태 확인 및 갱신
+  // 토큰 상태 확인 및 갱신 (시간 기반)
   const checkAndRefreshToken = async () => {
-    const token = localStorage.getItem("token");
-    const refreshTokenValue = localStorage.getItem("refreshToken");
+    try {
+      // 토큰 상태 디버깅 정보 출력
+      const tokenStatus = getTokenStatus();
+      console.log("🔍 토큰 상태:", tokenStatus);
 
-    if (token && refreshTokenValue) {
-      try {
-        // 토큰 유효성 검사
-        const response = await api.post("/user-service/auth/validate-token");
-
-        const data = response.data;
-        if (!data.data) {
-          // 토큰이 유효하지 않으면 갱신 시도
-          await refreshToken();
-        }
-      } catch (error) {
-        console.error("토큰 검증/갱신 실패:", error);
-        // 갱신 실패 시 로그아웃
-        localStorage.clear();
-        setIsLoggedIn(false);
-        setUserNickname("");
+      // 유효한 토큰이 없으면 로그아웃 처리
+      if (!hasValidToken()) {
+        console.warn("❌ 유효한 토큰이 없어 로그아웃 처리");
+        handleTokenExpired();
+        return;
       }
+
+      // 토큰 갱신이 필요한 경우에만 갱신 시도
+      if (needsTokenRefresh()) {
+        console.log("🔄 토큰 갱신 필요, 갱신 시도...");
+        await refreshToken();
+        console.log("✅ 토큰 갱신 완료");
+      }
+    } catch (error) {
+      console.error("❌ 토큰 검증/갱신 실패:", error);
+      // 갱신 실패 시 로그아웃 처리
+      handleTokenExpired();
     }
+  };
+
+  // 토큰 만료 시 로그아웃 처리
+  const handleTokenExpired = () => {
+    console.log("🚪 토큰 만료로 인한 로그아웃 처리");
+    clearAllTokens();
+    setIsLoggedIn(false);
+    setUserNickname("");
+    setNotificationCount(0);
+
+    // 커스텀 이벤트 발생
+    window.dispatchEvent(new Event("loginStatusChanged"));
   };
 
   // 안읽은 알림 갯수 가져오기
@@ -93,14 +114,12 @@ export default function Header() {
     }
   };
 
-  // 로그인 상태 확인
+  // 로그인 상태 확인 (토큰 만료 시간 고려)
   useEffect(() => {
     const checkLoginStatus = () => {
-      const accessToken = localStorage.getItem("accessToken");
-      const token = localStorage.getItem("token");
-      const nickname = localStorage.getItem("userNickname");
-
-      if (accessToken || token) {
+      // 토큰 기반으로 로그인 상태 확인
+      if (hasValidToken()) {
+        const nickname = localStorage.getItem("userNickname");
         setIsLoggedIn(true);
         setUserNickname(nickname || "");
         // 로그인 시 안읽은 알림 갯수 가져오기
@@ -115,18 +134,22 @@ export default function Header() {
     // 초기 로그인 상태 확인
     checkLoginStatus();
 
-    // 주기적으로 로그인 상태 확인 (1초마다)
-    const intervalId = setInterval(checkLoginStatus, 1000);
+    // 로그인 상태 확인 주기를 5초로 조정 (1초는 너무 빈번함)
+    const intervalId = setInterval(checkLoginStatus, 5000);
 
-    // 5분마다 토큰 상태 확인 및 갱신
-    const tokenCheckInterval = setInterval(checkAndRefreshToken, 5 * 60 * 1000);
+    // 토큰 상태 확인을 15분으로 조정 (5분은 너무 빈번함)
+    // 단, 토큰 만료 시간을 고려한 스마트한 검증
+    const tokenCheckInterval = setInterval(
+      checkAndRefreshToken,
+      15 * 60 * 1000
+    );
 
-    // 30초마다 안읽은 알림 갯수 갱신
+    // 1분마다 안읽은 알림 갯수 갱신 (30초는 너무 빈번함)
     const notificationInterval = setInterval(() => {
       if (isLoggedIn) {
         fetchUnreadCount();
       }
-    }, 30000);
+    }, 60000);
 
     // localStorage 변경 감지
     const handleStorageChange = () => {
@@ -153,19 +176,13 @@ export default function Header() {
 
   // 로그아웃 함수
   const handleLogout = () => {
-    // localStorage에서 토큰 제거
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("token");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("userEmail");
-    localStorage.removeItem("userNickname");
-    localStorage.removeItem("userNo");
-    localStorage.removeItem("accessTokenExpiresAt");
-    localStorage.removeItem("refreshTokenExpiresAt");
+    // 토큰 유틸리티를 사용해 모든 토큰 정보 삭제
+    clearAllTokens();
 
     // 로그인 상태 업데이트
     setIsLoggedIn(false);
     setUserNickname("");
+    setNotificationCount(0);
 
     // 커스텀 이벤트 발생
     window.dispatchEvent(new Event("loginStatusChanged"));
