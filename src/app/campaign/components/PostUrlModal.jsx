@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from "../styles/PostUrlModal.module.css";
 import { getApplicantsByAd, updateReview, getReview } from '@/api/campaignApi';
+import AlertModal from '@/app/advertiser/components/AlertModal';
 
 export default function PostUrlModal({ isOpen, onClose, adNo }) {
   const [applicants, setApplicants] = useState([]);
@@ -13,6 +14,7 @@ export default function PostUrlModal({ isOpen, onClose, adNo }) {
   const [existingReview, setExistingReview] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [petReviews, setPetReviews] = useState({}); // 각 펫의 리뷰 상태 저장
+  const [alertModal, setAlertModal] = useState({ isOpen: false, title: '', message: '', type: 'info' });
 
   useEffect(() => {
     if (isOpen && adNo) {
@@ -160,8 +162,13 @@ export default function PostUrlModal({ isOpen, onClose, adNo }) {
       
       // 성공 시 모달 닫기
       onClose();
-      // 성공 메시지 표시 (선택사항)
-      alert('게시물 URL이 성공적으로 등록되었습니다.');
+      // 성공 메시지 표시
+      setAlertModal({
+        isOpen: true,
+        title: '등록 완료',
+        message: '게시물 URL이 성공적으로 등록되었습니다.',
+        type: 'success'
+      });
     } catch (error) {
       console.error('게시물 URL 저장 실패:', error);
       setError('게시물 URL 저장에 실패했습니다. 다시 시도해주세요.');
@@ -486,6 +493,14 @@ export default function PostUrlModal({ isOpen, onClose, adNo }) {
           )}
         </div>
       </div>
+      
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ ...alertModal, isOpen: false })}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+      />
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import styles from "../styles/InfluencerSection.module.css";
-import { getPetstar } from "@/api/advertisementApi";
+import { getPetstar, getPortfolio, getInstagramProfileBySnSId } from "@/api/advertisementApi";
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation } from "swiper/modules";
@@ -29,7 +29,40 @@ export default function InfluencerSection() {
       const shuffled = allPetstars.sort(() => 0.5 - Math.random());
       const selectedPetstars = shuffled.slice(0, Math.min(8, allPetstars.length));
       
-      setPetstars(selectedPetstars);
+      // 각 펫스타의 portfolio와 인스타그램 프로필 조회
+      const petstarsWithData = await Promise.all(
+        selectedPetstars.map(async (petstar) => {
+          try {
+            // Portfolio 조회
+            const portfolio = await getPortfolio(petstar.petNo);
+            
+            // 인스타그램 프로필 조회 (snsId가 있는 경우에만)
+            let instagramProfile = null;
+            if (petstar.snsId) {
+              try {
+                instagramProfile = await getInstagramProfileBySnSId(petstar.snsId);
+              } catch (error) {
+                console.error(`펫스타 ${petstar.petNo} 인스타그램 프로필 조회 실패:`, error);
+              }
+            }
+            
+            return {
+              ...petstar,
+              portfolioContent: portfolio?.content || '사랑스러운 펫스타입니다.',
+              followers_count: instagramProfile?.followers_count || petstar.followers || 0
+            };
+          } catch (error) {
+            console.error(`펫스타 ${petstar.petNo} 데이터 조회 실패:`, error);
+            return {
+              ...petstar,
+              portfolioContent: '사랑스러운 펫스타입니다.',
+              followers_count: petstar.followers || 0
+            };
+          }
+        })
+      );
+      
+      setPetstars(petstarsWithData);
     } catch (err) {
       console.error('펫스타 데이터를 가져오는데 실패했습니다:', err);
       setError('펫스타 정보를 불러올 수 없습니다.');
@@ -56,7 +89,7 @@ export default function InfluencerSection() {
           {loading ? (
             <div className={styles.loadingContainer}>
               <div className={styles.loadingSpinner}></div>
-              <p>펫스타 정보를 불러오는 중...</p>
+              <p>펫스타 정보를 불러오는 중</p>
             </div>
           ) : error ? (
             <div className={styles.errorContainer}>
@@ -93,7 +126,7 @@ export default function InfluencerSection() {
                   <div className={styles.influencerCard}>
                     <div className={styles.cardImage}>
                       <Image
-                        src={influencer.profileImage || influencer.image || '/user/avatar-placeholder.jpg'}
+                        src={influencer.imageUrl}
                         alt={influencer.petName || influencer.name}
                         width={256}
                         height={256}
@@ -103,12 +136,12 @@ export default function InfluencerSection() {
                     <div className={styles.cardContent}>
                       <div className={styles.userInfo}>
                         <div className={styles.petInfo}>
-                          <h3 className={styles.petName}>{influencer.petName || influencer.name}</h3>
-                          <p className={styles.petBreed}>{influencer.breed}</p>
+                          <h3 className={styles.petName}>{influencer.name}</h3>
+                          <p className={styles.petBreed}>{influencer.type}</p>
                         </div>
                       </div>
                       <div className={styles.statsInfo}>
-                        <span className={styles.username}>{influencer.snsId || influencer.sns_profile}</span>
+                        <span className={styles.username}>@{influencer.snsUsername}</span>
                         <div className={styles.followersBox}>
                           <div className={styles.followersIcon}>
                             <svg
@@ -124,12 +157,12 @@ export default function InfluencerSection() {
                             </svg>
                           </div>
                           <span className={styles.followersCount}>
-                            {influencer.followers ? `${Math.floor(influencer.followers / 1000)}K` : 'N/A'}
+                            {influencer.followers_count ? `${Math.floor(influencer.followers_count / 1000)}K` : 'N/A'}
                           </span>
                         </div>
                       </div>
                       <p className={styles.description}>
-                        {influencer.description || '사랑스러운 펫스타입니다.'}
+                        {influencer.portfolioContent}
                       </p>
                     </div>
                   </div>
@@ -174,23 +207,6 @@ export default function InfluencerSection() {
             </div>
           )}
         </div>
-
-        {pathname === "/advertiser" && (
-          <div className={styles.viewAllContainer}>
-            <a href="advertiser/petstar-list" className={styles.viewAllLink}>
-              <span>모든 펫스타 목록</span>
-              <svg width="14" height="12" viewBox="0 0 14 12" fill="none">
-                <path
-                  d="M1 6H13M13 6L8 1M13 6L8 11"
-                  stroke="#F5A623"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </a>
-          </div>
-        )}
       </div>
     </section>
   );

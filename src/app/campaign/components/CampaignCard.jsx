@@ -6,18 +6,24 @@ import Link from "next/link";
 import styles from "../styles/CampaignCard.module.css";
 import { useCampaign } from "../context/CampaignContext";
 import { getAdvertiserFile, getImageByAdNo, getApplicantsByAd, deleteApplicant } from '@/api/campaignApi';
+import { deleteAdByAdvertiser } from '@/api/advertisementApi';
 import EditApplicationModal from './EditApplicationModal';
 import PostUrlModal from './PostUrlModal';
+import CompletedUrlsModal from './CompletedUrlsModal';
+import AlertModal from '@/app/advertiser/components/AlertModal';
 
 export default function CampaignCard({ campaign, openModal }) {
 
   const { activeTab } = useCampaign();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPostUrlModalOpen, setIsPostUrlModalOpen] = useState(false);
+  const [isCompletedUrlsModalOpen, setIsCompletedUrlsModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [userStatus, setUserStatus] = useState(null);
   const [applicants, setApplicants] = useState([]);
   const [selectedApplicants, setSelectedApplicants] = useState([]);
+  const [alertModal, setAlertModal] = useState({ isOpen: false, title: '', message: '', type: 'info' });
 
   const showRecruitingButton = activeTab === "recruiting" && 
     campaign.adStatus === "APPROVED" && new Date() >= new Date(campaign.announceStart);
@@ -31,6 +37,7 @@ export default function CampaignCard({ campaign, openModal }) {
     default: "#000000"
   };
 
+  // 신청자 status
   const STATUSTEXT = {
     approved: "모집중",
     pending: "선정 절차중",
@@ -44,7 +51,7 @@ export default function CampaignCard({ campaign, openModal }) {
     const baseStyle = { 
       padding: "4px 16px",
       borderRadius: "9999px",
-      fontSize: "14px",
+      fontSize: "16px",
       fontWeight: "400",
       lineHeight: "1.19",
       textAlign: "center",
@@ -106,6 +113,7 @@ export default function CampaignCard({ campaign, openModal }) {
     if (!applicants || applicants.length === 0) return null;
 
     const statuses = applicants.map(applicant => applicant.status);
+    console.log('Applicant statuses:', statuses); // 디버깅용
     
     // selected: 하나라도 selected인 경우
     if (statuses.some(status => status === 'SELECTED') && applicants.every(applicant => applicant.isSaved === true)) {
@@ -117,8 +125,8 @@ export default function CampaignCard({ campaign, openModal }) {
       return 'rejected';
     }
     
-    // completed: 모든 펫이 completed인 경우
-    if (statuses.every(status => status === 'COMPLETED')) {
+    // completed: 모든 펫이 APPLIED인 경우 (게시물 URL이 승인된 상태)
+    if (statuses.every(status => status === 'COMPLETED') && campaign.adStatus === 'ENDED') {
       return 'completed';
     }
     
@@ -132,7 +140,12 @@ export default function CampaignCard({ campaign, openModal }) {
     e.stopPropagation();
     
     if (!applicants || applicants.length === 0) {
-      alert('취소할 신청이 없습니다.');
+      setAlertModal({
+        isOpen: true,
+        title: '알림',
+        message: '취소할 신청이 없습니다.',
+        type: 'warning'
+      });
       return;
     }
 
@@ -155,7 +168,12 @@ export default function CampaignCard({ campaign, openModal }) {
   // 선택된 신청자 삭제 실행
   const handleConfirmCancel = async () => {
     if (selectedApplicants.length === 0) {
-      alert('삭제할 신청을 선택해주세요.');
+      setAlertModal({
+        isOpen: true,
+        title: '알림',
+        message: '삭제할 신청을 선택해주세요.',
+        type: 'warning'
+      });
       return;
     }
 
@@ -170,17 +188,65 @@ export default function CampaignCard({ campaign, openModal }) {
       
       await Promise.all(deletePromises);
       
-      alert('선택한 신청이 성공적으로 취소되었습니다.');
+      setAlertModal({
+        isOpen: true,
+        title: '신청 취소 완료',
+        message: '선택한 신청이 성공적으로 취소되었습니다.',
+        type: 'success'
+      });
       
       // 모달 닫기 및 페이지 새로고침
       setIsCancelModalOpen(false);
-      window.location.reload();
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
       
     } catch (error) {
       console.error('신청 취소 실패:', error);
-      alert('신청 취소에 실패했습니다. 다시 시도해주세요.');
+      setAlertModal({
+        isOpen: true,
+        title: '신청 취소 실패',
+        message: '신청 취소에 실패했습니다. 다시 시도해주세요.',
+        type: 'error'
+      });
     }
   };
+
+  // 광고 삭제 핸들러
+  const handleDeleteAd = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDeleteModalOpen(true);
+  };
+
+  // 광고 삭제 확인 실행
+  const handleConfirmDelete = async () => {
+    try {
+      await deleteAdByAdvertiser(campaign.adNo, true);
+      
+      setAlertModal({
+        isOpen: true,
+        title: '삭제 완료',
+        message: '광고가 성공적으로 삭제되었습니다.',
+        type: 'success'
+      });
+      
+      setIsDeleteModalOpen(false);
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+      
+    } catch (error) {
+      console.error('광고 삭제 실패:', error);
+      setAlertModal({
+        isOpen: true,
+        title: '삭제 실패',
+        message: '광고 삭제에 실패했습니다. 다시 시도해주세요.',
+        type: 'error'
+      });
+    }
+  };
+
   
   const cardContent = (
     <div
@@ -256,6 +322,27 @@ export default function CampaignCard({ campaign, openModal }) {
             >
               {STATUSTEXT["selected"]}
             </button>
+          ) : userStatus === "completed" ? (
+            <div className={styles.actionButtons}>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsCompletedUrlsModalOpen(true);
+                }}
+                style={getStatusStyle(userStatus)}
+                className={styles.statusButton}
+              >
+                {STATUSTEXT[userStatus]}
+              </button>
+              <button 
+                style={{...getStatusStyle("rejected")}} 
+                className={styles.actionBtn}
+                onClick={handleDeleteAd}
+              >
+                삭제
+              </button>
+            </div>
           ) : userStatus ? (
             <span 
               style={getStatusStyle(userStatus)}
@@ -295,6 +382,12 @@ export default function CampaignCard({ campaign, openModal }) {
       <PostUrlModal
         isOpen={isPostUrlModalOpen}
         onClose={() => setIsPostUrlModalOpen(false)}
+        adNo={campaign.adNo}
+      />
+      
+      <CompletedUrlsModal
+        isOpen={isCompletedUrlsModalOpen}
+        onClose={() => setIsCompletedUrlsModalOpen(false)}
         adNo={campaign.adNo}
       />
 
@@ -348,6 +441,56 @@ export default function CampaignCard({ campaign, openModal }) {
           </div>
         </div>
       )}
+
+      {/* 광고 삭제 확인 모달 */}
+      {isDeleteModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => setIsDeleteModalOpen(false)}>
+          <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>광고 삭제</h3>
+              <button 
+                className={styles.closeButton}
+                onClick={() => setIsDeleteModalOpen(false)}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className={styles.modalBody}>
+              <p className={styles.modalDescription}>
+                정말로 해당 광고를 삭제하시겠습니까?
+                <br />
+                삭제된 광고는 복구할 수 없습니다
+              </p>
+            </div>
+            
+            <div className={styles.modalActions}>
+              <button
+                className={styles.cancelButton}
+                onClick={() => setIsDeleteModalOpen(false)}
+              >
+                취소
+              </button>
+              <button
+                className={styles.confirmButton}
+                onClick={handleConfirmDelete}
+                style={{ backgroundColor: "#DC2626" }}
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ ...alertModal, isOpen: false })}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+      />
     </>
   );
 }

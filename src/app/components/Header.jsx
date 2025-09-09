@@ -109,7 +109,10 @@ export default function Header() {
       const count = await getUnreadNotificationCount();
       setNotificationCount(count);
     } catch (error) {
-      console.error("알림 갯수 가져오기 실패:", error);
+      // 로그 레벨을 줄임 (에러만 표시)
+      if (error.message && !error.message.includes("401")) {
+        console.error("알림 갯수 가져오기 실패:", error);
+      }
       setNotificationCount(0);
     }
   };

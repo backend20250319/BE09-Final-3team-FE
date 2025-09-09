@@ -16,6 +16,19 @@ export default function PetstarGrid({ searchQuery, sortBy }) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
+  // 팔로워 수를 K, M 단위로 포맷하는 함수
+  const formatFollowersCount = (count) => {
+    if (!count || count === 0) return null;
+    
+    if (count >= 1000000) {
+      return `${(count / 1000000).toFixed(1)}M`;
+    } else if (count >= 1000) {
+      return `${(count / 1000).toFixed(1)}K`;
+    } else {
+      return count.toString();
+    }
+  };
+
   // API에서 펫스타 데이터 가져오기
   useEffect(() => {
     const fetchPetstars = async () => {
@@ -84,7 +97,7 @@ export default function PetstarGrid({ searchQuery, sortBy }) {
 
     let sorted = [...filtered];
     if (sortBy === "followers") {
-      sorted.sort((a, b) => b.snsProfile.follows_count- a.snsProfile.follows_count); // 내림차순
+      sorted.sort((a, b) => b.snsProfile?.followers_count- a.snsProfile?.followers_count); // 내림차순
     } else if (sortBy === "costLow") {
       sorted.sort((a, b) => a.portfolioData.cost - b.portfolioData.cost); // 낮은순 오름차순
     } else if (sortBy === "costHigh") {
@@ -166,7 +179,7 @@ export default function PetstarGrid({ searchQuery, sortBy }) {
                 <svg width="20" height="16" viewBox="0 0 20 16" fill="none">
                   <path d="M10 8C12.21 8 14 6.21 14 4C14 1.79 12.21 0 10 0C7.79 0 6 1.79 6 4C6 6.21 7.79 8 10 8ZM10 10C7.33 10 2 11.34 2 14V16H18V14C18 11.34 12.67 10 10 10Z" fill="#6B7280"/>
                 </svg>
-                <span>팔로워 수: {petstar.snsProfile?.follows_count || '미연결'}</span>
+                <span>팔로워 수: {formatFollowersCount(petstar.snsProfile?.followers_count) || '미연결'}</span>
               </div>
 
               <div className={styles.priceInfo}>

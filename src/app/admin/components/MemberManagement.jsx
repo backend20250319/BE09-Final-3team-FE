@@ -127,13 +127,13 @@ export default function MemberManagement() {
   const loadPetStarList = async () => {
     setLoading(true);
     try {
-      console.log("펫스타 신청 목록 조회 시작...");
+      const sortParam =
+        sortBy === "최신순" ? "pendingAt,desc" : "pendingAt,asc";
       const data = await getPetStarApplications({
         page: currentPage - 1,
         size: itemsPerPage,
-        sort: sortBy === "최신순" ? "createdAt,desc" : "createdAt,asc",
+        sort: sortParam,
       });
-      console.log("펫스타 신청 목록 조회 성공:", data);
       console.log("펫스타 데이터 구조:", data?.content);
       if (data?.content && data.content.length > 0) {
         console.log("첫 번째 펫스타 데이터:", data.content[0]);
@@ -394,7 +394,9 @@ export default function MemberManagement() {
                         <div className={styles.productContent}>
                           <div className={styles.productImage}>
                             <img
-                              src={petstar.imageUrl || "/petstar/petstar1.jpeg"}
+                              src={
+                                petstar.petImageUrl || "/petstar/petstar1.jpeg"
+                              }
                               alt={petstar.petName}
                               onError={(e) => {
                                 e.currentTarget.src = "/petstar/petstar1.jpeg";
@@ -424,7 +426,10 @@ export default function MemberManagement() {
                             </div>
                             <div className={styles.companyInfo}>
                               <img
-                                src="/owner/owner1.jpeg"
+                                src={
+                                  petstar.userProfileImageUrl ||
+                                  "/owner/owner1.jpeg"
+                                }
                                 className={styles.companyLogo}
                                 onError={(e) => {
                                   e.currentTarget.src = "/owner/owner1.jpeg";

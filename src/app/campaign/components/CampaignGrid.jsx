@@ -76,7 +76,10 @@ export default function CampaignGrid({searchQuery, sortBy, openModal, currentPag
         setCampaigns(data);
 
         const res = await getAppliedAds();
-        const appliedData = res.ads.map(item => item.advertisement);
+        // applicant.isDeleted가 false인 경우만 필터링
+        const appliedData = res.ads
+          .filter(item => !item.isDeleted) // applicant.isDeleted가 false인 경우만
+          .map(item => item.advertisement);
         setAppliedCampaigns(appliedData);
       } catch (error) {
         console.error("Failed to fetch campaigns:", error);

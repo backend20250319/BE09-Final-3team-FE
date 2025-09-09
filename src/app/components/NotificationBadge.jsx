@@ -11,7 +11,10 @@ const NotificationBadge = () => {
         const data = await getUnreadNotificationCount();
         setUnreadCount(data.unreadCount || 0);
       } catch (error) {
-        console.error("읽지 않은 알림 개수 조회 실패:", error);
+        // 로그 레벨을 줄임 (에러만 표시)
+        if (error.message && !error.message.includes("401")) {
+          console.error("읽지 않은 알림 개수 조회 실패:", error);
+        }
       }
     };
 
