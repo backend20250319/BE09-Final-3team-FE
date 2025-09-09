@@ -5,7 +5,7 @@ import Image from "next/image";
 import styles from "../styles/HeroSection.module.css";
 import { FiLogIn } from "react-icons/fi";
 
-export default function HeroSection() {
+export default function HeroSection({ isLoggedIn = false }) {
 
   const router = useRouter();
 
@@ -24,7 +24,12 @@ export default function HeroSection() {
 
       <div className={styles.heroContent}>
         <div className={styles.container}>
-          <div className={styles.content}>
+          <div 
+            className={styles.content}
+            data-aos="fade-up"
+            data-aos-delay="200"
+            data-aos-duration="800"
+          >
             <h2 className={styles.title}>
               PetFul에서 반려동물 인플루언서와 <br />
               소통하며 비즈니스를 성장시켜보세요</h2>
@@ -35,10 +40,18 @@ export default function HeroSection() {
             </p>
           </div>
 
-          <button className={styles.dashboardBtn} onClick={() => router.push("/advertiser/login")}>
-            <FiLogIn size={18} />
-            <span>Login to Dashboard</span>
-          </button>
+          {!isLoggedIn && (
+            <button 
+              className={styles.dashboardBtn} 
+              onClick={() => router.push("/advertiser/login")}
+              data-aos="fade-up"
+              data-aos-delay="400"
+              data-aos-duration="800"
+            >
+              <FiLogIn size={18} />
+              <span>Login to Dashboard</span>
+            </button>
+          )}
         </div>
       </div>
     </section>

@@ -96,13 +96,6 @@ export default function MemberManagement() {
     }
   }, [sortBy, memberTypeFilter, currentPage]);
 
-  // 펫스타 검색/정렬 변경 시 데이터 재조회 (임시 비활성화)
-  // useEffect(() => {
-  //   if (activeTab === "펫스타 지원") {
-  //     loadPetStarList();
-  //   }
-  // }, [searchKeyword, sortBy, sortDirection]);
-
   const loadReportList = async () => {
     setLoading(true);
     try {
@@ -659,7 +652,8 @@ export default function MemberManagement() {
                               >
                                 광고주 사진
                               </h4>
-                              {advertiser.profileImageUrl ? (
+                              {advertiser.profileImageUrl &&
+                              advertiser.profileImageUrl !== "NO_FILE" ? (
                                 <img
                                   src={advertiser.profileImageUrl}
                                   alt="광고주 프로필"
@@ -693,7 +687,9 @@ export default function MemberManagement() {
                                     boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
                                   }}
                                 >
-                                  프로필 없음
+                                  {advertiser.profileImageUrl === "NO_FILE"
+                                    ? "파일 없음"
+                                    : "프로필 없음"}
                                 </div>
                               )}
                             </div>
@@ -1061,68 +1057,86 @@ export default function MemberManagement() {
                       gap: "15px",
                     }}
                   >
-                    {advertiserWithFiles.profileImageUrl && (
-                      <>
-                        <img
-                          src={advertiserWithFiles.profileImageUrl}
-                          alt="프로필 사진"
-                          style={{
-                            width: "60px",
-                            height: "60px",
-                            borderRadius: "50%",
-                            objectFit: "cover",
-                            border: "2px solid #ddd",
-                          }}
-                          onError={(e) => {
-                            e.currentTarget.src =
-                              "/user/avatar-placeholder.jpg";
-                          }}
-                        />
-                        <div>
-                          <h4 style={{ margin: "0 0 5px 0" }}>프로필 사진</h4>
-                          <p style={{ margin: 0, color: "#666" }}>
-                            {advertiserWithFiles.profileOriginalName}
-                          </p>
-                        </div>
-                      </>
-                    )}
-
-                    {advertiserWithFiles.documentUrl && (
-                      <>
-                        <div
-                          style={{
-                            width: "60px",
-                            height: "60px",
-                            backgroundColor: "#f8f9fa",
-                            borderRadius: "8px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: "24px",
-                          }}
-                        >
-                          📄
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <h4 style={{ margin: "0 0 5px 0" }}>참고 문서</h4>
-                          <p style={{ margin: "0 0 10px 0", color: "#666" }}>
-                            {advertiserWithFiles.documentOriginalName}
-                          </p>
-                          <a
-                            href={advertiserWithFiles.documentUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                    {advertiserWithFiles.profileImageUrl &&
+                      advertiserWithFiles.profileImageUrl !== "NO_FILE" && (
+                        <>
+                          <img
+                            src={advertiserWithFiles.profileImageUrl}
+                            alt="프로필 사진"
                             style={{
-                              color: "#007bff",
-                              textDecoration: "underline",
-                              fontSize: "14px",
+                              width: "60px",
+                              height: "60px",
+                              borderRadius: "50%",
+                              objectFit: "cover",
+                              border: "2px solid #ddd",
+                            }}
+                            onError={(e) => {
+                              e.currentTarget.src =
+                                "/user/avatar-placeholder.jpg";
+                            }}
+                          />
+                          <div>
+                            <h4 style={{ margin: "0 0 5px 0" }}>프로필 사진</h4>
+                            <p style={{ margin: 0, color: "#666" }}>
+                              {advertiserWithFiles.profileOriginalName}
+                            </p>
+                          </div>
+                        </>
+                      )}
+
+                    {advertiserWithFiles.documentUrl &&
+                      advertiserWithFiles.documentUrl !== "NO_FILE" && (
+                        <>
+                          <div
+                            style={{
+                              width: "60px",
+                              height: "60px",
+                              backgroundColor: "#f8f9fa",
+                              borderRadius: "8px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: "24px",
                             }}
                           >
-                            파일 다운로드
-                          </a>
+                            📄
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <h4 style={{ margin: "0 0 5px 0" }}>참고 문서</h4>
+                            <p style={{ margin: "0 0 10px 0", color: "#666" }}>
+                              {advertiserWithFiles.documentOriginalName}
+                            </p>
+                            <a
+                              href={advertiserWithFiles.documentUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                color: "#007bff",
+                                textDecoration: "underline",
+                                fontSize: "14px",
+                              }}
+                            >
+                              파일 다운로드
+                            </a>
+                          </div>
+                        </>
+                      )}
+
+                    {/* 파일이 없는 경우 메시지 표시 */}
+                    {(!advertiserWithFiles.profileImageUrl ||
+                      advertiserWithFiles.profileImageUrl === "NO_FILE") &&
+                      (!advertiserWithFiles.documentUrl ||
+                        advertiserWithFiles.documentUrl === "NO_FILE") && (
+                        <div
+                          style={{
+                            textAlign: "center",
+                            color: "#999",
+                            padding: "20px",
+                          }}
+                        >
+                          업로드된 파일이 없습니다.
                         </div>
-                      </>
-                    )}
+                      )}
                   </div>
                 ))}
               </div>

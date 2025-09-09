@@ -117,8 +117,11 @@ export default function CampaignGrid({ searchQuery, sortBy, currentPage, onPageC
     fetchCampaigns();
   }, [activeTab]);
 
+  // 삭제되지 않은 캠페인만 필터링
+  const nonDeletedCampaigns = campaigns.filter(campaign => !campaign.isDeleted);
+  
   // 검색 필터링 적용
-  const filteredCampaigns = filterCampaigns(campaigns, searchQuery);
+  const filteredCampaigns = filterCampaigns(nonDeletedCampaigns, searchQuery);
   
   // 정렬 적용
   const sortedCampaigns = sortCampaigns(filteredCampaigns, sortBy, activeTab);
