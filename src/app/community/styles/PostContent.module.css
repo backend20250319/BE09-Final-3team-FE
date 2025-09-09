@@ -136,3 +136,11 @@
 .deleteText:hover {
   text-decoration: underline;
 }
+
+.changeText {
+  color: #f0ad4e;   /* 노란색 */
+  cursor: pointer;
+}
+.changeText:hover {
+  text-decoration: underline;
+}

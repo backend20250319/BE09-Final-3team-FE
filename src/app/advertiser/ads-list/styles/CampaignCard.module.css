@@ -126,7 +126,8 @@
 }
 
 .statusButton {
-  height: 28px;
+  height: 32px;
+  min-width: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -150,8 +151,8 @@
 }
 
 .actionBtn {
-  min-width: 67px;
-  height: 28px;
+  height: 32px;
+  min-width: 70px;
   display: flex;
   align-items: center;
   justify-content: center;

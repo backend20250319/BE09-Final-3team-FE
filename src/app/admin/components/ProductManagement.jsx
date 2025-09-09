@@ -3,6 +3,7 @@ import styles from "@/app/admin/styles/ProductManagement.module.css";
 import PopupModal from "@/app/admin/components/PopupModal";
 import AlertModal from "./AlertModal";
 import DeleteConfirmModal from "./DeleteConfirmModal";
+import ApproveConfirmModal from "./ApproveConfirmModal";
 import React, { useState, useEffect } from "react";
 import {
   getAllCampaigns,
@@ -10,7 +11,7 @@ import {
   approveCampaign,
   rejectCampaign,
   deleteCampaign,
-} from "@/api/advertiserApi";
+} from "@/api/userApi";
 
 export default function ProductManagement() {
   const [activeTab, setActiveTab] = useState("조회");
@@ -24,10 +25,19 @@ export default function ProductManagement() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteAction, setDeleteAction] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [approveAction, setApproveAction] = useState(null);
+  const [approveTarget, setApproveTarget] = useState(null);
 
   // 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(4);
+
+  // 필터링 상태
+  const [sortBy, setSortBy] = useState("최신순");
+
+  // 페이지네이션을 위한 총 요소 수
+  const [totalElements, setTotalElements] = useState(0);
 
   // 캠페인 목록 조회
   const loadCampaigns = async () => {
@@ -41,6 +51,7 @@ export default function ProductManagement() {
         data = await getPendingCampaigns({
           page: currentPage - 1,
           size: itemsPerPage,
+          sort: sortBy === "최신순" ? "createdAt,desc" : "createdAt,asc",
         });
       } else {
         // TRIAL 상태의 캠페인 조회
@@ -48,11 +59,13 @@ export default function ProductManagement() {
         data = await getAllCampaigns({
           page: currentPage - 1,
           size: itemsPerPage,
+          sort: sortBy === "최신순" ? "createdAt,desc" : "createdAt,asc",
         });
       }
       console.log("캠페인 목록 조회 성공:", data);
       console.log("캠페인 개수:", data?.content?.length || 0);
       setCampaigns(data?.content || []);
+      setTotalElements(data?.totalElements || 0);
     } catch (error) {
       console.error("캠페인 목록 조회 실패:", error);
       setCampaigns([]);
@@ -65,6 +78,16 @@ export default function ProductManagement() {
   useEffect(() => {
     loadCampaigns();
   }, [currentPage, activeTab]);
+
+  // 필터링 변경 시 페이지 리셋 및 데이터 재조회
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortBy]);
+
+  // 필터링 변경 시 데이터 재조회
+  useEffect(() => {
+    loadCampaigns();
+  }, [sortBy, currentPage]);
 
   const showAlert = (message, type = "info") => {
     setAlertMessage(message);
@@ -85,6 +108,21 @@ export default function ProductManagement() {
     setShowDeleteModal(false);
     setDeleteAction(null);
     setDeleteTarget(null);
+  };
+
+  const showApproveConfirm = (action, target, title, message) => {
+    setApproveAction(() => action);
+    setApproveTarget(target);
+    setShowApproveModal(true);
+  };
+
+  const handleApproveConfirm = () => {
+    if (approveAction && approveTarget) {
+      approveAction(approveTarget);
+    }
+    setShowApproveModal(false);
+    setApproveAction(null);
+    setApproveTarget(null);
   };
 
   const handleDelete = async (adId) => {
@@ -120,13 +158,13 @@ export default function ProductManagement() {
     }
   };
 
-  // 페이지네이션 함수들
+  // 페이지네이션 함수들 (백엔드에서 이미 필터링된 데이터를 받으므로 단순화)
   const getCurrentItems = () => {
-    return campaigns;
+    return campaigns; // 백엔드에서 이미 페이지네이션된 데이터를 받음
   };
 
   const getTotalPages = () => {
-    return Math.ceil(campaigns.length / itemsPerPage);
+    return Math.ceil(totalElements / itemsPerPage);
   };
 
   const handlePageChange = (page) => {
@@ -170,33 +208,13 @@ export default function ProductManagement() {
               )}
             </div>
             <div className={styles.rightControls}>
-              <div className={styles.searchContainer}>
-                <input
-                  type="text"
-                  placeholder="검색어를 입력하세요."
-                  className={styles.searchInput}
-                />
-                <div className={styles.searchIcon}>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path
-                      d="M11 11L15 15"
-                      stroke="#9CA3AF"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                    <circle
-                      cx="7"
-                      cy="7"
-                      r="6"
-                      stroke="#9CA3AF"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                </div>
-              </div>
-              <select className={styles.sortSelect}>
-                <option>최신순</option>
-                <option>오래된순</option>
+              <select
+                className={styles.sortSelect}
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <option value="최신순">최신순</option>
+                <option value="오래된순">오래된순</option>
               </select>
             </div>
           </div>
@@ -311,7 +329,7 @@ export default function ProductManagement() {
                           <button
                             className={styles.approveBtn}
                             onClick={() => {
-                              showDeleteConfirm(
+                              showApproveConfirm(
                                 handleApprove,
                                 campaign.adNo,
                                 "캠페인 승인",
@@ -385,7 +403,7 @@ export default function ProductManagement() {
           </section>
 
           {/* 페이지네이션 */}
-          {campaigns.length > itemsPerPage && (
+          {totalElements > itemsPerPage && (
             <div className={styles.pagination}>
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
@@ -459,6 +477,24 @@ export default function ProductManagement() {
         title="확인"
         message="정말로 진행하시겠습니까?"
         confirmText="확인"
+        cancelText="취소"
+      />
+
+      {/* 승인 확인 모달 */}
+      <ApproveConfirmModal
+        isOpen={showApproveModal}
+        onClose={() => setShowApproveModal(false)}
+        onConfirm={() => {
+          if (approveAction && approveTarget) {
+            approveAction(approveTarget);
+          }
+          setShowApproveModal(false);
+          setApproveAction(null);
+          setApproveTarget(null);
+        }}
+        title="승인 확인"
+        message="정말로 승인하시겠습니까?"
+        confirmText="승인"
         cancelText="취소"
       />
     </>

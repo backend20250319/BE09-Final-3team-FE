@@ -1,8 +1,9 @@
 /* eslint-env node */
 import axios from "axios";
+import { createAuthHeaders } from "../utils/jwtUtils";
 
 const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL||"http://localhost:8000/api/v1";
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 const USER_SERVICE_BASE = `${BASE_URL}/user-service`;
 
@@ -139,7 +140,8 @@ export const refreshToken = async (refreshToken) => {
 // 프로필 조회
 export const getProfile = async () => {
   try {
-    const response = await api.get("/auth/profile");
+    const headers = createAuthHeaders();
+    const response = await api.get("/auth/profile", { headers });
     return response.data;
   } catch (error) {
     throw error;
@@ -149,7 +151,8 @@ export const getProfile = async () => {
 // 프로필 수정
 export const updateProfile = async (profileData) => {
   try {
-    const response = await api.patch("/auth/profile", profileData);
+    const headers = createAuthHeaders();
+    const response = await api.patch("/auth/profile", profileData, { headers });
     return response.data;
   } catch (error) {
     throw error;
@@ -163,10 +166,11 @@ export const uploadProfileImage = async (file) => {
     formData.append("file", file);
     formData.append("userNo", localStorage.getItem("userNo") || "");
 
+    const headers = createAuthHeaders({
+      "Content-Type": "multipart/form-data",
+    });
     const response = await api.post("/auth/profile/image", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+      headers,
     });
     return response.data;
   } catch (error) {
@@ -177,11 +181,13 @@ export const uploadProfileImage = async (file) => {
 // 회원탈퇴
 export const withdraw = async (password, reason) => {
   try {
+    const headers = createAuthHeaders();
     const response = await api.delete("/auth/withdraw", {
       data: {
         password,
         reason,
       },
+      headers,
     });
     return response.data;
   } catch (error) {

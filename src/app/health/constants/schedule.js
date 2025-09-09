@@ -70,7 +70,7 @@ export const getDefaultTimes = (frequency) => {
       return ["09:00"];
     case "DAILY_TWICE":
       return ["08:00", "20:00"];
-    case "DAILY_THREE_TIMES":
+    case "DAILY_THREE":
       return ["08:00", "12:00", "20:00"];
     default:
       return ["09:00"];
@@ -84,7 +84,7 @@ export const getTimeInputCount = (frequency) => {
       return 1;
     case "DAILY_TWICE":
       return 2;
-    case "DAILY_THREE_TIMES":
+    case "DAILY_THREE":
       return 3;
     default:
       return 1;

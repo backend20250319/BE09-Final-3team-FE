@@ -8,10 +8,7 @@ import { formatDateToLocal } from "../constants/schedule";
 export const transformScheduleData = (schedule, selectedPetName) => {
   // scheduleNo가 객체인 경우 숫자 값 추출
   let scheduleNo;
-  if (
-    typeof schedule.scheduleNo === "object" &&
-    schedule.scheduleNo !== null
-  ) {
+  if (typeof schedule.scheduleNo === "object" && schedule.scheduleNo !== null) {
     scheduleNo =
       schedule.scheduleNo.scheduleNo ||
       schedule.scheduleNo.id ||
@@ -24,11 +21,7 @@ export const transformScheduleData = (schedule, selectedPetName) => {
   // id도 scheduleNo와 동일하게 처리
   let id;
   if (typeof schedule.id === "object" && schedule.id !== null) {
-    id =
-      schedule.id.id ||
-      schedule.id.value ||
-      schedule.id.data ||
-      scheduleNo;
+    id = schedule.id.id || schedule.id.value || schedule.id.data || scheduleNo;
   } else {
     id = schedule.id || scheduleNo;
   }
@@ -70,7 +63,11 @@ export const transformScheduleData = (schedule, selectedPetName) => {
 };
 
 // 투약 데이터 변환 (백엔드 → 프론트엔드)
-export const transformMedicationData = (med, selectedPetName, getMedicationIcon) => {
+export const transformMedicationData = (
+  med,
+  selectedPetName,
+  getMedicationIcon
+) => {
   return {
     id: med.scheduleNo,
     calNo: med.scheduleNo,
@@ -78,12 +75,8 @@ export const transformMedicationData = (med, selectedPetName, getMedicationIcon)
     type: med.subType,
     frequency: med.frequency,
     duration: med.durationDays,
-    startDate: med.startDate
-      ? new Date(med.startDate).toISOString().split("T")[0]
-      : "",
-    endDate: med.endDate
-      ? new Date(med.endDate).toISOString().split("T")[0]
-      : "",
+    startDate: med.startDate || "",
+    endDate: med.endDate || "",
     scheduleTime: med.times
       ? med.times
           .map((t) => {
@@ -118,7 +111,11 @@ export const sortSchedulesByLatest = (schedules) => {
 };
 
 // 일정을 서브타입별로 분류
-export const classifySchedulesBySubType = (schedules, isCareSubType, isVaccinationSubType) => {
+export const classifySchedulesBySubType = (
+  schedules,
+  isCareSubType,
+  isVaccinationSubType
+) => {
   const careSchedules = schedules.filter((schedule) =>
     isCareSubType(schedule.subType)
   );
@@ -133,14 +130,20 @@ export const classifySchedulesBySubType = (schedules, isCareSubType, isVaccinati
 };
 
 // 일정 데이터를 백엔드 형식으로 변환
-export const transformToBackendFormat = (scheduleData, type, frequencyToEnum, typeToEnum) => {
+export const transformToBackendFormat = (
+  scheduleData,
+  type,
+  frequencyToEnum,
+  typeToEnum
+) => {
   if (type === "medication") {
     return {
       petNo: scheduleData.petNo,
       name: scheduleData.name,
       startDate: scheduleData.startDate,
       durationDays: scheduleData.duration,
-      medicationFrequency: frequencyToEnum[scheduleData.frequency] || "DAILY_ONCE",
+      medicationFrequency:
+        frequencyToEnum[scheduleData.frequency] || "DAILY_ONCE",
       times: scheduleData.scheduleTime
         ? scheduleData.scheduleTime.split(",").map((t) => {
             const time = t.trim();

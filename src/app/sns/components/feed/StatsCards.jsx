@@ -10,16 +10,21 @@ export default function StatsCards({ data }) {
     const abs = Math.abs(num).toFixed(1);
     return `${sign}${abs}%`;
   };
+  // 소수점 1자리로 반올림
+  const round1 = (v) => {
+    if (v === undefined || v === null || isNaN(Number(v))) return v;
+    return Number(v).toFixed(1);
+  };
   const cards = [
     {
-      value: statData.average_likes,
+      value: round1(statData.average_likes),
       label: "평균 좋아요",
       change: formatChange(statData.likes_mo_mpercent),
       iconType: "heart",
       borderColor: "#F5A623",
     },
     {
-      value: statData.average_comments,
+      value: round1(statData.average_comments),
       label: "평균 댓글",
       change: formatChange(statData.comments_mo_mpercent),
       iconType: "comment",
@@ -45,5 +50,3 @@ export default function StatsCards({ data }) {
     .filter((c) => c.value !== undefined && c.value !== null)
     .map((c) => <StatCard key={c.label} {...c} />);
 }
-
-

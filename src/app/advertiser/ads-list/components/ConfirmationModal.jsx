@@ -8,7 +8,7 @@ export default function ConfirmationModal({
   onClose, 
   onConfirm, 
   title = "정말 삭제하시겠습니까?",
-  message = "이 작업은 되돌릴 수 없습니다.",
+  message = "이 작업은 되돌릴 수 없습니다",
   confirmText = "삭제",
   cancelText = "취소"
 }) {

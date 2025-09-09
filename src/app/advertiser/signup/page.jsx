@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import styles from "./page.module.css";
+import AlertModal from "../components/AlertModal";
 import {
   sendAdvertiserVerificationCode,
   verifyAdvertiserCode,
@@ -84,6 +85,9 @@ export default function SignupPage() {
     message: "",
     isSignupSuccess: false,
   });
+
+  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
+  const [alertData, setAlertData] = useState({ title: '', message: '', type: 'info' });
 
   // 사업자등록번호 검증 함수
   const validateBusinessNumber = (businessNumber) => {
@@ -302,7 +306,9 @@ export default function SignupPage() {
       setBusinessNumberError("사업자등록번호를 입력해주세요.");
       hasError = true;
     } else {
-      const businessNumberValidation = validateBusinessNumber(formData.businessNumber);
+      const businessNumberValidation = validateBusinessNumber(
+        formData.businessNumber
+      );
       if (businessNumberValidation) {
         setBusinessNumberError(businessNumberValidation);
         hasError = true;
@@ -345,35 +351,48 @@ export default function SignupPage() {
         // 회원가입 성공 후 파일 업로드
         try {
           console.log("회원가입 성공! 파일 업로드 시작...");
-          const advertiserNo = data.data?.advertiserNo || data.data?.advertiser?.advertiserNo;
-          
+          const advertiserNo =
+            data.data?.advertiserNo || data.data?.advertiser?.advertiserNo;
+
           if (advertiserNo) {
             // 회원가입 후 잠시 대기 후 자동 로그인하여 토큰 획득
             console.log("3초 후 자동 로그인 시도...");
-            
+
             // 3초 대기 후 로그인 시도
             setTimeout(async () => {
               try {
-                const loginData = await advertiserLogin(formData.email, formData.password);
-                
+                const loginData = await advertiserLogin(
+                  formData.email,
+                  formData.password
+                );
+
                 // 토큰을 localStorage에 저장
                 if (loginData.data?.accessToken) {
-                  localStorage.setItem("advertiserToken", loginData.data.accessToken);
+                  localStorage.setItem(
+                    "advertiserToken",
+                    loginData.data.accessToken
+                  );
                   localStorage.setItem("advertiserNo", advertiserNo);
-                  localStorage.setItem("userType", "advertiser");
-                  
+                  localStorage.setItem("userType", "ADVERTISER");
+
                   // 이제 토큰과 함께 파일 업로드
                   console.log("파일 업로드 시작...");
-                  const uploadedFileData = await uploadFileByAdvertiserNo(selectedFile, advertiserNo);
+                  const uploadedFileData = await uploadFileByAdvertiserNo(
+                    selectedFile,
+                    advertiserNo
+                  );
                   console.log("파일 업로드 완료:", uploadedFileData);
                 } else {
                   console.warn("로그인 응답에 토큰이 없습니다:", loginData);
                 }
-              } catch (loginError) {             
+              } catch (loginError) {
                 // 로그인 실패해도 파일 업로드 시도 (토큰 없이)
                 console.log("토큰 없이 파일 업로드 시도...");
                 try {
-                  const uploadedFileData = await uploadFileByAdvertiserNo(selectedFile, advertiserNo);
+                  const uploadedFileData = await uploadFileByAdvertiserNo(
+                    selectedFile,
+                    advertiserNo
+                  );
                   console.log("파일 업로드 완료:", uploadedFileData);
                 } catch (uploadError) {
                   console.error("토큰 없이 파일 업로드도 실패:", uploadError);
@@ -447,13 +466,23 @@ export default function SignupPage() {
         error.name === "TypeError" &&
         error.message.includes("fetch")
       ) {
-        alert("네트워크 연결을 확인해주세요.");
+        setAlertData({
+          title: '네트워크 오류',
+          message: '네트워크 연결을 확인해주세요.',
+          type: 'error'
+        });
+        setIsAlertModalOpen(true);
       } else {
         // 파일 업로드 에러인지 확인
         if (error.message && error.message.includes("file")) {
           setFileError("파일 업로드에 실패했습니다. 다시 시도해주세요.");
         } else {
-          alert(error.message || "회원가입에 실패했습니다. 다시 시도해주세요.");
+          setAlertData({
+            title: '회원가입 실패',
+            message: error.message || "회원가입에 실패했습니다. 다시 시도해주세요.",
+            type: 'error'
+          });
+          setIsAlertModalOpen(true);
         }
       }
     } finally {
@@ -463,7 +492,12 @@ export default function SignupPage() {
 
   const sendVerificationCode = async () => {
     if (!formData.email) {
-      alert("이메일을 입력하세요");
+      setAlertData({
+        title: '입력 필요',
+        message: '이메일을 입력하세요',
+        type: 'warning'
+      });
+      setIsAlertModalOpen(true);
       return;
     }
 
@@ -501,7 +535,12 @@ export default function SignupPage() {
         error.name === "TypeError" &&
         error.message.includes("fetch")
       ) {
-        alert("네트워크 연결을 확인해주세요.");
+        setAlertData({
+          title: '네트워크 오류',
+          message: '네트워크 연결을 확인해주세요.',
+          type: 'error'
+        });
+        setIsAlertModalOpen(true);
       } else {
         setEmailError(error.message || "인증번호 발송 실패");
       }
@@ -512,7 +551,12 @@ export default function SignupPage() {
 
   const verifyCode = async () => {
     if (!formData.email || !formData.verificationCode) {
-      alert("이메일과 인증번호를 입력하세요");
+      setAlertData({
+        title: '입력 필요',
+        message: '이메일과 인증번호를 입력하세요',
+        type: 'warning'
+      });
+      setIsAlertModalOpen(true);
       return;
     }
 
@@ -596,7 +640,12 @@ export default function SignupPage() {
     }
 
     // 파일 타입 검사
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    const allowedTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "application/pdf",
+    ];
     if (!allowedTypes.includes(file.type)) {
       setFileError("JPG, PNG, PDF 파일만 업로드 가능합니다.");
       return;
@@ -613,7 +662,7 @@ export default function SignupPage() {
     setFileError("");
     // input 요소의 value 초기화
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -814,7 +863,7 @@ export default function SignupPage() {
               {/* 서류 제출 */}
               <div className={styles.formGroup}>
                 <label className={styles.label}>
-                  서류제출 <span style={{ color: 'red' }}>*</span>
+                  서류제출 <span style={{ color: "red" }}>*</span>
                 </label>
                 <div
                   className={styles.dropzone}
@@ -833,8 +882,9 @@ export default function SignupPage() {
                   <p className={styles.dropText}>
                     파일을 드래그 하거나 업로드 해주세요.
                     <br />
-                    <small style={{ color: '#666' }}>
-                      (JPG, PNG, PDF 파일만 가능, 최대 10MB, 1개 파일만 업로드 가능)
+                    <small style={{ color: "#666" }}>
+                      (JPG, PNG, PDF 파일만 가능, 최대 10MB, 1개 파일만 업로드
+                      가능)
                     </small>
                   </p>
                   <label className={styles.browseButton}>
@@ -856,19 +906,20 @@ export default function SignupPage() {
                 </div>
                 {selectedFile && (
                   <div className={styles.successMessage}>
-                    선택된 파일: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)}MB)
+                    선택된 파일: {selectedFile.name} (
+                    {(selectedFile.size / 1024 / 1024).toFixed(2)}MB)
                     <button
                       type="button"
                       onClick={handleFileRemove}
                       style={{
-                        marginLeft: '10px',
-                        background: '#ff4444',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        padding: '2px 8px',
-                        fontSize: '12px',
-                        cursor: 'pointer'
+                        marginLeft: "10px",
+                        background: "#ff4444",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "4px",
+                        padding: "2px 8px",
+                        fontSize: "12px",
+                        cursor: "pointer",
                       }}
                     >
                       제거
@@ -890,8 +941,8 @@ export default function SignupPage() {
               type="submit"
               onClick={handleSubmit}
               disabled={
-                loading.signup || 
-                errors.passwordMatch || 
+                loading.signup ||
+                errors.passwordMatch ||
                 !selectedFile ||
                 !formData.email.trim() ||
                 !verificationStatus.verified ||
@@ -915,6 +966,15 @@ export default function SignupPage() {
         isOpen={modal.isOpen}
         message={modal.message}
         onClose={closeModal}
+      />
+      
+      {/* Alert 모달 */}
+      <AlertModal
+        isOpen={isAlertModalOpen}
+        onClose={() => setIsAlertModalOpen(false)}
+        title={alertData.title}
+        message={alertData.message}
+        type={alertData.type}
       />
     </div>
   );

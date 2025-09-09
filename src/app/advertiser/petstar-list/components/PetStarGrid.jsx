@@ -5,7 +5,7 @@ import Image from 'next/image';
 import styles from '../styles/PetStarGrid.module.css';
 import PortfolioModal from '../../ads-list/[ad_no]/components/PortfolioModal';
 import Pagination from '../../ads-list/components/Pagination';
-import { getPetstar, getPortfolio } from '@/api/advertisementApi';
+import { getPetstar, getPortfolio, getInstagramProfileBySnSId } from '@/api/advertisementApi';
 
 export default function PetstarGrid({ searchQuery, sortBy }) {
   const [isPortfolioModalOpen, setIsPortfolioModalOpen] = useState(false);
@@ -22,15 +22,29 @@ export default function PetstarGrid({ searchQuery, sortBy }) {
       try {
         setLoading(true);
         const data = await getPetstar();
+        console.log("Data", data);
         
-        // 각 펫의 포트폴리오 정보를 병렬로 가져오기
+        // 각 펫의 포트폴리오 정보와 SNS 프로필 정보를 병렬로 가져오기
         const petstarsWithPortfolio = await Promise.all(
           data.map(async (petstar) => {
             try {
               const portfolioData = await getPortfolio(petstar.petNo);
+              
+              // snsId가 있으면 SNS 프로필 정보도 가져오기
+              let snsProfile = null;
+              if (petstar.snsId) {
+                try {
+                  snsProfile = await getInstagramProfileBySnSId(petstar.snsId);
+                  console.log(`펫 ${petstar.petNo}의 SNS 프로필:`, snsProfile);
+                } catch (snsErr) {
+                  console.warn(`펫 ${petstar.petNo}의 SNS 프로필을 가져오는데 실패했습니다:`, snsErr);
+                }
+              }
+              
               return {
                 ...petstar,
                 portfolioData: portfolioData,
+                snsProfile: snsProfile,
               };
             } catch (portfolioErr) {
               console.warn(`펫 ${petstar.petNo}의 포트폴리오를 가져오는데 실패했습니다:`, portfolioErr);
@@ -38,7 +52,8 @@ export default function PetstarGrid({ searchQuery, sortBy }) {
                 ...petstar,
                 description: '소개 정보를 불러올 수 없습니다.',
                 cost: '비용 정보를 불러올 수 없습니다.',
-                portfolioData: null
+                portfolioData: null,
+                snsProfile: null
               };
             }
           })
@@ -63,18 +78,17 @@ export default function PetstarGrid({ searchQuery, sortBy }) {
     if (searchQuery && searchQuery.trim() !== "") {
       const query = searchQuery.trim().toLowerCase();
       filtered = filtered.filter(p =>
-        p.name.toLowerCase().includes(query) ||
-        p.type.toLowerCase().includes(query)
+        p.name.toLowerCase().includes(query)
       );
     }
 
     let sorted = [...filtered];
     if (sortBy === "followers") {
-      sorted.sort((a, b) => b.followers - a.followers); // 내림차순
+      sorted.sort((a, b) => b.snsProfile.follows_count- a.snsProfile.follows_count); // 내림차순
     } else if (sortBy === "costLow") {
-      sorted.sort((a, b) => a.price - b.price); // 낮은순 오름차순
+      sorted.sort((a, b) => a.portfolioData.cost - b.portfolioData.cost); // 낮은순 오름차순
     } else if (sortBy === "costHigh") {
-      sorted.sort((a, b) => b.price - a.price); // 높은순 내림차순
+      sorted.sort((a, b) => b.portfolioData.cost - a.portfolioData.cost); // 높은순 내림차순
     }
 
     return sorted;
@@ -122,18 +136,16 @@ export default function PetstarGrid({ searchQuery, sortBy }) {
     );
   }
 
-  // Instagram URL을 핸들 형식으로 변환하는 함수
-  const formatInstagramHandle = (snsUsername) => {
-    if (!snsUsername) return '';
-    
-    // 이미 @가 포함되어 있으면 그대로 반환, 없으면 @ 추가
-    return snsUsername.startsWith('@') ? snsUsername : `@${snsUsername}`;
-  };
-
   return (
     <div className={styles.container}>
+      {searchQuery && (
+        <div className={styles.searchResults}>
+          <p>"{searchQuery}" 검색 결과: {sortedPetstars.length}건</p>
+        </div>
+      )}
       <div className={styles.petstarGrid}>
-        {paginatedPetstars.map((petstar) => (
+        {paginatedPetstars.length > 0 ? (
+          paginatedPetstars.map((petstar) => (
           <div key={petstar.petNo} className={styles.petstarCard}>
             <div className={styles.petstarImage}>
               <Image 
@@ -147,14 +159,14 @@ export default function PetstarGrid({ searchQuery, sortBy }) {
             <div className={styles.petstarInfo}>
               <div className={styles.petstarDiv}>
                 <h3 className={styles.petstarName}>{petstar.name}</h3>
-                <p className={styles.petstarUsername}>{formatInstagramHandle(petstar.snsUsername)}</p>
+                <p className={styles.petstarUsername}>@{petstar.snsUsername}</p>
               </div>
               <p className={styles.petstarDescription}>{petstar.portfolioData?.content}</p>
               <div className={styles.followerInfo}>
                 <svg width="20" height="16" viewBox="0 0 20 16" fill="none">
                   <path d="M10 8C12.21 8 14 6.21 14 4C14 1.79 12.21 0 10 0C7.79 0 6 1.79 6 4C6 6.21 7.79 8 10 8ZM10 10C7.33 10 2 11.34 2 14V16H18V14C18 11.34 12.67 10 10 10Z" fill="#6B7280"/>
                 </svg>
-                <span>팔로워 수: {petstar.followers || '미연결'}</span>
+                <span>팔로워 수: {petstar.snsProfile?.follows_count || '미연결'}</span>
               </div>
 
               <div className={styles.priceInfo}>
@@ -163,7 +175,7 @@ export default function PetstarGrid({ searchQuery, sortBy }) {
                   alt="won.png"
                   width={16}
                   height={16}/>
-                <span>{petstar.portfolioData?.cost}/건</span>
+                <span>{(petstar.portfolioData?.cost).toLocaleString()}/건</span>
               </div>
               <div className={styles.actionButtons}>
                 <button 
@@ -202,7 +214,16 @@ export default function PetstarGrid({ searchQuery, sortBy }) {
               </div>
             </div>
           </div>
-        ))}
+        ))
+        ) : (
+          <div className={styles.noResults}>
+            {searchQuery ? (
+              <p>검색 결과가 없습니다. 다른 키워드로 검색해보세요.</p>
+            ) : (
+              <p>등록된 펫스타가 없습니다.</p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Pagination */}
@@ -216,6 +237,7 @@ export default function PetstarGrid({ searchQuery, sortBy }) {
         isOpen={isPortfolioModalOpen}
         onClose={() => setIsPortfolioModalOpen(false)}
         petData={selectedPetData}
+        hideAdditionalContent={true}
       />
    </div>
   );

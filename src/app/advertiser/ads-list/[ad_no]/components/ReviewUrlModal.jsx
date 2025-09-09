@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from '../styles/ReviewUrlModal.module.css';
+import AlertModal from '../../../components/AlertModal';
 import { getPersonalReview, updateReview } from '@/api/advertisementApi';
 
 export default function ReviewUrlModal({ isOpen, onClose, applicant, onReviewUpdate, campaign }) {
@@ -11,6 +12,8 @@ export default function ReviewUrlModal({ isOpen, onClose, applicant, onReviewUpd
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showRejectionForm, setShowRejectionForm] = useState(false);
   const [showCopyMessage, setShowCopyMessage] = useState(false);
+  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
+  const [alertData, setAlertData] = useState({ title: '', message: '', type: 'info' });
 
   useEffect(() => {
     if (isOpen && applicant?.applicantNo) {
@@ -45,7 +48,12 @@ export default function ReviewUrlModal({ isOpen, onClose, applicant, onReviewUpd
       }
     } catch (error) {
       console.error('승인 처리 실패:', error);
-      alert('승인 처리에 실패했습니다.');
+      setAlertData({
+        title: '승인 실패',
+        message: '승인 처리에 실패했습니다.',
+        type: 'error'
+      });
+      setIsAlertModalOpen(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -53,7 +61,12 @@ export default function ReviewUrlModal({ isOpen, onClose, applicant, onReviewUpd
 
   const handleReject = async () => {
     if (!rejectionReason.trim()) {
-      alert('반려 사유를 입력해주세요.');
+      setAlertData({
+        title: '입력 필요',
+        message: '반려 사유를 입력해주세요.',
+        type: 'warning'
+      });
+      setIsAlertModalOpen(true);
       return;
     }
 
@@ -73,7 +86,12 @@ export default function ReviewUrlModal({ isOpen, onClose, applicant, onReviewUpd
       }
     } catch (error) {
       console.error('반려 처리 실패:', error);
-      alert('반려 처리에 실패했습니다.');
+      setAlertData({
+        title: '반려 실패',
+        message: '반려 처리에 실패했습니다.',
+        type: 'error'
+      });
+      setIsAlertModalOpen(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -88,6 +106,10 @@ export default function ReviewUrlModal({ isOpen, onClose, applicant, onReviewUpd
     setRejectionReason('');
   };
 
+  const handleCloseAlertModal = () => {
+    setIsAlertModalOpen(false);
+  };
+
   const handleCopyUrl = async (url) => {
     try {
       await navigator.clipboard.writeText(url);
@@ -98,7 +120,12 @@ export default function ReviewUrlModal({ isOpen, onClose, applicant, onReviewUpd
       }, 2000);
     } catch (error) {
       console.error('URL 복사 실패:', error);
-      alert('URL 복사에 실패했습니다.');
+      setAlertData({
+        title: '복사 실패',
+        message: 'URL 복사에 실패했습니다.',
+        type: 'error'
+      });
+      setIsAlertModalOpen(true);
     }
   };
 
@@ -390,6 +417,13 @@ export default function ReviewUrlModal({ isOpen, onClose, applicant, onReviewUpd
           </div>
         )}
       </div>
+      <AlertModal
+        isOpen={isAlertModalOpen}
+        onClose={handleCloseAlertModal}
+        title={alertData.title}
+        message={alertData.message}
+        type={alertData.type}
+      />
     </div>
   );
 }

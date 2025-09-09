@@ -2,10 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import styles from "./PetProfileRegistration.module.css";
-import axios from "axios";
+import api from "../../../api/api";
 import ProfileSelector from "../../sns/components/ProfileSelector";
-
-const PET_API_BASE = "http://localhost:8000/api/v1/pet-service";
 
 const PetProfileRegistration = ({
   isOpen,
@@ -167,9 +165,6 @@ const PetProfileRegistration = ({
         return;
       }
 
-      const token = localStorage.getItem("token");
-      const userNo = localStorage.getItem("userNo");
-
       const requestData = {
         name: formData.name,
         type: formData.type,
@@ -201,27 +196,14 @@ const PetProfileRegistration = ({
       if (isEditMode && petData) {
         // 수정
         console.log("PUT 요청 시작 - 펫 번호:", petData.petNo);
-        petResponse = await axios.put(
-          `${PET_API_BASE}/pets/${petData.petNo}`,
-          requestData,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              ...(token && { Authorization: `Bearer ${token}` }),
-              ...(userNo && { "X-User-No": userNo }),
-            },
-          }
+        petResponse = await api.put(
+          `/pet-service/pets/${petData.petNo}`,
+          requestData
         );
         console.log("PUT 요청 응답:", petResponse.data);
       } else {
         // 등록
-        petResponse = await axios.post(`${PET_API_BASE}/pets`, requestData, {
-          headers: {
-            "Content-Type": "application/json",
-            ...(token && { Authorization: `Bearer ${token}` }),
-            ...(userNo && { "X-User-No": userNo }),
-          },
-        });
+        petResponse = await api.post(`/pet-service/pets`, requestData);
       }
 
       // 반려동물 등록/수정 성공 후 이미지 업로드
@@ -232,13 +214,11 @@ const PetProfileRegistration = ({
         imageFormData.append("file", formData.imageFile);
 
         try {
-          const imageResponse = await axios.post(
-            `${PET_API_BASE}/pets/${petNo}/image`,
+          const imageResponse = await api.post(
+            `/pet-service/pets/${petNo}/image`,
             imageFormData,
             {
               headers: {
-                ...(token && { Authorization: `Bearer ${token}` }),
-                ...(userNo && { "X-User-No": userNo }),
                 "Content-Type": "multipart/form-data",
               },
             }

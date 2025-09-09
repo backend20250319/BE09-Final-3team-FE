@@ -84,14 +84,3 @@ export const getWebPushSubscriptionCount = async () => {
   return res.data?.data ?? res.data;
 };
 
-export const createComment = async (payload) => {
-  const res = await api.post(`${COMMUNITY_PREFIX}/comments/insert`, payload);
-  return res.data.data ?? res.data;
-};
-
-export const deleteComment = async (commentId) => {
-  const res = await api.patch(
-    `${COMMUNITY_PREFIX}/comments/${commentId}/delete`
-  );
-  return res.data.data ?? res.data;
-};

@@ -1,10 +1,14 @@
 /* eslint-env node */
 import axios from "axios";
+import { createAuthHeaders } from "../utils/jwtUtils";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 const PET_SERVICE_BASE = `${BASE_URL}/pet-service`;
+
+// Admin API
+const ADMIN_PREFIX = `${PET_SERVICE_BASE}/admin/pet`;
 
 console.log("[ENV] PET_SERVICE_BASE =", PET_SERVICE_BASE);
 
@@ -49,9 +53,11 @@ api.interceptors.request.use(
 // 반려동물 목록 조회
 export const getPets = async () => {
   try {
-    const response = await api.get("/pets");
+    const headers = createAuthHeaders();
+    const response = await api.get("/pets", { headers });
     return response.data;
   } catch (error) {
+    console.error("getPets API 에러:", error);
     throw error;
   }
 };
@@ -245,6 +251,33 @@ export const cleanupDuplicateHistories = async (petNo) => {
   } catch (error) {
     throw error;
   }
+};
+
+// 펫스타 신청 목록 조회 (관리자용)
+export const getPetStarApplications = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.page) queryParams.append("page", params.page);
+  if (params.size) queryParams.append("size", params.size);
+  const res = await api.get(
+    `${ADMIN_PREFIX}/applications?${queryParams.toString()}`
+  );
+  return res.data?.data ?? res.data;
+};
+
+// 펫스타 승인 (관리자용)
+export const approvePetStar = async (petNo) => {
+  const res = await api.patch(`${ADMIN_PREFIX}/${petNo}/approve`);
+  return res.data?.data ?? res.data;
+};
+
+// 펫스타 거절 (관리자용)
+export const rejectPetStar = async (petNo, reason) => {
+  const res = await api.patch(`${ADMIN_PREFIX}/${petNo}/reject`, reason, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  return res.data?.data ?? res.data;
 };
 
 export default api;

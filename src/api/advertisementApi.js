@@ -116,6 +116,7 @@ const PET_PREFIX =
   (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_PET_PREFIX) ||
   "/advertiser-service/pet";
 
+
 // 1. 포트폴리오 조회
 export const getPortfolio = async (petNo) => {
   const res = await advertiserApi.get(`${PET_PREFIX}/portfolio/${petNo}`);
@@ -140,6 +141,19 @@ export const getPetstar = async () => {
   return res.data.data;
 }
 
+const RECOMMEND_PREFIX =
+  (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_RECOMMEND_PREFIX) ||
+  "/advertiser-service/recommend";
+
+// 5. 펫스타 추천
+export const getPetstarRecommend = async (adNo) => {
+  const res = await advertiserApi.post(
+    `${RECOMMEND_PREFIX}/petStars/${adNo}`,
+    { withCredentials: true }
+  );
+  return res.data;
+};
+
 /* USER API */
 const USER_PREFIX =
   (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_USER_PREFIX) ||
@@ -147,7 +161,11 @@ const USER_PREFIX =
 
 // 1. 사용자 조회
 export const getUser = async (uerNo) => {
-  const res = await advertiserApi.get(`${USER_PREFIX}/profile/${uerNo}`);
+  const res = await advertiserApi.get(`${USER_PREFIX}/profile/${uerNo}`, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
   return res.data.data;
 }
 
@@ -169,6 +187,12 @@ const SNS_PREFIX =
 // 1. 인스타그램 프로필 조회
 export const getInstagramProfile = async (userNo) => {
   const res = await advertiserApi.get(`${SNS_PREFIX}/${userNo}`);
+  return res.data.data;
+}
+
+// 2. snsId로 인스타그램 프로필 조회
+export const getInstagramProfileBySnSId = async (snsId) => {
+  const res = await advertiserApi.get(`${SNS_PREFIX}/influencer/${snsId}`);
   return res.data.data;
 }
 

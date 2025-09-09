@@ -1,8 +1,8 @@
 // user/signup/page.js
 "use client";
 
-import PetProfileManagement from "./PetProfile";
+import PetProfile from "./PetProfile";
 
 export default function SignupPage() {
-  return <PetProfileManagement />;
+  return <PetProfile />;
 }
