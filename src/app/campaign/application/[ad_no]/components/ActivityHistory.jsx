@@ -76,7 +76,7 @@ export default function ActivityHistory({ activityCards, onCardClick}) {
               <div className={styles.cardImage}>
                 {card.imageUrls && card.imageUrls.length > 0 ? (
                   <Image
-                    src={`http://dev.macacolabs.site:8008/3/pet/${card.imageUrls[0]}`}
+                    src={`https://dev.macacolabs.site/3/pet/${card.imageUrls[0]}`}
                     alt={`활동 이미지 ${card.id}`}
                     layout="fill"
                     objectFit="cover"

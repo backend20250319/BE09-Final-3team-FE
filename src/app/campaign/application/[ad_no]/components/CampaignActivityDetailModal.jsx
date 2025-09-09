@@ -74,7 +74,7 @@ const CampaignActivityDetailModal = ({
                   imageSrc.trim() !== "" &&
                   imageSrc !== "undefined" ? (
                   <Image
-                    src={`http://dev.macacolabs.site:8008/3/pet/${imageSrc}`}
+                    src={`https://dev.macacolabs.site/3/pet/${imageSrc}`}
                     alt="Activity Image"
                     layout="fill"
                     objectFit="cover"

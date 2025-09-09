@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import styles from "../styles/AdditionalSection.module.css"
-import { applyCampaign, getApplicants } from '@/api/campaignApi';
+import { applyCampaign, getApplicantsByAd } from '@/api/campaignApi';
+import AlertModal from '@/app/advertiser/components/AlertModal';
 
 export default function AdditionalSection({ selectedPetNo, onSuccess }) {
 
@@ -12,39 +13,42 @@ export default function AdditionalSection({ selectedPetNo, onSuccess }) {
   const [additionalContent, setAdditionalContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
-  const [isAlreadyApplied, setIsAlreadyApplied] = useState(false);
+  const [appliedPets, setAppliedPets] = useState(new Set());
+  const [alertModal, setAlertModal] = useState({ isOpen: false, title: '', message: '', type: 'info' });
   const params = useParams();
   const adNo = params.ad_no;
 
-  // 선택된 펫이 변경될 때마다 중복 신청 체크
+  // 광고별 지원된 펫 목록을 가져와서 Set에 저장
   useEffect(() => {
-    const checkDuplicateApplication = async () => {
-      if (!selectedPetNo || !adNo) return;
+    const fetchAppliedPets = async () => {
+      if (!adNo) return;
       
       try {
-        const res = await getApplicants(adNo);
-        console.log("res",res);
-        const applicants = res.applicants;
+        const applicants = await getApplicantsByAd(adNo);
+        console.log("applicants", applicants);
         
         if (applicants && Array.isArray(applicants)) {
-          const isDuplicate = applicants.some(applicant => 
-            applicant.pet.petNo === selectedPetNo
-          );
-          console.log("isDuplicate",isDuplicate);
-          setIsAlreadyApplied(isDuplicate);
+          const appliedPetNos = new Set(applicants.map(applicant => applicant.pet.petNo));
+          console.log("appliedPetNos", appliedPetNos);
+          setAppliedPets(appliedPetNos);
         }
       } catch (error) {
-        console.error('중복 신청 체크 실패:', error);
-        setIsAlreadyApplied(false);
+        console.error('지원된 펫 목록 조회 실패:', error);
+        setAppliedPets(new Set());
       }
     };
 
-    checkDuplicateApplication();
-  }, [selectedPetNo, adNo]);
+    fetchAppliedPets();
+  }, [adNo]);
 
     const handleSubmit = async () => {
-    if (isAlreadyApplied) {
-      alert("해당 반려동물은 이미 캠페인에 지원되었습니다.");
+    if (appliedPets.has(selectedPetNo)) {
+      setAlertModal({
+        isOpen: true,
+        title: '중복 신청',
+        message: '해당 반려동물은 이미 캠페인에 지원되었습니다.',
+        type: 'warning'
+      });
       return;
     }
      
@@ -58,8 +62,15 @@ export default function AdditionalSection({ selectedPetNo, onSuccess }) {
       
       if (onSuccess) {
         onSuccess(response);
-          alert('신청서가 정상적으로 제출되었습니다.');
+        setAlertModal({
+          isOpen: true,
+          title: '신청 완료',
+          message: '신청서가 정상적으로 제출되었습니다.',
+          type: 'success'
+        });
+        setTimeout(() => {
           router.push('/campaign');
+        }, 1500);
       }
     } catch (error) {
       console.error('체험단 신청 실패:', error);
@@ -87,7 +98,7 @@ export default function AdditionalSection({ selectedPetNo, onSuccess }) {
         />
         <p className={styles.additionalNote}>* 체험단 선정에 도움이 될 수 있는 추가 정보를 기입해주세요</p>
         
-         {isAlreadyApplied && (
+         {appliedPets.has(selectedPetNo) && (
           <div className={styles.duplicateWarning}>
             ⚠️ 해당 반려동물은 이미 이 캠페인에 지원되었습니다.
           </div>
@@ -97,9 +108,9 @@ export default function AdditionalSection({ selectedPetNo, onSuccess }) {
         <button 
           className={styles.submitButton}
           onClick={handleSubmit}
-          disabled={isSubmitting || !additionalContent.trim() || isAlreadyApplied}
+          disabled={isSubmitting || !additionalContent.trim() || appliedPets.has(selectedPetNo)}
         >
-          {isSubmitting ? '신청 중' : isAlreadyApplied ? '신청 완료' : '신청서 제출하기'}
+          {isSubmitting ? '신청 중' : appliedPets.has(selectedPetNo) ? '신청 완료' : '신청서 제출하기'}
         </button>
         
         {/* Message Display */}
@@ -109,6 +120,14 @@ export default function AdditionalSection({ selectedPetNo, onSuccess }) {
           </div>
         )}
       </div>
+      
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ ...alertModal, isOpen: false })}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+      />
     </>
   );
 }
