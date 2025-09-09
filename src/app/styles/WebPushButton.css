@@ -63,16 +63,16 @@
 }
 
 .webpush-button-unsubscribe {
-  background-color: #f5a623;
+  background-color: #dc2626;
   color: white;
 }
 
 .webpush-button-unsubscribe:hover:not(:disabled) {
-  background-color: #ffb66a;
+  background-color: #ef4444;
 }
 
 .webpush-button-unsubscribe:disabled {
-  background-color: #ffb66a;
+  background-color: #dc2626;
 }
 
 .webpush-status {

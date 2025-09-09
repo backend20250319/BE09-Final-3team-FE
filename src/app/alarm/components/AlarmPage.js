@@ -30,6 +30,9 @@ const PetFulNotification = () => {
   const [loading, setLoading] = useState(false);
   const [hasNext, setHasNext] = useState(true);
 
+
+
+
   const handleCloseNotification = async (id) => {
     try {
       console.log("알림 숨기기 시도 - ID:", id);
