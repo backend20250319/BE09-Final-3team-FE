@@ -59,7 +59,7 @@ export default function TopPerformingPosts() {
             <div className={styles.imageContainer}>
               <Image
                 src={post.image}
-                alt={post.title}
+                alt="게시물 이미지"
                 width={64}
                 height={64}
                 className={styles.postImage}
