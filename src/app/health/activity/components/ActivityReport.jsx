@@ -800,39 +800,43 @@ export default function ActivityReport() {
         </div>
       )}
 
-      {/* 요약 통계 표시 영역 */}
-      {selectedPetName && selectedPetNo && summaryData && summaryData.data && (
-        <div className={styles.summaryStats}>
-          <div className={styles.summaryCard}>
-            <h4>총 활동 일수</h4>
-            <span>{summaryData.data.summaryStats?.totalDays || 0}일</span>
+      {/* 요약 통계 표시 영역 - 데이터가 있을 때만 표시 */}
+      {selectedPetName &&
+        selectedPetNo &&
+        summaryData &&
+        summaryData.data &&
+        !noData && (
+          <div className={styles.summaryStats}>
+            <div className={styles.summaryCard}>
+              <h4>총 활동 일수</h4>
+              <span>{summaryData.data.summaryStats?.totalDays || 0}일</span>
+            </div>
+            <div className={styles.summaryCard}>
+              <h4>평균 산책 거리</h4>
+              <span>
+                {Math.round(
+                  summaryData.data.summaryStats?.averageWalkingDistance || 0
+                )}
+                km
+              </span>
+            </div>
+            <div className={styles.summaryCard}>
+              <h4>평균 소모 칼로리</h4>
+              <span>
+                {Math.round(
+                  summaryData.data.summaryStats?.averageCaloriesBurned || 0
+                )}
+                kcal
+              </span>
+            </div>
+            <div className={styles.summaryCard}>
+              <h4>기간</h4>
+              <span>
+                {summaryData.data.startDate} ~ {summaryData.data.endDate}
+              </span>
+            </div>
           </div>
-          <div className={styles.summaryCard}>
-            <h4>평균 산책 거리</h4>
-            <span>
-              {Math.round(
-                summaryData.data.summaryStats?.averageWalkingDistance || 0
-              )}
-              km
-            </span>
-          </div>
-          <div className={styles.summaryCard}>
-            <h4>평균 소모 칼로리</h4>
-            <span>
-              {Math.round(
-                summaryData.data.summaryStats?.averageCaloriesBurned || 0
-              )}
-              kcal
-            </span>
-          </div>
-          <div className={styles.summaryCard}>
-            <h4>기간</h4>
-            <span>
-              {summaryData.data.startDate} ~ {summaryData.data.endDate}
-            </span>
-          </div>
-        </div>
-      )}
+        )}
 
       {!selectedPetName || !selectedPetNo ? (
         <div className={styles.noPetArea}>
