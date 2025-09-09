@@ -258,6 +258,7 @@ export const getPetStarApplications = async (params = {}) => {
   const queryParams = new URLSearchParams();
   if (params.page) queryParams.append("page", params.page);
   if (params.size) queryParams.append("size", params.size);
+  if (params.sort) queryParams.append("sort", params.sort);
   const res = await api.get(
     `${ADMIN_PREFIX}/applications?${queryParams.toString()}`
   );
