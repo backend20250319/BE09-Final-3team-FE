@@ -6,7 +6,7 @@ import Image from 'next/image';
 import styles from '../styles/CampaignDetail.module.css';
 import PetstarList from './PetstarList';
 import ApplicantList from './ApplicantList';
-import { getImageByAdNo, getApplicants } from '@/api/advertisementApi';
+import { getImageByAdNo, getApplicants, getPetstarRecommend, getPet, getPortfolio, getInstagramProfileBySnSId } from '@/api/advertisementApi';
 
 export default function CampaignDetail({ campaignData, adNo }) {
 
@@ -16,43 +16,11 @@ export default function CampaignDetail({ campaignData, adNo }) {
   const [sortBy, setSortBy] = useState('name');
   const [applicants, setApplicants] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [petstars, setPetstars] = useState([]);
+  const [petstarLoading, setPetstarLoading] = useState(false);
 
-  const petstars = [
-    {
-      id: 1,
-      name: '바다',
-      sns_profile: '@seayousoon',
-      image: '/influencer-2.jpg',
-      description: '바다는 호기심이 많고 영리한 고양이로, 장난감과 퍼즐을 좋아합니다. 주인과의 교감도 깊어 함께 있을 때 행복해 합니다.',
-      followers: '320K',
-      price: '350,000',
-      snsLink: '#',
-      portfolioLink: '#'
-    },
-    {
-      id: 2,
-      name: '쿠키',
-      sns_profile: '@cookieSweet',
-      image: '/influencer-3.jpg',
-      description: '쿠키는 공놀이나 장난감을 가지고 노는 것을 무척 좋아하며, 산책처럼 직접 야외에서의 경험도 즐깁니다. 밝고 명랑한 성격 덕분에 주위에 활력을 불어넣고, 쉽게 친해질 수 있는 친구이기도 합니다.',
-      followers: '245K',
-      price: '300,000',
-      snsLink: '#',
-      portfolioLink: '#'
-    },
-    {
-      id: 3,
-      name: '황금이',
-      sns_profile: '@goldenbuddy',
-      image: '/user/dog.png',
-      description: '모험을 사랑하는 황금이는 해변 산책과 산악 하이킹 코스를 즐기며 자연 속에서 뛰노는 걸 가장 좋아합니다. 친구들과 어울려 뛰어노는 것을 즐기며, 특히 어린이와 다른 반려동물들과 따뜻한 교감을 나누는 모습을 자주 볼 수 있습니다. 신뢰감 있고 충성스러운 성향 덕분에 가족들의 든든한 친구이자 보호자로도 사랑받고 있습니다.',
-      followers: '189K',
-      price: '250,000',
-      snsLink: '#',
-      portfolioLink: '#'
-    }
-  ];
 
+  console.log("petstars");
   const handleApplicantPageChange = (page) => {
     setApplicantPage(page);
   };
@@ -86,6 +54,67 @@ export default function CampaignDetail({ campaignData, adNo }) {
       }
     };
     fetchData();
+  }, [campaignData.adNo]);
+
+  // 펫스타 추천 API 호출
+  useEffect(() => {
+    const fetchPetstarRecommendations = async () => {
+      try {
+        setPetstarLoading(true);
+        const recommendationData = await getPetstarRecommend(campaignData.adNo);
+        console.log(recommendationData);
+        
+        // 추천된 펫스타들의 상세 정보를 가져오기 (PetStarGrid와 동일한 방식)
+        const petstarDetails = await Promise.all(
+          recommendationData.top_petstars.map(async (recommendation) => {
+            try {
+              const petData = await getPet(recommendation.pet_no);
+              
+              // 포트폴리오 정보 가져오기
+              let portfolioData = null;
+              try {
+                portfolioData = await getPortfolio(recommendation.pet_no);
+              } catch (portfolioErr) {
+                console.warn(`펫 ${recommendation.pet_no}의 포트폴리오를 가져오는데 실패했습니다:`, portfolioErr);
+              }
+              
+              // SNS 프로필 정보 가져오기
+              let snsProfile = null;
+              if (petData.snsId) {
+                try {
+                  snsProfile = await getInstagramProfileBySnSId(petData.snsId);
+                  console.log(`펫 ${recommendation.pet_no}의 SNS 프로필:`, snsProfile);
+                } catch (snsErr) {
+                  console.warn(`펫 ${recommendation.pet_no}의 SNS 프로필을 가져오는데 실패했습니다:`, snsErr);
+                }
+              }
+              
+              return {
+                ...petData,
+                portfolioData: portfolioData,
+                snsProfile: snsProfile,
+              };
+            } catch (error) {
+              console.error(`펫스타 ${recommendation.pet_no} 정보를 가져오는 중 오류:`, error);
+              return null;
+            }
+          })
+        );
+        
+        // null 값 제거
+        const validPetstars = petstarDetails.filter(petstar => petstar !== null);
+        setPetstars(validPetstars);
+      } catch (error) {
+        console.error('펫스타 추천을 가져오는 중 오류가 발생했습니다:', error);
+        setPetstars([]);
+      } finally {
+        setPetstarLoading(false);
+      }
+    };
+
+    if (campaignData.adNo) {
+      fetchPetstarRecommendations();
+    }
   }, [campaignData.adNo]);
 
   return (
@@ -263,6 +292,7 @@ export default function CampaignDetail({ campaignData, adNo }) {
         onPageChange={handlePetstarPageChange}
         sortBy={sortBy}
         onSortChange={handleSortChange}
+        loading={petstarLoading}
       />
     </div>
   );

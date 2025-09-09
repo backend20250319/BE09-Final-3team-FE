@@ -63,14 +63,22 @@ export default function FeaturesSection() {
   return (
     <section className={styles.featureCardsSection}>
       <div className="container">
-        <div className={styles.sectionHeader}>
+        <div 
+          className={styles.sectionHeader}
+          data-aos="fade-up"
+          data-aos-delay="100"
+          data-aos-duration="800"
+        >
           <h2 className={styles.sectionTitle}>광고주 전용 기능</h2>
         </div>
 
         <div className={styles.cardsGrid}>
-          {features.map((feature) => (
+          {features.map((feature, index) => (
             <div
               key={feature.id}
+              data-aos="fade-up" 
+              data-aos-delay={200 + index * 100}
+              data-aos-duration="800"
               className={styles.card}
               style={{ borderTopColor: feature.color }}
             >

@@ -210,6 +210,57 @@
   color: #e6941f;
 }
 
+/* Loading, Error, Empty States */
+.loadingContainer,
+.errorContainer,
+.emptyContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #f5a623;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loadingContainer p,
+.errorContainer p,
+.emptyContainer p {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.retryButton {
+  margin-top: 16px;
+  padding: 8px 16px;
+  background: #f5a623;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.retryButton:hover {
+  background: #e6941f;
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
   .influencerGrid {

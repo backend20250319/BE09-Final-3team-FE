@@ -13,6 +13,7 @@ import KeywordsSection from '../register/components/FormSections/KeyWordsSection
 import RequirementsSection from '../register/components/FormSections/RequirementsSection';
 import ProductPageSection from '../register/components/FormSections/ProductPageSection';
 import ParticipationInfoSection from '../register/components/FormSections/ParticipationInfoSection';
+import AlertModal from '../../components/AlertModal';
 import { createAd, getAllAdsByAdvertiser, getImageByAdNo, updateAdByAdvertiser, updateImage, uploadImage } from '@/api/advertisementApi';
 
 export default function CampaignForm({ mode = "create", campaignId }) {
@@ -103,6 +104,8 @@ export default function CampaignForm({ mode = "create", campaignId }) {
   };
 
   const [campaigns, setCampaigns] = useState([]);
+  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
+  const [alertData, setAlertData] = useState({ title: '', message: '', type: 'info' });
   
   useEffect(() => {
     const fetchCampaigns = async () => {
@@ -199,11 +202,25 @@ export default function CampaignForm({ mode = "create", campaignId }) {
   const handleSubmit = () => {
     handleSave();
     if (mode === "edit") {
-      alert("캠페인이 정상적으로 수정되었습니다.");
-      router.push(`/advertiser/ads-list/${campaignId}`);
+      setAlertData({
+        title: '수정 완료',
+        message: '캠페인이 정상적으로 수정되었습니다.',
+        type: 'success'
+      });
+      setIsAlertModalOpen(true);
+      setTimeout(() => {
+        router.push(`/advertiser/ads-list/${campaignId}`);
+      }, 1500);
     } else {
-      alert("캠페인이 정상적으로 등록되었습니다.");
-      router.push("/advertiser/ads-list")
+      setAlertData({
+        title: '등록 완료',
+        message: '캠페인이 정상적으로 등록되었습니다.',
+        type: 'success'
+      });
+      setIsAlertModalOpen(true);
+      setTimeout(() => {
+        router.push("/advertiser/ads-list");
+      }, 1500);
     }
   };
 
@@ -246,7 +263,12 @@ export default function CampaignForm({ mode = "create", campaignId }) {
             if (completedSteps.every(Boolean)) {
               handleSubmit();
             } else {
-              alert("아직 작성되지 않은 내용이 있습니다. 작성 후 다시 시도해주세요.");
+              setAlertData({
+                title: '입력 필요',
+                message: '아직 작성되지 않은 내용이 있습니다. 작성 후 다시 시도해주세요.',
+                type: 'warning'
+              });
+              setIsAlertModalOpen(true);
             }
           }}
         >
@@ -254,6 +276,14 @@ export default function CampaignForm({ mode = "create", campaignId }) {
         </button>
         <button type="button" className={styles.cancelButton} onClick={handleCancle}>취소</button>
       </div>
+      
+      <AlertModal
+        isOpen={isAlertModalOpen}
+        onClose={() => setIsAlertModalOpen(false)}
+        title={alertData.title}
+        message={alertData.message}
+        type={alertData.type}
+      />
     </div>
   );
 }

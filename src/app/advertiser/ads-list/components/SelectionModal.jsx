@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from "../styles/SelectionModal.module.css";
-import { getApplicants, updateApplicant, getInstagramProfile, getUser } from '@/api/advertisementApi';
+import { getApplicants, updateApplicant, getUser, getInstagramProfileBySnSId } from '@/api/advertisementApi';
 
 export default function SelectionModal({ isOpen, onClose, campaign }) {
   const [applicants, setApplicants] = useState([]);
@@ -73,10 +73,10 @@ export default function SelectionModal({ isOpen, onClose, campaign }) {
 
       // 각 지원자의 인스타그램 프로필 조회
       const instagramProfilePromises = availableApplicants.map(async (applicant) => {
-        if (applicant?.pet?.userNo) {
+        if (applicant?.pet?.snsId) {
           try {
-            const instagramData = await getInstagramProfile(applicant.pet.userNo);
-            return { applicantNo: applicant.applicantNo, instagramData: instagramData[0] };
+            const instagramData = await getInstagramProfileBySnSId(applicant.pet.snsId);
+            return { applicantNo: applicant.applicantNo, instagramData: instagramData };
           } catch (error) {
             console.error('인스타그램 프로필 조회 실패:', error);
             return { applicantNo: applicant.applicantNo, instagramData: null };

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import styles from "../styles/ReportModal.module.css";
 import { reportUser } from "@/api/advertisementApi";
-import AlertModal from "@/app/community/components/AlertModal";
+import AlertModal from "../../../components/AlertModal";
 
 export default function ReportModal({
   isOpen,
@@ -34,7 +34,9 @@ export default function ReportModal({
 
       console.log(payload);
 
-      alert("신고가 접수되었습니다.");
+      setAlertMessage("신고가 접수되었습니다.");
+      setAlertType("success");
+      setShowAlertModal(true);
       handleCancel();
     } catch (error) {
       console.error("신고 제출 실패:", error);
@@ -150,7 +152,6 @@ export default function ReportModal({
         title="알림"
         message={alertMessage}
         type={alertType}
-        confirmText="확인"
       />
     </div>
   );

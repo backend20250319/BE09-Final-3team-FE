@@ -339,6 +339,7 @@
   justify-content: flex-end;
   gap: 12px;
   margin: 0;
+  margin-top: 32px;
 }
 
 .cancelButton {
@@ -403,6 +404,7 @@
   .modalActions {
     padding: 20px 24px;
     margin: 0;
+    margin-top: 20px;
   }
   
   .headerContent {
