@@ -555,7 +555,7 @@ const PortfolioContent = () => {
                 console.log("매핑 중인 img:", img, "타입:", typeof img);
                 // img가 문자열인 경우
                 if (typeof img === "string") {
-                  const url = `http://dev.macacolabs.site:8008/3/pet/${img}`;
+                  const url = `https://dev.macacolabs.site/3/pet/${img}`;
                   console.log("문자열 img URL 생성:", url);
                   return url;
                 }
@@ -563,7 +563,7 @@ const PortfolioContent = () => {
                 if (typeof img === "object" && img !== null) {
                   const fileName = img.savedName; // savedName만 사용
                   if (typeof fileName === "string") {
-                    const url = `http://dev.macacolabs.site:8008/3/pet/${fileName}`;
+                    const url = `https://dev.macacolabs.site/3/pet/${fileName}`;
                     console.log("객체 img URL 생성 (savedName 사용):", url);
                     return url;
                   }
@@ -597,7 +597,7 @@ const PortfolioContent = () => {
                 console.log("매핑 중인 img:", img, "타입:", typeof img);
                 // img가 문자열인 경우
                 if (typeof img === "string") {
-                  const url = `http://dev.macacolabs.site:8008/3/pet/${img}`;
+                  const url = `https://dev.macacolabs.site/3/pet/${img}`;
                   console.log("문자열 img URL 생성:", url);
                   return url;
                 }
@@ -605,7 +605,7 @@ const PortfolioContent = () => {
                 if (typeof img === "object" && img !== null) {
                   const fileName = img.savedName; // savedName만 사용
                   if (typeof fileName === "string") {
-                    const url = `http://dev.macacolabs.site:8008/3/pet/${fileName}`;
+                    const url = `https://dev.macacolabs.site/3/pet/${fileName}`;
                     console.log("객체 img URL 생성 (savedName 사용):", url);
                     return url;
                   }
@@ -626,7 +626,7 @@ const PortfolioContent = () => {
             ? history.images.map((img) => ({
                 id: img.id || Date.now() + Math.random(),
                 imageId: img.id, // 실제 백엔드 imageId 사용 (257, 258, 259...)
-                preview: `http://dev.macacolabs.site:8008/3/pet/${img.savedName}`,
+                preview: `https://dev.macacolabs.site/3/pet/${img.savedName}`,
                 file: null,
               }))
             : [];
