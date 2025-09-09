@@ -164,7 +164,7 @@ export default function ProfileSelector({
               open ? styles.active : ""
             }`}
             onClick={handleToggleOpen}
-            disabled={loading || !!error || profiles.length === 0}
+            disabled={loading || !!error}
             style={{
               width: "100%",
               display: "flex",
@@ -244,16 +244,73 @@ export default function ProfileSelector({
                   프로필 로딩 실패: {error}
                 </div>
               ) : profiles.length === 0 ? (
-                <div
-                  style={{
-                    padding: "16px",
-                    textAlign: "center",
-                    color: "#6b7280",
-                    fontSize: "14px",
-                  }}
-                >
-                  사용 가능한 프로필이 없습니다.
-                </div>
+                <>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      padding: "12px 16px",
+                      cursor: "pointer",
+                      borderBottom: "1px solid #f3f4f6",
+                    }}
+                    onClick={() => {
+                      try {
+                        window.open("/user/mypage#instagram-connect", "_blank", "noopener,noreferrer");
+                      } catch (e) {}
+                      setOpen(false);
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.target.style.backgroundColor = "#f9fafb")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.target.style.backgroundColor = "transparent")
+                    }
+                  >
+                    <div
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: "50%",
+                        backgroundColor: "#eef2ff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "18px",
+                        color: "#4f46e5",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <Image src="/user/instagram.svg" alt="connect" width={20} height={20} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: "14px",
+                          fontWeight: 600,
+                          color: "#111827",
+                          marginBottom: "2px",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        새로 연결하기
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          color: "#6b7280",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        인스타그램 계정 연결 페이지
+                      </div>
+                    </div>
+                  </div>
+                </>
               ) : (
                 <>
                   {console.log("프로필 목록 렌더링:", profiles)}
@@ -326,6 +383,72 @@ export default function ProfileSelector({
                       </div>
                     </div>
                   )}
+                  {/* 새로 연결하기 옵션 - 마이페이지 인스타그램 연결로 새창 이동 */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      padding: "12px 16px",
+                      cursor: "pointer",
+                      borderBottom: "1px solid #f3f4f6",
+                    }}
+                    onClick={() => {
+                      try {
+                        window.open("/user/mypage#instagram-connect", "_blank", "noopener,noreferrer");
+                      } catch (e) {}
+                      setOpen(false);
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.target.style.backgroundColor = "#f9fafb")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.target.style.backgroundColor = "transparent")
+                    }
+                  >
+                    <div
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: "50%",
+                        backgroundColor: "#eef2ff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "18px",
+                        color: "#4f46e5",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <Image src="/user/instagram.svg" alt="connect" width={20} height={20} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: "14px",
+                          fontWeight: 600,
+                          color: "#111827",
+                          marginBottom: "2px",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        새로 연결하기
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          color: "#6b7280",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        인스타그램 계정 연결 페이지
+                      </div>
+                    </div>
+                  </div>
                   {profiles.map((profile) => (
                     <div
                       key={profile.id}

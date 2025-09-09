@@ -432,8 +432,17 @@ const PetProfileRegistration = ({
               <ProfileSelector
                 onProfileSelect={(profileData) => {
                   console.log("선택된 프로필 데이터:", profileData);
-                  handleInputChange("snsId", profileData.snsId);
-                  handleInputChange("snsUsername", profileData.username);
+                  if (!profileData) {
+                    handleInputChange("snsId", null);
+                    handleInputChange("snsUsername", "");
+                    return;
+                  }
+                  const nextSnsId =
+                    profileData.snsId ?? profileData.id ?? null;
+                  const nextUsername =
+                    profileData.username ?? profileData.name ?? "";
+                  handleInputChange("snsId", nextSnsId);
+                  handleInputChange("snsUsername", nextUsername);
                 }}
                 selectedProfileId={formData.snsId}
                 selectedProfileUsername={formData.snsUsername}
