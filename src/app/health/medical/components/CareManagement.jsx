@@ -73,6 +73,7 @@ export default function CareManagement({
   const [toastType, setToastType] = useState("inactive");
   const [showToast, setShowToast] = useState(false);
   const [calendarEvents, setCalendarEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // 필터링 상태 - 통합된 CARE 메인타입으로 변경
   const [careFilter, setCareFilter] = useState("전체");
@@ -615,6 +616,8 @@ export default function CareManagement({
 
   const handleAddNewSchedule = async (newSchedule) => {
     try {
+      setIsLoading(true);
+
       if (!selectedPetNo) {
         throw new Error("반려동물을 선택해주세요.");
       }
@@ -651,86 +654,7 @@ export default function CareManagement({
       calNo = await createCare(careData);
       console.log("🔍 API 응답 (calNo):", calNo);
 
-      // 매일 빈도인 경우 백엔드에서 여러 개의 개별 일정이 생성되므로
-      // 각 날짜별로 개별 일정을 로컬 상태에 추가
-      if (newSchedule.frequency === "매일") {
-        console.log("🔍 매일 일정 생성 후 개별 일정들을 로컬 상태에 추가");
-        const startDate = new Date(newSchedule.startDate);
-        const endDate = new Date(newSchedule.endDate);
-        const current = new Date(startDate);
-        const createdSchedules = [];
-
-        while (current <= endDate) {
-          const currentDateStr = current.toISOString().split("T")[0];
-          const individualSchedule = {
-            ...newSchedule,
-            id: `${calNo}-${currentDateStr}`, // 각 일정에 고유 ID 부여
-            startDate: currentDateStr,
-            endDate: currentDateStr,
-            reminderDaysBefore:
-              parseInt(newSchedule.notificationTiming, 10) || 0,
-            lastReminderDaysBefore:
-              parseInt(newSchedule.notificationTiming, 10) || 0,
-            isNotified: true,
-          };
-          createdSchedules.push(individualSchedule);
-          current.setDate(current.getDate() + 1);
-        }
-
-        console.log("🔍 생성된 개별 일정들:", createdSchedules);
-
-        // 로컬 상태에 모든 개별 일정 추가
-        if (isVaccinationSubType(newSchedule.subType)) {
-          onVaccinationSchedulesUpdate((prev) => {
-            console.log("🔍 접종 매일 일정 추가 전:", prev.length);
-            const updated = [...prev, ...createdSchedules];
-            console.log("🔍 접종 매일 일정 추가 후:", updated.length);
-            return updated;
-          });
-          setVaccinationPage(1);
-        } else if (isCareSubType(newSchedule.subType)) {
-          onCareSchedulesUpdate((prev) => {
-            console.log("🔍 돌봄 매일 일정 추가 전:", prev.length);
-            const updated = [...prev, ...createdSchedules];
-            console.log("🔍 돌봄 매일 일정 추가 후:", updated.length);
-            return updated;
-          });
-          setCarePage(1);
-        }
-      } else {
-        // 당일, 매주, 매월은 하나의 일정이므로 기존 로직 사용
-        const updatedSchedule = {
-          ...newSchedule,
-          id: calNo,
-          reminderDaysBefore: parseInt(newSchedule.notificationTiming, 10) || 0,
-          lastReminderDaysBefore:
-            parseInt(newSchedule.notificationTiming, 10) || 0,
-          isNotified: true,
-        };
-
-        // 즉시 로컬 상태 업데이트 (빠른 UI 반응)
-        if (isVaccinationSubType(newSchedule.subType)) {
-          onVaccinationSchedulesUpdate((prev) => {
-            console.log("🔍 접종 일정 추가 전:", prev.length);
-            const updated = [...prev, updatedSchedule];
-            console.log("🔍 접종 일정 추가 후:", updated.length);
-            console.log("🔍 추가된 접종 일정:", updatedSchedule);
-            return updated;
-          });
-          // 접종 일정 추가 후 페이지를 1로 리셋
-          setVaccinationPage(1);
-        } else if (isCareSubType(newSchedule.subType)) {
-          onCareSchedulesUpdate((prev) => {
-            console.log("🔍 돌봄 일정 추가 전:", prev.length);
-            const updated = [...prev, updatedSchedule];
-            console.log("🔍 돌봄 일정 추가 후:", updated.length);
-            console.log("🔍 추가된 돌봄 일정:", updatedSchedule);
-            return updated;
-          });
-          // 돌봄 일정 추가 후 페이지를 1로 리셋
-          setCarePage(1);
-        }
-      }
+      // 로컬 상태 업데이트 제거 - 서버에서 최신 데이터를 가져오므로 불필요
 
       // 생성된 일정 개수 계산
       const startDate = new Date(newSchedule.startDate);
@@ -758,32 +682,10 @@ export default function CareManagement({
       setShowToast(true);
       setShowAddModal(false); // 모달 닫기
 
-      // 캘린더 이벤트 즉시 업데이트
-      console.log("🔍 일정 추가 후 캘린더 이벤트 생성 시작");
-      const events = buildCalendarEvents();
-      console.log("🔍 생성된 캘린더 이벤트 개수:", events.length);
-      console.log("🔍 생성된 캘린더 이벤트:", events);
-      setCalendarEvents(events);
-      if (onCalendarEventsChange) {
-        onCalendarEventsChange(events);
-        console.log("🔍 상위 컴포넌트로 캘린더 이벤트 전달 완료");
-      }
-
-      // 백그라운드에서 데이터 동기화 (1초 후)
-      setTimeout(() => {
-        // 돌봄/접종 일정은 별도의 fetch 함수가 없으므로
-        // 상위 컴포넌트에서 데이터를 다시 가져오도록 알림
-        const updatedEvents = buildCalendarEvents();
-        setCalendarEvents(updatedEvents);
-        if (onCalendarEventsChange) {
-          onCalendarEventsChange(updatedEvents);
-        }
-      }, 1000);
-
-      // 서버에서 최신 데이터 다시 가져오기
+      // 즉시 서버에서 최신 데이터 가져오기
       if (onRefreshCareSchedules) {
         console.log("🔄 추가 완료 후 서버에서 최신 데이터 새로고침");
-        onRefreshCareSchedules();
+        await onRefreshCareSchedules();
       }
     } catch (error) {
       console.error("일정 생성 실패:", error);
@@ -800,6 +702,8 @@ export default function CareManagement({
       setToastMessage(errorMessage);
       setToastType("error");
       setShowToast(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -822,6 +726,8 @@ export default function CareManagement({
 
   const handleEditScheduleSubmit = async (updatedSchedule) => {
     try {
+      setIsLoading(true);
+
       if (!selectedPetNo) {
         throw new Error("반려동물을 선택해주세요.");
       }
@@ -871,45 +777,14 @@ export default function CareManagement({
 
       console.log("✅ 돌봄/접종 일정 수정 API 응답:", result);
 
-      // 즉시 로컬 상태 업데이트 (빠른 UI 반응)
-      if (isVaccinationSubType(updatedSchedule.subType)) {
-        onVaccinationSchedulesUpdate((prev) =>
-          prev.map((s) => (s.id === updatedSchedule.id ? updatedSchedule : s))
-        );
-        // 접종 일정 수정 후 페이지를 1로 리셋
-        setVaccinationPage(1);
-      } else if (isCareSubType(updatedSchedule.subType)) {
-        onCareSchedulesUpdate((prev) =>
-          prev.map((s) => (s.id === updatedSchedule.id ? updatedSchedule : s))
-        );
-        // 돌봄 일정 수정 후 페이지를 1로 리셋
-        setCarePage(1);
-      }
-
       setToastMessage(`${updatedSchedule.name} 일정이 수정되었습니다.`);
       setToastType("active");
       setShowToast(true);
 
-      // 캘린더 이벤트 즉시 업데이트
-      const events = buildCalendarEvents();
-      setCalendarEvents(events);
-      if (onCalendarEventsChange) {
-        onCalendarEventsChange(events);
-      }
-
-      // 백그라운드에서 데이터 동기화 (1초 후)
-      setTimeout(() => {
-        const updatedEvents = buildCalendarEvents();
-        setCalendarEvents(updatedEvents);
-        if (onCalendarEventsChange) {
-          onCalendarEventsChange(updatedEvents);
-        }
-      }, 1000);
-
-      // 서버에서 최신 데이터 다시 가져오기
+      // 즉시 서버에서 최신 데이터 가져오기
       if (onRefreshCareSchedules) {
         console.log("🔄 수정 완료 후 서버에서 최신 데이터 새로고침");
-        onRefreshCareSchedules();
+        await onRefreshCareSchedules();
       }
 
       return { success: true };
@@ -938,6 +813,8 @@ export default function CareManagement({
       setShowToast(true);
 
       return { success: false, error: errorMessage };
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -946,37 +823,23 @@ export default function CareManagement({
       // API 호출
       const result = await toggleCareAlarm(id);
 
-      // 성공 시 로컬 상태 업데이트 - 서브타입 기반으로 분류
+      // 성공 시 서버에서 최신 데이터 가져오기
+      if (onRefreshCareSchedules) {
+        await onRefreshCareSchedules();
+      }
+
+      // 토스트 메시지 표시
       const careSchedule = careSchedules.find((schedule) => schedule.id === id);
       const vaccinationSchedule = vaccinationSchedules.find(
         (schedule) => schedule.id === id
       );
 
-      if (careSchedule) {
-        const updated = careSchedules.map((schedule) =>
-          schedule.id === id ? { ...schedule, isNotified: result } : schedule
-        );
-        onCareSchedulesUpdate(updated);
-        const updatedSchedule = updated.find((schedule) => schedule.id === id);
-        setToastMessage(
-          `${updatedSchedule.name} 알림이 ${
-            updatedSchedule.isNotified ? "활성화" : "비활성화"
-          } 되었습니다.`
-        );
-        setToastType(updatedSchedule.isNotified ? "active" : "inactive");
-      } else if (vaccinationSchedule) {
-        const updated = vaccinationSchedules.map((schedule) =>
-          schedule.id === id ? { ...schedule, isNotified: result } : schedule
-        );
-        onVaccinationSchedulesUpdate(updated);
-        const updatedSchedule = updated.find((schedule) => schedule.id === id);
-        setToastMessage(
-          `${updatedSchedule.name} 알림이 ${
-            updatedSchedule.isNotified ? "활성화" : "비활성화"
-          } 되었습니다.`
-        );
-        setToastType(updatedSchedule.isNotified ? "active" : "inactive");
-      }
+      const scheduleName =
+        careSchedule?.name || vaccinationSchedule?.name || "일정";
+      setToastMessage(
+        `${scheduleName} 알림이 ${result ? "활성화" : "비활성화"} 되었습니다.`
+      );
+      setToastType(result ? "active" : "inactive");
       setShowToast(true);
     } catch (error) {
       console.error("알림 토글 실패:", error);
@@ -1010,11 +873,19 @@ export default function CareManagement({
     if (toDeleteId == null) return;
 
     try {
+      setIsLoading(true);
+
       if (deleteType === "돌봄" || deleteType === "접종") {
         // 돌봄/접종 일정 삭제 API 호출
         await deleteCareSchedule(toDeleteId);
 
-        // 성공 시 로컬 상태 업데이트 - 서브타입 기반으로 분류
+        // 성공 시 서버에서 최신 데이터 가져오기
+        if (onRefreshCareSchedules) {
+          console.log("🔄 삭제 완료 후 서버에서 최신 데이터 새로고침");
+          await onRefreshCareSchedules();
+        }
+
+        // 토스트 메시지 표시
         const careSchedule = careSchedules.find(
           (schedule) => schedule.id === toDeleteId
         );
@@ -1022,56 +893,16 @@ export default function CareManagement({
           (schedule) => schedule.id === toDeleteId
         );
 
-        if (careSchedule) {
-          const updated = careSchedules.filter(
-            (schedule) => schedule.id !== toDeleteId
-          );
-          onCareSchedulesUpdate(updated);
-          // 돌봄 일정 삭제 후 페이지를 1로 리셋
-          setCarePage(1);
-
-          // 토스트 메시지 표시
-          setToastMessage(`${careSchedule.name} 일정이 삭제되었습니다.`);
-          setToastType("delete");
-          setShowToast(true);
-        } else if (vaccinationSchedule) {
-          const updated = vaccinationSchedules.filter(
-            (schedule) => schedule.id !== toDeleteId
-          );
-          onVaccinationSchedulesUpdate(updated);
-          // 접종 일정 삭제 후 페이지를 1로 리셋
-          setVaccinationPage(1);
-
-          // 토스트 메시지 표시
-          setToastMessage(`${vaccinationSchedule.name} 일정이 삭제되었습니다.`);
-          setToastType("delete");
-          setShowToast(true);
-        }
+        const scheduleName =
+          careSchedule?.name || vaccinationSchedule?.name || "일정";
+        setToastMessage(`${scheduleName} 일정이 삭제되었습니다.`);
+        setToastType("delete");
+        setShowToast(true);
       } else if (deleteType === "투약") {
-        // 투약은 MedicationManagement에서 처리하므로 여기서는 로컬 상태만 업데이트
-        const updated = medications.filter((med) => med.id !== toDeleteId);
-        onMedicationsUpdate(updated);
-
-        // 토스트 메시지 표시
-        const deletedMed = medications.find((med) => med.id === toDeleteId);
-        if (deletedMed) {
-          setToastMessage(`${deletedMed.name} 투약이 삭제되었습니다.`);
-          setToastType("delete");
-          setShowToast(true);
-        }
-      }
-
-      // 캘린더 이벤트 즉시 업데이트
-      const events = buildCalendarEvents();
-      setCalendarEvents(events);
-      if (onCalendarEventsChange) {
-        onCalendarEventsChange(events);
-      }
-
-      // 서버에서 최신 데이터 다시 가져오기
-      if (onRefreshCareSchedules) {
-        console.log("🔄 삭제 완료 후 서버에서 최신 데이터 새로고침");
-        onRefreshCareSchedules();
+        // 투약은 MedicationManagement에서 처리
+        setToastMessage("투약 삭제는 투약 관리에서 처리됩니다.");
+        setToastType("error");
+        setShowToast(true);
       }
 
       setShowConfirm(false);
@@ -1090,6 +921,8 @@ export default function CareManagement({
       setToastMessage(errorMessage);
       setToastType("error");
       setShowToast(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -1381,8 +1214,9 @@ export default function CareManagement({
             <button
               className={styles.addButton}
               onClick={handleAddCareSchedule}
+              disabled={isLoading}
             >
-              <span>추가</span>
+              <span>{isLoading ? "처리중..." : "추가"}</span>
               <img
                 src="/health/pets.png"
                 alt="돌봄 추가 아이콘"
@@ -1439,8 +1273,9 @@ export default function CareManagement({
             <button
               className={styles.addButton}
               onClick={handleAddVaccinationSchedule}
+              disabled={isLoading}
             >
-              <span>추가</span>
+              <span>{isLoading ? "처리중..." : "추가"}</span>
               <img
                 src="/health/syringe.png"
                 alt="예방접종 추가 아이콘"

@@ -520,6 +520,20 @@ export default function ActivityManagement() {
         console.log("🔍 저장 후 데이터 다시 로드:", savedData);
         console.log("🔍 저장 후 식사 데이터:", savedData.meals);
 
+        // 폼 데이터 업데이트
+        setFormData({
+          walkingDistance: savedData.walkingDistanceKm?.toString() || "",
+          activityLevel: savedData.activityLevel?.toString() || "",
+          totalFoodWeight: "", // 백엔드에서 별도로 관리
+          totalCaloriesInFood: "", // 백엔드에서 별도로 관리
+          feedingAmount: "", // 백엔드에서 별도로 관리
+          weight: savedData.weightKg?.toString() || "",
+          sleepTime: savedData.sleepHours?.toString() || "",
+          urineCount: savedData.peeCount?.toString() || "",
+          fecesCount: savedData.poopCount?.toString() || "",
+          memo: savedData.memo || "",
+        });
+
         // 식사 데이터 업데이트
         const loadedMeals = Array.isArray(savedData.meals)
           ? savedData.meals
