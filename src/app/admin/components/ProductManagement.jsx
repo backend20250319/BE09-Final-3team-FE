@@ -46,17 +46,17 @@ export default function ProductManagement() {
       console.log("캠페인 목록 조회 시작...", "activeTab:", activeTab);
       let data;
       if (activeTab === "조회") {
-        // PENDING 상태의 캠페인만 조회
-        console.log("PENDING 상태 캠페인 조회 API 호출");
-        data = await getPendingCampaigns({
+        // TRIAL 상태의 캠페인 조회 (승인된 상품들)
+        console.log("TRIAL 상태 캠페인 조회 API 호출");
+        data = await getAllCampaigns({
           page: currentPage - 1,
           size: itemsPerPage,
           sort: sortBy === "최신순" ? "createdAt,desc" : "createdAt,asc",
         });
       } else {
-        // TRIAL 상태의 캠페인 조회
-        console.log("TRIAL 상태 캠페인 조회 API 호출");
-        data = await getAllCampaigns({
+        // PENDING 상태의 캠페인 조회 (승인 대기 중인 상품들)
+        console.log("PENDING 상태 캠페인 조회 API 호출");
+        data = await getPendingCampaigns({
           page: currentPage - 1,
           size: itemsPerPage,
           sort: sortBy === "최신순" ? "createdAt,desc" : "createdAt,asc",
@@ -230,8 +230,11 @@ export default function ProductManagement() {
                     <div className={styles.productContent}>
                       <div className={styles.productImage}>
                         <img
-                          src={campaign.imageUrl || "/campaign.png"}
+                          src={campaign.adUrl || "/campaign.png"}
                           alt={campaign.title}
+                          onError={(e) => {
+                            e.currentTarget.src = "/campaign.png";
+                          }}
                         />
                       </div>
                       <div className={styles.productInfo}>
@@ -246,6 +249,9 @@ export default function ProductManagement() {
                             src={campaign.advertiserLogo || "/brand-logo.jpg"}
                             alt={campaign.advertiserName}
                             className={styles.companyLogo}
+                            onError={(e) => {
+                              e.currentTarget.src = "/brand-logo.jpg";
+                            }}
                           />
                           <div className={styles.companyDetails}>
                             <span className={styles.companyName}>

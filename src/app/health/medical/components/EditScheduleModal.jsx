@@ -471,6 +471,110 @@ export default function EditScheduleModal({
     );
   };
 
+  // 커스텀 드롭다운 컴포넌트 (일정시간 스타일 적용)
+  const CustomDropdown = ({
+    value,
+    onChange,
+    placeholder,
+    options,
+    className,
+  }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const listRef = React.useRef(null);
+
+    // 외부 클릭 시 드롭다운 닫기
+    React.useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (
+          isOpen &&
+          !event.target.closest(`.${styles.customDropdownContainer}`)
+        ) {
+          setIsOpen(false);
+        }
+      };
+
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }, [isOpen]);
+
+    // 드롭다운이 열릴 때 선택된 옵션 위치로 스크롤
+    React.useEffect(() => {
+      if (isOpen && value && listRef.current) {
+        const selectedIndex = options.findIndex(
+          (option) => option.value === value
+        );
+        if (selectedIndex !== -1) {
+          const itemHeight = 48; // 각 옵션 항목의 높이 (padding 포함)
+          const containerHeight = 200; // 드롭다운 컨테이너 높이
+          const scrollTop = Math.max(
+            0,
+            selectedIndex * itemHeight - containerHeight / 2
+          );
+          listRef.current.scrollTop = scrollTop;
+        }
+      }
+    }, [isOpen, value, options]);
+
+    const handleOptionSelect = (optionValue) => {
+      onChange(optionValue);
+      setIsOpen(false);
+    };
+
+    const selectedOption = options.find((option) => option.value === value);
+
+    return (
+      <div className={`${styles.customDropdownContainer} ${className || ""}`}>
+        <div
+          className={`${styles.customDropdownInput} ${
+            isOpen ? styles.active : ""
+          }`}
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <span
+            className={
+              value
+                ? styles.customDropdownValue
+                : styles.customDropdownPlaceholder
+            }
+          >
+            {selectedOption ? selectedOption.label : placeholder}
+          </span>
+          <div className={styles.customDropdownIcon}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path
+                d="M3 5L7 9L11 5"
+                stroke="#9CA3AF"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+        </div>
+        {isOpen && (
+          <div className={styles.customDropdownDropdown}>
+            <div className={styles.customDropdownList} ref={listRef}>
+              {options.map((option) => (
+                <div
+                  key={option.value}
+                  className={`${styles.customDropdownItem} ${
+                    value === option.value
+                      ? styles.customDropdownItemSelected
+                      : ""
+                  }`}
+                  onClick={() => handleOptionSelect(option.value)}
+                >
+                  {option.label}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // 기존 데이터로 폼 초기화
   useEffect(() => {
     if (scheduleData) {
@@ -1190,32 +1294,13 @@ export default function EditScheduleModal({
                   <label className={styles.label}>유형</label>
                   <span className={styles.required}>*</span>
                 </div>
-                <div className={styles.selectContainer}>
-                  <select
-                    className={styles.select}
+                <div className={styles.inputContainer}>
+                  <CustomDropdown
                     value={formData.subType}
-                    onChange={(e) =>
-                      handleInputChange("subType", e.target.value)
-                    }
-                  >
-                    <option value="">유형을 선택하세요</option>
-                    {getSubTypeOptions().map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                  <div className={styles.selectArrow}>
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                      <path
-                        d="M3 5L7 9L11 5"
-                        stroke="#9CA3AF"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
+                    onChange={(value) => handleInputChange("subType", value)}
+                    placeholder="유형을 선택하세요"
+                    options={getSubTypeOptions()}
+                  />
                 </div>
                 {errors.subType && (
                   <span className={styles.error}>{errors.subType}</span>
@@ -1230,32 +1315,13 @@ export default function EditScheduleModal({
                   </label>
                   <span className={styles.required}>*</span>
                 </div>
-                <div className={styles.selectContainer}>
-                  <select
-                    className={styles.select}
+                <div className={styles.inputContainer}>
+                  <CustomDropdown
                     value={formData.frequency}
-                    onChange={(e) =>
-                      handleInputChange("frequency", e.target.value)
-                    }
-                  >
-                    <option value="">빈도를 선택하세요</option>
-                    {getFrequencyOptions().map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                  <div className={styles.selectArrow}>
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                      <path
-                        d="M3 5L7 9L11 5"
-                        stroke="#9CA3AF"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
+                    onChange={(value) => handleInputChange("frequency", value)}
+                    placeholder="빈도를 선택하세요"
+                    options={getFrequencyOptions()}
+                  />
                 </div>
                 {errors.frequency && (
                   <span className={styles.error}>{errors.frequency}</span>
@@ -1618,35 +1684,16 @@ export default function EditScheduleModal({
                   <label className={styles.label}>알림 시기</label>
                   <span className={styles.required}>*</span>
                 </div>
-                <div className={styles.selectContainer}>
-                  <select
-                    className={`${styles.select} ${
-                      isPrescription ? styles.disabled : ""
-                    }`}
+                <div className={styles.inputContainer}>
+                  <CustomDropdown
                     value={formData.notificationTiming}
-                    onChange={(e) =>
-                      handleInputChange("notificationTiming", e.target.value)
+                    onChange={(value) =>
+                      handleInputChange("notificationTiming", value)
                     }
-                    disabled={isPrescription}
-                  >
-                    <option value="">알림 시기를 선택하세요</option>
-                    {notificationTimingOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                  <div className={styles.selectArrow}>
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                      <path
-                        d="M3 5L7 9L11 5"
-                        stroke="#9CA3AF"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
+                    placeholder="알림 시기를 선택하세요"
+                    options={notificationTimingOptions}
+                    className={isPrescription ? styles.disabled : ""}
+                  />
                 </div>
                 {isPrescription && (
                   <span className={styles.prescriptionMessage}>
