@@ -67,7 +67,6 @@ export const getAdvertiserApplications = async (params = {}) => {
   const queryParams = new URLSearchParams();
   if (params.page) queryParams.append("page", params.page);
   if (params.size) queryParams.append("size", params.size);
-  if (params.sort) queryParams.append("sort", params.sort);
 
   const res = await api.get(
     `/advertiser-service/admin/advertiser/all?${queryParams.toString()}`
