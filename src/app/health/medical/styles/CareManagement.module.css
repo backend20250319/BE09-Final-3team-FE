@@ -147,6 +147,13 @@
   margin-top: 4px;
 }
 
+.notificationInfo {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+  font-style: italic;
+}
+
 .scheduleActions {
   display: flex;
   gap: 8px;
