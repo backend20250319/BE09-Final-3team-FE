@@ -1,5 +1,6 @@
 /* eslint-env node */
 import axios from "axios";
+import { getCurrentAccessToken } from "@/utils/tokenManager";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
@@ -15,7 +16,7 @@ api.interceptors.request.use(
   (cfg) => {
     // SSR 가드: 브라우저에서만 localStorage 접근
     if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token");
+      const token = getCurrentAccessToken();
       if (token) {
         // Axios v1: headers가 AxiosHeaders일 수도, plain object일 수도 있음
         if (cfg.headers && typeof cfg.headers.set === "function") {

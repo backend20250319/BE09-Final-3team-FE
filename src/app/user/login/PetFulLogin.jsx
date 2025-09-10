@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import styles from "./PetFulLogin.module.css";
 import Image from "next/image";
 import { login } from "../../../api/userAuthApi";
+import { saveTokens, USER_TYPES } from "@/utils/tokenManager";
 
 export default function PetFulLogin() {
   const router = useRouter();
@@ -33,25 +34,17 @@ export default function PetFulLogin() {
       const authData = data.data; // ApiResponse 구조에서 실제 데이터 추출
 
       if (authData && authData.accessToken) {
-        localStorage.setItem("token", authData.accessToken);
-        localStorage.setItem("refreshToken", authData.refreshToken);
-        localStorage.setItem("userEmail", authData.email);
-        localStorage.setItem("userNickname", authData.name || ""); // 닉네임 저장
-        localStorage.setItem("userNo", authData.userNo || ""); // 사용자 번호 저장
-
-        // 토큰 만료 시간 저장 (선택사항)
-        if (authData.accessExpiresAt) {
-          localStorage.setItem(
-            "accessTokenExpiresAt",
-            authData.accessExpiresAt
-          );
-        }
-        if (authData.refreshExpiresAt) {
-          localStorage.setItem(
-            "refreshTokenExpiresAt",
-            authData.refreshExpiresAt
-          );
-        }
+        // 새로운 토큰 매니저를 사용하여 저장
+        saveTokens(USER_TYPES.USER, {
+          accessToken: authData.accessToken,
+          refreshToken: authData.refreshToken,
+          accessExpiresAt: authData.accessExpiresAt,
+          refreshExpiresAt: authData.refreshExpiresAt,
+          email: authData.email,
+          nickname: authData.name || "",
+          userNo: authData.userNo || "",
+          userType: authData.userType || "USER"
+        });
 
         // 사용자 타입 확인하여 Admin인 경우 관리자 페이지로 리다이렉트
         const userType =

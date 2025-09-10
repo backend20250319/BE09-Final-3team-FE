@@ -1,6 +1,7 @@
 /* eslint-env node */
 import axios from "axios";
 import { createAuthHeaders } from "../utils/jwtUtils";
+import { getCurrentAccessToken } from "../utils/tokenManager";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
@@ -19,7 +20,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (cfg) => {
     if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token");
+      const token = getCurrentAccessToken();
       if (token) {
         if (cfg.headers && typeof cfg.headers.set === "function") {
           cfg.headers.set("Authorization", `Bearer ${token}`);
