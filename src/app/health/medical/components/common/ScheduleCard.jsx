@@ -22,6 +22,19 @@ export default function ScheduleCard({
     return SUBTYPE_LABEL_MAP[subType] || subType;
   };
 
+  // 알림시기 정보 가져오기
+  const getNotificationInfo = () => {
+    if (!schedule.isNotified) {
+      return `알림 비활성화 (마지막 설정: ${
+        schedule.lastReminderDaysBefore || 0
+      }일전)`;
+    } else {
+      const reminderDays =
+        schedule.reminderDaysBefore || schedule.notificationTiming || 0;
+      return reminderDays === 0 ? "당일 알림" : `${reminderDays}일 전 알림`;
+    }
+  };
+
   // 확장된 일정의 경우 날짜 정보 표시
   const getDateInfo = () => {
     if (schedule.displayDate) {
@@ -57,6 +70,7 @@ export default function ScheduleCard({
           <p className={styles.scheduleTime}>
             {formatTime(schedule.scheduleTime)}
           </p>
+          <p className={styles.notificationInfo}>{getNotificationInfo()}</p>
         </div>
       </div>
       <div className={styles.scheduleActions}>
