@@ -763,7 +763,7 @@ export default function CareManagement({
               .map((time) => time.trim() + ":00") // "09:00" → "09:00:00" (LocalTime 형식)
           : ["09:00:00"], // 기본값도 LocalTime 형식으로
         reminderDaysBefore:
-          parseInt(updatedSchedule.reminderDaysBefore, 10) || 0,
+          parseInt(updatedSchedule.notificationTiming, 10) || 0,
       };
 
       console.log("🔧 돌봄/접종 일정 수정 요청 데이터:", {

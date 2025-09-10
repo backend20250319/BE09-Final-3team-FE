@@ -478,8 +478,8 @@ export default function EditScheduleModal({
       console.log("EditScheduleModal - 알림 관련 필드:", {
         reminderDaysBefore: scheduleData.reminderDaysBefore,
         lastReminderDaysBefore: scheduleData.lastReminderDaysBefore,
-        // notificationTiming은 표시용 문자열이므로 사용하지 않음
-        note: "notificationTiming은 표시용 문자열이므로 사용하지 않음",
+        notificationTiming: scheduleData.notificationTiming,
+        note: "알림시기 필드들을 모두 확인",
       });
       // frequency 값 처리 - 백엔드에서 이미 한글 값으로 반환되므로 그대로 사용
       const frequency = scheduleData.frequency || "";
@@ -527,26 +527,59 @@ export default function EditScheduleModal({
           scheduleData.time ||
           defaultTimes.join(", "),
         duration: scheduleData.duration || "",
-        notificationTiming:
-          scheduleData.reminderDaysBefore !== null &&
-          scheduleData.reminderDaysBefore !== undefined
-            ? String(scheduleData.reminderDaysBefore)
-            : scheduleData.lastReminderDaysBefore !== null &&
-              scheduleData.lastReminderDaysBefore !== undefined
-            ? String(scheduleData.lastReminderDaysBefore)
-            : "0",
+        notificationTiming: (() => {
+          // 1. notificationTiming이 있으면 우선 사용
+          if (
+            scheduleData.notificationTiming !== null &&
+            scheduleData.notificationTiming !== undefined
+          ) {
+            return String(scheduleData.notificationTiming);
+          }
+          // 2. reminderDaysBefore가 있으면 사용
+          if (
+            scheduleData.reminderDaysBefore !== null &&
+            scheduleData.reminderDaysBefore !== undefined
+          ) {
+            return String(scheduleData.reminderDaysBefore);
+          }
+          // 3. lastReminderDaysBefore가 있으면 사용
+          if (
+            scheduleData.lastReminderDaysBefore !== null &&
+            scheduleData.lastReminderDaysBefore !== undefined
+          ) {
+            return String(scheduleData.lastReminderDaysBefore);
+          }
+          // 4. 기본값은 "0" (당일)
+          return "0";
+        })(),
         lastReminderDaysBefore: scheduleData.lastReminderDaysBefore || 0,
       });
 
       console.log("EditScheduleModal - 알림 시기 디버깅:", {
+        notificationTiming: scheduleData.notificationTiming,
         reminderDaysBefore: scheduleData.reminderDaysBefore,
         lastReminderDaysBefore: scheduleData.lastReminderDaysBefore,
-        finalNotificationTiming:
-          scheduleData.reminderDaysBefore !== null
-            ? scheduleData.reminderDaysBefore
-            : scheduleData.lastReminderDaysBefore !== null
-            ? scheduleData.lastReminderDaysBefore
-            : 0,
+        finalNotificationTiming: (() => {
+          if (
+            scheduleData.notificationTiming !== null &&
+            scheduleData.notificationTiming !== undefined
+          ) {
+            return scheduleData.notificationTiming;
+          }
+          if (
+            scheduleData.reminderDaysBefore !== null &&
+            scheduleData.reminderDaysBefore !== undefined
+          ) {
+            return scheduleData.reminderDaysBefore;
+          }
+          if (
+            scheduleData.lastReminderDaysBefore !== null &&
+            scheduleData.lastReminderDaysBefore !== undefined
+          ) {
+            return scheduleData.lastReminderDaysBefore;
+          }
+          return 0;
+        })(),
       });
 
       // 처방전 여부 설정
@@ -823,7 +856,8 @@ export default function EditScheduleModal({
               endDate: endDate,
               scheduleTime: formData.scheduleTime,
               notificationTiming: formData.notificationTiming,
-              reminderDaysBefore: Number(formData.notificationTiming),
+              reminderDaysBefore:
+                parseInt(formData.notificationTiming, 10) || 0,
               icon: getIconForSubType(formData.subType),
               color: getColorForType(formData.subType),
             };
@@ -845,7 +879,8 @@ export default function EditScheduleModal({
               endDate: formData.endDate,
               scheduleTime: formData.scheduleTime,
               notificationTiming: formData.notificationTiming,
-              reminderDaysBefore: Number(formData.notificationTiming),
+              reminderDaysBefore:
+                parseInt(formData.notificationTiming, 10) || 0,
               icon: getIconForSubType(formData.subType),
               color: getColorForType(formData.subType),
             };
@@ -867,7 +902,7 @@ export default function EditScheduleModal({
             time: formData.scheduleTime || formData.time, // 호환성 유지
 
             notificationTiming: formData.notificationTiming,
-            reminderDaysBefore: Number(formData.notificationTiming), // 백엔드로 전송할 숫자 값
+            reminderDaysBefore: parseInt(formData.notificationTiming, 10) || 0, // 백엔드로 전송할 숫자 값
             icon: getIconForSubType(formData.subType),
             color: getColorForType(mainType),
           };
