@@ -2,7 +2,10 @@ import React, { useState, useEffect } from "react";
 import styles from "../styles/CampaignGrid.module.css";
 import CampaignCard from "./CampaignCard";
 import { useCampaign } from "../context/CampaignContext";
-import { getAllAdsByAdvertiser } from "@/api/advertisementApi";
+import {
+  getAllAdsByAdvertiser,
+  getAllAdsByAdStatus,
+} from "@/api/advertisementApi";
 
 function sortCampaigns(campaigns, sortBy, activeTab) {
   switch (sortBy) {
@@ -71,10 +74,10 @@ function filterCampaigns(campaigns, searchQuery) {
   if (!searchQuery.trim()) {
     return campaigns;
   }
-  
+
   const query = searchQuery.toLowerCase().trim();
-  
-  return campaigns.filter(campaign => {
+
+  return campaigns.filter((campaign) => {
     // 제목에서 검색
     if (campaign.title && campaign.title.toLowerCase().includes(query)) {
       return true;
@@ -84,24 +87,31 @@ function filterCampaigns(campaigns, searchQuery) {
     if (campaign.brand && campaign.brand.toLowerCase().includes(query)) {
       return true;
     }
-    
+
     // 키워드에서 검색
     if (campaign.keyword && Array.isArray(campaign.keyword)) {
-      const hasKeyword = campaign.keyword.some(keyword => 
-        keyword.content && keyword.content.toLowerCase().includes(query)
+      const hasKeyword = campaign.keyword.some(
+        (keyword) =>
+          keyword.content && keyword.content.toLowerCase().includes(query)
       );
       if (hasKeyword) return true;
     }
-    
+
     return false;
   });
 }
 
-export default function CampaignGrid({ searchQuery, sortBy, currentPage, onPageChange, onTotalPagesChange }) {
+export default function CampaignGrid({
+  searchQuery,
+  sortBy,
+  currentPage,
+  onPageChange,
+  onTotalPagesChange,
+}) {
   const { activeTab } = useCampaign();
 
   const [campaigns, setCampaigns] = useState([]);
-  
+
   const ITEMS_PER_PAGE = 9;
 
   useEffect(() => {
@@ -118,14 +128,16 @@ export default function CampaignGrid({ searchQuery, sortBy, currentPage, onPageC
   }, [activeTab]);
 
   // 삭제되지 않은 캠페인만 필터링
-  const nonDeletedCampaigns = campaigns.filter(campaign => !campaign.isDeleted);
-  
+  const nonDeletedCampaigns = campaigns.filter(
+    (campaign) => !campaign.isDeleted
+  );
+
   // 검색 필터링 적용
   const filteredCampaigns = filterCampaigns(nonDeletedCampaigns, searchQuery);
-  
+
   // 정렬 적용
   const sortedCampaigns = sortCampaigns(filteredCampaigns, sortBy, activeTab);
-  
+
   // Pagination 계산
   const totalItems = sortedCampaigns.length;
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
@@ -135,7 +147,7 @@ export default function CampaignGrid({ searchQuery, sortBy, currentPage, onPageC
 
   // 페이지 변경 시 상단으로 스크롤
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentPage]);
 
   // totalPages 변경 시 부모 컴포넌트에 알림
@@ -149,7 +161,9 @@ export default function CampaignGrid({ searchQuery, sortBy, currentPage, onPageC
     <section className={styles.campaignGrid}>
       {searchQuery && (
         <div className={styles.searchResults}>
-          <p>"{searchQuery}" 검색 결과: {filteredCampaigns.length}건</p>
+          <p>
+            "{searchQuery}" 검색 결과: {filteredCampaigns.length}건
+          </p>
         </div>
       )}
       <div className={styles.grid}>

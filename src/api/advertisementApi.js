@@ -29,6 +29,12 @@ export const getAllAdsByAdvertiser = async (adStatus) => {
   return res.data.data;
 };
 
+// 2-3. adStatus별 광고(캠페인) 전체 조회
+export const getAllAdsByAdStatus = async (adStatus) => {
+  const res = await api.get(`${AD_PREFIX}/adStatus?adStatus=${adStatus}`);
+  return res.data.data;
+};
+
 // 3. 광고 수정
 export const updateAdByAdvertiser = async (adNo, request) => {
   const res = await api.put(`${AD_PREFIX}/advertiser/${adNo}`, request);
