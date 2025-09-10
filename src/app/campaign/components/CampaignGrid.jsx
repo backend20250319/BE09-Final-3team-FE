@@ -8,9 +8,7 @@ function sortCampaigns(campaigns, sortBy, activeTab) {
   switch (sortBy) {
     case "recent":
       // 최신순
-      return activeTab === "recruiting" ? 
-        [...campaigns].sort((a, b) => new Date(a.announceStart) - new Date(b.announceStart)) :
-        [...campaigns].sort((a, b) => new Date(b.createdAt) - new Date(b.createdAt)) ;
+      return [...campaigns].sort((a, b) => new Date(b.announceStart) - new Date(a.announceStart));
     case "deadline":
       // 마감 임박순 (공고 종료일 오름차순)
       return [...campaigns].sort((a, b) => new Date(a.announceEnd) - new Date(b.announceEnd));
