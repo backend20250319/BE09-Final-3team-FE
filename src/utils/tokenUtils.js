@@ -1,7 +1,7 @@
 // 토큰 유틸리티 함수들 - 레거시 호환성을 위한 래퍼 함수들
 // 새로운 tokenManager.js를 사용하되 기존 코드와의 호환성 유지
 
-import { 
+import {
   isTokenExpired as newIsTokenExpired,
   needsTokenRefresh as newNeedsTokenRefresh,
   clearTokens,
@@ -9,8 +9,8 @@ import {
   getCurrentAccessToken,
   getCurrentRefreshToken,
   getCurrentUserType,
-  getTokenKeys
-} from './tokenManager';
+  getTokenKeys,
+} from "./tokenManager";
 
 /**
  * 토큰이 만료되었는지 확인 (레거시 호환성)
@@ -29,8 +29,11 @@ export const isTokenExpired = (tokenType = "access") => {
 export const getTokenTimeRemaining = (tokenType = "access") => {
   const userType = getCurrentUserType();
   const tokenKeys = getTokenKeys(userType);
-  
-  const expiresAtKey = tokenType === 'access' ? tokenKeys.ACCESS_EXPIRES : tokenKeys.REFRESH_EXPIRES;
+
+  const expiresAtKey =
+    tokenType === "access"
+      ? tokenKeys.ACCESS_EXPIRES
+      : tokenKeys.REFRESH_EXPIRES;
   const expiresAt = localStorage.getItem(expiresAtKey);
 
   if (!expiresAt) {
@@ -97,21 +100,33 @@ export const getTokenStatus = () => {
   const status = newGetTokenStatus();
   const accessTimeRemaining = getTokenTimeRemaining("access");
   const refreshTimeRemaining = getTokenTimeRemaining("refresh");
-  
+
   return {
     ...status,
     accessToken: {
       exists: !!getCurrentAccessToken(),
-      timeRemaining: accessTimeRemaining > 0 ? Math.floor(accessTimeRemaining / 1000 / 60) + "분" : "만료됨",
-      expired: isTokenExpired("access")
+      timeRemaining:
+        accessTimeRemaining > 0
+          ? Math.floor(accessTimeRemaining / 1000 / 60) + "분"
+          : "만료됨",
+      expired: isTokenExpired("access"),
     },
     refreshToken: {
       exists: !!getCurrentRefreshToken(),
-      timeRemaining: refreshTimeRemaining > 0 ? Math.floor(refreshTimeRemaining / 1000 / 60) + "분" : "만료됨",
-      expired: isTokenExpired("refresh")
+      timeRemaining:
+        refreshTimeRemaining > 0
+          ? Math.floor(refreshTimeRemaining / 1000 / 60) + "분"
+          : "만료됨",
+      expired: isTokenExpired("refresh"),
     },
-    timeRemaining: accessTimeRemaining > 0 ? Math.floor(accessTimeRemaining / 1000 / 60) + "분" : "만료됨",
-    refreshTimeRemaining: refreshTimeRemaining > 0 ? Math.floor(refreshTimeRemaining / 1000 / 60) + "분" : "만료됨",
+    timeRemaining:
+      accessTimeRemaining > 0
+        ? Math.floor(accessTimeRemaining / 1000 / 60) + "분"
+        : "만료됨",
+    refreshTimeRemaining:
+      refreshTimeRemaining > 0
+        ? Math.floor(refreshTimeRemaining / 1000 / 60) + "분"
+        : "만료됨",
     needsRefresh: needsTokenRefresh(),
     isValid: hasValidToken(),
   };

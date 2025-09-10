@@ -78,7 +78,7 @@ export default function PetFulLogin() {
           refreshToken: data.data.refreshToken,
           email: email,
           userNo: data.data.advertiserNo,
-          userType: data.data.userType || "ADVERTISER"
+          userType: data.data.userType || "ADVERTISER",
         });
 
         console.log("토큰 저장 완료:", {

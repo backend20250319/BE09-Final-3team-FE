@@ -5,31 +5,31 @@
 // 토큰 키 상수 정의
 export const TOKEN_KEYS = {
   USER: {
-    ACCESS: 'token',
-    REFRESH: 'refreshToken',
-    ACCESS_EXPIRES: 'accessTokenExpiresAt',
-    REFRESH_EXPIRES: 'refreshTokenExpiresAt',
-    EMAIL: 'userEmail',
-    NICKNAME: 'userNickname',
-    USER_NO: 'userNo',
-    USER_TYPE: 'userType'
+    ACCESS: "token",
+    REFRESH: "refreshToken",
+    ACCESS_EXPIRES: "accessTokenExpiresAt",
+    REFRESH_EXPIRES: "refreshTokenExpiresAt",
+    EMAIL: "userEmail",
+    NICKNAME: "userNickname",
+    USER_NO: "userNo",
+    USER_TYPE: "userType",
   },
   ADVERTISER: {
-    ACCESS: 'advertiserToken',
-    REFRESH: 'advertiserRefreshToken',
-    ACCESS_EXPIRES: 'advertiserAccessTokenExpiresAt',
-    REFRESH_EXPIRES: 'advertiserRefreshTokenExpiresAt',
-    EMAIL: 'advertiserEmail',
-    USER_NO: 'advertiserNo',
-    USER_TYPE: 'advertiserType'
-  }
+    ACCESS: "advertiserToken",
+    REFRESH: "advertiserRefreshToken",
+    ACCESS_EXPIRES: "advertiserAccessTokenExpiresAt",
+    REFRESH_EXPIRES: "advertiserRefreshTokenExpiresAt",
+    EMAIL: "advertiserEmail",
+    USER_NO: "advertiserNo",
+    USER_TYPE: "advertiserType",
+  },
 };
 
 // 사용자 타입 상수
 export const USER_TYPES = {
-  USER: 'USER',
-  ADVERTISER: 'ADVERTISER',
-  ADMIN: 'ADMIN'
+  USER: "USER",
+  ADVERTISER: "ADVERTISER",
+  ADMIN: "ADMIN",
 };
 
 /**
@@ -47,7 +47,9 @@ export const getCurrentUserType = () => {
   const userToken = localStorage.getItem(TOKEN_KEYS.USER.ACCESS);
   if (userToken) {
     const userType = localStorage.getItem(TOKEN_KEYS.USER.USER_TYPE);
-    return userType === 'Admin' || userType === 'ADMIN' ? USER_TYPES.ADMIN : USER_TYPES.USER;
+    return userType === "Admin" || userType === "ADMIN"
+      ? USER_TYPES.ADMIN
+      : USER_TYPES.USER;
   }
 
   return null;
@@ -60,7 +62,7 @@ export const getCurrentUserType = () => {
  */
 export const getTokenKeys = (userType = null) => {
   const currentUserType = userType || getCurrentUserType();
-  
+
   switch (currentUserType) {
     case USER_TYPES.ADVERTISER:
       return TOKEN_KEYS.ADVERTISER;
@@ -98,35 +100,35 @@ export const getCurrentRefreshToken = () => {
  */
 export const saveTokens = (userType, tokenData) => {
   const tokenKeys = getTokenKeys(userType);
-  
+
   if (tokenData.accessToken) {
     localStorage.setItem(tokenKeys.ACCESS, tokenData.accessToken);
   }
-  
+
   if (tokenData.refreshToken) {
     localStorage.setItem(tokenKeys.REFRESH, tokenData.refreshToken);
   }
-  
+
   if (tokenData.accessExpiresAt) {
     localStorage.setItem(tokenKeys.ACCESS_EXPIRES, tokenData.accessExpiresAt);
   }
-  
+
   if (tokenData.refreshExpiresAt) {
     localStorage.setItem(tokenKeys.REFRESH_EXPIRES, tokenData.refreshExpiresAt);
   }
-  
+
   if (tokenData.email) {
     localStorage.setItem(tokenKeys.EMAIL, tokenData.email);
   }
-  
+
   if (tokenData.userNo) {
     localStorage.setItem(tokenKeys.USER_NO, tokenData.userNo);
   }
-  
+
   if (tokenData.userType) {
     localStorage.setItem(tokenKeys.USER_TYPE, tokenData.userType);
   }
-  
+
   if (tokenData.nickname && userType === USER_TYPES.USER) {
     localStorage.setItem(tokenKeys.NICKNAME, tokenData.nickname);
   }
@@ -138,11 +140,14 @@ export const saveTokens = (userType, tokenData) => {
  * @param {string} userType - 'USER', 'ADVERTISER'
  * @returns {boolean} 만료되었으면 true
  */
-export const isTokenExpired = (tokenType = 'access', userType = null) => {
+export const isTokenExpired = (tokenType = "access", userType = null) => {
   const currentUserType = userType || getCurrentUserType();
   const tokenKeys = getTokenKeys(currentUserType);
-  
-  const expiresAtKey = tokenType === 'access' ? tokenKeys.ACCESS_EXPIRES : tokenKeys.REFRESH_EXPIRES;
+
+  const expiresAtKey =
+    tokenType === "access"
+      ? tokenKeys.ACCESS_EXPIRES
+      : tokenKeys.REFRESH_EXPIRES;
   const expiresAt = localStorage.getItem(expiresAtKey);
 
   if (!expiresAt) {
@@ -171,7 +176,7 @@ export const isTokenExpired = (tokenType = 'access', userType = null) => {
 export const needsTokenRefresh = (userType = null) => {
   const currentUserType = userType || getCurrentUserType();
   const tokenKeys = getTokenKeys(currentUserType);
-  
+
   const accessToken = localStorage.getItem(tokenKeys.ACCESS);
   const refreshToken = localStorage.getItem(tokenKeys.REFRESH);
 
@@ -180,7 +185,10 @@ export const needsTokenRefresh = (userType = null) => {
   }
 
   // Access Token이 만료되었고 Refresh Token이 유효하면 갱신 필요
-  return isTokenExpired('access', currentUserType) && !isTokenExpired('refresh', currentUserType);
+  return (
+    isTokenExpired("access", currentUserType) &&
+    !isTokenExpired("refresh", currentUserType)
+  );
 };
 
 /**
@@ -189,21 +197,31 @@ export const needsTokenRefresh = (userType = null) => {
  */
 export const clearTokens = (userType = null) => {
   const currentUserType = userType || getCurrentUserType();
-  
-  if (currentUserType === USER_TYPES.ADVERTISER || userType === USER_TYPES.ADVERTISER) {
+
+  if (
+    currentUserType === USER_TYPES.ADVERTISER ||
+    userType === USER_TYPES.ADVERTISER
+  ) {
     const advertiserKeys = Object.values(TOKEN_KEYS.ADVERTISER);
-    advertiserKeys.forEach(key => localStorage.removeItem(key));
+    advertiserKeys.forEach((key) => localStorage.removeItem(key));
   }
-  
-  if (currentUserType === USER_TYPES.USER || currentUserType === USER_TYPES.ADMIN || userType === USER_TYPES.USER) {
+
+  if (
+    currentUserType === USER_TYPES.USER ||
+    currentUserType === USER_TYPES.ADMIN ||
+    userType === USER_TYPES.USER
+  ) {
     const userKeys = Object.values(TOKEN_KEYS.USER);
-    userKeys.forEach(key => localStorage.removeItem(key));
+    userKeys.forEach((key) => localStorage.removeItem(key));
   }
-  
+
   // 모든 타입의 토큰을 삭제하는 경우
   if (!userType) {
-    const allKeys = [...Object.values(TOKEN_KEYS.USER), ...Object.values(TOKEN_KEYS.ADVERTISER)];
-    allKeys.forEach(key => localStorage.removeItem(key));
+    const allKeys = [
+      ...Object.values(TOKEN_KEYS.USER),
+      ...Object.values(TOKEN_KEYS.ADVERTISER),
+    ];
+    allKeys.forEach((key) => localStorage.removeItem(key));
   }
 };
 
@@ -215,13 +233,13 @@ export const createAuthHeaders = () => {
   const token = getCurrentAccessToken();
   const userType = getCurrentUserType();
   const tokenKeys = getTokenKeys(userType);
-  
+
   const headers = {
-    'Content-Type': 'application/json'
+    "Content-Type": "application/json",
   };
 
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
   // 추가 헤더 정보
@@ -229,13 +247,13 @@ export const createAuthHeaders = () => {
   const userTypeValue = localStorage.getItem(tokenKeys.USER_TYPE);
 
   if (userNo) {
-    headers['X-User-No'] = userNo;
-    headers['User-No'] = userNo; // 백엔드 호환성을 위해 두 가지 형태 모두 제공
+    headers["X-User-No"] = userNo;
+    headers["User-No"] = userNo; // 백엔드 호환성을 위해 두 가지 형태 모두 제공
   }
 
   if (userTypeValue) {
-    headers['X-User-Type'] = userTypeValue;
-    headers['User-Type'] = userTypeValue;
+    headers["X-User-Type"] = userTypeValue;
+    headers["User-Type"] = userTypeValue;
   }
 
   return headers;
@@ -247,25 +265,25 @@ export const createAuthHeaders = () => {
  */
 export const getTokenStatus = () => {
   const userType = getCurrentUserType();
-  
+
   if (!userType) {
     return {
       userType: null,
       isLoggedIn: false,
-      hasValidToken: false
+      hasValidToken: false,
     };
   }
 
   const tokenKeys = getTokenKeys(userType);
   const accessToken = localStorage.getItem(tokenKeys.ACCESS);
   const refreshToken = localStorage.getItem(tokenKeys.REFRESH);
-  
+
   return {
     userType,
     isLoggedIn: !!(accessToken || refreshToken),
-    hasValidToken: !!accessToken && !isTokenExpired('access', userType),
+    hasValidToken: !!accessToken && !isTokenExpired("access", userType),
     needsRefresh: needsTokenRefresh(userType),
-    accessTokenExpired: isTokenExpired('access', userType),
-    refreshTokenExpired: isTokenExpired('refresh', userType)
+    accessTokenExpired: isTokenExpired("access", userType),
+    refreshTokenExpired: isTokenExpired("refresh", userType),
   };
 };

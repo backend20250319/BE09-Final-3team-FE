@@ -2,7 +2,7 @@
  * JWT 토큰 관련 유틸리티 함수들
  */
 
-import { getCurrentAccessToken, getCurrentUserType } from './tokenManager';
+import { getCurrentAccessToken, getCurrentUserType } from "./tokenManager";
 
 /**
  * JWT 토큰을 디코딩하여 페이로드 정보를 추출합니다.
