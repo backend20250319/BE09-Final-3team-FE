@@ -43,7 +43,7 @@ export default function PetFulLogin() {
           email: authData.email,
           nickname: authData.name || "",
           userNo: authData.userNo || "",
-          userType: authData.userType || "USER"
+          userType: authData.userType || "USER",
         });
 
         // 사용자 타입 확인하여 Admin인 경우 관리자 페이지로 리다이렉트

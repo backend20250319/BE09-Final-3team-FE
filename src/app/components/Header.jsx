@@ -19,7 +19,7 @@ import {
   USER_TYPES,
   getTokenKeys,
   needsTokenRefresh,
-  isTokenExpired
+  isTokenExpired,
 } from "@/utils/tokenManager";
 import api from "../../api/api";
 
@@ -36,7 +36,7 @@ export default function Header() {
   const refreshToken = async () => {
     const currentUserType = getCurrentUserType();
     const refreshTokenValue = getCurrentRefreshToken();
-    
+
     if (!refreshTokenValue) {
       throw new Error("리프레시 토큰이 없습니다.");
     }
@@ -52,15 +52,15 @@ export default function Header() {
     const data = response.data;
     if (data.code === "2000" && data.data) {
       const authData = data.data;
-      
+
       // 새로운 토큰 매니저를 사용하여 저장
       saveTokens(currentUserType, {
         accessToken: authData.accessToken,
         refreshToken: authData.refreshToken,
         accessExpiresAt: authData.accessExpiresAt,
-        refreshExpiresAt: authData.refreshExpiresAt
+        refreshExpiresAt: authData.refreshExpiresAt,
       });
-      
+
       return authData.accessToken;
     } else {
       throw new Error(data.message || "토큰 갱신 응답이 올바르지 않습니다.");
@@ -125,10 +125,13 @@ export default function Header() {
     const checkLoginStatus = () => {
       const userType = getCurrentUserType();
       const tokenKeys = getTokenKeys(userType);
-      
+
       // 토큰 기반으로 로그인 상태 확인
       if (userType && getCurrentAccessToken()) {
-        const nickname = localStorage.getItem(tokenKeys.NICKNAME) || localStorage.getItem(tokenKeys.EMAIL) || "";
+        const nickname =
+          localStorage.getItem(tokenKeys.NICKNAME) ||
+          localStorage.getItem(tokenKeys.EMAIL) ||
+          "";
         setIsLoggedIn(true);
         setUserNickname(nickname);
         // 로그인 시 안읽은 알림 갯수 가져오기
