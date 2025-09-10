@@ -5,6 +5,13 @@ import {
   needsTokenRefresh,
   hasValidToken,
 } from "../utils/tokenUtils";
+import {
+  getCurrentAccessToken,
+  getCurrentUserType,
+  getTokenKeys,
+  saveTokens,
+  USER_TYPES
+} from "../utils/tokenManager";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
@@ -57,26 +64,26 @@ userServiceApi.interceptors.request.use(
       }
 
       // 현재 토큰으로 헤더 설정
-      const token = localStorage.getItem("token");
+      const token = getCurrentAccessToken();
+      const userType = getCurrentUserType();
+      const tokenKeys = getTokenKeys(userType);
+      
       if (token) {
         console.log("✅ 토큰을 헤더에 추가:", !!token);
 
         if (cfg.headers && typeof cfg.headers.set === "function") {
           cfg.headers.set("Authorization", `Bearer ${token}`);
-          cfg.headers.set("X-User-No", localStorage.getItem("userNo") || "");
-          cfg.headers.set(
-            "X-User-Type",
-            localStorage.getItem("userType") || ""
-          );
-          cfg.headers.set("User-No", localStorage.getItem("userNo") || "");
-          cfg.headers.set("User-Type", localStorage.getItem("userType") || "");
+          cfg.headers.set("X-User-No", localStorage.getItem(tokenKeys.USER_NO) || "");
+          cfg.headers.set("X-User-Type", localStorage.getItem(tokenKeys.USER_TYPE) || "");
+          cfg.headers.set("User-No", localStorage.getItem(tokenKeys.USER_NO) || "");
+          cfg.headers.set("User-Type", localStorage.getItem(tokenKeys.USER_TYPE) || "");
         } else {
           cfg.headers = cfg.headers || {};
           cfg.headers["Authorization"] = `Bearer ${token}`;
-          cfg.headers["X-User-No"] = localStorage.getItem("userNo") || "";
-          cfg.headers["X-User-Type"] = localStorage.getItem("userType") || "";
-          cfg.headers["User-No"] = localStorage.getItem("userNo") || "";
-          cfg.headers["User-Type"] = localStorage.getItem("userType") || "";
+          cfg.headers["X-User-No"] = localStorage.getItem(tokenKeys.USER_NO) || "";
+          cfg.headers["X-User-Type"] = localStorage.getItem(tokenKeys.USER_TYPE) || "";
+          cfg.headers["User-No"] = localStorage.getItem(tokenKeys.USER_NO) || "";
+          cfg.headers["User-Type"] = localStorage.getItem(tokenKeys.USER_TYPE) || "";
         }
       }
     }
@@ -525,21 +532,15 @@ const refreshTokenIfNeeded = async () => {
     const data = response.data;
     if (data.code === "2000" && data.data) {
       const authData = data.data;
+      const userType = getCurrentUserType() || USER_TYPES.USER;
 
-      // 새로운 토큰들을 localStorage에 저장
-      localStorage.setItem("token", authData.accessToken);
-      if (authData.refreshToken) {
-        localStorage.setItem("refreshToken", authData.refreshToken);
-      }
-      if (authData.accessExpiresAt) {
-        localStorage.setItem("accessTokenExpiresAt", authData.accessExpiresAt);
-      }
-      if (authData.refreshExpiresAt) {
-        localStorage.setItem(
-          "refreshTokenExpiresAt",
-          authData.refreshExpiresAt
-        );
-      }
+      // 새로운 토큰 매니저를 사용하여 저장
+      saveTokens(userType, {
+        accessToken: authData.accessToken,
+        refreshToken: authData.refreshToken,
+        accessExpiresAt: authData.accessExpiresAt,
+        refreshExpiresAt: authData.refreshExpiresAt
+      });
 
       console.log("✅ 토큰 갱신 성공");
       return authData.accessToken;
