@@ -339,6 +339,13 @@ export default function HealthPage() {
     []
   );
 
+  // 돌봄/접종 데이터 새로고침 함수 저장
+  const [refreshCareSchedules, setRefreshCareSchedules] = useState(null);
+
+  const handleRefreshCareSchedules = useCallback((refreshFn) => {
+    setRefreshCareSchedules(() => refreshFn);
+  }, []);
+
   const toggleCalendar = () => setIsCalendarOpen((prev) => !prev);
 
   const handleMedicalCalendarEventClick = (event) => {
@@ -404,6 +411,7 @@ export default function HealthPage() {
               setShowDetailModal={setShowDetailModal}
               selectedSchedule={selectedSchedule}
               setSelectedSchedule={setSelectedSchedule}
+              onRefreshCareSchedules={handleRefreshCareSchedules}
             />
           )}
           {medicalSubTab === "돌봄" && (
@@ -419,6 +427,7 @@ export default function HealthPage() {
               setShowDetailModal={setShowDetailModal}
               selectedSchedule={selectedSchedule}
               setSelectedSchedule={setSelectedSchedule}
+              onRefreshCareSchedules={refreshCareSchedules}
             />
           )}
         </>

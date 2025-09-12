@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import styles from "./PetFulLogin.module.css";
 import Image from "next/image";
 import { advertiserLogin } from "../../../api/advertiserAuthApi";
+import { saveTokens, USER_TYPES } from "@/utils/tokenManager";
 
 export default function PetFulLogin() {
   const [email, setEmail] = useState("");
@@ -71,12 +72,14 @@ export default function PetFulLogin() {
           console.error("JWT 토큰 디코딩 실패:", decodeError);
         }
 
-        // 토큰들을 localStorage에 저장
-        localStorage.setItem("advertiserToken", token);
-        localStorage.setItem("advertiserRefreshToken", data.data.refreshToken);
-        localStorage.setItem("advertiserEmail", email);
-        localStorage.setItem("advertiserNo", data.data.advertiserNo);
-        localStorage.setItem("userType", data.data.userType);
+        // 새로운 토큰 매니저를 사용하여 저장
+        saveTokens(USER_TYPES.ADVERTISER, {
+          accessToken: token,
+          refreshToken: data.data.refreshToken,
+          email: email,
+          userNo: data.data.advertiserNo,
+          userType: data.data.userType || "ADVERTISER",
+        });
 
         console.log("토큰 저장 완료:", {
           accessToken: token,

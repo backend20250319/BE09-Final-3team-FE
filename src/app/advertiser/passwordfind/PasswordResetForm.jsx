@@ -11,10 +11,13 @@ import {
   verifyAdvertiserPasswordResetCode,
   changeAdvertiserPassword,
 } from "../../../api/advertiserAuthApi";
+import api from "../../../api/api";
 
 export default function PasswordResetForm() {
   const router = useRouter();
-  const ADVERTISER_API_BASE = "http://localhost:8000/api/v1/advertiser-service";
+  const BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+  const ADVERTISER_API_BASE = `${BASE_URL}/advertiser-service`;
 
   const [email, setEmail] = useState("");
   const [verificationCode, setVerificationCode] = useState("");

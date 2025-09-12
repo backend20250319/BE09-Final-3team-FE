@@ -22,9 +22,22 @@ export default function ScheduleCard({
     return SUBTYPE_LABEL_MAP[subType] || subType;
   };
 
+  // 알림시기 정보 가져오기
+  const getNotificationInfo = () => {
+    if (!schedule.isNotified) {
+      return `알림 비활성화 (마지막 설정: ${
+        schedule.lastReminderDaysBefore || 0
+      }일전)`;
+    } else {
+      const reminderDays =
+        schedule.reminderDaysBefore || schedule.notificationTiming || 0;
+      return reminderDays === 0 ? "당일 알림" : `${reminderDays}일 전 알림`;
+    }
+  };
+
   // 확장된 일정의 경우 날짜 정보 표시
   const getDateInfo = () => {
-    if (schedule.displayDate && schedule.displayDate !== schedule.startDate) {
+    if (schedule.displayDate) {
       const displayDate = new Date(schedule.displayDate);
       const formattedDate = `${
         displayDate.getMonth() + 1
@@ -57,6 +70,7 @@ export default function ScheduleCard({
           <p className={styles.scheduleTime}>
             {formatTime(schedule.scheduleTime)}
           </p>
+          <p className={styles.notificationInfo}>{getNotificationInfo()}</p>
         </div>
       </div>
       <div className={styles.scheduleActions}>
@@ -64,22 +78,24 @@ export default function ScheduleCard({
           className={styles.actionButton}
           onClick={() => onEdit(schedule.id, type)}
         >
-          <img 
-            src="/health/note.png" 
-            alt={type === "돌봄" ? CARE_LABELS.EDIT : VACCINATION_LABELS.EDIT} 
-            width={22} 
-            height={22} 
+          <img
+            src="/health/note.png"
+            alt={type === "돌봄" ? CARE_LABELS.EDIT : VACCINATION_LABELS.EDIT}
+            width={22}
+            height={22}
           />
         </button>
         <button
           className={styles.actionButton}
           onClick={() => onDelete(schedule.id, type)}
         >
-          <img 
-            src="/health/trash.png" 
-            alt={type === "돌봄" ? CARE_LABELS.DELETE : VACCINATION_LABELS.DELETE} 
-            width={24} 
-            height={24} 
+          <img
+            src="/health/trash.png"
+            alt={
+              type === "돌봄" ? CARE_LABELS.DELETE : VACCINATION_LABELS.DELETE
+            }
+            width={24}
+            height={24}
           />
         </button>
         <button
@@ -88,9 +104,7 @@ export default function ScheduleCard({
         >
           <img
             src={
-              schedule.isNotified
-                ? "/health/notifi.png"
-                : "/health/notifi2.png"
+              schedule.isNotified ? "/health/notifi.png" : "/health/notifi2.png"
             }
             alt="알림"
             width={24}

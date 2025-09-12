@@ -29,19 +29,6 @@ const PetProfile = () => {
       const userNo = localStorage.getItem("userNo");
 
       const data = await getPets();
-
-      console.log("API 응답 전체:", data);
-      console.log("반려동물 데이터 배열:", data.data);
-      if (data.data && data.data.length > 0) {
-        data.data.forEach((pet, index) => {
-          console.log(`반려동물 ${index + 1} 전체 데이터:`, pet);
-          console.log(`반려동물 ${index + 1} snsId 필드:`, pet.snsId);
-          console.log(
-            `반려동물 ${index + 1} snsUsername 필드:`,
-            pet.snsUsername
-          );
-        });
-      }
       setPets(data.data || []);
     } catch (error) {
       console.error("반려동물 목록 조회 실패:", error);
@@ -210,12 +197,6 @@ const PetProfile = () => {
 
               <div className={styles.petGrid}>
                 {pets.map((pet) => {
-                  console.log(`반려동물 ${pet.name} 데이터:`, pet);
-                  console.log(`반려동물 ${pet.name} snsId:`, pet.snsId);
-                  console.log(
-                    `반려동물 ${pet.name} snsUsername:`,
-                    pet.snsUsername
-                  );
                   return (
                     <div key={pet.petNo} className={styles.petCard}>
                       <div className={styles.petImageContainer}>
@@ -248,7 +229,7 @@ const PetProfile = () => {
                               <span className={styles.breedText}>
                                 ({pet.type})
                               </span>
-                              {pet.isPetStar && (
+                              {pet.petStarStatus === "ACTIVE" && (
                                 <Image
                                   src="/user/medal.svg"
                                   alt="PetStar"
@@ -305,17 +286,18 @@ const PetProfile = () => {
                         </div>
                         <div className={styles.petFooter}>
                           <div className={styles.petActions}>
-                            {!pet.isPetStar && (
+                            {pet.petStarStatus !== "ACTIVE" && (
                               <button
                                 className={styles.actionButton}
                                 onClick={() => {
                                   setSelectedPet(pet);
                                   setIsPetstarModalOpen(true);
                                 }}
+                                title="펫스타 신청"
                               >
                                 <Image
                                   src={`/user/medal.png`}
-                                  alt="Medal"
+                                  alt="펫스타 신청"
                                   width={18}
                                   height={18}
                                 />

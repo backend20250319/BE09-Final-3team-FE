@@ -1,8 +1,8 @@
 .pagination {
   display: flex;
   justify-content: center;
-  margin-top: 40px;
-  margin-bottom: 40px;
+  margin-top: 16px;
+  margin-bottom: 24px;
 }
 
 .paginationContainer {
@@ -71,7 +71,8 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .pagination {
-    margin-bottom: 40px;
+    margin-top: 12px;
+    margin-bottom: 20px;
   }
   
   .paginationContainer {

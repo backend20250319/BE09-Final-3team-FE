@@ -32,7 +32,7 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 24px;
-  padding: 0 90px;
+  padding: 0 60px;
 }
 
 .influencerCard {
@@ -42,7 +42,8 @@
   overflow: hidden;
   box-shadow: 0px 4px 6px 0px rgba(0, 0, 0, 0.1), 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  height: 392px;
+  height: auto;
+  min-height: 392px;
 }
 
 .influencerCard:hover {
@@ -79,7 +80,7 @@
 
 .cardContent {
   padding: 16px;
-  height: 136px;
+  min-height: 136px;
   display: flex;
   flex-direction: column;
 }
@@ -143,11 +144,12 @@
   color: #4b5563;
   flex: 1;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
   word-break: break-word;
+  margin-top: auto;
 }
 
 .sliderControls {
@@ -178,11 +180,11 @@
 }
 
 .sliderButton:first-child {
-  margin-left: -16px;
+  margin-left: -40px;
 }
 
 .sliderButton:last-child {
-  margin-right: -16px;
+  margin-right: -40px;
 }
 
 .sliderButton:hover {
@@ -210,14 +212,75 @@
   color: #e6941f;
 }
 
+/* Loading, Error, Empty States */
+.loadingContainer,
+.errorContainer,
+.emptyContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #f5a623;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loadingContainer p,
+.errorContainer p,
+.emptyContainer p {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.retryButton {
+  margin-top: 16px;
+  padding: 8px 16px;
+  background: #f5a623;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.retryButton:hover {
+  background: #e6941f;
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
   .influencerGrid {
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
-    padding: 0 20px;
+    padding: 0 40px;
   }
   
+  .sliderButton:first-child {
+    margin-left: -30px;
+  }
+
+  .sliderButton:last-child {
+    margin-right: -30px;
+  }
+}
+
+@media (max-width: 900px) {
   .sliderControls {
     display: none;
   }

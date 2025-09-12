@@ -9,6 +9,7 @@ import RejectionModal from "./RejectionModal";
 import SelectionModal from "./SelectionModal";
 import ReviewStatusModal from "../components/ReviewStatusModal";
 import ConfirmationModal from "./ConfirmationModal";
+import AlertModal from "../../components/AlertModal";
 import { getImageByAdNo, deleteAdByAdvertiser } from '@/api/advertisementApi';
 import { getFileByAdvertiserNo } from '@/api/advertiserApi';
 
@@ -19,6 +20,8 @@ export default function CampaignCard({ campaign }) {
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
   const [isReviewStatusModalOpen, setIsReviewStatusModalOpen] = useState(false);
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
+  const [alertData, setAlertData] = useState({ title: '', message: '', type: 'info' });
   const [advImage, setAdvImage] = useState(null);
   const [adImage, setAdImage] = useState(null);
 
@@ -60,7 +63,7 @@ export default function CampaignCard({ campaign }) {
     const baseStyle = { 
       padding: "4px 16px",
       borderRadius: "9999px",
-      fontSize: "14px",
+      fontSize: "15px",
       fontWeight: "400",
       lineHeight: "1.19",
       textAlign: "center",
@@ -122,12 +125,21 @@ export default function CampaignCard({ campaign }) {
       window.location.reload();
     } catch (error) {
       console.error('삭제 중 오류가 발생했습니다:', error);
-      alert('삭제 중 오류가 발생했습니다. 다시 시도해주세요.');
+      setAlertData({
+        title: '삭제 실패',
+        message: '삭제 중 오류가 발생했습니다. 다시 시도해주세요.',
+        type: 'error'
+      });
+      setIsAlertModalOpen(true);
     }
   };
 
   const handleCloseConfirmationModal = () => {
     setIsConfirmationModalOpen(false);
+  };
+
+  const handleCloseAlertModal = () => {
+    setIsAlertModalOpen(false);
   };
   
   const cardContent = (
@@ -245,9 +257,16 @@ export default function CampaignCard({ campaign }) {
         onClose={handleCloseConfirmationModal}
         onConfirm={handleConfirmDelete}
         title="정말 취소/삭제하시겠습니까?"
-        message="이 작업은 되돌릴 수 없습니다."
+        message="이 작업은 되돌릴 수 없습니다"
         confirmText="삭제"
         cancelText="취소"
+      />
+      <AlertModal
+        isOpen={isAlertModalOpen}
+        onClose={handleCloseAlertModal}
+        title={alertData.title}
+        message={alertData.message}
+        type={alertData.type}
       />
     </>
   );

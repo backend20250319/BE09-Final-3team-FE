@@ -1,5 +1,17 @@
 /* eslint-env node */
 import axios from "axios";
+import {
+  isTokenExpired,
+  needsTokenRefresh,
+  hasValidToken,
+} from "../utils/tokenUtils";
+import {
+  getCurrentAccessToken,
+  getCurrentUserType,
+  getTokenKeys,
+  saveTokens,
+  USER_TYPES,
+} from "../utils/tokenManager";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
@@ -12,106 +24,83 @@ const userServiceApi = axios.create({
 });
 
 userServiceApi.interceptors.request.use(
-  (cfg) => {
+  async (cfg) => {
     console.log("🔍 userServiceApi 인터셉터 시작 - URL:", cfg.url);
 
     // SSR 가드: 브라우저에서만 localStorage 접근
     if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token");
-      console.log("🔑 토큰 존재 여부:", !!token);
+      // 로그인 관련 API들은 토큰 체크를 건너뛰기
+      const isAuthAPI =
+        cfg.url &&
+        (cfg.url.includes("/auth/login") ||
+          cfg.url.includes("/auth/signup") ||
+          cfg.url.includes("/auth/email/send") ||
+          cfg.url.includes("/auth/email/verify") ||
+          cfg.url.includes("/auth/password/reset") ||
+          cfg.url.includes("/auth/password/verify") ||
+          cfg.url.includes("/auth/password/change"));
+
+      if (isAuthAPI) {
+        console.log("✅ 인증이 필요하지 않은 API - 토큰 없이 진행:", cfg.url);
+        return cfg;
+      }
+
+      // 토큰 상태 확인
+      if (!hasValidToken()) {
+        console.warn("❌ 유효한 토큰이 없습니다:", cfg.url);
+        // 토큰이 아예 없거나 모두 만료된 경우
+        throw new Error("인증이 필요합니다. 다시 로그인해주세요.");
+      }
+
+      // 토큰 갱신이 필요한지 확인
+      if (needsTokenRefresh()) {
+        console.log("🔄 토큰 갱신이 필요합니다. 갱신 시도...");
+        try {
+          await refreshTokenIfNeeded();
+        } catch (error) {
+          console.error("❌ 토큰 갱신 실패:", error);
+          throw new Error("토큰 갱신에 실패했습니다. 다시 로그인해주세요.");
+        }
+      }
+
+      // 현재 토큰으로 헤더 설정
+      const token = getCurrentAccessToken();
+      const userType = getCurrentUserType();
+      const tokenKeys = getTokenKeys(userType);
+
       if (token) {
-        // Axios v1: headers가 AxiosHeaders일 수도, plain object일 수도 있음
+        console.log("✅ 토큰을 헤더에 추가:", !!token);
+
         if (cfg.headers && typeof cfg.headers.set === "function") {
           cfg.headers.set("Authorization", `Bearer ${token}`);
-          // 백엔드에서 토큰 파싱에 문제가 있을 경우를 대비해 추가 정보 포함
-          cfg.headers.set("X-User-No", localStorage.getItem("userNo") || "");
+          cfg.headers.set(
+            "X-User-No",
+            localStorage.getItem(tokenKeys.USER_NO) || ""
+          );
           cfg.headers.set(
             "X-User-Type",
-            localStorage.getItem("userType") || ""
+            localStorage.getItem(tokenKeys.USER_TYPE) || ""
           );
-          // 다른 일반적인 헤더명도 시도
-          cfg.headers.set("User-No", localStorage.getItem("userNo") || "");
-          cfg.headers.set("User-Type", localStorage.getItem("userType") || "");
+          cfg.headers.set(
+            "User-No",
+            localStorage.getItem(tokenKeys.USER_NO) || ""
+          );
+          cfg.headers.set(
+            "User-Type",
+            localStorage.getItem(tokenKeys.USER_TYPE) || ""
+          );
         } else {
           cfg.headers = cfg.headers || {};
           cfg.headers["Authorization"] = `Bearer ${token}`;
-          // 백엔드에서 토큰 파싱에 문제가 있을 경우를 대비해 추가 정보 포함
-          cfg.headers["X-User-No"] = localStorage.getItem("userNo") || "";
-          cfg.headers["X-User-Type"] = localStorage.getItem("userType") || "";
-          // 다른 일반적인 헤더명도 시도
-          cfg.headers["User-No"] = localStorage.getItem("userNo") || "";
-          cfg.headers["User-Type"] = localStorage.getItem("userType") || "";
+          cfg.headers["X-User-No"] =
+            localStorage.getItem(tokenKeys.USER_NO) || "";
+          cfg.headers["X-User-Type"] =
+            localStorage.getItem(tokenKeys.USER_TYPE) || "";
+          cfg.headers["User-No"] =
+            localStorage.getItem(tokenKeys.USER_NO) || "";
+          cfg.headers["User-Type"] =
+            localStorage.getItem(tokenKeys.USER_TYPE) || "";
         }
-      } else {
-        // 로그인 관련 API들은 토큰 체크를 건너뛰기
-        const isAuthAPI =
-          cfg.url &&
-          (cfg.url.includes("/auth/login") ||
-            cfg.url.includes("/auth/signup") ||
-            cfg.url.includes("/auth/email/send") ||
-            cfg.url.includes("/auth/email/verify") ||
-            cfg.url.includes("/auth/password/reset") ||
-            cfg.url.includes("/auth/password/verify") ||
-            cfg.url.includes("/auth/password/change"));
-
-        console.log(
-          "🔍 인증 API 체크 - URL:",
-          cfg.url,
-          "isAuthAPI:",
-          isAuthAPI
-        );
-
-        if (isAuthAPI) {
-          // 인증이 필요하지 않은 API들은 토큰 없이도 진행
-          console.log("✅ 인증이 필요하지 않은 API - 토큰 없이 진행:", cfg.url);
-          return cfg;
-        }
-
-        console.warn("token이 없습니다. API 요청:", cfg.url);
-        // 토큰이 없을 때는 요청을 지연시켜 토큰 저장 완료 대기
-        return new Promise((resolve) => {
-          const checkToken = () => {
-            const newToken = localStorage.getItem("token");
-            if (newToken) {
-              if (cfg.headers && typeof cfg.headers.set === "function") {
-                cfg.headers.set("Authorization", `Bearer ${newToken}`);
-                // 백엔드에서 토큰 파싱에 문제가 있을 경우를 대비해 추가 정보 포함
-                cfg.headers.set(
-                  "X-User-No",
-                  localStorage.getItem("userNo") || ""
-                );
-                cfg.headers.set(
-                  "X-User-Type",
-                  localStorage.getItem("userType") || ""
-                );
-                // 다른 일반적인 헤더명도 시도
-                cfg.headers.set(
-                  "User-No",
-                  localStorage.getItem("userNo") || ""
-                );
-                cfg.headers.set(
-                  "User-Type",
-                  localStorage.getItem("userType") || ""
-                );
-              } else {
-                cfg.headers = cfg.headers || {};
-                cfg.headers["Authorization"] = `Bearer ${newToken}`;
-                // 백엔드에서 토큰 파싱에 문제가 있을 경우를 대비해 추가 정보 포함
-                cfg.headers["X-User-No"] = localStorage.getItem("userNo") || "";
-                cfg.headers["X-User-Type"] =
-                  localStorage.getItem("userType") || "";
-                // 다른 일반적인 헤더명도 시도
-                cfg.headers["User-No"] = localStorage.getItem("userNo") || "";
-                cfg.headers["User-Type"] =
-                  localStorage.getItem("userType") || "";
-              }
-              resolve(cfg);
-            } else {
-              setTimeout(checkToken, 100);
-            }
-          };
-          checkToken();
-        });
       }
     }
     return cfg;
@@ -146,9 +135,6 @@ export const sendEmailVerification = async (email) => {
   const endpoints = [
     `${BASE_URL}/user-service/auth/email/send`,
     `${BASE_URL}/user-service/email/verify`,
-    `http://localhost:8001/auth/email/send`, // user-service 직접 포트
-    `http://localhost:8002/auth/email/send`, // 다른 가능한 포트
-    `http://localhost:8003/auth/email/send`, // 다른 가능한 포트
     `${BASE_URL}/auth/email/send`,
     `${BASE_URL}${AUTH_PREFIX}/email/send`,
     `${BASE_URL}/email/send`,
@@ -534,4 +520,51 @@ export const rejectReport = async (reportId, reason) => {
     { reason }
   );
   return res.data.data;
+};
+
+// ===== 토큰 관리 함수 =====
+
+/**
+ * 토큰 갱신 함수
+ * @returns {Promise<string>} 새로운 액세스 토큰
+ */
+const refreshTokenIfNeeded = async () => {
+  const refreshToken = localStorage.getItem("refreshToken");
+
+  if (!refreshToken) {
+    throw new Error("리프레시 토큰이 없습니다.");
+  }
+
+  try {
+    console.log("🔄 토큰 갱신 API 호출...");
+    const response = await userServiceApi.post("/user-service/auth/refresh", {
+      refreshToken,
+    });
+
+    if (response.status !== 200) {
+      throw new Error("토큰 갱신에 실패했습니다.");
+    }
+
+    const data = response.data;
+    if (data.code === "2000" && data.data) {
+      const authData = data.data;
+      const userType = getCurrentUserType() || USER_TYPES.USER;
+
+      // 새로운 토큰 매니저를 사용하여 저장
+      saveTokens(userType, {
+        accessToken: authData.accessToken,
+        refreshToken: authData.refreshToken,
+        accessExpiresAt: authData.accessExpiresAt,
+        refreshExpiresAt: authData.refreshExpiresAt,
+      });
+
+      console.log("✅ 토큰 갱신 성공");
+      return authData.accessToken;
+    } else {
+      throw new Error(data.message || "토큰 갱신 응답이 올바르지 않습니다.");
+    }
+  } catch (error) {
+    console.error("❌ 토큰 갱신 실패:", error);
+    throw new Error("토큰 갱신에 실패했습니다.");
+  }
 };

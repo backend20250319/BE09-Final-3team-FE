@@ -7,7 +7,7 @@ import ActivityHistory from '@/app/campaign/application/[ad_no]/components/Activ
 import CampaignActivityDetailModal from '@/app/campaign/application/[ad_no]/components/CampaignActivityDetailModal';
 import { getPortfolio, getUser, getHistory, getInstagramProfile } from '@/api/advertisementApi';
 
-export default function PortfolioModal({ isOpen, onClose, petData }) {
+export default function PortfolioModal({ isOpen, onClose, petData, hideAdditionalContent = false }) {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [portfolio, setPortfolio] = useState(null);
@@ -199,12 +199,14 @@ export default function PortfolioModal({ isOpen, onClose, petData }) {
               </div>
             </div>
 
-            <div className={styles.addSection}>
-              <h4 className={styles.addSectionTitle}>추가 내용</h4>
-              <p className={styles.addSectionText}>
-                {petData?.content || "작성된 추가 내용이 없습니다."}
-              </p>
-            </div>
+            {!hideAdditionalContent && (
+              <div className={styles.addSection}>
+                <h4 className={styles.addSectionTitle}>추가 내용</h4>
+                <p className={styles.addSectionText}>
+                  {petData?.content || "작성된 추가 내용이 없습니다."}
+                </p>
+              </div>
+            )}
 
             <div className={styles.ownerInfo}>
               <h4 className={styles.ownerTitle}>반려인 정보</h4>

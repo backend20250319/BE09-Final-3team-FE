@@ -19,6 +19,7 @@ import styles from "../styles/ActivityReport.module.css";
 import { getActivityReport } from "../../../../api/activityApi";
 import { useSelectedPet } from "../../context/SelectedPetContext";
 import DateRangeCalendar from "./DateRangeCalendar";
+import Toast from "../../medical/components/Toast";
 
 // 메트릭 설정 - 2x2 그리드 배치 (산책-식사, 배변-수면)
 const activityMetrics = [
@@ -96,6 +97,11 @@ export default function ActivityReport() {
   const [showEndCalendar, setShowEndCalendar] = useState(false);
   const [startDateButtonRef, setStartDateButtonRef] = useState(null);
   const [endDateButtonRef, setEndDateButtonRef] = useState(null);
+
+  // 토스트 메시지 상태
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState("error");
 
   // 날짜 범위 선택 핸들러
   const handleDateRangeSelect = (selectedStartDate, selectedEndDate) => {
@@ -488,13 +494,23 @@ export default function ActivityReport() {
 
           // 에러 메시지 표시
           if (error.message.includes("최대 7일까지")) {
-            alert("최대 7일까지 조회 가능합니다.");
+            setToastMessage("최대 7일까지 조회 가능합니다.");
+            setToastType("error");
+            setShowToast(true);
           } else if (error.message.includes("잘못된 날짜 범위")) {
-            alert("잘못된 날짜 범위입니다.");
+            setToastMessage("잘못된 날짜 범위입니다.");
+            setToastType("error");
+            setShowToast(true);
           } else if (error.message.includes("서버 내부 오류")) {
-            alert("서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+            setToastMessage(
+              "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+            );
+            setToastType("error");
+            setShowToast(true);
           } else {
-            alert("데이터를 불러오는 중 오류가 발생했습니다.");
+            setToastMessage("데이터를 불러오는 중 오류가 발생했습니다.");
+            setToastType("error");
+            setShowToast(true);
           }
         }
       } finally {
@@ -800,39 +816,43 @@ export default function ActivityReport() {
         </div>
       )}
 
-      {/* 요약 통계 표시 영역 */}
-      {selectedPetName && selectedPetNo && summaryData && summaryData.data && (
-        <div className={styles.summaryStats}>
-          <div className={styles.summaryCard}>
-            <h4>총 활동 일수</h4>
-            <span>{summaryData.data.summaryStats?.totalDays || 0}일</span>
+      {/* 요약 통계 표시 영역 - 데이터가 있을 때만 표시 */}
+      {selectedPetName &&
+        selectedPetNo &&
+        summaryData &&
+        summaryData.data &&
+        !noData && (
+          <div className={styles.summaryStats}>
+            <div className={styles.summaryCard}>
+              <h4>총 활동 일수</h4>
+              <span>{summaryData.data.summaryStats?.totalDays || 0}일</span>
+            </div>
+            <div className={styles.summaryCard}>
+              <h4>평균 산책 거리</h4>
+              <span>
+                {Math.round(
+                  summaryData.data.summaryStats?.averageWalkingDistance || 0
+                )}
+                km
+              </span>
+            </div>
+            <div className={styles.summaryCard}>
+              <h4>평균 소모 칼로리</h4>
+              <span>
+                {Math.round(
+                  summaryData.data.summaryStats?.averageCaloriesBurned || 0
+                )}
+                kcal
+              </span>
+            </div>
+            <div className={styles.summaryCard}>
+              <h4>기간</h4>
+              <span>
+                {summaryData.data.startDate} ~ {summaryData.data.endDate}
+              </span>
+            </div>
           </div>
-          <div className={styles.summaryCard}>
-            <h4>평균 산책 거리</h4>
-            <span>
-              {Math.round(
-                summaryData.data.summaryStats?.averageWalkingDistance || 0
-              )}
-              km
-            </span>
-          </div>
-          <div className={styles.summaryCard}>
-            <h4>평균 소모 칼로리</h4>
-            <span>
-              {Math.round(
-                summaryData.data.summaryStats?.averageCaloriesBurned || 0
-              )}
-              kcal
-            </span>
-          </div>
-          <div className={styles.summaryCard}>
-            <h4>기간</h4>
-            <span>
-              {summaryData.data.startDate} ~ {summaryData.data.endDate}
-            </span>
-          </div>
-        </div>
-      )}
+        )}
 
       {!selectedPetName || !selectedPetNo ? (
         <div className={styles.noPetArea}>
@@ -1272,6 +1292,16 @@ export default function ActivityReport() {
                 );
               })}
         </div>
+      )}
+
+      {/* 토스트 메시지 */}
+      {showToast && (
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          duration={3000}
+          onClose={() => setShowToast(false)}
+        />
       )}
     </section>
   );

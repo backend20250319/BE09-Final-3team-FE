@@ -4,13 +4,12 @@ import React, { useState, useEffect } from "react";
 import styles from "../styles/AddScheduleModal.module.css";
 import { useSelectedPet } from "../../context/SelectedPetContext";
 import {
-  vaccinationSubTypeOptions,
-  vaccinationFrequencyOptions,
   notificationTimingOptions,
   ICON_MAP,
   COLOR_MAP,
   SUBTYPE_LABEL_MAP,
 } from "../../constants";
+import { getCareMeta } from "../../../../api/medicationApi";
 import CustomCalendar from "./CustomCalendar";
 
 export default function AddVaccinationScheduleModal({
@@ -258,6 +257,110 @@ export default function AddVaccinationScheduleModal({
     );
   };
 
+  // 커스텀 드롭다운 컴포넌트 (일정시간 스타일 적용)
+  const CustomDropdown = ({
+    value,
+    onChange,
+    placeholder,
+    options,
+    className,
+  }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const listRef = React.useRef(null);
+
+    // 외부 클릭 시 드롭다운 닫기
+    React.useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (
+          isOpen &&
+          !event.target.closest(`.${styles.customDropdownContainer}`)
+        ) {
+          setIsOpen(false);
+        }
+      };
+
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }, [isOpen]);
+
+    // 드롭다운이 열릴 때 선택된 옵션 위치로 스크롤
+    React.useEffect(() => {
+      if (isOpen && value && listRef.current) {
+        const selectedIndex = options.findIndex(
+          (option) => option.value === value
+        );
+        if (selectedIndex !== -1) {
+          const itemHeight = 48; // 각 옵션 항목의 높이 (padding 포함)
+          const containerHeight = 200; // 드롭다운 컨테이너 높이
+          const scrollTop = Math.max(
+            0,
+            selectedIndex * itemHeight - containerHeight / 2
+          );
+          listRef.current.scrollTop = scrollTop;
+        }
+      }
+    }, [isOpen, value, options]);
+
+    const handleOptionSelect = (optionValue) => {
+      onChange(optionValue);
+      setIsOpen(false);
+    };
+
+    const selectedOption = options.find((option) => option.value === value);
+
+    return (
+      <div className={`${styles.customDropdownContainer} ${className || ""}`}>
+        <div
+          className={`${styles.customDropdownInput} ${
+            isOpen ? styles.active : ""
+          }`}
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <span
+            className={
+              value
+                ? styles.customDropdownValue
+                : styles.customDropdownPlaceholder
+            }
+          >
+            {selectedOption ? selectedOption.label : placeholder}
+          </span>
+          <div className={styles.customDropdownIcon}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path
+                d="M3 5L7 9L11 5"
+                stroke="#9CA3AF"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+        </div>
+        {isOpen && (
+          <div className={styles.customDropdownDropdown}>
+            <div className={styles.customDropdownList} ref={listRef}>
+              {options.map((option) => (
+                <div
+                  key={option.value}
+                  className={`${styles.customDropdownItem} ${
+                    value === option.value
+                      ? styles.customDropdownItemSelected
+                      : ""
+                  }`}
+                  onClick={() => handleOptionSelect(option.value)}
+                >
+                  {option.label}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // 날짜 포맷팅 함수
   const formatDateForDisplay = (dateString) => {
     if (!dateString) return "";
@@ -327,8 +430,77 @@ export default function AddVaccinationScheduleModal({
 
   // 접종 일정 고정
 
-  const subTypeOptions = vaccinationSubTypeOptions;
-  const frequencyOptions = vaccinationFrequencyOptions;
+  // 메타 API에서 가져온 옵션들
+  const [subTypeOptions, setSubTypeOptions] = useState([]);
+  const [frequencyOptions, setFrequencyOptions] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // 메타 데이터 로드
+  useEffect(() => {
+    const loadMetaData = async () => {
+      if (!isOpen) return;
+
+      setLoading(true);
+      try {
+        const metaData = await getCareMeta();
+        console.log("🔍 접종 메타 데이터 로드:", metaData);
+
+        if (metaData) {
+          // 서브타입 옵션 설정 (접종 관련만 필터링)
+          if (metaData.subTypes && Array.isArray(metaData.subTypes)) {
+            const vaccinationSubTypes = metaData.subTypes.filter((type) =>
+              ["VACCINE", "CHECKUP"].includes(type)
+            );
+            const subTypeOpts = vaccinationSubTypes.map((type) => ({
+              value: type,
+              label: SUBTYPE_LABEL_MAP[type] || type,
+            }));
+            setSubTypeOptions(subTypeOpts);
+          } else {
+            // 백엔드에서 서브타입 옵션이 없으면 기본값 사용
+            setSubTypeOptions([
+              { value: "VACCINE", label: "예방접종" },
+              { value: "CHECKUP", label: "건강검진" },
+            ]);
+          }
+
+          // 빈도 옵션 설정 (한글 label 사용)
+          if (metaData.frequencies && Array.isArray(metaData.frequencies)) {
+            const frequencyOpts = metaData.frequencies.map((freq) => ({
+              value: freq,
+              label: freq,
+            }));
+            setFrequencyOptions(frequencyOpts);
+          } else {
+            // 백엔드에서 빈도 옵션이 없으면 기본값 사용
+            setFrequencyOptions([
+              { value: "매일", label: "매일" },
+              { value: "매주", label: "매주" },
+              { value: "매월", label: "매월" },
+              { value: "당일", label: "당일" },
+            ]);
+          }
+        }
+      } catch (error) {
+        console.error("접종 메타 데이터 로드 실패:", error);
+        // 에러 시 기본값 사용
+        setSubTypeOptions([
+          { value: "VACCINE", label: "예방접종" },
+          { value: "CHECKUP", label: "건강검진" },
+        ]);
+        setFrequencyOptions([
+          { value: "매일", label: "매일" },
+          { value: "매주", label: "매주" },
+          { value: "매월", label: "매월" },
+          { value: "당일", label: "당일" },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMetaData();
+  }, [isOpen]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => {
@@ -535,244 +707,206 @@ export default function AddVaccinationScheduleModal({
 
         {/* 폼 */}
         <div className={styles.form}>
-          {/* 일정 이름 */}
-          <div className={styles.formGroup}>
-            <div className={styles.labelContainer}>
-              <label className={styles.label}>일정 이름</label>
-              <span className={styles.required}>*</span>
+          {loading ? (
+            <div className={styles.loadingContainer}>
+              <div className={styles.loadingSpinner}></div>
+              <p>데이터를 불러오는 중...</p>
             </div>
-            <div className={styles.inputContainer}>
-              <input
-                type="text"
-                className={styles.input}
-                placeholder="일정 이름을 입력하세요"
-                value={formData.name}
-                onChange={(e) => handleInputChange("name", e.target.value)}
-              />
-            </div>
-            {errors.name && <span className={styles.error}>{errors.name}</span>}
-          </div>
-
-          {/* 유형 (서브타입) */}
-          <div className={styles.formGroup}>
-            <div className={styles.labelContainer}>
-              <label className={styles.label}>유형</label>
-              <span className={styles.required}>*</span>
-            </div>
-            <div className={styles.selectContainer}>
-              <select
-                className={styles.select}
-                value={formData.subType}
-                onChange={(e) => handleInputChange("subType", e.target.value)}
-              >
-                <option value="">유형을 선택하세요</option>
-                {subTypeOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {SUBTYPE_LABEL_MAP[option] || option}
-                  </option>
-                ))}
-              </select>
-              <div className={styles.selectArrow}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path
-                    d="M3 5L7 9L11 5"
-                    stroke="#9CA3AF"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+          ) : (
+            <>
+              {/* 일정 이름 */}
+              <div className={styles.formGroup}>
+                <div className={styles.labelContainer}>
+                  <label className={styles.label}>일정 이름</label>
+                  <span className={styles.required}>*</span>
+                </div>
+                <div className={styles.inputContainer}>
+                  <input
+                    type="text"
+                    className={styles.input}
+                    placeholder="일정 이름을 입력하세요"
+                    value={formData.name}
+                    onChange={(e) => handleInputChange("name", e.target.value)}
                   />
-                </svg>
+                </div>
+                {errors.name && (
+                  <span className={styles.error}>{errors.name}</span>
+                )}
               </div>
-            </div>
-            {errors.subType && (
-              <span className={styles.error}>{errors.subType}</span>
-            )}
-          </div>
 
-          {/* 빈도 */}
-          <div className={styles.formGroup}>
-            <div className={styles.labelContainer}>
-              <label className={styles.label}>빈도</label>
-              <span className={styles.required}>*</span>
-            </div>
-            <div className={styles.selectContainer}>
-              <select
-                className={styles.select}
-                value={formData.frequency}
-                onChange={(e) => handleInputChange("frequency", e.target.value)}
-              >
-                <option value="">빈도를 선택하세요</option>
-                {frequencyOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-              <div className={styles.selectArrow}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path
-                    d="M3 5L7 9L11 5"
-                    stroke="#9CA3AF"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+              {/* 유형 (서브타입) */}
+              <div className={styles.formGroup}>
+                <div className={styles.labelContainer}>
+                  <label className={styles.label}>유형</label>
+                  <span className={styles.required}>*</span>
+                </div>
+                <div className={styles.inputContainer}>
+                  <CustomDropdown
+                    value={formData.subType}
+                    onChange={(value) => handleInputChange("subType", value)}
+                    placeholder="유형을 선택하세요"
+                    options={subTypeOptions}
                   />
-                </svg>
+                </div>
+                {errors.subType && (
+                  <span className={styles.error}>{errors.subType}</span>
+                )}
               </div>
-            </div>
-            {errors.frequency && (
-              <span className={styles.error}>{errors.frequency}</span>
-            )}
-          </div>
 
-          {/* 시작 날짜 */}
-          <div className={styles.formGroup}>
-            <div className={styles.labelContainer}>
-              <label className={styles.label}>시작 날짜</label>
-              <span className={styles.required}>*</span>
-            </div>
-            <div className={styles.inputContainer}>
-              <div className={styles.dateInputWrapper}>
-                <input
-                  type="text"
-                  value={formatDateForDisplay(formData.startDate)}
-                  placeholder="시작 날짜를 선택하세요"
-                  className={styles.dateInput}
-                  readOnly
-                  onClick={() => setShowStartCalendar(true)}
-                />
-                <button
-                  ref={startCalendarButtonRef}
-                  type="button"
-                  className={styles.calendarButton}
-                  onClick={() => setShowStartCalendar(!showStartCalendar)}
-                >
-                  <img
-                    src="/health/calendar.png"
-                    alt="달력"
-                    width="16"
-                    height="16"
+              {/* 빈도 */}
+              <div className={styles.formGroup}>
+                <div className={styles.labelContainer}>
+                  <label className={styles.label}>빈도</label>
+                  <span className={styles.required}>*</span>
+                </div>
+                <div className={styles.inputContainer}>
+                  <CustomDropdown
+                    value={formData.frequency}
+                    onChange={(value) => handleInputChange("frequency", value)}
+                    placeholder="빈도를 선택하세요"
+                    options={frequencyOptions}
                   />
-                </button>
+                </div>
+                {errors.frequency && (
+                  <span className={styles.error}>{errors.frequency}</span>
+                )}
               </div>
-            </div>
-            {errors.startDate && (
-              <span className={styles.error}>{errors.startDate}</span>
-            )}
-          </div>
 
-          {/* 종료 날짜 */}
-          <div className={styles.formGroup}>
-            <div className={styles.labelContainer}>
-              <label className={styles.label}>종료 날짜 (선택)</label>
-            </div>
-            <div className={styles.inputContainer}>
-              <div className={styles.dateInputWrapper}>
-                <input
-                  type="text"
-                  value={formatDateForDisplay(formData.endDate)}
-                  placeholder="종료 날짜를 선택하세요 (선택사항)"
-                  className={`${styles.dateInput} ${
-                    formData.frequency === "당일" ? styles.disabled : ""
-                  }`}
-                  readOnly
-                  disabled={formData.frequency === "당일"}
-                  onClick={() => {
-                    if (formData.frequency !== "당일") {
-                      setShowEndCalendar(true);
+              {/* 시작 날짜 */}
+              <div className={styles.formGroup}>
+                <div className={styles.labelContainer}>
+                  <label className={styles.label}>시작 날짜</label>
+                  <span className={styles.required}>*</span>
+                </div>
+                <div className={styles.inputContainer}>
+                  <div className={styles.dateInputWrapper}>
+                    <input
+                      type="text"
+                      value={formatDateForDisplay(formData.startDate)}
+                      placeholder="시작 날짜를 선택하세요"
+                      className={styles.dateInput}
+                      readOnly
+                      onClick={() => setShowStartCalendar(true)}
+                    />
+                    <button
+                      ref={startCalendarButtonRef}
+                      type="button"
+                      className={styles.calendarButton}
+                      onClick={() => setShowStartCalendar(!showStartCalendar)}
+                    >
+                      <img
+                        src="/health/calendar.png"
+                        alt="달력"
+                        width="16"
+                        height="16"
+                      />
+                    </button>
+                  </div>
+                </div>
+                {errors.startDate && (
+                  <span className={styles.error}>{errors.startDate}</span>
+                )}
+              </div>
+
+              {/* 종료 날짜 */}
+              <div className={styles.formGroup}>
+                <div className={styles.labelContainer}>
+                  <label className={styles.label}>종료 날짜 (선택)</label>
+                </div>
+                <div className={styles.inputContainer}>
+                  <div className={styles.dateInputWrapper}>
+                    <input
+                      type="text"
+                      value={formatDateForDisplay(formData.endDate)}
+                      placeholder="종료 날짜를 선택하세요 (선택사항)"
+                      className={`${styles.dateInput} ${
+                        formData.frequency === "당일" ? styles.disabled : ""
+                      }`}
+                      readOnly
+                      disabled={formData.frequency === "당일"}
+                      onClick={() => {
+                        if (formData.frequency !== "당일") {
+                          setShowEndCalendar(true);
+                        }
+                      }}
+                    />
+                    <button
+                      ref={endCalendarButtonRef}
+                      type="button"
+                      className={`${styles.calendarButton} ${
+                        formData.frequency === "당일" ? styles.disabled : ""
+                      }`}
+                      disabled={formData.frequency === "당일"}
+                      onClick={() => {
+                        if (formData.frequency !== "당일") {
+                          setShowEndCalendar(!showEndCalendar);
+                        }
+                      }}
+                    >
+                      <img
+                        src="/health/calendar.png"
+                        alt="달력"
+                        width="16"
+                        height="16"
+                      />
+                    </button>
+                  </div>
+                </div>
+                {errors.endDate && (
+                  <span className={styles.error}>{errors.endDate}</span>
+                )}
+                {!errors.endDate && formData.frequency && (
+                  <span className={styles.hint}>
+                    {getEndDateHint(formData.frequency)}
+                  </span>
+                )}
+              </div>
+
+              {/* 일정 시간 */}
+              <div className={styles.formGroup}>
+                <div className={styles.labelContainer}>
+                  <label className={styles.label}>일정 시간</label>
+                  <span className={styles.required}>*</span>
+                </div>
+                <div className={styles.inputContainer}>
+                  <TimePicker
+                    value={formData.scheduleTime}
+                    onChange={(timeString) => {
+                      handleInputChange("scheduleTime", timeString);
+                      handleInputChange("time", timeString); // 호환성 유지
+                    }}
+                    placeholder="시간을 선택하세요"
+                  />
+                </div>
+                {errors.scheduleTime && (
+                  <span className={styles.error}>{errors.scheduleTime}</span>
+                )}
+              </div>
+
+              {/* 알림 시기 */}
+              <div className={styles.formGroup}>
+                <div className={styles.labelContainer}>
+                  <label className={styles.label}>알림 시기</label>
+                  <span className={styles.required}>*</span>
+                </div>
+                <div className={styles.inputContainer}>
+                  <CustomDropdown
+                    value={formData.notificationTiming}
+                    onChange={(value) =>
+                      handleInputChange("notificationTiming", value)
                     }
-                  }}
-                />
-                <button
-                  ref={endCalendarButtonRef}
-                  type="button"
-                  className={`${styles.calendarButton} ${
-                    formData.frequency === "당일" ? styles.disabled : ""
-                  }`}
-                  disabled={formData.frequency === "당일"}
-                  onClick={() => {
-                    if (formData.frequency !== "당일") {
-                      setShowEndCalendar(!showEndCalendar);
-                    }
-                  }}
-                >
-                  <img
-                    src="/health/calendar.png"
-                    alt="달력"
-                    width="16"
-                    height="16"
+                    placeholder="알림 시기를 선택하세요"
+                    options={notificationTimingOptions}
                   />
-                </button>
+                </div>
+                {errors.notificationTiming && (
+                  <span className={styles.error}>
+                    {errors.notificationTiming}
+                  </span>
+                )}
               </div>
-            </div>
-            {errors.endDate && (
-              <span className={styles.error}>{errors.endDate}</span>
-            )}
-            {!errors.endDate && formData.frequency && (
-              <span className={styles.hint}>
-                {getEndDateHint(formData.frequency)}
-              </span>
-            )}
-          </div>
-
-          {/* 일정 시간 */}
-          <div className={styles.formGroup}>
-            <div className={styles.labelContainer}>
-              <label className={styles.label}>일정 시간</label>
-              <span className={styles.required}>*</span>
-            </div>
-            <div className={styles.inputContainer}>
-              <TimePicker
-                value={formData.scheduleTime}
-                onChange={(timeString) => {
-                  handleInputChange("scheduleTime", timeString);
-                  handleInputChange("time", timeString); // 호환성 유지
-                }}
-                placeholder="시간을 선택하세요"
-              />
-            </div>
-            {errors.scheduleTime && (
-              <span className={styles.error}>{errors.scheduleTime}</span>
-            )}
-          </div>
-
-          {/* 알림 시기 */}
-          <div className={styles.formGroup}>
-            <div className={styles.labelContainer}>
-              <label className={styles.label}>알림 시기</label>
-              <span className={styles.required}>*</span>
-            </div>
-            <div className={styles.selectContainer}>
-              <select
-                className={styles.select}
-                value={formData.notificationTiming}
-                onChange={(e) =>
-                  handleInputChange("notificationTiming", e.target.value)
-                }
-              >
-                <option value="">알림 시기를 선택하세요</option>
-                {notificationTimingOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <div className={styles.selectArrow}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path
-                    d="M3 5L7 9L11 5"
-                    stroke="#9CA3AF"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-            </div>
-            {errors.notificationTiming && (
-              <span className={styles.error}>{errors.notificationTiming}</span>
-            )}
-          </div>
+            </>
+          )}
         </div>
 
         {/* 버튼 */}

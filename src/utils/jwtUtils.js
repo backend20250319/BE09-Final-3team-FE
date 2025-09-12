@@ -2,6 +2,8 @@
  * JWT 토큰 관련 유틸리티 함수들
  */
 
+import { getCurrentAccessToken, getCurrentUserType } from "./tokenManager";
+
 /**
  * JWT 토큰을 디코딩하여 페이로드 정보를 추출합니다.
  * @param {string} token - JWT 토큰
@@ -26,21 +28,22 @@ export const decodeJWT = (token) => {
 };
 
 /**
- * 로컬스토리지에서 토큰을 가져와서 사용자 정보를 추출합니다.
+ * 현재 사용자의 토큰에서 사용자 정보를 추출합니다.
  * @returns {object|null} 사용자 정보 (userNo, userType 등) 또는 null
  */
 export const getUserInfoFromToken = () => {
   try {
-    const token =
-      localStorage.getItem("token") || localStorage.getItem("accessToken");
+    const token = getCurrentAccessToken();
     if (!token) return null;
 
     const payload = decodeJWT(token);
     if (!payload) return null;
 
+    const userType = getCurrentUserType();
+
     return {
       userNo: payload.userNo || payload.sub || payload.user_id,
-      userType: payload.userType || payload.type || "USER",
+      userType: userType || payload.userType || payload.type || "USER",
       email: payload.email,
       name: payload.name,
       nickname: payload.nickname,
@@ -57,8 +60,7 @@ export const getUserInfoFromToken = () => {
  * @returns {object} 헤더 객체
  */
 export const createAuthHeaders = (additionalHeaders = {}) => {
-  const token =
-    localStorage.getItem("token") || localStorage.getItem("accessToken");
+  const token = getCurrentAccessToken();
   const userInfo = getUserInfoFromToken();
 
   const headers = {
@@ -88,8 +90,7 @@ export const createAuthHeaders = (additionalHeaders = {}) => {
  */
 export const isTokenValid = () => {
   try {
-    const token =
-      localStorage.getItem("token") || localStorage.getItem("accessToken");
+    const token = getCurrentAccessToken();
     if (!token) return false;
 
     const payload = decodeJWT(token);

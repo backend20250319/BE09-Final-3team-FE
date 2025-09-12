@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import styles from "./page.module.css";
+import AlertModal from "../components/AlertModal";
 import {
   sendAdvertiserVerificationCode,
   verifyAdvertiserCode,
@@ -84,6 +85,9 @@ export default function SignupPage() {
     message: "",
     isSignupSuccess: false,
   });
+
+  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
+  const [alertData, setAlertData] = useState({ title: '', message: '', type: 'info' });
 
   // 사업자등록번호 검증 함수
   const validateBusinessNumber = (businessNumber) => {
@@ -462,13 +466,23 @@ export default function SignupPage() {
         error.name === "TypeError" &&
         error.message.includes("fetch")
       ) {
-        alert("네트워크 연결을 확인해주세요.");
+        setAlertData({
+          title: '네트워크 오류',
+          message: '네트워크 연결을 확인해주세요.',
+          type: 'error'
+        });
+        setIsAlertModalOpen(true);
       } else {
         // 파일 업로드 에러인지 확인
         if (error.message && error.message.includes("file")) {
           setFileError("파일 업로드에 실패했습니다. 다시 시도해주세요.");
         } else {
-          alert(error.message || "회원가입에 실패했습니다. 다시 시도해주세요.");
+          setAlertData({
+            title: '회원가입 실패',
+            message: error.message || "회원가입에 실패했습니다. 다시 시도해주세요.",
+            type: 'error'
+          });
+          setIsAlertModalOpen(true);
         }
       }
     } finally {
@@ -478,7 +492,12 @@ export default function SignupPage() {
 
   const sendVerificationCode = async () => {
     if (!formData.email) {
-      alert("이메일을 입력하세요");
+      setAlertData({
+        title: '입력 필요',
+        message: '이메일을 입력하세요',
+        type: 'warning'
+      });
+      setIsAlertModalOpen(true);
       return;
     }
 
@@ -516,7 +535,12 @@ export default function SignupPage() {
         error.name === "TypeError" &&
         error.message.includes("fetch")
       ) {
-        alert("네트워크 연결을 확인해주세요.");
+        setAlertData({
+          title: '네트워크 오류',
+          message: '네트워크 연결을 확인해주세요.',
+          type: 'error'
+        });
+        setIsAlertModalOpen(true);
       } else {
         setEmailError(error.message || "인증번호 발송 실패");
       }
@@ -527,7 +551,12 @@ export default function SignupPage() {
 
   const verifyCode = async () => {
     if (!formData.email || !formData.verificationCode) {
-      alert("이메일과 인증번호를 입력하세요");
+      setAlertData({
+        title: '입력 필요',
+        message: '이메일과 인증번호를 입력하세요',
+        type: 'warning'
+      });
+      setIsAlertModalOpen(true);
       return;
     }
 
@@ -937,6 +966,15 @@ export default function SignupPage() {
         isOpen={modal.isOpen}
         message={modal.message}
         onClose={closeModal}
+      />
+      
+      {/* Alert 모달 */}
+      <AlertModal
+        isOpen={isAlertModalOpen}
+        onClose={() => setIsAlertModalOpen(false)}
+        title={alertData.title}
+        message={alertData.message}
+        type={alertData.type}
       />
     </div>
   );

@@ -16,9 +16,6 @@ export default function CTASection() {
             있습니다.
           </p>
           <div className={styles.ctaButtonContainer}>
-            <Link href="/user/signup" className={styles.ctaButton}>
-              회원가입
-            </Link>
           </div>
         </div>
       </div>

@@ -12,7 +12,7 @@ export default function MedicationCard({
   onToggleNotification,
 }) {
   const getNotificationTooltip = () => {
-    if (medication.reminderDaysBefore === null) {
+    if (!medication.isNotified) {
       return `알림 비활성화 (마지막 설정: ${
         medication.lastReminderDaysBefore || 0
       }일전)`;
@@ -46,9 +46,7 @@ export default function MedicationCard({
           <p>
             {medication.type} • {medication.frequency}
           </p>
-          <p className={styles.scheduleTime}>
-            {medication.scheduleTime}
-          </p>
+          <p className={styles.scheduleTime}>{medication.scheduleTime}</p>
         </div>
       </div>
       <div className={styles.medicationActions}>
@@ -81,7 +79,7 @@ export default function MedicationCard({
         >
           <img
             src={
-              medication.reminderDaysBefore !== null
+              medication.isNotified
                 ? "/health/notifi.png"
                 : "/health/notifi2.png"
             }

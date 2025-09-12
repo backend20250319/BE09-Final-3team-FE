@@ -58,6 +58,7 @@ export default function CareManagement({
   setShowDetailModal,
   selectedSchedule,
   setSelectedSchedule,
+  onRefreshCareSchedules,
 }) {
   const { selectedPetName, selectedPetNo } = useSelectedPet();
   const [showAddModal, setShowAddModal] = useState(false);
@@ -72,6 +73,7 @@ export default function CareManagement({
   const [toastType, setToastType] = useState("inactive");
   const [showToast, setShowToast] = useState(false);
   const [calendarEvents, setCalendarEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // 필터링 상태 - 통합된 CARE 메인타입으로 변경
   const [careFilter, setCareFilter] = useState("전체");
@@ -269,40 +271,33 @@ export default function CareManagement({
               )}`
             );
           } else if (frequency === "매일") {
-            // 매일: 시작일부터 종료일까지 모든 날
-            const current = new Date(start);
-            let dayCount = 0;
-            while (current <= end) {
-              const firstTime = getFirstTime();
-              const sTime = parseDateTime(
-                formatDateToLocal(current),
-                firstTime
-              );
-              const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
-              careEvents.push({
-                id: `care-${s.id}-${formatDateToLocal(current)}`,
-                title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
-                start: sTime,
-                end: eTime,
-                allDay: false,
-                type: getScheduleLabel(s.subType) || "산책",
-                schedule: {
-                  ...s,
-                  category: "care",
-                  type: "돌봄",
-                  icon: getScheduleIcon(s.subType),
-                  color: COLOR_MAP[s.subType] || "#E8F5E8",
-                },
-              });
-              dayCount++;
-              console.log(
-                `🔍 매일 일정 생성 [${dayCount}]: ${
-                  s.title || s.name
-                } - ${formatDateToLocal(current)}`
-              );
-              current.setDate(current.getDate() + 1);
-            }
-            console.log(`🔍 매일 일정 총 생성 개수: ${dayCount}개`);
+            // 백엔드에서 이미 각 날짜별로 개별 일정을 생성했으므로
+            // 각 일정을 그대로 표시 (while 루프 제거)
+            const firstTime = getFirstTime();
+            const sTime = parseDateTime(formatDateToLocal(start), firstTime);
+            const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+
+            careEvents.push({
+              id: `care-${s.id}-${formatDateToLocal(start)}`,
+              title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
+              start: sTime,
+              end: eTime,
+              allDay: false,
+              type: getScheduleLabel(s.subType) || "산책",
+              schedule: {
+                ...s,
+                category: "care",
+                type: "돌봄",
+                icon: getScheduleIcon(s.subType),
+                color: COLOR_MAP[s.subType] || "#E8F5E8",
+              },
+            });
+
+            console.log(
+              `🔍 매일 일정 표시: ${s.title || s.name} - ${formatDateToLocal(
+                start
+              )} (시작: ${s.startDate}, 종료: ${s.endDate})`
+            );
           } else if (frequency === "매주") {
             // 매주: 7일마다
             const current = new Date(start);
@@ -447,40 +442,35 @@ export default function CareManagement({
               } - ${formatDateToLocal(start)}`
             );
           } else if (frequency === "매일") {
-            // 매일: 시작일부터 종료일까지 모든 날
-            const current = new Date(start);
-            let dayCount = 0;
-            while (current <= end) {
-              const firstTime = getFirstTime();
-              const sTime = parseDateTime(
-                formatDateToLocal(current),
-                firstTime
-              );
-              const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
-              vacEvents.push({
-                id: `vac-${s.id}-${formatDateToLocal(current)}`,
-                title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
-                start: sTime,
-                end: eTime,
-                allDay: false,
-                type: getScheduleLabel(s.subType) || "예방접종",
-                schedule: {
-                  ...s,
-                  category: "vaccination",
-                  type: "접종",
-                  icon: getScheduleIcon(s.subType),
-                  color: COLOR_MAP[s.subType] || "#F3E5F5",
-                },
-              });
-              dayCount++;
-              console.log(
-                `🔍 접종 매일 일정 생성 [${dayCount}]: ${
-                  s.title || s.name
-                } - ${formatDateToLocal(current)}`
-              );
-              current.setDate(current.getDate() + 1);
-            }
-            console.log(`🔍 접종 매일 일정 총 생성 개수: ${dayCount}개`);
+            // 백엔드에서 이미 각 날짜별로 개별 일정을 생성했으므로
+            // 각 일정을 그대로 표시 (while 루프 제거)
+            const firstTime = getFirstTime();
+            const sTime = parseDateTime(formatDateToLocal(start), firstTime);
+            const eTime = new Date(sTime.getTime() + 60 * 60 * 1000);
+
+            vacEvents.push({
+              id: `vac-${s.id}-${formatDateToLocal(start)}`,
+              title: `${getScheduleIcon(s.subType)} ${s.title || s.name}`,
+              start: sTime,
+              end: eTime,
+              allDay: false,
+              type: getScheduleLabel(s.subType) || "예방접종",
+              schedule: {
+                ...s,
+                category: "vaccination",
+                type: "접종",
+                icon: getScheduleIcon(s.subType),
+                color: COLOR_MAP[s.subType] || "#F3E5F5",
+              },
+            });
+
+            console.log(
+              `🔍 접종 매일 일정 표시: ${
+                s.title || s.name
+              } - ${formatDateToLocal(start)} (시작: ${s.startDate}, 종료: ${
+                s.endDate
+              })`
+            );
           } else if (frequency === "매주") {
             // 매주: 7일마다
             const current = new Date(start);
@@ -626,6 +616,8 @@ export default function CareManagement({
 
   const handleAddNewSchedule = async (newSchedule) => {
     try {
+      setIsLoading(true);
+
       if (!selectedPetNo) {
         throw new Error("반려동물을 선택해주세요.");
       }
@@ -662,38 +654,7 @@ export default function CareManagement({
       calNo = await createCare(careData);
       console.log("🔍 API 응답 (calNo):", calNo);
 
-      // 성공 시 로컬 상태 업데이트 (서브타입에 따라 분류)
-      const updatedSchedule = {
-        ...newSchedule,
-        id: calNo,
-        reminderDaysBefore: parseInt(newSchedule.notificationTiming, 10) || 0,
-        lastReminderDaysBefore:
-          parseInt(newSchedule.notificationTiming, 10) || 0,
-        isNotified: true,
-      };
-
-      // 즉시 로컬 상태 업데이트 (빠른 UI 반응)
-      if (isVaccinationSubType(newSchedule.subType)) {
-        onVaccinationSchedulesUpdate((prev) => {
-          console.log("🔍 접종 일정 추가 전:", prev.length);
-          const updated = [...prev, updatedSchedule];
-          console.log("🔍 접종 일정 추가 후:", updated.length);
-          console.log("🔍 추가된 접종 일정:", updatedSchedule);
-          return updated;
-        });
-        // 접종 일정 추가 후 페이지를 1로 리셋
-        setVaccinationPage(1);
-      } else if (isCareSubType(newSchedule.subType)) {
-        onCareSchedulesUpdate((prev) => {
-          console.log("🔍 돌봄 일정 추가 전:", prev.length);
-          const updated = [...prev, updatedSchedule];
-          console.log("🔍 돌봄 일정 추가 후:", updated.length);
-          console.log("🔍 추가된 돌봄 일정:", updatedSchedule);
-          return updated;
-        });
-        // 돌봄 일정 추가 후 페이지를 1로 리셋
-        setCarePage(1);
-      }
+      // 로컬 상태 업데이트 제거 - 서버에서 최신 데이터를 가져오므로 불필요
 
       // 생성된 일정 개수 계산
       const startDate = new Date(newSchedule.startDate);
@@ -721,27 +682,11 @@ export default function CareManagement({
       setShowToast(true);
       setShowAddModal(false); // 모달 닫기
 
-      // 캘린더 이벤트 즉시 업데이트
-      console.log("🔍 일정 추가 후 캘린더 이벤트 생성 시작");
-      const events = buildCalendarEvents();
-      console.log("🔍 생성된 캘린더 이벤트 개수:", events.length);
-      console.log("🔍 생성된 캘린더 이벤트:", events);
-      setCalendarEvents(events);
-      if (onCalendarEventsChange) {
-        onCalendarEventsChange(events);
-        console.log("🔍 상위 컴포넌트로 캘린더 이벤트 전달 완료");
+      // 즉시 서버에서 최신 데이터 가져오기
+      if (onRefreshCareSchedules) {
+        console.log("🔄 추가 완료 후 서버에서 최신 데이터 새로고침");
+        await onRefreshCareSchedules();
       }
-
-      // 백그라운드에서 데이터 동기화 (1초 후)
-      setTimeout(() => {
-        // 돌봄/접종 일정은 별도의 fetch 함수가 없으므로
-        // 상위 컴포넌트에서 데이터를 다시 가져오도록 알림
-        const updatedEvents = buildCalendarEvents();
-        setCalendarEvents(updatedEvents);
-        if (onCalendarEventsChange) {
-          onCalendarEventsChange(updatedEvents);
-        }
-      }, 1000);
     } catch (error) {
       console.error("일정 생성 실패:", error);
       let errorMessage = "일정 생성에 실패했습니다.";
@@ -757,6 +702,8 @@ export default function CareManagement({
       setToastMessage(errorMessage);
       setToastType("error");
       setShowToast(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -779,6 +726,8 @@ export default function CareManagement({
 
   const handleEditScheduleSubmit = async (updatedSchedule) => {
     try {
+      setIsLoading(true);
+
       if (!selectedPetNo) {
         throw new Error("반려동물을 선택해주세요.");
       }
@@ -814,7 +763,7 @@ export default function CareManagement({
               .map((time) => time.trim() + ":00") // "09:00" → "09:00:00" (LocalTime 형식)
           : ["09:00:00"], // 기본값도 LocalTime 형식으로
         reminderDaysBefore:
-          parseInt(updatedSchedule.reminderDaysBefore, 10) || 0,
+          parseInt(updatedSchedule.notificationTiming, 10) || 0,
       };
 
       console.log("🔧 돌봄/접종 일정 수정 요청 데이터:", {
@@ -828,40 +777,17 @@ export default function CareManagement({
 
       console.log("✅ 돌봄/접종 일정 수정 API 응답:", result);
 
-      // 즉시 로컬 상태 업데이트 (빠른 UI 반응)
-      if (isVaccinationSubType(updatedSchedule.subType)) {
-        onVaccinationSchedulesUpdate((prev) =>
-          prev.map((s) => (s.id === updatedSchedule.id ? updatedSchedule : s))
-        );
-        // 접종 일정 수정 후 페이지를 1로 리셋
-        setVaccinationPage(1);
-      } else if (isCareSubType(updatedSchedule.subType)) {
-        onCareSchedulesUpdate((prev) =>
-          prev.map((s) => (s.id === updatedSchedule.id ? updatedSchedule : s))
-        );
-        // 돌봄 일정 수정 후 페이지를 1로 리셋
-        setCarePage(1);
-      }
-
       setToastMessage(`${updatedSchedule.name} 일정이 수정되었습니다.`);
       setToastType("active");
       setShowToast(true);
 
-      // 캘린더 이벤트 즉시 업데이트
-      const events = buildCalendarEvents();
-      setCalendarEvents(events);
-      if (onCalendarEventsChange) {
-        onCalendarEventsChange(events);
+      // 즉시 서버에서 최신 데이터 가져오기
+      if (onRefreshCareSchedules) {
+        console.log("🔄 수정 완료 후 서버에서 최신 데이터 새로고침");
+        await onRefreshCareSchedules();
       }
 
-      // 백그라운드에서 데이터 동기화 (1초 후)
-      setTimeout(() => {
-        const updatedEvents = buildCalendarEvents();
-        setCalendarEvents(updatedEvents);
-        if (onCalendarEventsChange) {
-          onCalendarEventsChange(updatedEvents);
-        }
-      }, 1000);
+      return { success: true };
     } catch (error) {
       console.error("❌ 돌봄/접종 일정 수정 실패:", error);
       console.error("❌ 에러 상세 정보:", {
@@ -885,6 +811,10 @@ export default function CareManagement({
       setToastMessage(errorMessage);
       setToastType("error");
       setShowToast(true);
+
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -893,37 +823,23 @@ export default function CareManagement({
       // API 호출
       const result = await toggleCareAlarm(id);
 
-      // 성공 시 로컬 상태 업데이트 - 서브타입 기반으로 분류
+      // 성공 시 서버에서 최신 데이터 가져오기
+      if (onRefreshCareSchedules) {
+        await onRefreshCareSchedules();
+      }
+
+      // 토스트 메시지 표시
       const careSchedule = careSchedules.find((schedule) => schedule.id === id);
       const vaccinationSchedule = vaccinationSchedules.find(
         (schedule) => schedule.id === id
       );
 
-      if (careSchedule) {
-        const updated = careSchedules.map((schedule) =>
-          schedule.id === id ? { ...schedule, isNotified: result } : schedule
-        );
-        onCareSchedulesUpdate(updated);
-        const updatedSchedule = updated.find((schedule) => schedule.id === id);
-        setToastMessage(
-          `${updatedSchedule.name} 알림이 ${
-            updatedSchedule.isNotified ? "활성화" : "비활성화"
-          } 되었습니다.`
-        );
-        setToastType(updatedSchedule.isNotified ? "active" : "inactive");
-      } else if (vaccinationSchedule) {
-        const updated = vaccinationSchedules.map((schedule) =>
-          schedule.id === id ? { ...schedule, isNotified: result } : schedule
-        );
-        onVaccinationSchedulesUpdate(updated);
-        const updatedSchedule = updated.find((schedule) => schedule.id === id);
-        setToastMessage(
-          `${updatedSchedule.name} 알림이 ${
-            updatedSchedule.isNotified ? "활성화" : "비활성화"
-          } 되었습니다.`
-        );
-        setToastType(updatedSchedule.isNotified ? "active" : "inactive");
-      }
+      const scheduleName =
+        careSchedule?.name || vaccinationSchedule?.name || "일정";
+      setToastMessage(
+        `${scheduleName} 알림이 ${result ? "활성화" : "비활성화"} 되었습니다.`
+      );
+      setToastType(result ? "active" : "inactive");
       setShowToast(true);
     } catch (error) {
       console.error("알림 토글 실패:", error);
@@ -957,11 +873,19 @@ export default function CareManagement({
     if (toDeleteId == null) return;
 
     try {
+      setIsLoading(true);
+
       if (deleteType === "돌봄" || deleteType === "접종") {
         // 돌봄/접종 일정 삭제 API 호출
         await deleteCareSchedule(toDeleteId);
 
-        // 성공 시 로컬 상태 업데이트 - 서브타입 기반으로 분류
+        // 성공 시 서버에서 최신 데이터 가져오기
+        if (onRefreshCareSchedules) {
+          console.log("🔄 삭제 완료 후 서버에서 최신 데이터 새로고침");
+          await onRefreshCareSchedules();
+        }
+
+        // 토스트 메시지 표시
         const careSchedule = careSchedules.find(
           (schedule) => schedule.id === toDeleteId
         );
@@ -969,50 +893,16 @@ export default function CareManagement({
           (schedule) => schedule.id === toDeleteId
         );
 
-        if (careSchedule) {
-          const updated = careSchedules.filter(
-            (schedule) => schedule.id !== toDeleteId
-          );
-          onCareSchedulesUpdate(updated);
-          // 돌봄 일정 삭제 후 페이지를 1로 리셋
-          setCarePage(1);
-
-          // 토스트 메시지 표시
-          setToastMessage(`${careSchedule.name} 일정이 삭제되었습니다.`);
-          setToastType("delete");
-          setShowToast(true);
-        } else if (vaccinationSchedule) {
-          const updated = vaccinationSchedules.filter(
-            (schedule) => schedule.id !== toDeleteId
-          );
-          onVaccinationSchedulesUpdate(updated);
-          // 접종 일정 삭제 후 페이지를 1로 리셋
-          setVaccinationPage(1);
-
-          // 토스트 메시지 표시
-          setToastMessage(`${vaccinationSchedule.name} 일정이 삭제되었습니다.`);
-          setToastType("delete");
-          setShowToast(true);
-        }
+        const scheduleName =
+          careSchedule?.name || vaccinationSchedule?.name || "일정";
+        setToastMessage(`${scheduleName} 일정이 삭제되었습니다.`);
+        setToastType("delete");
+        setShowToast(true);
       } else if (deleteType === "투약") {
-        // 투약은 MedicationManagement에서 처리하므로 여기서는 로컬 상태만 업데이트
-        const updated = medications.filter((med) => med.id !== toDeleteId);
-        onMedicationsUpdate(updated);
-
-        // 토스트 메시지 표시
-        const deletedMed = medications.find((med) => med.id === toDeleteId);
-        if (deletedMed) {
-          setToastMessage(`${deletedMed.name} 투약이 삭제되었습니다.`);
-          setToastType("delete");
-          setShowToast(true);
-        }
-      }
-
-      // 캘린더 이벤트 즉시 업데이트
-      const events = buildCalendarEvents();
-      setCalendarEvents(events);
-      if (onCalendarEventsChange) {
-        onCalendarEventsChange(events);
+        // 투약은 MedicationManagement에서 처리
+        setToastMessage("투약 삭제는 투약 관리에서 처리됩니다.");
+        setToastType("error");
+        setShowToast(true);
       }
 
       setShowConfirm(false);
@@ -1031,6 +921,8 @@ export default function CareManagement({
       setToastMessage(errorMessage);
       setToastType("error");
       setShowToast(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -1101,7 +993,20 @@ export default function CareManagement({
       }
     });
 
-    return expandedSchedules;
+    // 확장된 일정들을 정렬: 먼저 등록 순서(ID), 그 다음 날짜 순서
+    return expandedSchedules.sort((a, b) => {
+      // 1. 등록 순서 (ID) - 최신 등록된 일정이 위에
+      const idA = parseInt(a.id) || 0;
+      const idB = parseInt(b.id) || 0;
+      if (idA !== idB) {
+        return idB - idA; // 내림차순 (최신이 위로)
+      }
+
+      // 2. 같은 일정 내에서는 날짜 순서 - 최신 날짜가 위에
+      const dateA = new Date(a.displayDate);
+      const dateB = new Date(b.displayDate);
+      return dateB - dateA; // 내림차순 (최신 날짜가 위로)
+    });
   };
 
   // 날짜 형식 변환은 constants에서 import
@@ -1243,48 +1148,81 @@ export default function CareManagement({
 
   const renderPagination = (currentPage, totalPages, onPageChange) => {
     const pages = [];
-    const maxVisible = 5;
+    const maxVisible = 3; // 최대 3페이지까지만 표시
 
+    // 페이지 번호 생성
     if (totalPages <= maxVisible) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
     } else {
-      if (currentPage <= 3) {
-        for (let i = 1; i <= 4; i++) {
+      if (currentPage <= 2) {
+        for (let i = 1; i <= maxVisible; i++) {
           pages.push(i);
         }
-        pages.push("...");
-        pages.push(totalPages);
-      } else if (currentPage >= totalPages - 2) {
-        pages.push(1);
-        pages.push("...");
-        for (let i = totalPages - 3; i <= totalPages; i++) {
+      } else if (currentPage >= totalPages - 1) {
+        for (let i = totalPages - maxVisible + 1; i <= totalPages; i++) {
           pages.push(i);
         }
       } else {
-        pages.push(1);
-        pages.push("...");
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+        for (let i = currentPage - 1; i <= currentPage + 2; i++) {
           pages.push(i);
         }
-        pages.push("...");
-        pages.push(totalPages);
       }
     }
 
     return (
       <div className={styles.pagination}>
+        {/* 이전 버튼 */}
+        {currentPage > 1 && (
+          <button
+            className={styles.pageButton}
+            onClick={() => onPageChange(currentPage - 1)}
+            title="이전 페이지"
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path
+                d="M7.5 3L4.5 6L7.5 9"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        )}
+
+        {/* 페이지 번호들 */}
         {pages.map((page, index) => (
           <button
             key={index}
             className={`${styles.pageButton} ${
               page === currentPage ? styles.activePage : ""
             }`}
-            onClick={() => page !== "..." && onPageChange(page)}
-            disabled={page === "..."}
-          ></button>
+            onClick={() => onPageChange(page)}
+          >
+            {page}
+          </button>
         ))}
+
+        {/* 다음 버튼 */}
+        {currentPage < totalPages && (
+          <button
+            className={styles.pageButton}
+            onClick={() => onPageChange(currentPage + 1)}
+            title="다음 페이지"
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path
+                d="M4.5 3L7.5 6L4.5 9"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        )}
       </div>
     );
   };
@@ -1309,8 +1247,9 @@ export default function CareManagement({
             <button
               className={styles.addButton}
               onClick={handleAddCareSchedule}
+              disabled={isLoading}
             >
-              <span>추가</span>
+              <span>{isLoading ? "처리중..." : "추가"}</span>
               <img
                 src="/health/pets.png"
                 alt="돌봄 추가 아이콘"
@@ -1367,8 +1306,9 @@ export default function CareManagement({
             <button
               className={styles.addButton}
               onClick={handleAddVaccinationSchedule}
+              disabled={isLoading}
             >
-              <span>추가</span>
+              <span>{isLoading ? "처리중..." : "추가"}</span>
               <img
                 src="/health/syringe.png"
                 alt="예방접종 추가 아이콘"

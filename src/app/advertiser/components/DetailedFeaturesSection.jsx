@@ -81,22 +81,40 @@ export default function DetailedFeaturesSection() {
   return (
     <section className={styles.detailedFeatures}>
       <div className={styles.container}>
-        {features.map((feature) => (
+        {features.map((feature, index) => (
           <div
             key={feature.id}
             className={`${styles.feature} ${
               feature.reverse ? styles.reverse : ""
             }`}
+            data-aos="fade-up"
+            data-aos-delay={index * 120}
+            data-aos-duration="800"
           >
             <div className={styles.content}>
               <h3
                 style={{ color: feature.titleColor }}
                 className={styles.title}
+                data-aos="fade-up"
+                data-aos-delay={100}
+                data-aos-duration="500"
               >
                 {feature.title}
               </h3>
-              <h4 className={styles.subtitle}>{feature.subtitle}</h4>
-              <p className={styles.description}>
+              <h4 
+                className={styles.subtitle}
+                data-aos="fade-up"
+                data-aos-delay={200}
+                data-aos-duration="500"
+              >
+                {feature.subtitle}
+              </h4>
+              <p 
+                className={styles.description}
+                data-aos="fade-up"
+                data-aos-delay={300}
+                data-aos-duration="500"
+              >
                 {feature.description.split("\n").map((line, index) => (
                   <span key={index}>
                     {line}
@@ -108,8 +126,14 @@ export default function DetailedFeaturesSection() {
               </p>
 
               <ul className={styles.points}>
-                {feature.points.map((point, index) => (
-                  <li key={index} className={styles.point}>
+                {feature.points.map((point, pointIndex) => (
+                  <li 
+                    key={pointIndex} 
+                    className={styles.point}
+                    data-aos="fade-up"
+                    data-aos-delay={400 + pointIndex * 150}
+                    data-aos-duration="500"
+                  >
                     <div className={styles.checkIcon}>
                       <FiCheck size={14} color={feature.titleColor} />
                     </div>
@@ -119,7 +143,12 @@ export default function DetailedFeaturesSection() {
               </ul>
             </div>
 
-            <div className={styles.imageContainer}>
+            <div 
+              className={styles.imageContainer}
+              data-aos="zoom-in"
+              data-aos-delay={150}
+              data-aos-duration="900"
+            >
               <div className={styles.imageWrapper}>
                 <Image
                   src={feature.image}
