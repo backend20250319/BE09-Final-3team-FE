@@ -244,6 +244,23 @@ export default function ProductManagement() {
                         <p className={styles.productDescription}>
                           {campaign.description}
                         </p>
+                        {campaign.adUrl && (
+                            <a
+                                href={
+                                  campaign.adUrl.startsWith("http")
+                                      ? campaign.adUrl
+                                      : `https://${campaign.adUrl}`
+                                }
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  color: "#007bff",
+                                  textDecoration: "underline",
+                                }}
+                            >
+                              {campaign.adUrl}
+                            </a>
+                        )}
                         <div className={styles.companyInfo}>
                           <img
                             src={campaign.advertiserLogo || "/brand-logo.jpg"}
